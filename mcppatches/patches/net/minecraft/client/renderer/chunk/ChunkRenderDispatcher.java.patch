@@ -1,15 +1,15 @@
 --- a/net/minecraft/client/renderer/chunk/ChunkRenderDispatcher.java
 +++ b/net/minecraft/client/renderer/chunk/ChunkRenderDispatcher.java
-@@ -997,7 +997,7 @@
+@@ -1120,7 +1120,7 @@
                      Random random = new Random();
-                     BlockRendererDispatcher blockrendererdispatcher = Minecraft.getInstance().getBlockRendererDispatcher();
+                     BlockRenderDispatcher blockrenderdispatcher = Minecraft.getInstance().getBlockRenderer();
  
 -                    for (BlockPosM blockposm : BlockPosM.getAllInBoxMutable(blockpos, blockpos1))
 +                    for (BlockPosM blockposm : (Iterable<BlockPosM>)BlockPosM.getAllInBoxMutable(blockpos, blockpos1))
                      {
                          BlockState blockstate = chunkcacheof.getBlockState(blockposm);
  
-@@ -1107,7 +1107,7 @@
+@@ -1233,7 +1233,7 @@
  
                              if (ChunkRenderDispatcher.FORGE_SET_RENDER_LAYER)
                              {

@@ -1,0 +1,11 @@
+--- a/net/minecraft/client/renderer/entity/LivingEntityRenderer.java
++++ b/net/minecraft/client/renderer/entity/LivingEntityRenderer.java
+@@ -34,7 +34,7 @@
+     private static final Logger LOGGER = LogManager.getLogger();
+     private static final float EYE_BED_OFFSET = 0.1F;
+     public M model;
+-    protected final List<RenderLayer<T, M>> layers = Lists.newArrayList();
++    protected final List<RenderLayer> layers = Lists.newArrayList();
+     public float renderLimbSwing;
+     public float renderLimbSwingAmount;
+     public float renderAgeInTicks;

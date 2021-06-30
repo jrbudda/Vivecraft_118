@@ -1,0 +1,11 @@
+--- a/net/optifine/entity/model/ModelAdapterLlamaDecor.java
++++ b/net/optifine/entity/model/ModelAdapterLlamaDecor.java
+@@ -37,7 +37,7 @@
+     {
+         EntityRenderDispatcher entityrenderdispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
+         EntityType entitytype = this.getType().getLeft().get();
+-        EntityRenderer entityrenderer = entityrenderdispatcher.getEntityRenderMap().get(entitytype);
++        EntityRenderer entityrenderer = (EntityRenderer) entityrenderdispatcher.getEntityRenderMap().get(entitytype);
+ 
+         if (!(entityrenderer instanceof LlamaRenderer))
+         {

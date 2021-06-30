@@ -2,276 +2,323 @@ package org.vivecraft.gui.physical;
 
 import java.util.Queue;
 import java.util.concurrent.LinkedTransferQueue;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
+import net.minecraft.network.protocol.game.ServerboundSetCreativeModeSlotPacket;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.item.ItemStack;
 import org.vivecraft.physicalinventory.Semaphore;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.inventory.container.ClickType;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.CCloseWindowPacket;
-import net.minecraft.network.play.client.CCreativeInventoryActionPacket;
+public class WindowCoordinator extends Thread implements PhysicalGuiManager.WindowReceivedListener
+{
+    PhysicalGuiManager guiManager;
+    Minecraft mc;
+    Queue<WindowCoordinator.WindowOperation> operationQueue = new LinkedTransferQueue<>();
+    private final Object populatedSemaphore = new Object();
+    private final Object emptySemaphore = new Object();
 
-/**
- * Coordinator class that makes sure sequential Window Operations such as clicking are not affected by server lag
- * and are guaranteed to run in the correct order.
- * */
-public class WindowCoordinator extends Thread implements PhysicalGuiManager.WindowReceivedListener{
-	PhysicalGuiManager guiManager;
-	Minecraft mc;
+    public WindowCoordinator(PhysicalGuiManager mgr)
+    {
+        this.guiManager = mgr;
+        this.mc = mgr.mc;
+    }
 
-	public WindowCoordinator(PhysicalGuiManager mgr){
-		super();
-		this.guiManager=mgr;
-		this.mc=mgr.mc;
-	}
+    public void run()
+    {
+        while (true)
+        {
+            try
+            {
+                this.waitForQueuePopulated();
+                WindowCoordinator.WindowOperation windowcoordinator$windowoperation = this.operationQueue.peek();
+                windowcoordinator$windowoperation.execute();
+                this.operationQueue.poll();
 
-	Queue<WindowOperation> operationQueue=new LinkedTransferQueue<>();
+                synchronized (this.emptySemaphore)
+                {
+                    if (this.operationQueue.isEmpty())
+                    {
+                        this.emptySemaphore.notifyAll();
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                exception.printStackTrace();
+            }
+        }
+    }
 
-	@Override
-	public void run() {
-		while (true){
-			try {
-				waitForQueuePopulated();
-				WindowOperation operation = operationQueue.peek();
-				operation.execute();
-				operationQueue.poll();
-				synchronized (emptySemaphore){
-					if (operationQueue.isEmpty())
-						emptySemaphore.notifyAll();
-				}
-			}catch (Exception e){
-				e.printStackTrace();
-			}
-		}
-	}
+    public void enqueueOperation(WindowCoordinator.WindowOperation operation)
+    {
+        this.operationQueue.add(operation);
 
-	public void enqueueOperation(WindowOperation operation){
-		operationQueue.add(operation);
-		synchronized (populatedSemaphore){
-			populatedSemaphore.notifyAll();
-		}
-	}
+        synchronized (this.populatedSemaphore)
+        {
+            this.populatedSemaphore.notifyAll();
+        }
+    }
 
-	private final Object populatedSemaphore=new Object();
-	public void waitForQueuePopulated(){
-		if(!operationQueue.isEmpty())
-			return;
-		synchronized (populatedSemaphore){
-			try {
-				populatedSemaphore.wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+    public void waitForQueuePopulated()
+    {
+        if (this.operationQueue.isEmpty())
+        {
+            synchronized (this.populatedSemaphore)
+            {
+                try
+                {
+                    this.populatedSemaphore.wait();
+                }
+                catch (InterruptedException interruptedexception)
+                {
+                    interruptedexception.printStackTrace();
+                }
+            }
+        }
+    }
 
-	private final Object emptySemaphore=new Object();
-	public void waitForQueueEmpty(){
-		if(operationQueue.isEmpty())
-			return;
-		synchronized (emptySemaphore){
-			try {
-				emptySemaphore.wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+    public void waitForQueueEmpty()
+    {
+        if (!this.operationQueue.isEmpty())
+        {
+            synchronized (this.emptySemaphore)
+            {
+                try
+                {
+                    this.emptySemaphore.wait();
+                }
+                catch (InterruptedException interruptedexception)
+                {
+                    interruptedexception.printStackTrace();
+                }
+            }
+        }
+    }
 
-	@Override
-	public void onWindowReceived() {
-		WindowOperation current=operationQueue.peek();
-		if(current!=null && current instanceof PhysicalGuiManager.WindowReceivedListener){
-			((PhysicalGuiManager.WindowReceivedListener)current).onWindowReceived();
-		}
-	}
+    public void onWindowReceived()
+    {
+        WindowCoordinator.WindowOperation windowcoordinator$windowoperation = this.operationQueue.peek();
 
-	public abstract static class WindowOperation{
-		Minecraft mc=Minecraft.getInstance();
-		public abstract void execute();
-	}
+        if (windowcoordinator$windowoperation != null && windowcoordinator$windowoperation instanceof PhysicalGuiManager.WindowReceivedListener)
+        {
+            ((PhysicalGuiManager.WindowReceivedListener)windowcoordinator$windowoperation).onWindowReceived();
+        }
+    }
 
-	public static class ClickOperation extends WindowOperation{
-		int slotId, mouseButton;
-		PhysicalGuiManager guiManager;
-		ClickType type=ClickType.PICKUP;
-		boolean raw = false;
+    public static int[] getFreeSlotsInInventory(int count)
+    {
+        if (count == 0)
+        {
+            return new int[0];
+        }
+        else
+        {
+            AbstractContainerMenu abstractcontainermenu = Minecraft.getInstance().player.containerMenu;
+            PhysicalGui.InventoryMetaData physicalgui$inventorymetadata = PhysicalGui.analyseInventory(abstractcontainermenu);
+            int i = physicalgui$inventorymetadata.inventoryOffset;
+            int[] aint = new int[count];
 
-		public ClickOperation(PhysicalGuiManager guiManager,int slotId, ClickType type, boolean raw, int mouseButton){
-			this(guiManager,slotId,mouseButton);
-			this.type=type;
-			this.raw=raw;
-		}
-		public ClickOperation(PhysicalGuiManager guiManager,int slotId, int mouseButton){
-			this.slotId=slotId;
-			this.mouseButton=mouseButton;
-			this.guiManager=guiManager;
-		}
-		
-		@Override
-		public String toString() {
-			return "ClickOperation{" +
-					"slotId=" + slotId +
-					", mouseButton=" + mouseButton +
-					", guiManager=" + guiManager +
-					", type=" + type +
-					", raw=" + raw +
-					'}';
-		}
-		
-		@Override
-		public void execute() {
-			Container container = mc.player.openContainer;
+            for (int j = 0; j < aint.length; ++j)
+            {
+                aint[j] = -1;
+            }
 
-			int hotbarslot = mc.player.inventory.currentItem;
-			PhysicalGui.InventoryMetaData metaData = PhysicalGui.analyseInventory(container);
-			int offset = metaData.hotbarOffset;
+            int l = 0;
 
-			if (!raw && guiManager.isHoldingHotbarSlot && !mc.player.inventory.getCurrentItem().isEmpty()) {
-				if (slotId == offset + hotbarslot) {
-					guiManager.isHoldingHotbarSlot=false;
-					return;
-				}
+            for (int k = 0; k < 36; ++k)
+            {
+                ItemStack itemstack = abstractcontainermenu.slots.get(k + i).getItem();
 
-				mc.player.windowClickSynced(container.windowId, hotbarslot + offset, 0, ClickType.PICKUP, 1000);
-				mc.player.windowClickSynced(container.windowId, slotId, mouseButton, type, 1000);
-				guiManager.isHoldingHotbarSlot = false;
-			} else {
-				mc.player.windowClickSynced(container.windowId, slotId, mouseButton, type, 1000);
-			}
-		}
-	}
+                if (itemstack.isEmpty())
+                {
+                    if (l >= count)
+                    {
+                        break;
+                    }
 
-	/**
-	 * Creates an item in Creative Mode
-	 * */
-	public static class FabricateItemOperation extends WindowOperation{
-		ItemStack item;
-		public FabricateItemOperation(ItemStack item){
-			this.item=item;
-		}
-		@Override
-		public void execute() {
-			PhysicalGui.InventoryMetaData metaData=PhysicalGui.analyseInventory(mc.player.openContainer);
-			if(mc.physicalGuiManager.isHoldingHotbarSlot && !mc.player.inventory.getCurrentItem().isEmpty()){
-				//we are fake-holding an item. Delete it.
-				mc.physicalGuiManager.isHoldingHotbarSlot=false;
-				mc.player.connection.sendPacket(
-						new CCreativeInventoryActionPacket(36+mc.player.inventory.currentItem,ItemStack.EMPTY));
-				return;
-			}
-			ItemStack itemToMake;
-			if(!mc.player.inventory.getItemStack().isEmpty())
-				itemToMake=ItemStack.EMPTY;
-			else
-				itemToMake=item;
+                    aint[l] = k + i;
+                    ++l;
+                }
+            }
 
-			//Create the item in inventory, then pick it up
-			mc.physicalGuiManager.isHoldingHotbarSlot=false;
-			ItemStack tmp=mc.player.openContainer.getSlot(metaData.inventoryOffset).getStack().copy();
-			mc.player.connection.sendPacket(
-					new CCreativeInventoryActionPacket(9,itemToMake));
-			mc.player.windowClickSynced(mc.player.openContainer.windowId, metaData.inventoryOffset, 0, ClickType.PICKUP, 1000);
-			mc.player.connection.sendPacket(
-					new CCreativeInventoryActionPacket(9,tmp));
+            return aint;
+        }
+    }
 
-		}
-	}
+    public static class ClearInventoryOperation extends WindowCoordinator.WindowOperation
+    {
+        public void execute()
+        {
+            for (int i = 1; i <= 45; ++i)
+            {
+                this.mc.player.connection.send(new ServerboundSetCreativeModeSlotPacket(i, ItemStack.EMPTY));
+            }
+        }
+    }
 
-	public static class CloseWindowOperation extends WindowOperation{
-		@Override
-		public void execute() {
-			mc.player.connection.sendPacket(new CCloseWindowPacket(mc.player.openContainer.windowId));
-			mc.player.inventory.setItemStack(ItemStack.EMPTY);
-			mc.player.openContainer=mc.player.container;
-			try {
-				Thread.sleep(10); //Shouldn't be necessary, but doesn't hurt to wait a little
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+    public static class ClickOperation extends WindowCoordinator.WindowOperation
+    {
+        int slotId;
+        int mouseButton;
+        PhysicalGuiManager guiManager;
+        ClickType type = ClickType.PICKUP;
+        boolean raw = false;
 
-	public static class OpenWindowOperation extends WindowOperation implements PhysicalGuiManager.WindowReceivedListener{
-		PhysicalGui gui;
-		PhysicalGuiManager manager;
-		public OpenWindowOperation(PhysicalGuiManager manager,PhysicalGui gui){
-			this.gui=gui;
-			this.manager=manager;
-		}
+        public ClickOperation(PhysicalGuiManager guiManager, int slotId, ClickType type, boolean raw, int mouseButton)
+        {
+            this(guiManager, slotId, mouseButton);
+            this.type = type;
+            this.raw = raw;
+        }
 
-		final Semaphore windowRecievedSemaphore=new Semaphore(5000);
-		@Override
-		public void onWindowReceived() {
-			windowRecievedSemaphore.wakeUp();
-		}
+        public ClickOperation(PhysicalGuiManager guiManager, int slotId, int mouseButton)
+        {
+            this.slotId = slotId;
+            this.mouseButton = mouseButton;
+            this.guiManager = guiManager;
+        }
 
-		@Override
-		public void execute() {
-			windowRecievedSemaphore.reactivate();
-			boolean success=gui.requestOpen();
-			if (!success)
-				return;
-			manager.activeGui = gui;
-			manager.requestWindowIntercept();
-			windowRecievedSemaphore.waitFor();
+        public String toString()
+        {
+            return "ClickOperation{slotId=" + this.slotId + ", mouseButton=" + this.mouseButton + ", guiManager=" + this.guiManager + ", type=" + this.type + ", raw=" + this.raw + '}';
+        }
 
-		}
-	}
+        public void execute()
+        {
+            AbstractContainerMenu abstractcontainermenu = this.mc.player.containerMenu;
+            int i = this.mc.player.inventory.selected;
+            PhysicalGui.InventoryMetaData physicalgui$inventorymetadata = PhysicalGui.analyseInventory(abstractcontainermenu);
+            int j = physicalgui$inventorymetadata.hotbarOffset;
 
-	public static class ClearInventoryOperation extends WindowOperation{
-		@Override
-		public void execute() {
-			for (int i = 1; i <= 45; i++) {
-				mc.player.connection.sendPacket(
-						new CCreativeInventoryActionPacket(i,ItemStack.EMPTY));
-			}
+            if (!this.raw && this.guiManager.isHoldingHotbarSlot && !this.mc.player.inventory.getSelected().isEmpty())
+            {
+                if (this.slotId == j + i)
+                {
+                    this.guiManager.isHoldingHotbarSlot = false;
+                    return;
+                }
 
-		}
-	}
+                this.mc.player.windowClickSynced(abstractcontainermenu.containerId, i + j, 0, ClickType.PICKUP, 1000L);
+                this.mc.player.windowClickSynced(abstractcontainermenu.containerId, this.slotId, this.mouseButton, this.type, 1000L);
+                this.guiManager.isHoldingHotbarSlot = false;
+            }
+            else
+            {
+                this.mc.player.windowClickSynced(abstractcontainermenu.containerId, this.slotId, this.mouseButton, this.type, 1000L);
+            }
+        }
+    }
 
-	public static class FakeHoldOperation extends WindowOperation{
-		boolean holding;
-		public FakeHoldOperation(boolean holding){
-			this.holding=holding;
-		}
-		@Override
-		public void execute() {
-			mc.physicalGuiManager.isHoldingHotbarSlot=holding;
-		}
-	}
+    public static class CloseWindowOperation extends WindowCoordinator.WindowOperation
+    {
+        public void execute()
+        {
+            this.mc.player.connection.send(new ServerboundContainerClosePacket(this.mc.player.containerMenu.containerId));
+            this.mc.player.inventory.setCarried(ItemStack.EMPTY);
+            this.mc.player.containerMenu = this.mc.player.inventoryMenu;
 
-	/**
-	 * Finds (count) free slots in the player inventory and returns their absolute slot ids as an array
-	 * If a free slot is not found that array entry will be -1
-	 * */
-	public static int[] getFreeSlotsInInventory(int count){
-		if (count==0)
-			return new int[0];
-		Container container=Minecraft.getInstance().player.openContainer;
-		PhysicalGui.InventoryMetaData metaData= PhysicalGui.analyseInventory(container);
-		int offset=metaData.inventoryOffset;
+            try
+            {
+                Thread.sleep(10L);
+            }
+            catch (InterruptedException interruptedexception)
+            {
+                interruptedexception.printStackTrace();
+            }
+        }
+    }
 
-		int[] targets=new int[count];
-		//init array
-		for (int i = 0; i < targets.length; i++) {
-			targets[i]=-1;
-		}
-		int index=0;
+    public static class FabricateItemOperation extends WindowCoordinator.WindowOperation
+    {
+        ItemStack item;
 
-		for (int i = 0; i < 36; i++) {
-			ItemStack item=container.inventorySlots.get(i+offset).getStack();
-			if(item.isEmpty()){
-				if(index<count){
-					targets[index]=i+offset;
-					index++;
-				}else{
-					break;
-				}
-			}
-		}
-		return targets;
-	}
+        public FabricateItemOperation(ItemStack item)
+        {
+            this.item = item;
+        }
 
+        public void execute()
+        {
+            PhysicalGui.InventoryMetaData physicalgui$inventorymetadata = PhysicalGui.analyseInventory(this.mc.player.containerMenu);
+
+            if (this.mc.physicalGuiManager.isHoldingHotbarSlot && !this.mc.player.inventory.getSelected().isEmpty())
+            {
+                this.mc.physicalGuiManager.isHoldingHotbarSlot = false;
+                this.mc.player.connection.send(new ServerboundSetCreativeModeSlotPacket(36 + this.mc.player.inventory.selected, ItemStack.EMPTY));
+            }
+            else
+            {
+                ItemStack itemstack;
+
+                if (!this.mc.player.inventory.getCarried().isEmpty())
+                {
+                    itemstack = ItemStack.EMPTY;
+                }
+                else
+                {
+                    itemstack = this.item;
+                }
+
+                this.mc.physicalGuiManager.isHoldingHotbarSlot = false;
+                ItemStack itemstack1 = this.mc.player.containerMenu.getSlot(physicalgui$inventorymetadata.inventoryOffset).getItem().copy();
+                this.mc.player.connection.send(new ServerboundSetCreativeModeSlotPacket(9, itemstack));
+                this.mc.player.windowClickSynced(this.mc.player.containerMenu.containerId, physicalgui$inventorymetadata.inventoryOffset, 0, ClickType.PICKUP, 1000L);
+                this.mc.player.connection.send(new ServerboundSetCreativeModeSlotPacket(9, itemstack1));
+            }
+        }
+    }
+
+    public static class FakeHoldOperation extends WindowCoordinator.WindowOperation
+    {
+        boolean holding;
+
+        public FakeHoldOperation(boolean holding)
+        {
+            this.holding = holding;
+        }
+
+        public void execute()
+        {
+            this.mc.physicalGuiManager.isHoldingHotbarSlot = this.holding;
+        }
+    }
+
+    public static class OpenWindowOperation extends WindowCoordinator.WindowOperation implements PhysicalGuiManager.WindowReceivedListener
+    {
+        PhysicalGui gui;
+        PhysicalGuiManager manager;
+        final Semaphore windowRecievedSemaphore = new Semaphore(5000L);
+
+        public OpenWindowOperation(PhysicalGuiManager manager, PhysicalGui gui)
+        {
+            this.gui = gui;
+            this.manager = manager;
+        }
+
+        public void onWindowReceived()
+        {
+            this.windowRecievedSemaphore.wakeUp();
+        }
+
+        public void execute()
+        {
+            this.windowRecievedSemaphore.reactivate();
+            boolean flag = this.gui.requestOpen();
+
+            if (flag)
+            {
+                this.manager.activeGui = this.gui;
+                this.manager.requestWindowIntercept();
+                this.windowRecievedSemaphore.waitFor();
+            }
+        }
+    }
+
+    public abstract static class WindowOperation
+    {
+        Minecraft mc = Minecraft.getInstance();
+
+        public abstract void execute();
+    }
 }

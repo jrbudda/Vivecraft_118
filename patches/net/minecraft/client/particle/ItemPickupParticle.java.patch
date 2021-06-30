@@ -1,43 +1,39 @@
 --- a/net/minecraft/client/particle/ItemPickupParticle.java
 +++ b/net/minecraft/client/particle/ItemPickupParticle.java
-@@ -2,6 +2,8 @@
- 
- import com.mojang.blaze3d.matrix.MatrixStack;
- import com.mojang.blaze3d.vertex.IVertexBuilder;
-+
+@@ -3,6 +3,7 @@
+ import com.mojang.blaze3d.vertex.PoseStack;
+ import com.mojang.blaze3d.vertex.VertexConsumer;
+ import net.minecraft.client.Camera;
 +import net.minecraft.client.Minecraft;
- import net.minecraft.client.renderer.ActiveRenderInfo;
- import net.minecraft.client.renderer.IRenderTypeBuffer;
- import net.minecraft.client.renderer.RenderTypeBuffers;
-@@ -59,14 +61,28 @@
+ import net.minecraft.client.multiplayer.ClientLevel;
+ import net.minecraft.client.renderer.MultiBufferSource;
+ import net.minecraft.client.renderer.RenderBuffers;
+@@ -59,15 +60,23 @@
  
-         float f = ((float)this.age + partialTicks) / 3.0F;
+         float f = ((float)this.life + p_107041_) / 3.0F;
          f = f * f;
--        double d0 = MathHelper.lerp((double)partialTicks, this.target.lastTickPosX, this.target.getPosX());
--        double d1 = MathHelper.lerp((double)partialTicks, this.target.lastTickPosY, this.target.getPosY()) + 0.5D;
--        double d2 = MathHelper.lerp((double)partialTicks, this.target.lastTickPosZ, this.target.getPosZ());
-+        
-+        Vector3d pos = this.target.getPositionVec().add(0, 0.5f, 0);
-+   
-+        //Vivecraft
-+        Minecraft mc = Minecraft.getInstance();
-+        if (target== mc.player) {
-+        	pos = mc.gameRenderer.getControllerRenderPos(0);
-+        }   
-+        //
-+      
-+        double d0 = MathHelper.lerp((double)partialTicks, this.target.lastTickPosX, pos.getX());
-+        double d1 = MathHelper.lerp((double)partialTicks, this.target.lastTickPosY, pos.getY());
-+        double d2 = MathHelper.lerp((double)partialTicks, this.target.lastTickPosZ, pos.getZ());
-+        
-         double d3 = MathHelper.lerp((double)f, this.item.getPosX(), d0);
-         double d4 = MathHelper.lerp((double)f, this.item.getPosY(), d1);
-         double d5 = MathHelper.lerp((double)f, this.item.getPosZ(), d2);
-         IRenderTypeBuffer.Impl irendertypebuffer$impl = this.renderTypeBuffers.getBufferSource();
-         Vector3d vector3d = renderInfo.getProjectedView();
-+     
+-        double d0 = Mth.lerp((double)p_107041_, this.target.xOld, this.target.getX());
+-        double d1 = Mth.lerp((double)p_107041_, this.target.yOld, this.target.getY()) + 0.5D;
+-        double d2 = Mth.lerp((double)p_107041_, this.target.zOld, this.target.getZ());
++        Vec3 vec3 = this.target.position().add(0.0D, 0.5D, 0.0D);
++        Minecraft minecraft = Minecraft.getInstance();
 +
-+        
-         this.renderManager.renderEntityStatic(this.item, d3 - vector3d.getX(), d4 - vector3d.getY(), d5 - vector3d.getZ(), this.item.rotationYaw, partialTicks, new MatrixStack(), irendertypebuffer$impl, this.renderManager.getPackedLight(this.item, partialTicks));
-         irendertypebuffer$impl.finish();
++        if (this.target == minecraft.player)
++        {
++            vec3 = minecraft.gameRenderer.getControllerRenderPos(0);
++        }
++
++        double d0 = Mth.lerp((double)p_107041_, this.target.xOld, vec3.x());
++        double d1 = Mth.lerp((double)p_107041_, this.target.yOld, vec3.y());
++        double d2 = Mth.lerp((double)p_107041_, this.target.zOld, vec3.z());
+         double d3 = Mth.lerp((double)f, this.itemEntity.getX(), d0);
+         double d4 = Mth.lerp((double)f, this.itemEntity.getY(), d1);
+         double d5 = Mth.lerp((double)f, this.itemEntity.getZ(), d2);
+         MultiBufferSource.BufferSource multibuffersource$buffersource = this.renderBuffers.bufferSource();
+-        Vec3 vec3 = p_107040_.getPosition();
+-        this.entityRenderDispatcher.render(this.itemEntity, d3 - vec3.x(), d4 - vec3.y(), d5 - vec3.z(), this.itemEntity.yRot, p_107041_, new PoseStack(), multibuffersource$buffersource, this.entityRenderDispatcher.getPackedLightCoords(this.itemEntity, p_107041_));
++        Vec3 vec31 = p_107040_.getPosition();
++        this.entityRenderDispatcher.render(this.itemEntity, d3 - vec31.x(), d4 - vec31.y(), d5 - vec31.z(), this.itemEntity.yRot, p_107041_, new PoseStack(), multibuffersource$buffersource, this.entityRenderDispatcher.getPackedLightCoords(this.itemEntity, p_107041_));
+         multibuffersource$buffersource.endBatch();
  
+         if (Config.isShaders())

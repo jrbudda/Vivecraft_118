@@ -1,163 +1,157 @@
-/**
- * Copyright 2013 Mark Browning, StellaArtois
- * Licensed under the LGPL 3.0 or later (See LICENSE.md for details)
- */
 package org.vivecraft.gui.settings;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import java.awt.Color;
-
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.screens.Screen;
+import net.optifine.Config;
 import org.vivecraft.gui.framework.GuiVROptionButton;
 import org.vivecraft.gui.framework.GuiVROptionsBase;
 import org.vivecraft.settings.VRHotkeys;
 import org.vivecraft.settings.VRSettings;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.Widget;
-import net.optifine.Config;
-
-public class GuiRenderOpticsSettings  extends GuiVROptionsBase
+public class GuiRenderOpticsSettings extends GuiVROptionsBase
 {
-    static VRSettings.VrOptions[] monoDisplayOptions = new VRSettings.VrOptions[] {
-            VRSettings.VrOptions.MONO_FOV,
-            VRSettings.VrOptions.DUMMY,
-            VRSettings.VrOptions.FSAA,
-    };
-
-    static VRSettings.VrOptions[] openVRDisplayOptions = new VRSettings.VrOptions[] {
-            VRSettings.VrOptions.RENDER_SCALEFACTOR,
-            VRSettings.VrOptions.MIRROR_DISPLAY,     
-            VRSettings.VrOptions.FSAA,
-            VRSettings.VrOptions.STENCIL_ON,
-			VRSettings.VrOptions.HANDHELD_CAMERA_RENDER_SCALE,
-			VRSettings.VrOptions.HANDHELD_CAMERA_FOV,
-			VRSettings.VrOptions.RELOAD_EXTERNAL_CAMERA,
-			VRSettings.VrOptions.MIRROR_EYE,
-    };
-    
-    static VRSettings.VrOptions[] MROptions = new VRSettings.VrOptions[] {
-            VRSettings.VrOptions.MIXED_REALITY_UNITY_LIKE,
-            VRSettings.VrOptions.MIXED_REALITY_RENDER_HANDS,
-            VRSettings.VrOptions.MIXED_REALITY_KEY_COLOR,
-            VRSettings.VrOptions.MIXED_REALITY_FOV,
-            VRSettings.VrOptions.MIXED_REALITY_UNDISTORTED,
-            VRSettings.VrOptions.MONO_FOV,
-            VRSettings.VrOptions.MIXED_REALITY_ALPHA_MASK,
-    };
-    
-    static VRSettings.VrOptions[] UDOptions = new VRSettings.VrOptions[] {
-            VRSettings.VrOptions.MONO_FOV,
-    };
-    
-    static VRSettings.VrOptions[] TUDOptions = new VRSettings.VrOptions[] {
-            VRSettings.VrOptions.MIXED_REALITY_FOV,
-    };
-
-    private float prevRenderScaleFactor;
-    private float prevHandCameraResScale;
+    static VRSettings.VrOptions[] monoDisplayOptions = new VRSettings.VrOptions[] {VRSettings.VrOptions.MONO_FOV, VRSettings.VrOptions.DUMMY, VRSettings.VrOptions.FSAA};
+    static VRSettings.VrOptions[] openVRDisplayOptions = new VRSettings.VrOptions[] {VRSettings.VrOptions.RENDER_SCALEFACTOR, VRSettings.VrOptions.MIRROR_DISPLAY, VRSettings.VrOptions.FSAA, VRSettings.VrOptions.STENCIL_ON, VRSettings.VrOptions.HANDHELD_CAMERA_RENDER_SCALE, VRSettings.VrOptions.HANDHELD_CAMERA_FOV, VRSettings.VrOptions.RELOAD_EXTERNAL_CAMERA, VRSettings.VrOptions.MIRROR_EYE};
+    static VRSettings.VrOptions[] MROptions = new VRSettings.VrOptions[] {VRSettings.VrOptions.MIXED_REALITY_UNITY_LIKE, VRSettings.VrOptions.MIXED_REALITY_RENDER_HANDS, VRSettings.VrOptions.MIXED_REALITY_KEY_COLOR, VRSettings.VrOptions.MIXED_REALITY_FOV, VRSettings.VrOptions.MIXED_REALITY_UNDISTORTED, VRSettings.VrOptions.MONO_FOV, VRSettings.VrOptions.MIXED_REALITY_ALPHA_MASK, VRSettings.VrOptions.MIXED_REALITY_RENDER_CAMERA_MODEL};
+    static VRSettings.VrOptions[] UDOptions = new VRSettings.VrOptions[] {VRSettings.VrOptions.MONO_FOV};
+    static VRSettings.VrOptions[] TUDOptions = new VRSettings.VrOptions[] {VRSettings.VrOptions.MIXED_REALITY_FOV, VRSettings.VrOptions.MIXED_REALITY_RENDER_CAMERA_MODEL};
+    private float prevRenderScaleFactor = this.settings.renderScaleFactor;
+    private float prevHandCameraResScale = this.settings.handCameraResScale;
 
     public GuiRenderOpticsSettings(Screen par1Screen)
     {
-    	super( par1Screen);
-		prevRenderScaleFactor = settings.renderScaleFactor;
-		prevHandCameraResScale = settings.handCameraResScale;
+        super(par1Screen);
     }
 
-    @Override
     public void init()
     {
-        vrTitle = "vivecraft.options.screen.stereorendering";
+        this.vrTitle = "vivecraft.options.screen.stereorendering";
+        VRSettings.VrOptions[] avrsettings$vroptions = new VRSettings.VrOptions[openVRDisplayOptions.length];
+        System.arraycopy(openVRDisplayOptions, 0, avrsettings$vroptions, 0, openVRDisplayOptions.length);
 
-    	{
-			VRSettings.VrOptions[] buttons = new VRSettings.VrOptions[openVRDisplayOptions.length];
-			System.arraycopy(openVRDisplayOptions, 0, buttons, 0, openVRDisplayOptions.length);
-			for (int i = 0; i < buttons.length; i++) {
-				VRSettings.VrOptions option = buttons[i];
-				if (option == VRSettings.VrOptions.RELOAD_EXTERNAL_CAMERA && (!VRHotkeys.hasExternalCameraConfig() || (minecraft.vrSettings.displayMirrorMode != VRSettings.MIRROR_MIXED_REALITY && minecraft.vrSettings.displayMirrorMode != VRSettings.MIRROR_THIRD_PERSON)))
-					buttons[i] = VRSettings.VrOptions.DUMMY;
-				if (option == VRSettings.VrOptions.MIRROR_EYE && minecraft.vrSettings.displayMirrorMode != VRSettings.MIRROR_ON_CROPPED && minecraft.vrSettings.displayMirrorMode != VRSettings.MIRROR_ON_SINGLE)
-					buttons[i] = VRSettings.VrOptions.DUMMY;
-			}
-			super.init(buttons, true);
-		}
+        for (int i = 0; i < avrsettings$vroptions.length; ++i)
+        {
+            VRSettings.VrOptions vrsettings$vroptions = avrsettings$vroptions[i];
 
-    	if(minecraft.vrSettings.displayMirrorMode == VRSettings.MIRROR_MIXED_REALITY){
-//    		GuiSmallButtonEx mr = new GuiSmallButtonEx(0, this.width / 2 - 68, this.height / 6 + 65, "Mixed Reality Options");
-//    		mr.enabled = false;
-//    		this.buttons.add(mr);
-    		VRSettings.VrOptions[] buttons = new VRSettings.VrOptions[MROptions.length];
-    		System.arraycopy(MROptions, 0, buttons, 0, MROptions.length);
-    		for (int i = 0; i < buttons.length; i++) {
-    			VRSettings.VrOptions option = buttons[i];
-    			if (option == VRSettings.VrOptions.MONO_FOV && (!minecraft.vrSettings.mixedRealityMRPlusUndistorted || !minecraft.vrSettings.mixedRealityUnityLike))
-    				buttons[i] = VRSettings.VrOptions.DUMMY;
-    			if (option == VRSettings.VrOptions.MIXED_REALITY_ALPHA_MASK && !minecraft.vrSettings.mixedRealityUnityLike)
-    				buttons[i] = VRSettings.VrOptions.DUMMY;
-    			if (option == VRSettings.VrOptions.MIXED_REALITY_UNDISTORTED && !minecraft.vrSettings.mixedRealityUnityLike)
-    				buttons[i] = VRSettings.VrOptions.DUMMY;
-    			if (option == VRSettings.VrOptions.MIXED_REALITY_KEY_COLOR && minecraft.vrSettings.mixedRealityAlphaMask && minecraft.vrSettings.mixedRealityUnityLike)
-    				buttons[i] = VRSettings.VrOptions.DUMMY;
-    		} 		
-    		super.init(buttons, false);
-    	}else if(minecraft.vrSettings.displayMirrorMode == VRSettings.MIRROR_FIRST_PERSON ){
-    		super.init(UDOptions, false);
-    	}else if( minecraft.vrSettings.displayMirrorMode == VRSettings.MIRROR_THIRD_PERSON){
-    		super.init(TUDOptions, false);
-    	}
-    	super.addDefaultButtons();
+            if (vrsettings$vroptions == VRSettings.VrOptions.RELOAD_EXTERNAL_CAMERA && (!VRHotkeys.hasExternalCameraConfig() || this.minecraft.vrSettings.displayMirrorMode != 15 && this.minecraft.vrSettings.displayMirrorMode != 14))
+            {
+                avrsettings$vroptions[i] = VRSettings.VrOptions.DUMMY;
+            }
 
-    	this.buttons.stream().filter(w -> w instanceof GuiVROptionButton).forEach(w -> {
-    		GuiVROptionButton butt = (GuiVROptionButton)w;
-    		if (butt.getOption() == VRSettings.VrOptions.HANDHELD_CAMERA_RENDER_SCALE && Config.isShaders())
-    			butt.active = false;
-		});
-    }
-    
-    @Override
-    public void render(MatrixStack matrixstack,int mouseX, int mouseY, float partialTicks) {
-    	super.render(matrixstack, mouseX, mouseY, partialTicks);
-    }
-    
-    @Override
-    protected void loadDefaults() {
-    	this.settings.renderScaleFactor = 1.0f;
-    	this.settings.displayMirrorMode = VRSettings.MIRROR_ON_CROPPED;
-    	this.settings.displayMirrorLeftEye = false;
-    	this.settings.mixedRealityKeyColor = new Color(0, 0, 0);
-    	this.settings.mixedRealityRenderHands = false;
-    	this.settings.insideBlockSolidColor = false;
-    	this.settings.mixedRealityUnityLike = true;
-    	this.settings.mixedRealityMRPlusUndistorted = true;
-    	this.settings.mixedRealityAlphaMask = false;
-    	this.settings.mixedRealityFov = 40;
-    	this.minecraft.gameSettings.fov = 70f;
-    	this.settings.useFsaa = true;
-    	this.settings.vrUseStencil = true;
-        this.minecraft.stereoProvider.reinitFrameBuffers("Defaults Loaded");
-    }
-    
-    @Override
-    protected void actionPerformed(Widget widget) {
-    	if(!(widget instanceof GuiVROptionButton)) return;
-    	GuiVROptionButton button = (GuiVROptionButton) widget;
-    	if (button.id == VRSettings.VrOptions.MIRROR_DISPLAY.ordinal() ||
-        		button.id == VRSettings.VrOptions.FSAA.ordinal())
-        	{
-                this.minecraft.stereoProvider.reinitFrameBuffers("Render Setting Changed");
-        	}
+            if (vrsettings$vroptions == VRSettings.VrOptions.MIRROR_EYE && this.minecraft.vrSettings.displayMirrorMode != 16 && this.minecraft.vrSettings.displayMirrorMode != 12)
+            {
+                avrsettings$vroptions[i] = VRSettings.VrOptions.DUMMY;
+            }
+        }
+
+        super.init(avrsettings$vroptions, true);
+
+        if (this.minecraft.vrSettings.displayMirrorMode == 15)
+        {
+            avrsettings$vroptions = new VRSettings.VrOptions[MROptions.length];
+            System.arraycopy(MROptions, 0, avrsettings$vroptions, 0, MROptions.length);
+
+            for (int j = 0; j < avrsettings$vroptions.length; ++j)
+            {
+                VRSettings.VrOptions vrsettings$vroptions1 = avrsettings$vroptions[j];
+
+                if (vrsettings$vroptions1 == VRSettings.VrOptions.MONO_FOV && (!this.minecraft.vrSettings.mixedRealityMRPlusUndistorted || !this.minecraft.vrSettings.mixedRealityUnityLike))
+                {
+                    avrsettings$vroptions[j] = VRSettings.VrOptions.DUMMY;
+                }
+
+                if (vrsettings$vroptions1 == VRSettings.VrOptions.MIXED_REALITY_ALPHA_MASK && !this.minecraft.vrSettings.mixedRealityUnityLike)
+                {
+                    avrsettings$vroptions[j] = VRSettings.VrOptions.DUMMY;
+                }
+
+                if (vrsettings$vroptions1 == VRSettings.VrOptions.MIXED_REALITY_UNDISTORTED && !this.minecraft.vrSettings.mixedRealityUnityLike)
+                {
+                    avrsettings$vroptions[j] = VRSettings.VrOptions.DUMMY;
+                }
+
+                if (vrsettings$vroptions1 == VRSettings.VrOptions.MIXED_REALITY_KEY_COLOR && this.minecraft.vrSettings.mixedRealityAlphaMask && this.minecraft.vrSettings.mixedRealityUnityLike)
+                {
+                    avrsettings$vroptions[j] = VRSettings.VrOptions.DUMMY;
+                }
+            }
+
+            super.init(avrsettings$vroptions, false);
+        }
+        else if (this.minecraft.vrSettings.displayMirrorMode == 13)
+        {
+            super.init(UDOptions, false);
+        }
+        else if (this.minecraft.vrSettings.displayMirrorMode == 14)
+        {
+            super.init(TUDOptions, false);
+        }
+
+        super.addDefaultButtons();
+        this.buttons.stream().filter((w) ->
+        {
+            return w instanceof GuiVROptionButton;
+        }).forEach((w) ->
+        {
+            GuiVROptionButton guivroptionbutton = (GuiVROptionButton)w;
+
+            if (guivroptionbutton.getOption() == VRSettings.VrOptions.HANDHELD_CAMERA_RENDER_SCALE && Config.isShaders())
+            {
+                guivroptionbutton.active = false;
+            }
+        });
     }
 
-	@Override
-	public boolean mouseReleased(double mouseX, double mouseY, int button) {
-		// Hacky way of making the render scale slider only reinit on mouse release
-    	if (settings.renderScaleFactor != prevRenderScaleFactor || settings.handCameraResScale != prevHandCameraResScale) {
-			prevRenderScaleFactor = settings.renderScaleFactor;
-			prevHandCameraResScale = settings.handCameraResScale;
-			this.minecraft.stereoProvider.reinitFrameBuffers("Render Setting Changed");
-		}
+    public void render(PoseStack p_96562_, int p_96563_, int p_96564_, float p_96565_)
+    {
+        super.render(p_96562_, p_96563_, p_96564_, p_96565_);
+    }
 
-		return super.mouseReleased(mouseX, mouseY, button);
-	}
+    protected void loadDefaults()
+    {
+        this.settings.renderScaleFactor = 1.0F;
+        this.settings.displayMirrorMode = 16;
+        this.settings.displayMirrorLeftEye = false;
+        this.settings.mixedRealityKeyColor = new Color(0, 0, 0);
+        this.settings.mixedRealityRenderHands = false;
+        this.settings.insideBlockSolidColor = false;
+        this.settings.mixedRealityUnityLike = true;
+        this.settings.mixedRealityMRPlusUndistorted = true;
+        this.settings.mixedRealityAlphaMask = false;
+        this.settings.mixedRealityFov = 40.0F;
+        this.settings.mixedRealityRenderCameraModel = true;
+        this.minecraft.options.fov = 70.0D;
+        this.settings.handCameraFov = 70.0F;
+        this.settings.handCameraResScale = 1.0F;
+        this.settings.useFsaa = true;
+        this.settings.vrUseStencil = true;
+        this.minecraft.vrRenderer.reinitFrameBuffers("Defaults Loaded");
+    }
+
+    protected void actionPerformed(AbstractWidget widget)
+    {
+        if (widget instanceof GuiVROptionButton)
+        {
+            GuiVROptionButton guivroptionbutton = (GuiVROptionButton)widget;
+
+            if (guivroptionbutton.id == VRSettings.VrOptions.MIRROR_DISPLAY.ordinal() || guivroptionbutton.id == VRSettings.VrOptions.FSAA.ordinal())
+            {
+                this.minecraft.vrRenderer.reinitFrameBuffers("Render Setting Changed");
+            }
+        }
+    }
+
+    public boolean mouseReleased(double p_94753_, double p_94754_, int p_94755_)
+    {
+        if (this.settings.renderScaleFactor != this.prevRenderScaleFactor || this.settings.handCameraResScale != this.prevHandCameraResScale)
+        {
+            this.prevRenderScaleFactor = this.settings.renderScaleFactor;
+            this.prevHandCameraResScale = this.settings.handCameraResScale;
+            this.minecraft.vrRenderer.reinitFrameBuffers("Render Setting Changed");
+        }
+
+        return super.mouseReleased(p_94753_, p_94754_, p_94755_);
+    }
 }
-

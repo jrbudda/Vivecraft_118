@@ -1,283 +1,321 @@
 package org.vivecraft.gameplay.trackers;
 
 import java.util.HashSet;
-
-import org.vivecraft.api.NetworkHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.api.VRData;
-import org.vivecraft.control.ControllerType;
-import org.vivecraft.provider.MCOpenVR;
+import org.vivecraft.provider.ControllerType;
 import org.vivecraft.reflection.MCReflection;
-import org.vivecraft.reflection.MCReflection.ReflectionMethod;
 import org.vivecraft.render.RenderPass;
 import org.vivecraft.render.VRFirstPersonArmSwing;
 import org.vivecraft.settings.VRHotkeys;
-import org.vivecraft.settings.VRSettings;
-import org.vivecraft.utils.math.Quaternion;
 
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.ProjectileHelper;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.network.play.client.CPlayerDiggingPacket;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.World;
+public class InteractTracker extends Tracker
+{
+    public boolean[] bukkit = new boolean[2];
+    public int hotbar = -1;
+    public BlockHitResult[] inBlockHit = new BlockHitResult[2];
+    BlockPos[] inBlockPos = new BlockPos[2];
+    Entity[] inEntity = new Entity[2];
+    private EntityHitResult[] inEntityHit = new EntityHitResult[2];
+    private boolean[] inCamera = new boolean[2];
+    private boolean[] inHandheldCamera = new boolean[2];
+    boolean[] active = new boolean[2];
+    boolean[] wasactive = new boolean[2];
+    private HashSet<Class> rightClickable = null;
 
-public class InteractTracker extends Tracker{
+    public InteractTracker(Minecraft mc)
+    {
+        super(mc);
+    }
 
-	public boolean[] bukkit= new boolean[2];
-	public int hotbar = -1;
+    public boolean isActive(LocalPlayer p)
+    {
+        if (this.mc.gameMode == null)
+        {
+            return false;
+        }
+        else if (p == null)
+        {
+            return false;
+        }
+        else if (!p.isAlive())
+        {
+            return false;
+        }
+        else if (p.isSleeping())
+        {
+            return false;
+        }
+        else
+        {
+            Minecraft minecraft = Minecraft.getInstance();
 
-	public InteractTracker(Minecraft mc) {
-		super(mc);
-	}
+            if (minecraft.vrSettings.seated)
+            {
+                return false;
+            }
+            else if (p.isBlocking() && this.hotbar < 0)
+            {
+                return false;
+            }
+            else
+            {
+                return !minecraft.bowTracker.isNotched();
+            }
+        }
+    }
 
-	public boolean isActive(ClientPlayerEntity p){
-		if(mc.playerController == null) return false;
-		if(p == null) return false;
-		if(!p.isAlive()) return false;
-		if(p.isSleeping()) return false;
-		Minecraft mc = Minecraft.getInstance();
-		if (mc.vrSettings.seated)
-			return false;
-		if(p.isActiveItemStackBlocking() && hotbar < 0){
-			return false; 
-		}
-		if (mc.bowTracker.isNotched())
-			return false;
-		return true;    
-	}
+    public void reset(LocalPlayer player)
+    {
+        for (int i = 0; i < 2; ++i)
+        {
+            this.reset(player, i);
+        }
+    }
 
-	public BlockRayTraceResult[] inBlockHit = new BlockRayTraceResult[2];
-	BlockPos[] inBlockPos = new BlockPos[2];
-	Entity[] inEntity = new Entity[2];
-	private EntityRayTraceResult[] inEntityHit = new EntityRayTraceResult[2];
-	private boolean[] inCamera = new boolean[2];
-	private boolean[] inHandheldCamera = new boolean[2];
-	boolean[] active = new boolean[2];
-	boolean[] wasactive = new boolean[2];
+    private void reset(LocalPlayer player, int c)
+    {
+        if (this.inCamera[c] && VRHotkeys.isMovingThirdPersonCam() && VRHotkeys.getMovingThirdPersonCamTriggerer() == VRHotkeys.Triggerer.INTERACTION && VRHotkeys.getMovingThirdPersonCamController() == c)
+        {
+            VRHotkeys.stopMovingThirdPersonCam();
+        }
 
-	@Override
-	public void reset(ClientPlayerEntity player) {
-		for(int c =0 ;c<2;c++){
-			reset(player, c);
-		}
-	}
+        if (this.inHandheldCamera[c] && this.mc.cameraTracker.isMoving() && this.mc.cameraTracker.getMovingController() == c && !this.mc.cameraTracker.isQuickMode())
+        {
+            this.mc.cameraTracker.stopMoving();
+        }
 
-	private void reset(ClientPlayerEntity player, int c) {
-		if (inCamera[c] && VRHotkeys.isMovingThirdPersonCam() && VRHotkeys.getMovingThirdPersonCamTriggerer() == VRHotkeys.Triggerer.INTERACTION && VRHotkeys.getMovingThirdPersonCamController() == c)
-			VRHotkeys.stopMovingThirdPersonCam();
-		if (inHandheldCamera[c] && mc.cameraTracker.isMoving() && mc.cameraTracker.getMovingController() == c && !mc.cameraTracker.isQuickMode())
-			mc.cameraTracker.stopMoving();
-		inBlockPos[c] = null;
-		inBlockHit[c] = null;
-		inEntity[c] = null;
-		inEntityHit[c] = null;
-		inCamera[c] = false;
-		inHandheldCamera[c] = false;
-		active[c] = false;
-		MCOpenVR.getInputAction(MCOpenVR.keyVRInteract).setEnabled(ControllerType.values()[c], false);
-	}
+        this.inBlockPos[c] = null;
+        this.inBlockHit[c] = null;
+        this.inEntity[c] = null;
+        this.inEntityHit[c] = null;
+        this.inCamera[c] = false;
+        this.inHandheldCamera[c] = false;
+        this.active[c] = false;
+        this.mc.vr.getInputAction(this.mc.vr.keyVRInteract).setEnabled(ControllerType.values()[c], false);
+    }
 
-	private HashSet<Class> rightClickable = null;
+    public void doProcess(LocalPlayer player)
+    {
+        if (this.rightClickable == null)
+        {
+            this.rightClickable = new HashSet<>();
 
-	@SuppressWarnings("unused")
-	public void doProcess(ClientPlayerEntity player){ //on tick
+            for (Object object : Registry.BLOCK)
+            {
+                Class oclass = object.getClass();
 
-		if(rightClickable == null) {
-			//compile a list of blocks that explicitly declare OnBlockActivated (right click)
-			rightClickable = new HashSet<Class>();
-			for (Object b : Registry.BLOCK) {
-				Class c = b.getClass();
-				try { // constructor throws an exception if method doesn't exist
-					ReflectionMethod r = new MCReflection.ReflectionMethod(c, MCReflection.BlockState_OnBlockActivated, BlockState.class, World.class, BlockPos.class, PlayerEntity.class, Hand.class, BlockRayTraceResult.class);
-					rightClickable.add(c);
-				} catch (Throwable e) {
-				}
-				c = c.getSuperclass();
-				try {
-					ReflectionMethod r = new MCReflection.ReflectionMethod(c, MCReflection.BlockState_OnBlockActivated, BlockState.class, World.class, BlockPos.class, PlayerEntity.class, Hand.class, BlockRayTraceResult.class);
-					rightClickable.add(c);
-				} catch (Throwable e) {
-				}
-			}
-			rightClickable.remove(Block.class);
-			rightClickable.remove(AbstractBlock.class);
-			rightClickable.remove(AbstractBlock.AbstractBlockState.class);
-		}
+                try
+                {
+                    new MCReflection.ReflectionMethod(oclass, "func_225533_a_", BlockState.class, Level.class, BlockPos.class, Player.class, InteractionHand.class, BlockHitResult.class);
+                    this.rightClickable.add(oclass);
+                }
+                catch (Throwable throwable1)
+                {
+                }
 
-		Vector3d forward = new Vector3d(0,0,-1);
+                oclass = oclass.getSuperclass();
 
-		for(int c =0 ;c<2;c++){
-			if ((inCamera[c] || inHandheldCamera[c]) && MCOpenVR.keyVRInteract.isKeyDown(ControllerType.values()[c]))
-				continue;
+                try
+                {
+                    new MCReflection.ReflectionMethod(oclass, "func_225533_a_", BlockState.class, Level.class, BlockPos.class, Player.class, InteractionHand.class, BlockHitResult.class);
+                    this.rightClickable.add(oclass);
+                }
+                catch (Throwable throwable)
+                {
+                }
+            }
 
-			reset(player, c);
+            this.rightClickable.remove(Block.class);
+            this.rightClickable.remove(BlockBehaviour.class);
+            this.rightClickable.remove(BlockBehaviour.BlockStateBase.class);
+        }
 
-			if(c == 0) {
-				if(hotbar >= 0) {
-					active[c] = true;
-				}
-			}
+        Vec3 vec34 = new Vec3(0.0D, 0.0D, -1.0D);
 
-			Vector3d hmdPos = mc.vrPlayer.vrdata_world_pre.getHeadPivot();
-			Vector3d handPos = mc.vrPlayer.vrdata_world_pre.getController(c).getPosition();
-			Vector3d handDirection = mc.vrPlayer.vrdata_world_pre.getHand(c).getCustomVector(forward);
-			ItemStack is = player.getHeldItem(c==0?Hand.MAIN_HAND:Hand.OFF_HAND);
-			Item item = null;
+        for (int j = 0; j < 2; ++j)
+        {
+            if (!this.inCamera[j] && !this.inHandheldCamera[j] || !this.mc.vr.keyVRInteract.isKeyDown(ControllerType.values()[j]))
+            {
+                this.reset(player, j);
 
-			if (!active[c] && (mc.vrSettings.displayMirrorMode == VRSettings.MIRROR_MIXED_REALITY || mc.vrSettings.displayMirrorMode == VRSettings.MIRROR_THIRD_PERSON)) {
-				VRData.VRDevicePose camData = mc.vrPlayer.vrdata_world_pre.getEye(RenderPass.THIRD);
-				Vector3d camPos = camData.getPosition();
-				camPos = camPos.subtract(camData.getCustomVector(new Vector3d(0, 0, -1)).scale(0.15f));
-				camPos = camPos.subtract(camData.getCustomVector(new Vector3d(0, -1, 0)).scale(0.05f));
+                if (j == 0 && this.hotbar >= 0)
+                {
+                    this.active[j] = true;
+                }
 
-				if (handPos.distanceTo(camPos) < 0.15f) {
-					inCamera[c] = true;
-					active[c] = true;
-				}
-			}
+                Vec3 vec35 = this.mc.vrPlayer.vrdata_world_pre.getHeadPivot();
+                Vec3 vec3 = this.mc.vrPlayer.vrdata_world_pre.getController(j).getPosition();
+                Vec3 vec31 = this.mc.vrPlayer.vrdata_world_pre.getHand(j).getCustomVector(vec34);
+                ItemStack itemstack = player.getItemInHand(j == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
+                Item item = null;
 
-			if (!active[c] && mc.cameraTracker.isVisible() && !mc.cameraTracker.isQuickMode()) {
-				VRData.VRDevicePose camData = mc.vrPlayer.vrdata_world_pre.getEye(RenderPass.CAMERA);
-				Vector3d camPos = camData.getPosition();
-				camPos = camPos.subtract(camData.getCustomVector(new Vector3d(0, 0, -1)).scale(0.08f));
+                if (!this.active[j] && (this.mc.vrSettings.displayMirrorMode == 15 || this.mc.vrSettings.displayMirrorMode == 14) && this.mc.vrSettings.mixedRealityRenderCameraModel)
+                {
+                    VRData.VRDevicePose vrdata$vrdevicepose = this.mc.vrPlayer.vrdata_world_pre.getEye(RenderPass.THIRD);
+                    Vec3 vec32 = vrdata$vrdevicepose.getPosition();
+                    vec32 = vec32.subtract(vrdata$vrdevicepose.getCustomVector(new Vec3(0.0D, 0.0D, -1.0D)).scale((double)0.15F));
+                    vec32 = vec32.subtract(vrdata$vrdevicepose.getCustomVector(new Vec3(0.0D, -1.0D, 0.0D)).scale((double)0.05F));
 
-				if (handPos.distanceTo(camPos) < 0.11f) {
-					inHandheldCamera[c] = true;
-					active[c] = true;
-				}
-			}
+                    if (vec3.distanceTo(vec32) < (double)0.15F)
+                    {
+                        this.inCamera[j] = true;
+                        this.active[j] = true;
+                    }
+                }
 
-			if(!active[c]) {
+                if (!this.active[j] && this.mc.cameraTracker.isVisible() && !this.mc.cameraTracker.isQuickMode())
+                {
+                    VRData.VRDevicePose vrdata$vrdevicepose1 = this.mc.vrPlayer.vrdata_world_pre.getEye(RenderPass.CAMERA);
+                    Vec3 vec36 = vrdata$vrdevicepose1.getPosition();
+                    vec36 = vec36.subtract(vrdata$vrdevicepose1.getCustomVector(new Vec3(0.0D, 0.0D, -1.0D)).scale((double)0.08F));
 
-				int bx = (int) MathHelper.floor(handPos.x);
-				int by = (int) MathHelper.floor(handPos.y);
-				int bz = (int) MathHelper.floor(handPos.z);
+                    if (vec3.distanceTo(vec36) < (double)0.11F)
+                    {
+                        this.inHandheldCamera[j] = true;
+                        this.active[j] = true;
+                    }
+                }
 
-				Vector3d extWeapon = new Vector3d(
-						handPos.x + handDirection.x * (-.1),
-						handPos.y + handDirection.y * (-.1),
-						handPos.z + handDirection.z * (-.1));
+                if (!this.active[j])
+                {
+                    int k = Mth.floor(vec3.x);
+                    int l = Mth.floor(vec3.y);
+                    int i = Mth.floor(vec3.z);
+                    Vec3 vec33 = new Vec3(vec3.x + vec31.x * -0.1D, vec3.y + vec31.y * -0.1D, vec3.z + vec31.z * -0.1D);
+                    AABB aabb = new AABB(vec3, vec33);
+                    this.inEntityHit[j] = ProjectileUtil.getEntityHitResult(this.mc.getCameraEntity(), vec35, vec3, aabb, (e) ->
+                    {
+                        return !e.isSpectator() && e.isPickable() && e != this.mc.getCameraEntity().getVehicle();
+                    }, 0.0D);
 
-				AxisAlignedBB weaponBB = new AxisAlignedBB(handPos, extWeapon);
+                    if (this.inEntityHit[j] != null)
+                    {
+                        Entity entity = this.inEntityHit[j].getEntity();
+                        this.inEntity[j] = entity;
+                        this.active[j] = true;
+                    }
+                }
 
+                if (!this.active[j])
+                {
+                    BlockPos blockpos = null;
+                    blockpos = new BlockPos(vec3);
+                    BlockState blockstate = this.mc.level.getBlockState(blockpos);
+                    BlockHitResult blockhitresult = blockstate.getOcclusionShape(this.mc.level, blockpos).clip(vec35, vec3, blockpos);
+                    this.inBlockPos[j] = blockpos;
+                    this.inBlockHit[j] = blockhitresult;
+                    this.active[j] = blockhitresult != null && (this.rightClickable.contains(blockstate.getBlock().getClass()) || this.rightClickable.contains(blockstate.getBlock().getClass().getSuperclass()));
+                    this.bukkit[j] = false;
 
-				inEntityHit[c] = ProjectileHelper.rayTraceEntities(mc.getRenderViewEntity(), hmdPos, handPos, weaponBB, (e) ->
-				{
-					return !e.isSpectator() && e.canBeCollidedWith()  && !(e == mc.getRenderViewEntity().getRidingEntity());
-				}, 0);
+                    if (!this.active[j] && itemstack.getItem() == Items.BUCKET && blockstate.getMaterial().isLiquid())
+                    {
+                        this.active[j] = true;
+                        this.bukkit[j] = true;
+                    }
+                }
 
-				if(inEntityHit[c]!=null) {
-					Entity hitEntity = inEntityHit[c].getEntity();
-					inEntity[c] = hitEntity;
-					active[c] = true;
-				}
-			}
+                if (!this.wasactive[j] && this.active[j])
+                {
+                    this.mc.vr.triggerHapticPulse(j, 250);
+                }
 
-			if(!active[c]) {
-				BlockPos bp =null;
-				bp = new BlockPos(handPos);
-				BlockState block = mc.world.getBlockState(bp);
-				//	Material material = block.getMaterial();
+                this.mc.vr.getInputAction(this.mc.vr.keyVRInteract).setEnabled(ControllerType.values()[j], this.active[j]);
+                this.wasactive[j] = this.active[j];
+            }
+        }
+    }
 
-				BlockRayTraceResult hit = block.getRenderShapeTrue(mc.world, bp).rayTrace(hmdPos, handPos, bp);
-				inBlockPos[c] = bp;
-				inBlockHit[c] = hit;		     
+    public boolean isInteractActive(int controller)
+    {
+        return this.active[controller];
+    }
 
-				active[c] = hit !=null && (rightClickable.contains(block.getBlock().getClass()) || 
-						rightClickable.contains(block.getBlock().getClass().getSuperclass()));
+    public boolean isInCamera()
+    {
+        return this.inCamera[0] || this.inCamera[1];
+    }
 
-				bukkit[c] = false;
-				if(!active[c] && is.getItem() == Items.BUCKET) {
-					if(block.getMaterial().isLiquid()) {
-						active[c] = true;
-						bukkit[c] = true;
-					}
-				}			
-			}
+    public boolean isInHandheldCamera()
+    {
+        return this.inHandheldCamera[0] || this.inHandheldCamera[1];
+    }
 
-			if(!wasactive[c] && active[c]) {
-				MCOpenVR.triggerHapticPulse(c, 250);
-			}
+    public void processBindings()
+    {
+        for (int i = 0; i < 2; ++i)
+        {
+            if (this.mc.vr.keyVRInteract.isPressed(ControllerType.values()[i]) && this.active[i])
+            {
+                InteractionHand interactionhand = InteractionHand.values()[i];
+                boolean flag = false;
 
-			MCOpenVR.getInputAction(MCOpenVR.keyVRInteract).setEnabled(ControllerType.values()[c], active[c]);
+                if (this.hotbar >= 0 && this.hotbar < 9 && this.mc.player.inventory.selected != this.hotbar && interactionhand == InteractionHand.MAIN_HAND)
+                {
+                    this.mc.player.inventory.selected = this.hotbar;
+                    flag = true;
+                }
+                else if (this.hotbar == 9 && interactionhand == InteractionHand.MAIN_HAND)
+                {
+                    this.mc.player.connection.send(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.SWAP_ITEM_WITH_OFFHAND, BlockPos.ZERO, Direction.DOWN));
+                    flag = true;
+                }
+                else if (this.inCamera[i])
+                {
+                    VRHotkeys.startMovingThirdPersonCam(i, VRHotkeys.Triggerer.INTERACTION);
+                    flag = true;
+                }
+                else if (this.inHandheldCamera[i])
+                {
+                    this.mc.cameraTracker.startMoving(i);
+                    flag = true;
+                }
+                else if (this.inEntityHit[i] != null)
+                {
+                    flag = true;
 
-			wasactive[c] = active[c];
-		}
-	}
+                    if (!this.mc.gameMode.interactAt(this.mc.player, this.inEntity[i], this.inEntityHit[i], interactionhand).consumesAction() && !this.mc.gameMode.interact(this.mc.player, this.inEntity[i], interactionhand).consumesAction())
+                    {
+                        flag = false;
+                    }
+                }
+                else if (this.inBlockHit[i] != null)
+                {
+                    flag = this.mc.gameMode.useItemOn(this.mc.player, (ClientLevel)this.mc.player.level, interactionhand, this.inBlockHit[i]).consumesAction();
+                }
+                else if (this.bukkit[i])
+                {
+                    flag = this.mc.gameMode.useItem(this.mc.player, (ClientLevel)this.mc.player.level, interactionhand).consumesAction();
+                }
 
-	public boolean isInteractActive(int controller) {
-		return active[controller];
-	}
-
-	public boolean isInCamera() {
-		return inCamera[0] || inCamera[1];
-	}
-
-	public boolean isInHandheldCamera() {
-		return inHandheldCamera[0] || inHandheldCamera[1];
-	}
-
-	public void processBindings() {
-		for(int c =0 ;c<2;c++){
-			if(MCOpenVR.keyVRInteract.isPressed(ControllerType.values()[c])) {
-				if (!active[c]) 
-					continue; //how tho?
-				Hand hand = Hand.values()[c];
-				boolean success = false;
-				
-				if(hotbar >= 0 && hotbar < 9 && mc.player.inventory.currentItem != hotbar && hand == Hand.MAIN_HAND) {
-					mc.player.inventory.currentItem = hotbar;
-					success = true;
-				}
-				else if(hotbar == 9 && hand == Hand.MAIN_HAND) {
-					mc.player.connection.sendPacket(new CPlayerDiggingPacket(CPlayerDiggingPacket.Action.SWAP_ITEM_WITH_OFFHAND, BlockPos.ZERO, Direction.DOWN));
-					success = true;
-				}
-				else if (inCamera[c]) {
-					VRHotkeys.startMovingThirdPersonCam(c, VRHotkeys.Triggerer.INTERACTION);
-					success = true;
-				}
-				else if (inHandheldCamera[c]) {
-					mc.cameraTracker.startMoving(c);
-					success = true;
-				}
-				else if(inEntityHit[c]!=null) {     
-					success = true;
-					if (!mc.playerController.interactWithEntity(mc.player, inEntity[c], inEntityHit[c], hand).isSuccessOrConsume())
-					 if (!mc.playerController.interactWithEntity(mc.player, inEntity[c], hand).isSuccessOrConsume()) {
-							success = false;
-					 }		
-				}
-				else if (inBlockHit[c]!=null) {
-					success = mc.playerController.func_217292_a(mc.player, (ClientWorld) mc.player.world, hand, inBlockHit[c]).isSuccessOrConsume();
-				} else if (bukkit[c]) {
-					success =mc.playerController.processRightClick(mc.player, (ClientWorld) mc.player.world, hand).isSuccessOrConsume();
-				}
-				
-				if(success){
-					mc.player.swingArm(hand, VRFirstPersonArmSwing.Interact);
-					MCOpenVR.triggerHapticPulse(c, 750);	
-				}
-			}
-		}
-	}
+                if (flag)
+                {
+                    this.mc.player.swingArm(interactionhand, VRFirstPersonArmSwing.Interact);
+                    this.mc.vr.triggerHapticPulse(i, 750);
+                }
+            }
+        }
+    }
 }
-

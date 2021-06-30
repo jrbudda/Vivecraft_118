@@ -1,138 +1,147 @@
 package org.vivecraft.gui;
 
-import org.lwjgl.glfw.GLFW;
-import org.vivecraft.control.InputSimulator;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.components.Button;
 import org.vivecraft.gui.framework.TwoHandedScreen;
-
-import com.mojang.blaze3d.matrix.MatrixStack;
-
-import net.minecraft.client.gui.widget.button.Button;
+import org.vivecraft.provider.InputSimulator;
 
 public class GuiKeyboard extends TwoHandedScreen
 {
+    private boolean isShift = false;
 
-	private boolean isShift = false;
-
-	/**
-	 * Adds the buttons (and other controls) to the screen in question.
-	 */
-	public void init()
-	{
-		String arr = minecraft.vrSettings.keyboardKeys;
-		String alt = minecraft.vrSettings.keyboardKeysShift;
-
-		this.buttons.clear();
-		this.children.clear();
-		//this.buttons.add(new GuiSmallButtonEx(301, this.width / 2 - 78, this.height / 6 - 14, "Hide Hud (F1): " + minecraft.gameSettings.hideGUI));
-
-		if(this.isShift)
-			arr = alt;
-
-		int cols = 13;
-		int rows = 4;
-		int margin = 32;
-		int spacing = 2;
-		int bwidth = 25;
-		double tmp = (double)arr.length() / (double)cols;
-		
-		if (Math.floor(tmp) == tmp)
-			rows = (int) tmp;
-		else
-			rows = (int) (tmp+1);
-		
-		for (int r=0; r<rows;r++) {
-			for (int i=0; i<cols;i++) {
-				int c = r*cols+i;
-				char x = 32;
-				if (c<arr.length()) {
-					x = arr.charAt(c);
-				}	
-
-				final String c1 = String.valueOf(x);
-
-				Button butt = new Button(margin + i*(bwidth+spacing), margin + r*(20+spacing), bwidth, 20, c1,(p) -> {
-						InputSimulator.typeChars(c1);
-				});
-				this.addButton(butt);
-			}
-		}		
-	
-		this.addButton(new Button( 0, margin + 3* (20 + spacing), 30, 20, "Shift",(p) ->  {
-				setShift(!GuiKeyboard.this.isShift);
-		}));
-		
-		this.addButton(new Button(margin + 4 * (bwidth+spacing), margin + rows * (20+spacing), 5 * (bwidth+spacing), 20, " ",(p) ->  {
-				InputSimulator.typeChars(" ");
-		}));
-		
-		this.addButton(new Button(cols * (bwidth+spacing) + margin, margin , 35 , 20, "BKSP",(p) ->  {
-				InputSimulator.pressKey(GLFW.GLFW_KEY_BACKSPACE);
-				InputSimulator.releaseKey(GLFW.GLFW_KEY_BACKSPACE);
-		}));
-		this.addButton(new Button(cols * (bwidth+spacing) + margin, margin + 2*(20 + spacing) , 35 , 20, "ENTER",(p) ->  {
-				InputSimulator.pressKey(GLFW.GLFW_KEY_ENTER);
-				InputSimulator.releaseKey(GLFW.GLFW_KEY_ENTER);
-		}));
-		this.addButton(new Button(0, margin + (20 + spacing), 30, 20, "TAB",(p) ->  {
-				InputSimulator.pressKey(GLFW.GLFW_KEY_TAB);
-				InputSimulator.releaseKey(GLFW.GLFW_KEY_TAB);
-		}));
-		this.addButton(new Button(0, margin, 30, 20, "ESC",(p) ->  {
-				InputSimulator.pressKey(GLFW.GLFW_KEY_ESCAPE);
-				InputSimulator.releaseKey(GLFW.GLFW_KEY_ESCAPE);
-		}));
-		this.addButton(new Button((cols - 1) * (bwidth + spacing) + margin, margin + rows * (20 + spacing), bwidth, 20, "\u2191",(p) ->  {
-				InputSimulator.pressKey(GLFW.GLFW_KEY_UP);
-				InputSimulator.releaseKey(GLFW.GLFW_KEY_UP);
-		}));
-		this.addButton(new Button((cols - 1) * (bwidth + spacing) + margin, margin + (rows + 1) * (20 + spacing), bwidth, 20, "\u2193",(p) ->  {
-				InputSimulator.pressKey(GLFW.GLFW_KEY_DOWN);
-				InputSimulator.releaseKey(GLFW.GLFW_KEY_DOWN);
-		}));
-		this.addButton(new Button((cols - 2) * (bwidth + spacing) + margin, margin + (rows + 1) * (20 + spacing), bwidth, 20, "\u2190",(p) ->  {
-				InputSimulator.pressKey(GLFW.GLFW_KEY_LEFT);
-				InputSimulator.releaseKey(GLFW.GLFW_KEY_LEFT);
-		}));
-		this.addButton(new Button(cols * (bwidth + spacing) + margin, margin + (rows + 1) * (20 + spacing), bwidth, 20, "\u2192",(p) ->  {
-				InputSimulator.pressKey(GLFW.GLFW_KEY_RIGHT);
-				InputSimulator.releaseKey(GLFW.GLFW_KEY_RIGHT);
-		}));
-		this.addButton(new Button(margin, margin + -1 * (20 + spacing), 35, 20, "CUT",(p) ->  {
-				InputSimulator.pressKey(GLFW.GLFW_KEY_LEFT_CONTROL);
-				InputSimulator.pressKey(GLFW.GLFW_KEY_X);
-				InputSimulator.releaseKey(GLFW.GLFW_KEY_X);
-				InputSimulator.releaseKey(GLFW.GLFW_KEY_LEFT_CONTROL);
-		}));
-		this.addButton(new Button(35 + spacing + margin, margin + -1 * (20 + spacing), 35, 20, "COPY",(p) ->  {
-				InputSimulator.pressKey(GLFW.GLFW_KEY_LEFT_CONTROL);
-				InputSimulator.pressKey(GLFW.GLFW_KEY_C);
-				InputSimulator.releaseKey(GLFW.GLFW_KEY_C);
-				InputSimulator.releaseKey(GLFW.GLFW_KEY_LEFT_CONTROL);
-		}));
-		this.addButton(new Button(2 * (35 + spacing) + margin, margin + -1 * (20 + spacing), 35, 20, "PASTE",(p) ->  {
-				InputSimulator.pressKey(GLFW.GLFW_KEY_LEFT_CONTROL);
-				InputSimulator.pressKey(GLFW.GLFW_KEY_V);
-				InputSimulator.releaseKey(GLFW.GLFW_KEY_V);
-				InputSimulator.releaseKey(GLFW.GLFW_KEY_LEFT_CONTROL);
-		}));
-	}
-
-	public void setShift(boolean shift) {
-		if(shift != this.isShift) {
-			this.isShift = shift;
-			this.reinit = true;
-		}
-	}
-	
-    /**
-     * Draws the screen and all the components in it.
-     */
-    public void render(MatrixStack matrixstack, int mouseX, int mouseY, float partialTicks)
+    public void init()
     {
-    	this.renderBackground(matrixstack);
-    	this.drawCenteredString(matrixstack, this.font, "Keyboard", this.width / 2, 2, 16777215);
-    	super.render(matrixstack, 0, 0, partialTicks);
+        String s = this.minecraft.vrSettings.keyboardKeys;
+        String s1 = this.minecraft.vrSettings.keyboardKeysShift;
+        this.buttons.clear();
+        this.children.clear();
 
-    }    
+        if (this.isShift)
+        {
+            s = s1;
+        }
 
+        int i = 13;
+        int j = 4;
+        int k = 32;
+        int l = 2;
+        int i1 = 25;
+        double d0 = (double)s.length() / (double)i;
+
+        if (Math.floor(d0) == d0)
+        {
+            j = (int)d0;
+        }
+        else
+        {
+            j = (int)(d0 + 1.0D);
+        }
+
+        for (int j1 = 0; j1 < j; ++j1)
+        {
+            for (int k1 = 0; k1 < i; ++k1)
+            {
+                int l1 = j1 * i + k1;
+                char c0 = ' ';
+
+                if (l1 < s.length())
+                {
+                    c0 = s.charAt(l1);
+                }
+
+                String s2 = String.valueOf(c0);
+                Button button = new Button(k + k1 * (i1 + l), k + j1 * (20 + l), i1, 20, s2, (p) ->
+                {
+                    InputSimulator.typeChars(s2);
+                });
+                this.addButton(button);
+            }
+        }
+
+        this.addButton(new Button(0, k + 3 * (20 + l), 30, 20, "Shift", (p) ->
+        {
+            this.setShift(!this.isShift);
+        }));
+        this.addButton(new Button(k + 4 * (i1 + l), k + j * (20 + l), 5 * (i1 + l), 20, " ", (p) ->
+        {
+            InputSimulator.typeChars(" ");
+        }));
+        this.addButton(new Button(i * (i1 + l) + k, k, 35, 20, "BKSP", (p) ->
+        {
+            InputSimulator.pressKey(259);
+            InputSimulator.releaseKey(259);
+        }));
+        this.addButton(new Button(i * (i1 + l) + k, k + 2 * (20 + l), 35, 20, "ENTER", (p) ->
+        {
+            InputSimulator.pressKey(257);
+            InputSimulator.releaseKey(257);
+        }));
+        this.addButton(new Button(0, k + 20 + l, 30, 20, "TAB", (p) ->
+        {
+            InputSimulator.pressKey(258);
+            InputSimulator.releaseKey(258);
+        }));
+        this.addButton(new Button(0, k, 30, 20, "ESC", (p) ->
+        {
+            InputSimulator.pressKey(256);
+            InputSimulator.releaseKey(256);
+        }));
+        this.addButton(new Button((i - 1) * (i1 + l) + k, k + j * (20 + l), i1, 20, "\u2191", (p) ->
+        {
+            InputSimulator.pressKey(265);
+            InputSimulator.releaseKey(265);
+        }));
+        this.addButton(new Button((i - 1) * (i1 + l) + k, k + (j + 1) * (20 + l), i1, 20, "\u2193", (p) ->
+        {
+            InputSimulator.pressKey(264);
+            InputSimulator.releaseKey(264);
+        }));
+        this.addButton(new Button((i - 2) * (i1 + l) + k, k + (j + 1) * (20 + l), i1, 20, "\u2190", (p) ->
+        {
+            InputSimulator.pressKey(263);
+            InputSimulator.releaseKey(263);
+        }));
+        this.addButton(new Button(i * (i1 + l) + k, k + (j + 1) * (20 + l), i1, 20, "\u2192", (p) ->
+        {
+            InputSimulator.pressKey(262);
+            InputSimulator.releaseKey(262);
+        }));
+        this.addButton(new Button(k, k + -1 * (20 + l), 35, 20, "CUT", (p) ->
+        {
+            InputSimulator.pressKey(341);
+            InputSimulator.pressKey(88);
+            InputSimulator.releaseKey(88);
+            InputSimulator.releaseKey(341);
+        }));
+        this.addButton(new Button(35 + l + k, k + -1 * (20 + l), 35, 20, "COPY", (p) ->
+        {
+            InputSimulator.pressKey(341);
+            InputSimulator.pressKey(67);
+            InputSimulator.releaseKey(67);
+            InputSimulator.releaseKey(341);
+        }));
+        this.addButton(new Button(2 * (35 + l) + k, k + -1 * (20 + l), 35, 20, "PASTE", (p) ->
+        {
+            InputSimulator.pressKey(341);
+            InputSimulator.pressKey(86);
+            InputSimulator.releaseKey(86);
+            InputSimulator.releaseKey(341);
+        }));
+    }
+
+    public void setShift(boolean shift)
+    {
+        if (shift != this.isShift)
+        {
+            this.isShift = shift;
+            this.reinit = true;
+        }
+    }
+
+    public void render(PoseStack p_96562_, int p_96563_, int p_96564_, float p_96565_)
+    {
+        this.renderBackground(p_96562_);
+        drawCenteredString(p_96562_, this.font, "Keyboard", this.width / 2, 2, 16777215);
+        super.render(p_96562_, 0, 0, p_96565_);
+    }
 }

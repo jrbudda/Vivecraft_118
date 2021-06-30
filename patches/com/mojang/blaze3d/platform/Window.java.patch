@@ -1,0 +1,146 @@
+--- a/com/mojang/blaze3d/platform/Window.java
++++ b/com/mojang/blaze3d/platform/Window.java
+@@ -12,6 +12,7 @@
+ import java.util.function.LongSupplier;
+ import java.util.function.Supplier;
+ import javax.annotation.Nullable;
++import net.minecraft.client.Minecraft;
+ import net.minecraft.client.main.SilentInitException;
+ import net.minecraftforge.fml.loading.progress.EarlyProgressVisualization;
+ import net.optifine.Config;
+@@ -152,7 +153,6 @@
+         GL.createCapabilities();
+         this.setMode();
+         this.refreshFramebufferSize();
+-        GLFW.glfwSetFramebufferSizeCallback(this.window, this::onFramebufferResize);
+         GLFW.glfwSetWindowPosCallback(this.window, this::onMove);
+         GLFW.glfwSetWindowSizeCallback(this.window, this::onResize);
+         GLFW.glfwSetWindowFocusCallback(this.window, this::onFocus);
+@@ -235,9 +235,9 @@
+             STBImage.stbi_image_free(bytebuffer);
+             STBImage.stbi_image_free(bytebuffer1);
+         }
+-        catch (IOException ioexception1)
++        catch (IOException ioexception)
+         {
+-            LOGGER.error("Couldn't set icon", (Throwable)ioexception1);
++            LOGGER.error("Couldn't set icon", (Throwable)ioexception);
+         }
+     }
+ 
+@@ -314,7 +314,7 @@
+     {
+         RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
+         this.vsync = p_85410_;
+-        GLFW.glfwSwapInterval(p_85410_ ? 1 : 0);
++        GLFW.glfwSwapInterval(0);
+     }
+ 
+     public void close()
+@@ -337,15 +337,15 @@
+     {
+         if (p_85416_ == this.window)
+         {
+-            int i = this.getWidth();
+-            int j = this.getHeight();
++            int i = this.getScreenWidth();
++            int j = this.getScreenHeight();
+ 
+             if (p_85417_ != 0 && p_85418_ != 0)
+             {
+                 this.framebufferWidth = p_85417_;
+                 this.framebufferHeight = p_85418_;
+ 
+-                if (this.getWidth() != i || this.getHeight() != j)
++                if (this.getScreenWidth() != i || this.getScreenHeight() != j)
+                 {
+                     this.eventHandler.resizeDisplay();
+                 }
+@@ -364,20 +364,24 @@
+ 
+         if (this.framebufferHeight == 0 || this.framebufferWidth == 0)
+         {
+-            EarlyProgressVisualization.INSTANCE.updateFBSize((w) ->
++            EarlyProgressVisualization.INSTANCE.updateFBSize((p_lambda$updateFramebufferSize$4_1_) ->
+             {
+-                this.framebufferWidth = w;
+-            }, (h) ->
++                this.framebufferWidth = p_lambda$updateFramebufferSize$4_1_;
++            }, (p_lambda$updateFramebufferSize$5_1_) ->
+             {
+-                this.framebufferHeight = h;
++                this.framebufferHeight = p_lambda$updateFramebufferSize$5_1_;
+             });
+         }
+     }
+ 
+     private void onResize(long p_85428_, int p_85429_, int p_85430_)
+     {
+-        this.width = p_85429_;
+-        this.height = p_85430_;
++        if (p_85430_ * p_85429_ != 0)
++        {
++            this.width = p_85429_;
++            this.height = p_85430_;
++            this.eventHandler.resizeDisplay();
++        }
+     }
+ 
+     private void onFocus(long p_85393_, boolean p_85394_)
+@@ -512,13 +516,12 @@
+     {
+         int i;
+ 
+-        for (i = 1; i != p_85386_ && i < this.framebufferWidth && i < this.framebufferHeight && this.framebufferWidth / (i + 1) >= 320 && this.framebufferHeight / (i + 1) >= 240; ++i)
++        for (i = 1; i != p_85386_ && i < this.width && i < this.height && this.width / (i + 1) >= 320 && this.height / (i + 1) >= 240; ++i)
+         {
+         }
+ 
+         if (p_85387_ && i % 2 != 0)
+         {
+-            ++i;
+         }
+ 
+         return i;
+@@ -527,10 +530,10 @@
+     public void setGuiScale(double p_85379_)
+     {
+         this.guiScale = p_85379_;
+-        int i = (int)((double)this.framebufferWidth / p_85379_);
+-        this.guiScaledWidth = (double)this.framebufferWidth / p_85379_ > (double)i ? i + 1 : i;
+-        int j = (int)((double)this.framebufferHeight / p_85379_);
+-        this.guiScaledHeight = (double)this.framebufferHeight / p_85379_ > (double)j ? j + 1 : j;
++        int i = (int)((double)this.width / p_85379_);
++        this.guiScaledWidth = (double)this.width / p_85379_ > (double)i ? i + 1 : i;
++        int j = (int)((double)this.height / p_85379_);
++        this.guiScaledHeight = (double)this.height / p_85379_ > (double)j ? j + 1 : j;
+     }
+ 
+     public void setTitle(String p_85423_)
+@@ -550,12 +553,12 @@
+ 
+     public int getWidth()
+     {
+-        return this.framebufferWidth;
++        return Minecraft.getInstance().getMainRenderTarget().viewWidth;
+     }
+ 
+     public int getHeight()
+     {
+-        return this.framebufferHeight;
++        return Minecraft.getInstance().getMainRenderTarget().viewHeight;
+     }
+ 
+     public int getScreenWidth()
+@@ -604,9 +607,9 @@
+         InputConstants.updateRawMouseInput(this.window, p_85425_);
+     }
+ 
+-    public void resizeFramebuffer(int width, int height)
++    public void resizeFramebuffer(int p_resizeFramebuffer_1_, int p_resizeFramebuffer_2_)
+     {
+-        this.onFramebufferResize(this.window, width, height);
++        this.onFramebufferResize(this.window, p_resizeFramebuffer_1_, p_resizeFramebuffer_2_);
+     }
+ 
+     public boolean isClosed()

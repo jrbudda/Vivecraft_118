@@ -1,232 +1,266 @@
 package org.vivecraft.gameplay.screenhandlers;
 
-import org.vivecraft.api.VRData.VRDevicePose;
-import org.vivecraft.control.ControllerType;
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.main.Main;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
+import org.vivecraft.api.VRData;
 import org.vivecraft.gui.GuiRadial;
-import org.vivecraft.provider.MCOpenVR;
-import org.vivecraft.provider.OpenVRUtil;
+import org.vivecraft.provider.ControllerType;
+import org.vivecraft.utils.Utils;
 import org.vivecraft.utils.math.Matrix4f;
 import org.vivecraft.utils.math.Vector3;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.main.Main;
-import net.minecraft.client.shader.Framebuffer;
-import net.minecraft.util.math.vector.Vector2f;
-import net.minecraft.util.math.vector.Vector3d;
+public class RadialHandler
+{
+    public static Minecraft mc = Minecraft.getInstance();
+    private static boolean Showing = false;
+    public static GuiRadial UI = new GuiRadial();
+    public static Vec3 Pos_room = new Vec3(0.0D, 0.0D, 0.0D);
+    public static Matrix4f Rotation_room = new Matrix4f();
+    private static boolean lpl;
+    private static boolean lps;
+    private static boolean PointedL;
+    private static boolean PointedR;
+    public static RenderTarget Framebuffer = null;
+    private static ControllerType activecontroller;
+    private static boolean lastPressedClickL;
+    private static boolean lastPressedClickR;
+    private static boolean lastPressedShiftL;
+    private static boolean lastPressedShiftR;
 
-public class RadialHandler {
-	//
-	public static Minecraft mc = Minecraft.getInstance();
-	private static boolean Showing = false;
-	public static GuiRadial UI = new GuiRadial();
-	public static Vector3d Pos_room = new Vector3d(0,0,0);
-	public static Matrix4f Rotation_room = new Matrix4f();
-	private static boolean lpl, lps, PointedL, PointedR;
+    public static boolean setOverlayShowing(boolean showingState, ControllerType controller)
+    {
+        if (Main.kiosk)
+        {
+            return false;
+        }
+        else
+        {
+            if (mc.vrSettings.seated)
+            {
+                showingState = false;
+            }
 
-	public static Framebuffer Framebuffer = null;
+            int i = 1;
 
-	private static ControllerType activecontroller;
-	private static boolean lastPressedClickL, lastPressedClickR, lastPressedShiftL, lastPressedShiftR;
-	
-	public static boolean setOverlayShowing(boolean showingState, ControllerType controller) {
-		if (Main.kiosk) return false;
-		if(mc.vrSettings.seated) showingState = false;
-		int ret = 1;
-		if (showingState) {		
-			int i = mc.getMainWindow().getScaledWidth();
-			int j = mc.getMainWindow().getScaledHeight();
-			UI.init(Minecraft.getInstance(), i, j);
-			Showing = true;
-			activecontroller = controller;
-			orientOverlay(activecontroller);
-		} else {
-			Showing = false;
-			activecontroller = null;
-		}
+            if (showingState)
+            {
+                int j = mc.getWindow().getGuiScaledWidth();
+                int k = mc.getWindow().getGuiScaledHeight();
+                UI.init(Minecraft.getInstance(), j, k);
+                Showing = true;
+                activecontroller = controller;
+                orientOverlay(activecontroller);
+            }
+            else
+            {
+                Showing = false;
+                activecontroller = null;
+            }
 
-		return isShowing();
-	}
+            return isShowing();
+        }
+    }
 
-	public static void processGui() {
-		
-		PointedL = false;
-		PointedR = false;
-		
-		if(!isShowing()) {
-			return;
-		}
-		if(mc.vrSettings.seated) return;
-		if(Rotation_room == null) return;
-		
-		Vector2f tex1 = GuiHandler.getTexCoordsForCursor(Pos_room, Rotation_room, mc.currentScreen, GuiHandler.guiScale, mc.vrPlayer.vrdata_room_pre.getController(1));
-		Vector2f tex2 = GuiHandler.getTexCoordsForCursor(Pos_room, Rotation_room, mc.currentScreen, GuiHandler.guiScale, mc.vrPlayer.vrdata_room_pre.getController(0));
-	
-		float u = tex2.x;
-		float v = tex2.y;
-		
-		if (u<0 || v<0 || u>1 || v>1)
-		{
-			// offscreen
-			UI.cursorX2 = -1.0f;
-			UI.cursorY2 = -1.0f;
-			PointedR = false;
-		}
-		else if (UI.cursorX2 == -1.0f)
-		{
-			UI.cursorX2 = (int) (u * mc.getMainWindow().getWidth());
-			UI.cursorY2 = (int) (v * mc.getMainWindow().getHeight());
-			PointedR = true;
-		}
-		else
-		{
-			// apply some smoothing between mouse positions
-			float newX = (int) (u * mc.getMainWindow().getWidth());
-			float newY = (int) (v * mc.getMainWindow().getHeight());
-			UI.cursorX2 = UI.cursorX2 * 0.7f + newX * 0.3f;
-			UI.cursorY2 = UI.cursorY2 * 0.7f + newY * 0.3f;
-			PointedR = true;
-		}
-		
-		 u = tex1.x;
-		 v = tex1.y;
-		
-		if (u<0 || v<0 || u>1 || v>1)
-		{
-			// offscreen
-			UI.cursorX1 = -1.0f;
-			UI.cursorY1 = -1.0f;
-			PointedL = false;
-		}
-		else if (UI.cursorX1 == -1.0f)
-		{
-			UI.cursorX1 = (int) (u * mc.getMainWindow().getWidth());
-			UI.cursorY1 = (int) (v * mc.getMainWindow().getHeight());
-			PointedL = true;
-		}
-		else
-		{
-			// apply some smoothing between mouse positions
-			float newX = (int) (u * mc.getMainWindow().getWidth());
-			float newY = (int) (v * mc.getMainWindow().getHeight());
-			UI.cursorX1 = UI.cursorX1 * 0.7f + newX * 0.3f;
-			UI.cursorY1 = UI.cursorY1 * 0.7f + newY * 0.3f;
-			PointedL = true;
-		}
-	}
+    public static void processGui()
+    {
+        PointedL = false;
+        PointedR = false;
 
+        if (isShowing())
+        {
+            if (!mc.vrSettings.seated)
+            {
+                if (Rotation_room != null)
+                {
+                    Vec2 vec2 = GuiHandler.getTexCoordsForCursor(Pos_room, Rotation_room, mc.screen, GuiHandler.guiScale, mc.vrPlayer.vrdata_room_pre.getController(1));
+                    Vec2 vec21 = GuiHandler.getTexCoordsForCursor(Pos_room, Rotation_room, mc.screen, GuiHandler.guiScale, mc.vrPlayer.vrdata_room_pre.getController(0));
+                    float f = vec21.x;
+                    float f1 = vec21.y;
 
-	public static void orientOverlay(ControllerType controller) {
-		if (!isShowing()) return;
+                    if (!(f < 0.0F) && !(f1 < 0.0F) && !(f > 1.0F) && !(f1 > 1.0F))
+                    {
+                        if (UI.cursorX2 == -1.0F)
+                        {
+                            UI.cursorX2 = (float)((int)(f * (float)mc.getWindow().getScreenWidth()));
+                            UI.cursorY2 = (float)((int)(f1 * (float)mc.getWindow().getScreenHeight()));
+                            PointedR = true;
+                        }
+                        else
+                        {
+                            float f2 = (float)((int)(f * (float)mc.getWindow().getScreenWidth()));
+                            float f3 = (float)((int)(f1 * (float)mc.getWindow().getScreenHeight()));
+                            UI.cursorX2 = UI.cursorX2 * 0.7F + f2 * 0.3F;
+                            UI.cursorY2 = UI.cursorY2 * 0.7F + f3 * 0.3F;
+                            PointedR = true;
+                        }
+                    }
+                    else
+                    {
+                        UI.cursorX2 = -1.0F;
+                        UI.cursorY2 = -1.0F;
+                        PointedR = false;
+                    }
 
-		VRDevicePose pose = mc.vrPlayer.vrdata_room_pre.hmd; //normal menu.
-		float dist = 2;
-		
-		int id=0;
-		if(controller == ControllerType.LEFT)
-			id=1;
+                    f = vec2.x;
+                    f1 = vec2.y;
 
-		if(mc.vrSettings.radialModeHold) { //open with controller centered, consistent motions.
-			pose = mc.vrPlayer.vrdata_room_pre.getController(id);
-			dist = 1.2f;
-		}
+                    if (!(f < 0.0F) && !(f1 < 0.0F) && !(f > 1.0F) && !(f1 > 1.0F))
+                    {
+                        if (UI.cursorX1 == -1.0F)
+                        {
+                            UI.cursorX1 = (float)((int)(f * (float)mc.getWindow().getScreenWidth()));
+                            UI.cursorY1 = (float)((int)(f1 * (float)mc.getWindow().getScreenHeight()));
+                            PointedL = true;
+                        }
+                        else
+                        {
+                            float f4 = (float)((int)(f * (float)mc.getWindow().getScreenWidth()));
+                            float f5 = (float)((int)(f1 * (float)mc.getWindow().getScreenHeight()));
+                            UI.cursorX1 = UI.cursorX1 * 0.7F + f4 * 0.3F;
+                            UI.cursorY1 = UI.cursorY1 * 0.7F + f5 * 0.3F;
+                            PointedL = true;
+                        }
+                    }
+                    else
+                    {
+                        UI.cursorX1 = -1.0F;
+                        UI.cursorY1 = -1.0F;
+                        PointedL = false;
+                    }
+                }
+            }
+        }
+    }
 
-		Matrix4f matrix = new Matrix4f();
+    public static void orientOverlay(ControllerType controller)
+    {
+        if (isShowing())
+        {
+            VRData.VRDevicePose vrdata$vrdevicepose = mc.vrPlayer.vrdata_room_pre.hmd;
+            float f = 2.0F;
+            int i = 0;
 
-		Vector3d v = pose.getPosition();
-		Vector3d adj = new Vector3d(0,0,-dist);
-		Vector3d e = pose.getCustomVector(adj);
-		Pos_room = new Vector3d(
-				(e.x / 2 + v.x),
-				(e.y / 2 + v.y),
-				(e.z / 2 + v.z));
+            if (controller == ControllerType.LEFT)
+            {
+                i = 1;
+            }
 
-		Vector3 look = new Vector3();
-		look.setX((float) (Pos_room.x - v.x));
-		look.setY((float) (Pos_room.y - v.y));
-		look.setZ((float) (Pos_room.z - v.z));
+            if (mc.vrSettings.radialModeHold)
+            {
+                vrdata$vrdevicepose = mc.vrPlayer.vrdata_room_pre.getController(i);
+                f = 1.2F;
+            }
 
-		float pitch = (float) Math.asin(look.getY()/look.length());
-		float yaw = (float) ((float) Math.PI + Math.atan2(look.getX(), look.getZ()));    
-		Rotation_room = Matrix4f.rotationY((float) yaw);
-		Matrix4f tilt = OpenVRUtil.rotationXMatrix(pitch);	
-		Rotation_room = Matrix4f.multiply(Rotation_room, tilt);	
+            new Matrix4f();
+            Vec3 vec3 = vrdata$vrdevicepose.getPosition();
+            Vec3 vec31 = new Vec3(0.0D, 0.0D, (double)(-f));
+            Vec3 vec32 = vrdata$vrdevicepose.getCustomVector(vec31);
+            Pos_room = new Vec3(vec32.x / 2.0D + vec3.x, vec32.y / 2.0D + vec3.y, vec32.z / 2.0D + vec3.z);
+            Vector3 vector3 = new Vector3();
+            vector3.setX((float)(Pos_room.x - vec3.x));
+            vector3.setY((float)(Pos_room.y - vec3.y));
+            vector3.setZ((float)(Pos_room.z - vec3.z));
+            float f1 = (float)Math.asin((double)(vector3.getY() / vector3.length()));
+            float f2 = (float)((double)(float)Math.PI + Math.atan2((double)vector3.getX(), (double)vector3.getZ()));
+            Rotation_room = Matrix4f.rotationY(f2);
+            Matrix4f matrix4f = Utils.rotationXMatrix(f1);
+            Rotation_room = Matrix4f.multiply(Rotation_room, matrix4f);
+        }
+    }
 
-	}
+    public static void processBindings()
+    {
+        if (isShowing())
+        {
+            if (PointedL && GuiHandler.keyKeyboardShift.isPressed(ControllerType.LEFT))
+            {
+                UI.setShift(true);
+                lastPressedShiftL = true;
+            }
 
-	public static void processBindings() {
-		if (!isShowing()) return;
+            if (!GuiHandler.keyKeyboardShift.isKeyDown(ControllerType.LEFT) && lastPressedShiftL)
+            {
+                UI.setShift(false);
+                lastPressedShiftL = false;
+            }
 
-		if (PointedL && GuiHandler.keyKeyboardShift.isPressed(ControllerType.LEFT)) {
-			UI.setShift(true);
-			lastPressedShiftL = true;
-		}
-		if (!GuiHandler.keyKeyboardShift.isKeyDown(ControllerType.LEFT) && lastPressedShiftL) {
-			UI.setShift(false);
-			lastPressedShiftL = false;
-		}
+            if (PointedR && GuiHandler.keyKeyboardShift.isPressed(ControllerType.RIGHT))
+            {
+                UI.setShift(true);
+                lastPressedShiftR = true;
+            }
 
-		if (PointedR && GuiHandler.keyKeyboardShift.isPressed(ControllerType.RIGHT)) {
-				UI.setShift(true);
-			lastPressedShiftR = true;
-		}
-		if (!GuiHandler.keyKeyboardShift.isKeyDown(ControllerType.RIGHT) && lastPressedShiftR) {
-				UI.setShift(false);
-			lastPressedShiftR = false;
-		}
-		
-		double d0 = Math.min(Math.max((int) UI.cursorX1, 0), mc.getMainWindow().getWidth())
-				 * (double)mc.getMainWindow().getScaledWidth() / (double)mc.getMainWindow().getWidth();
-		double d1 = Math.min(Math.max((int) UI.cursorY1, 0), mc.getMainWindow().getWidth())
-				 * (double)mc.getMainWindow().getScaledHeight() / (double)mc.getMainWindow().getHeight();
-		
-		double d2 = Math.min(Math.max((int) UI.cursorX2, 0), mc.getMainWindow().getWidth())
-				 * (double)mc.getMainWindow().getScaledWidth() / (double)mc.getMainWindow().getWidth();
-		double d3 = Math.min(Math.max((int) UI.cursorY2, 0), mc.getMainWindow().getWidth())
-				 * (double)mc.getMainWindow().getScaledHeight() / (double)mc.getMainWindow().getHeight();
+            if (!GuiHandler.keyKeyboardShift.isKeyDown(ControllerType.RIGHT) && lastPressedShiftR)
+            {
+                UI.setShift(false);
+                lastPressedShiftR = false;
+            }
 
-		if(mc.vrSettings.radialModeHold) {
-			if (activecontroller == null)
-				return;
-			
-			if (!MCOpenVR.keyRadialMenu.isKeyDown()) {
-				if (activecontroller == ControllerType.LEFT) {
-					UI.mouseClicked((int)d0, (int)d1, 0);
-				} else {
-					UI.mouseClicked((int)d2, (int)d3, 0);
-				}
-				RadialHandler.setOverlayShowing(false, null);
-			}
-			
-		} else {
-			if (PointedL && GuiHandler.keyKeyboardClick.isPressed(ControllerType.LEFT)) {
-					UI.mouseClicked((int)d0, (int)d1, 0);
-				lastPressedClickL = true;
-			}
-			if (!GuiHandler.keyKeyboardClick.isKeyDown(ControllerType.LEFT) && lastPressedClickL) {
-					UI.mouseReleased((int)d0, (int)d1, 0);
-				lastPressedClickL = false;
-			}
+            double d0 = (double)Math.min(Math.max((int)UI.cursorX1, 0), mc.getWindow().getScreenWidth()) * (double)mc.getWindow().getGuiScaledWidth() / (double)mc.getWindow().getScreenWidth();
+            double d1 = (double)Math.min(Math.max((int)UI.cursorY1, 0), mc.getWindow().getScreenWidth()) * (double)mc.getWindow().getGuiScaledHeight() / (double)mc.getWindow().getScreenHeight();
+            double d2 = (double)Math.min(Math.max((int)UI.cursorX2, 0), mc.getWindow().getScreenWidth()) * (double)mc.getWindow().getGuiScaledWidth() / (double)mc.getWindow().getScreenWidth();
+            double d3 = (double)Math.min(Math.max((int)UI.cursorY2, 0), mc.getWindow().getScreenWidth()) * (double)mc.getWindow().getGuiScaledHeight() / (double)mc.getWindow().getScreenHeight();
 
-			if(PointedR && GuiHandler.keyKeyboardClick.isPressed(ControllerType.RIGHT)) {
-					UI.mouseClicked((int)d2, (int)d3, 0);
-				lastPressedClickR = true;
-			}
-			if (!GuiHandler.keyKeyboardClick.isKeyDown(ControllerType.RIGHT) && lastPressedClickR) {
-					UI.mouseReleased((int)d2, (int)d3, 0);
-				lastPressedClickR = false;
-			}
-		}
-	}
+            if (mc.vrSettings.radialModeHold)
+            {
+                if (activecontroller == null)
+                {
+                    return;
+                }
 
-	public static boolean isShowing() {
-		return Showing;
-	}
+                if (!mc.vr.keyRadialMenu.isDown())
+                {
+                    if (activecontroller == ControllerType.LEFT)
+                    {
+                        UI.mouseClicked((double)((int)d0), (double)((int)d1), 0);
+                    }
+                    else
+                    {
+                        UI.mouseClicked((double)((int)d2), (double)((int)d3), 0);
+                    }
 
-	public static boolean isUsingController(ControllerType controller) {
-		if (controller == ControllerType.LEFT) {
-			return PointedL;
-		} else {
-			return PointedR;
-		}
-	}
+                    setOverlayShowing(false, (ControllerType)null);
+                }
+            }
+            else
+            {
+                if (PointedL && GuiHandler.keyKeyboardClick.isPressed(ControllerType.LEFT))
+                {
+                    UI.mouseClicked((double)((int)d0), (double)((int)d1), 0);
+                    lastPressedClickL = true;
+                }
+
+                if (!GuiHandler.keyKeyboardClick.isKeyDown(ControllerType.LEFT) && lastPressedClickL)
+                {
+                    UI.mouseReleased((double)((int)d0), (double)((int)d1), 0);
+                    lastPressedClickL = false;
+                }
+
+                if (PointedR && GuiHandler.keyKeyboardClick.isPressed(ControllerType.RIGHT))
+                {
+                    UI.mouseClicked((double)((int)d2), (double)((int)d3), 0);
+                    lastPressedClickR = true;
+                }
+
+                if (!GuiHandler.keyKeyboardClick.isKeyDown(ControllerType.RIGHT) && lastPressedClickR)
+                {
+                    UI.mouseReleased((double)((int)d2), (double)((int)d3), 0);
+                    lastPressedClickR = false;
+                }
+            }
+        }
+    }
+
+    public static boolean isShowing()
+    {
+        return Showing;
+    }
+
+    public static boolean isUsingController(ControllerType controller)
+    {
+        return controller == ControllerType.LEFT ? PointedL : PointedR;
+    }
 }

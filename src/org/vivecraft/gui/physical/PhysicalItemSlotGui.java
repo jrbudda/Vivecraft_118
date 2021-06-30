@@ -1,405 +1,354 @@
 package org.vivecraft.gui.physical;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import java.util.ArrayList;
 import java.util.HashMap;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.lwjgl.opengl.GL11;
 import org.vivecraft.gui.physical.interactables.Interactable;
 import org.vivecraft.gui.physical.interactables.PhysicalItemSlot;
 import org.vivecraft.utils.Utils;
 import org.vivecraft.utils.math.Quaternion;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+public class PhysicalItemSlotGui extends PhysicalGui
+{
+    protected boolean isOpen = false;
+    boolean isBlock;
+    public Entity entity;
+    public BlockPos blockPos;
+    public BlockState blockState;
+    public PhysicalGui.InventoryMetaData metaData = null;
+    public ArrayList<Interactable> interactables = new ArrayList<>();
+    double shortestDist = -1.0D;
+    public double touchDistance = 0.25D;
+    double openDistance = 0.4D;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.HandSide;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.vector.Vector3d;
+    public PhysicalItemSlotGui(BlockPos pos)
+    {
+        this.isBlock = true;
+        this.blockPos = pos;
+        this.blockState = this.mc.level.getBlockState(pos);
+        this.init();
+    }
 
+    public PhysicalItemSlotGui(Entity entity)
+    {
+        this.isBlock = false;
+        this.entity = entity;
+        this.init();
+    }
 
-public class PhysicalItemSlotGui extends PhysicalGui {
-	protected boolean isOpen = false;
+    void init()
+    {
+        this.loadSlots();
+    }
 
-	boolean isBlock;
-	public Entity entity;
-	public BlockPos blockPos;
-	public BlockState blockState;
+    boolean isInRange()
+    {
+        return this.shortestDist != -1.0D && this.shortestDist < 0.5D;
+    }
 
-	public InventoryMetaData metaData=null;
+    public void render(double partialTicks)
+    {
+        if (!this.isFullyClosed())
+        {
+            Player player = Minecraft.getInstance().player;
+            Vec3 vec3 = new Vec3(player.xOld + (player.getX() - player.xOld) * partialTicks, player.yOld + (player.getY() - player.yOld) * partialTicks, player.zOld + (player.getZ() - player.zOld) * partialTicks);
+            int i = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
 
-	public ArrayList<Interactable> interactables = new ArrayList<>();
+            for (int j = 0; j <= 1; ++j)
+            {
+                for (Interactable interactable : this.interactables)
+                {
+                    if (interactable.isEnabled())
+                    {
+                        GlStateManager._pushMatrix();
+                        GlStateManager._matrixMode(5888);
+                        GlStateManager._depthFunc(i);
+                        Vec3 vec31 = interactable.getAnchorPos(partialTicks);
+                        Quaternion quaternion = interactable.getAnchorRotation(partialTicks);
+                        vec31 = vec31.subtract(vec3);
+                        GlStateManager._translated(vec31.x, vec31.y, vec31.z);
+                        Utils.glRotate(quaternion);
+                        Vec3 vec32 = interactable.getPosition(partialTicks);
+                        GlStateManager._translated(vec32.x, vec32.y, vec32.z);
+                        Utils.glRotate(interactable.getRotation(partialTicks));
+                        interactable.render(partialTicks, j);
+                        GlStateManager._popMatrix();
+                    }
+                }
+            }
+        }
+    }
 
-	public PhysicalItemSlotGui(BlockPos pos) {
-		super();
-		isBlock = true;
-		this.blockPos = pos;
-		blockState = mc.world.getBlockState(pos);
-		init();
-	}
+    public void close()
+    {
+        if (this.isOpen)
+        {
+            this.isOpen = false;
+            this.touching = null;
+            this.shortestDist = -1.0D;
 
-	public PhysicalItemSlotGui(Entity entity) {
-		super();
-		isBlock = false;
-		this.entity = entity;
-		init();
-	}
+            if (this.mc.physicalGuiManager.activeGui != null && this.mc.physicalGuiManager.activeGui.equals(this))
+            {
+                this.mc.physicalGuiManager.activeGui = null;
+            }
 
-	void init() {
-		loadSlots();
-		
-		/*VRButtonMapping vrPrime=mc.vrSettings.buttonMappings.get(MCOpenVR.keyInteractVRprimary.getKeyDescription());
-		vrPrime.registerListener(new VRButtonMapping.KeyListener() {
-			@Override
-			public boolean onPressed() {
-				if(!mc.vrSettings.physicalGuiEnabled)
-					return false;
-				if (!isOpen)
-					return false;
-				if (touching != null) {
-					clicked=touching;
-					touching.click(0);
-					return true;
-				}
+            this.mc.physicalGuiManager.requestGuiSwitch((PhysicalGui)null);
+            this.mc.physicalGuiManager.onGuiClosed();
+        }
+    }
 
-				if (isInRange()) {
-					//consume near misses
-					return true;
-				}
-				return false;
-			}
+    public boolean isFullyClosed()
+    {
+        return !this.isOpen;
+    }
 
-			@Override
-			public void onUnpressed() {
-				if (!isOpen)
-					return;
-				if (clicked != null) {
-					clicked.unclick(0);
-					if(touching!=null && !clicked.equals(touching)){
-						touching.onDragDrop(clicked);
-					}
-					clicked=null;
-				}
-			}
-		});
-		VRButtonMapping vrSecond=mc.vrSettings.buttonMappings.get(MCOpenVR.keyInteractVRsecondary.getKeyDescription());
-		vrSecond.registerListener(new VRButtonMapping.KeyListener() {
-			@Override
-			public boolean onPressed() {
-				if(!mc.vrSettings.physicalGuiEnabled)
-					return false;
-				if (!isOpen)
-					return false;
-				if (touching != null) {
-					touching.click(1);
-					return true;
-				}
+    public void open(Object payload)
+    {
+        this.mc.player.containerMenu = this.container;
+        this.loadSlots();
+        this.metaData = analyseInventory(this.container);
+        this.isOpen = true;
+        this.mc.physicalGuiManager.onGuiOpened();
+    }
 
-				if (isInRange()) {
-					//consume near misses
-					return true;
-				}
-				return false;
-			}
+    public Vec3 getAnchorPos(double partialTicks)
+    {
+        if (this.isBlock)
+        {
+            return new Vec3((double)this.blockPos.getX() + 0.5D, (double)this.blockPos.getY() + 0.5D, (double)this.blockPos.getZ() + 0.5D);
+        }
+        else
+        {
+            Vec3 vec3 = new Vec3(this.entity.xo, this.entity.yo, this.entity.zo);
+            return vec3.add(this.entity.position().subtract(vec3).scale(partialTicks));
+        }
+    }
 
-			@Override
-			public void onUnpressed() {
-			}
-		});*/
-		
-	}
+    public Quaternion getAnchorRotation(double partialTicks)
+    {
+        return this.isBlock ? getBlockOrientation(this.blockPos) : new Quaternion(0.0F, (float)(-((double)this.entity.yRotO + partialTicks * (double)(this.entity.yRot - this.entity.yRotO))), 0.0F);
+    }
 
-	boolean isInRange(){
-		return shortestDist != -1 && shortestDist < 0.5;
-	}
+    public boolean requestOpen()
+    {
+        boolean flag;
 
-	@Override
-	public void render(double partialTicks) {
+        if (this.isBlock)
+        {
+            flag = this.mc.gameMode.useItemOn(this.mc.player, this.mc.level, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.ZERO, Direction.UP, this.blockPos, false)) == InteractionResult.SUCCESS;
+        }
+        else
+        {
+            flag = this.mc.gameMode.interact(this.mc.player, this.entity, InteractionHand.MAIN_HAND) == InteractionResult.SUCCESS;
+        }
 
+        return flag;
+    }
 
-		if (isFullyClosed())
-			return;
+    public void tryOpenWindow()
+    {
+        if (!this.mc.player.isShiftKeyDown())
+        {
+            this.mc.physicalGuiManager.requestGuiSwitch(this);
+        }
+    }
 
+    void loadSlots()
+    {
+        if (this.blockState != null)
+        {
+            String s = getBlockId(this.blockState.getBlock());
+            this.interactables.clear();
 
-		PlayerEntity player = Minecraft.getInstance().player;
-		Vector3d playerPos = new Vector3d(
-				player.lastTickPosX + (player.getPosX() - player.lastTickPosX) * partialTicks,
-				player.lastTickPosY + (player.getPosY() - player.lastTickPosY) * partialTicks,
-				player.lastTickPosZ + (player.getPosZ() - player.lastTickPosZ) * partialTicks
-		);
-		
-		int depthFun = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
+            if (s.equals("minecraft:crafting_table"))
+            {
+                for (int i = 0; i < 3; ++i)
+                {
+                    for (int j = 1; j <= 3; ++j)
+                    {
+                        int k = i * 3 + j;
+                        PhysicalItemSlot physicalitemslot = new PhysicalItemSlot(this, k);
+                        physicalitemslot.position = new Vec3((double)(2 - j) * 0.2D, 0.5D, (double)(1 - i) * 0.2D);
+                        physicalitemslot.rotation = new Quaternion(90.0F, 0.0F, 0.0F);
 
-		for (int renderLayer = 0; renderLayer <= 1; renderLayer++) {
-			for (Interactable slot : interactables) {
-				if (!slot.isEnabled())
-					continue;
+                        if (this.container != null)
+                        {
+                            physicalitemslot.slot = this.container.slots.get(k);
+                        }
 
+                        this.interactables.add(physicalitemslot);
+                    }
+                }
 
-				//GlStateManager.popMatrix();
-				GlStateManager.pushMatrix();
-				//RenderHelper.enableStandardItemLighting();
-				GlStateManager.matrixMode(GL11.GL_MODELVIEW);
-				//make sure we have the original depth function
-				GlStateManager.depthFunc(depthFun);
+                PhysicalItemSlot physicalitemslot1 = new PhysicalItemSlot(this, 0);
+                physicalitemslot1.position = new Vec3(0.0D, 1.0D, 0.0D);
+                physicalitemslot1.fullBlockRotation = new Quaternion();
+                physicalitemslot1.preview = false;
 
-				Vector3d origin = slot.getAnchorPos(partialTicks);
-								
-				Quaternion rotation=slot.getAnchorRotation(partialTicks);
-				origin = origin.subtract(playerPos);
+                if (this.container != null)
+                {
+                    physicalitemslot1.slot = this.container.slots.get(0);
+                }
 
-				GlStateManager.translated(origin.x, origin.y, origin.z);
-				Utils.glRotate(rotation);
+                this.interactables.add(physicalitemslot1);
+            }
+        }
+    }
 
-				Vector3d slotpos = slot.getPosition(partialTicks);
-				GlStateManager.translated(slotpos.x, slotpos.y, slotpos.z);
-				Utils.glRotate(slot.getRotation(partialTicks));
+    void reloadSlots()
+    {
+        HashMap<Integer, Slot> hashmap = new HashMap<>();
 
-				slot.render(partialTicks,renderLayer);
-				
-				GlStateManager.popMatrix();
-			}
-		}
-	}
+        for (Interactable interactable : this.interactables)
+        {
+            if (interactable instanceof PhysicalItemSlot)
+            {
+                PhysicalItemSlot physicalitemslot = (PhysicalItemSlot)interactable;
+                hashmap.put(physicalitemslot.slotId, physicalitemslot.slot);
+            }
+        }
 
+        this.loadSlots();
 
-	@Override
-	public void close() {
-		if (!isOpen)
-			return;
-		isOpen = false;
-		touching = null;
-		shortestDist = -1;
-		
-		if (mc.physicalGuiManager.activeGui != null && mc.physicalGuiManager.activeGui.equals(this))
-			mc.physicalGuiManager.activeGui = null;
-		
-		mc.physicalGuiManager.requestGuiSwitch(null);
-		
-		mc.physicalGuiManager.onGuiClosed();
-	}
+        for (Interactable interactable1 : this.interactables)
+        {
+            if (interactable1 instanceof PhysicalItemSlot)
+            {
+                PhysicalItemSlot physicalitemslot1 = (PhysicalItemSlot)interactable1;
+                Slot slot = hashmap.get(physicalitemslot1.slotId);
 
-	@Override
-	public boolean isFullyClosed() {
-		return !isOpen;
-	}
+                if (slot != null)
+                {
+                    physicalitemslot1.slot = slot;
+                }
+            }
+        }
+    }
 
-	@Override
-	public void open(Object payload) {
-//		if (payload instanceof IInteractionObject && container==null) {
-//			container = new WorkbenchContainer(mc.player.inventory, mc.world, blockPos);
-//		}
+    public void onMayClose()
+    {
+        if (this.blockState != null)
+        {
+            String s = getBlockId(this.blockState.getBlock());
 
-		mc.player.openContainer = container;
-		loadSlots();
-		metaData=analyseInventory(container);
-		isOpen = true;
-		mc.physicalGuiManager.onGuiOpened();
-		//mc.physicalGuiManager.playerInventory.postGuiChange(this);
-	}
+            if (s.equals("minecraft:crafting_table"))
+            {
+                this.close();
+            }
+        }
+    }
 
+    public boolean isOpen()
+    {
+        return this.isOpen;
+    }
 
-	@Override
-	public Vector3d getAnchorPos(double partialTicks) {
-		if (isBlock) {
-			return new Vector3d(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
-		} else {
-			Vector3d prev=new Vector3d(entity.prevPosX,entity.prevPosY,entity.prevPosZ);
-			return prev.add((entity.getPositionVec().subtract(prev)).scale(partialTicks));
-		}
-	}
+    public boolean isAlive()
+    {
+        return this.isBlock ? this.mc.level.getBlockState(this.blockPos).getBlock().equals(this.blockState.getBlock()) : this.entity.isAlive();
+    }
 
-	@Override
-	public Quaternion getAnchorRotation(double partialTicks) {
-		if (isBlock) {
-			return getBlockOrientation(blockPos);
-		} else {
-			return new Quaternion(0, (float)-(entity.prevRotationYaw+ partialTicks*( entity.rotationYaw-entity.prevRotationYaw)), 0);
-		}
-	}
+    public void onUpdate()
+    {
+        int i = this.mc.options.mainHand == HumanoidArm.RIGHT ? 0 : 1;
+        Vec3 vec3 = this.mc.vrPlayer.vrdata_world_pre.getController(i).getPosition();
+        vec3 = vec3.add(this.mc.vrPlayer.vrdata_world_pre.getController(i).getDirection().scale(0.1D));
 
-	@Override
-	public boolean requestOpen() {
-		boolean success;
-		if (isBlock) {
-			success = (mc.playerController.func_217292_a(mc.player, mc.world, Hand.MAIN_HAND, new BlockRayTraceResult(Vector3d.ZERO, Direction.UP, blockPos, false))
-					== ActionResultType.SUCCESS);
-		} else {
-			success = mc.playerController.interactWithEntity(mc.player, entity, Hand.MAIN_HAND) == ActionResultType.SUCCESS;
-		}
-		return success;
-	}
+        if (this.touching != null && !this.interactables.contains(this.touching))
+        {
+            this.touching.untouch();
+            this.touching = null;
+        }
 
-	public void tryOpenWindow() {
-		if (mc.player.isSneaking())
-			return;
-		mc.physicalGuiManager.requestGuiSwitch(this);
+        ArrayList<Interactable> arraylist = new ArrayList<>();
 
-	}
+        for (Interactable interactable : this.interactables)
+        {
+            if (interactable.isTouchable())
+            {
+                Vec3 vec31 = interactable.getAnchorRotation(0.0D).inverse().multiply(vec3.subtract(interactable.getAnchorPos(0.0D)));
+                vec31 = interactable.getRotation(0.0D).inverse().multiply(vec31.subtract(interactable.getPosition(0.0D)));
 
-	void loadSlots() {
-		if(blockState==null)
-			return;
-		String blockid = getBlockId(blockState.getBlock());
-		interactables.clear();
+                if (interactable.getBoundingBox().contains(vec31))
+                {
+                    arraylist.add(interactable);
+                }
+            }
+        }
 
-		if (blockid.equals("minecraft:crafting_table")) {
-			for (int i = 0; i < 3; i++) {
-				for (int j = 1; j <= 3; j++) {
-					int slotnum = i * 3 + j;
+        this.shortestDist = -1.0D;
+        Interactable interactable2 = null;
+        double d1 = -1.0D;
 
-					PhysicalItemSlot craft = new PhysicalItemSlot(this,slotnum);
-					craft.position = new Vector3d((2 - j) * 0.2, 0.5, (1 - i) * 0.2);
-					craft.rotation = new Quaternion(90, 0, 0);
-					if (container != null)
-						craft.slot = container.inventorySlots.get(slotnum);
-					interactables.add(craft);
-				}
-			}
-			PhysicalItemSlot output = new PhysicalItemSlot(this,0);
-			output.position = new Vector3d(0, 1, 0);
-			output.fullBlockRotation = new Quaternion();
-			output.preview=false;
-			if (container != null)
-				output.slot = container.inventorySlots.get(0);
-			interactables.add(output);
-		}
-	}
+        for (Interactable interactable1 : arraylist)
+        {
+            Vec3 vec32 = interactable1.getAnchorPos(0.0D);
+            Quaternion quaternion = interactable1.getAnchorRotation(0.0D);
+            Vec3 vec33 = vec32.add(quaternion.multiply(interactable1.getPosition(0.0D)));
+            double d0 = vec33.subtract(vec3).length();
 
-	void reloadSlots() {
-		HashMap<Integer, Slot> mcslots = new HashMap<>();
-		for (Interactable inter : interactables) {
-			if(inter instanceof PhysicalItemSlot) {
-				PhysicalItemSlot slot=(PhysicalItemSlot) inter;
-				mcslots.put(slot.slotId, slot.slot);
-			}
-		}
-		loadSlots();
-		for (Interactable inter : interactables) {
-			if(inter instanceof PhysicalItemSlot) {
-				PhysicalItemSlot slot = (PhysicalItemSlot) inter;
-				Slot s = mcslots.get(slot.slotId);
-				if (s != null)
-					slot.slot = s;
-			}
-		}
-	}
+            if (this.shortestDist == -1.0D || this.shortestDist > d0)
+            {
+                this.shortestDist = d0;
+                interactable2 = interactable1;
+            }
 
-	/**
-	 * Called when the inventory may close, meaning there are no slots with items and it is not touched
-	 * */
-	public void onMayClose(){
-		if (blockState!=null) {
-			String blockid = getBlockId(blockState.getBlock());
-			if (blockid.equals("minecraft:crafting_table")) {
-				close();
-			}
-		}
-	}
+            if (interactable1.equals(this.touching))
+            {
+                d1 = d0;
+            }
+        }
 
-	@Override
-	public boolean isOpen() {
-		return isOpen;
-	}
+        if (this.isOpen() && this.touching != null && (d1 == -1.0D || d1 - this.shortestDist > 0.01D))
+        {
+            this.touching.untouch();
+            this.touching = null;
+        }
 
-	@Override
-	public boolean isAlive() {
-		if (isBlock) {
-			return mc.world.getBlockState(blockPos).getBlock().equals(blockState.getBlock());
-		} else {
-			return entity.isAlive();
-		}
-	}
+        if (!this.isOpen && !this.mc.physicalGuiManager.isIntercepting() && interactable2 != null && this.shortestDist < this.openDistance)
+        {
+            this.tryOpenWindow();
+        }
+        else if (this.isOpen && (interactable2 == null || this.shortestDist > this.openDistance + 0.05D))
+        {
+            boolean flag = true;
 
-	double shortestDist = -1;
-	public double touchDistance = 0.25;
-	double openDistance = 0.4;
+            for (Interactable interactable3 : this.interactables)
+            {
+                if (interactable3 instanceof PhysicalItemSlot)
+                {
+                    PhysicalItemSlot physicalitemslot = (PhysicalItemSlot)interactable3;
 
-	@Override
-	public void onUpdate() {
+                    if (!physicalitemslot.getDisplayedItem().isEmpty())
+                    {
+                        flag = false;
+                    }
+                }
+            }
 
-		//if (isOpen && !mc.player.openContainer.equals(container)) {
-		//	close();
-		//	return;
-		//}
+            if (flag)
+            {
+                this.onMayClose();
+            }
+        }
 
-
-		int mainhand = (mc.gameSettings.mainHand == HandSide.RIGHT) ? 0 : 1;
-		Vector3d handPos = mc.vrPlayer.vrdata_world_pre.getController(mainhand).getPosition();
-		handPos = handPos.add(mc.vrPlayer.vrdata_world_pre.getController(mainhand).getDirection().scale(0.1));
-
-
-		if (touching != null && !interactables.contains(touching)) {
-			touching.untouch();
-			touching =null;
-		}
-
-		ArrayList<Interactable> touchingSlots=new ArrayList<>();
-		for (Interactable slot : interactables) {
-			if (!slot.isTouchable())
-				continue;
-			Vector3d relHand=slot.getAnchorRotation(0).inverse().multiply(handPos.subtract(slot.getAnchorPos(0)));
-			relHand=slot.getRotation(0).inverse().multiply(relHand.subtract(slot.getPosition(0)));
-			if(slot.getBoundingBox().contains(relHand))
-				touchingSlots.add(slot);
-		}
-
-		shortestDist = -1;
-		Interactable closestSlot=null;
-		double currentSlotDistance=-1;
-
-		for (Interactable slot : touchingSlots) {
-			Vector3d basePos = slot.getAnchorPos(0);
-			Quaternion rot=slot.getAnchorRotation(0);
-			Vector3d absSlotPos=basePos.add(rot.multiply(slot.getPosition(0)));
-
-			double dist = absSlotPos.subtract(handPos).length();
-			if (shortestDist == -1 || shortestDist > dist) {
-				shortestDist = dist;
-				closestSlot=slot;
-			}
-			if(slot.equals(touching)){
-				currentSlotDistance=dist;
-			}
-
-		}
-
-			if (isOpen() && touching !=null && (currentSlotDistance == -1 || currentSlotDistance-shortestDist > 0.01)) {
-				touching.untouch();
-				touching =null;
-			}
-			if (!isOpen && !mc.physicalGuiManager.isIntercepting() && closestSlot!=null && shortestDist < openDistance) {
-				tryOpenWindow();
-			}else if(isOpen && (closestSlot==null || shortestDist > openDistance+0.05)){
-				boolean isEmpty=true;
-				for (Interactable in: interactables){
-					if(in instanceof PhysicalItemSlot){
-						PhysicalItemSlot slot=(PhysicalItemSlot) in;
-						if (!slot.getDisplayedItem().isEmpty()){
-							isEmpty=false;
-						}
-					}
-				}
-				if (isEmpty){
-					onMayClose();
-				}
-			}
-
-			if (isOpen() && closestSlot!=null && shortestDist != -1 && touching == null) {
-				touching =closestSlot;
-				closestSlot.touch();
-			}
-
-	}
-
-
-
-
+        if (this.isOpen() && interactable2 != null && this.shortestDist != -1.0D && this.touching == null)
+        {
+            this.touching = interactable2;
+            interactable2.touch();
+        }
+    }
 }

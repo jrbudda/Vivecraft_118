@@ -1,0 +1,173 @@
+--- a/net/minecraft/client/renderer/entity/EntityRenderDispatcher.java
++++ b/net/minecraft/client/renderer/entity/EntityRenderDispatcher.java
+@@ -52,13 +52,20 @@
+ import net.optifine.player.PlayerItemsLayer;
+ import net.optifine.reflect.Reflector;
+ import net.optifine.shaders.Shaders;
++import org.vivecraft.render.PlayerModelController;
++import org.vivecraft.render.RenderPass;
++import org.vivecraft.render.VRPlayerRenderer;
+ 
+ public class EntityRenderDispatcher
+ {
+     private static final RenderType SHADOW_RENDER_TYPE = RenderType.entityShadow(new ResourceLocation("textures/misc/shadow.png"));
+-    private final Map < EntityType<?>, EntityRenderer<? >> renderers = Maps.newHashMap();
++    private final Map<EntityType, EntityRenderer> renderers = Maps.newHashMap();
+     private final Map<String, PlayerRenderer> playerRenderers = Maps.newHashMap();
+     private final PlayerRenderer defaultPlayerRenderer;
++    private final Map<String, VRPlayerRenderer> skinMapVR = Maps.newHashMap();
++    private final Map<String, VRPlayerRenderer> skinMapVRSeated = Maps.newHashMap();
++    private VRPlayerRenderer playerRendererVR;
++    private VRPlayerRenderer playerRendererVRSeated;
+     private final Font font;
+     public final TextureManager textureManager;
+     private Level level;
+@@ -227,11 +234,66 @@
+         {
+             String s = ((AbstractClientPlayer)p_114383_).getModelName();
+             PlayerRenderer playerrenderer = this.playerRenderers.get(s);
+-            return (EntityRenderer <? super T >)(playerrenderer != null ? playerrenderer : this.defaultPlayerRenderer);
++            PlayerModelController.RotInfo playermodelcontroller$rotinfo = PlayerModelController.getInstance().getRotationsForPlayer(p_114383_.getUUID());
++
++            if (playermodelcontroller$rotinfo != null)
++            {
++                Object object = null;
++                VRPlayerRenderer vrplayerrenderer1;
++
++                if (playermodelcontroller$rotinfo.seated)
++                {
++                    if (this.playerRendererVRSeated == null)
++                    {
++                        this.playerRendererVRSeated = new VRPlayerRenderer(this, false, true);
++                        this.skinMapVRSeated.put("default", this.playerRendererVRSeated);
++                        this.skinMapVRSeated.put("slim", new VRPlayerRenderer(this, true, true));
++                        PlayerItemsLayer.register(this.skinMapVRSeated);
++                    }
++
++                    VRPlayerRenderer vrplayerrenderer = this.skinMapVRSeated.get(s);
++
++                    if (vrplayerrenderer != null)
++                    {
++                        vrplayerrenderer1 = vrplayerrenderer;
++                    }
++                    else
++                    {
++                        vrplayerrenderer1 = this.playerRendererVRSeated;
++                    }
++                }
++                else
++                {
++                    if (this.playerRendererVR == null)
++                    {
++                        this.playerRendererVR = new VRPlayerRenderer(this, false, false);
++                        this.skinMapVR.put("default", this.playerRendererVR);
++                        this.skinMapVR.put("slim", new VRPlayerRenderer(this, true, false));
++                        PlayerItemsLayer.register(this.skinMapVR);
++                    }
++
++                    VRPlayerRenderer vrplayerrenderer2 = this.skinMapVR.get(s);
++
++                    if (vrplayerrenderer2 != null)
++                    {
++                        vrplayerrenderer1 = vrplayerrenderer2;
++                    }
++                    else
++                    {
++                        vrplayerrenderer1 = this.playerRendererVR;
++                    }
++                }
++
++                return vrplayerrenderer1;
++            }
++            else
++            {
++                return playerrenderer != null ? playerrenderer : this.defaultPlayerRenderer;
++            }
+         }
+         else
+         {
+-            return (EntityRenderer <? super T >)this.renderers.get(p_114383_.getType());
++            return this.renderers.get(p_114383_.getType());
+         }
+     }
+ 
+@@ -333,9 +395,9 @@
+ 
+                 p_114391_.popPose();
+             }
+-            catch (Throwable throwable1)
++            catch (Throwable throwable)
+             {
+-                CrashReport crashreport = CrashReport.forThrowable(throwable1, "Rendering entity in world");
++                CrashReport crashreport = CrashReport.forThrowable(throwable, "Rendering entity in world");
+                 CrashReportCategory crashreportcategory = crashreport.addCategory("Entity being rendered");
+                 p_114385_.fillCrashReportCategory(crashreportcategory);
+                 CrashReportCategory crashreportcategory1 = crashreport.addCategory("Renderer details");
+@@ -561,7 +623,66 @@
+ 
+     public Quaternion cameraOrientation()
+     {
+-        return this.cameraOrientation;
++        if (Minecraft.getInstance().currentPass == RenderPass.GUI)
++        {
++            return this.camera.rotation();
++        }
++        else
++        {
++            Entity entity = Minecraft.getInstance().levelRenderer.renderedEntity;
++
++            if (entity == null)
++            {
++                return this.camera.rotation();
++            }
++            else
++            {
++                Vec3 vec3 = Minecraft.getInstance().vrPlayer.getVRDataWorld().getEye(RenderPass.CENTER).getPosition();
++
++                if (Minecraft.getInstance().currentPass == RenderPass.THIRD || Minecraft.getInstance().currentPass == RenderPass.CAMERA)
++                {
++                    vec3 = Minecraft.getInstance().vrPlayer.getVRDataWorld().getEye(Minecraft.getInstance().currentPass).getPosition();
++                }
++
++                Vec3 vec31 = entity.position().add(0.0D, (double)(entity.getBbHeight() / 2.0F), 0.0D).subtract(vec3).normalize();
++                this.cameraOrientation.set(0.0F, 0.0F, 0.0F, 1.0F);
++                this.cameraOrientation.mul(Vector3f.YP.rotationDegrees((float)(-Math.toDegrees(Math.atan2(-vec31.x, vec31.z)))));
++                this.cameraOrientation.mul(Vector3f.XP.rotationDegrees((float)(-Math.toDegrees(Math.asin(vec31.y / vec31.length())))));
++                return this.cameraOrientation;
++            }
++        }
++    }
++
++    public Quaternion getCameraOrientationOffset(float offset)
++    {
++        if (Minecraft.getInstance().currentPass == RenderPass.GUI)
++        {
++            return this.camera.rotation();
++        }
++        else
++        {
++            Entity entity = Minecraft.getInstance().levelRenderer.renderedEntity;
++
++            if (entity == null)
++            {
++                return this.camera.rotation();
++            }
++            else
++            {
++                Vec3 vec3 = Minecraft.getInstance().vrPlayer.getVRDataWorld().getEye(RenderPass.CENTER).getPosition();
++
++                if (Minecraft.getInstance().currentPass == RenderPass.THIRD || Minecraft.getInstance().currentPass == RenderPass.CAMERA)
++                {
++                    vec3 = Minecraft.getInstance().vrPlayer.getVRDataWorld().getEye(Minecraft.getInstance().currentPass).getPosition();
++                }
++
++                Vec3 vec31 = entity.position().add(0.0D, (double)(entity.getBbHeight() + offset), 0.0D).subtract(vec3).normalize();
++                this.cameraOrientation.set(0.0F, 0.0F, 0.0F, 1.0F);
++                this.cameraOrientation.mul(Vector3f.YP.rotationDegrees((float)(-Math.toDegrees(Math.atan2(-vec31.x, vec31.z)))));
++                this.cameraOrientation.mul(Vector3f.XP.rotationDegrees((float)(-Math.toDegrees(Math.asin(vec31.y / vec31.length())))));
++                return this.cameraOrientation;
++            }
++        }
+     }
+ 
+     public Font getFont()

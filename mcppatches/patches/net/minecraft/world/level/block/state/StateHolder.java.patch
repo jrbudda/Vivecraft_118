@@ -1,0 +1,11 @@
+--- a/net/minecraft/world/level/block/state/StateHolder.java
++++ b/net/minecraft/world/level/block/state/StateHolder.java
+@@ -93,7 +93,7 @@
+         return stringbuilder.toString();
+     }
+ 
+-    public Collection < Property<? >> getProperties()
++    public Collection <Property> getProperties()
+     {
+         return Collections.unmodifiableCollection(this.values.keySet());
+     }

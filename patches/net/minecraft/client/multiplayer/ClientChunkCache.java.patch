@@ -1,0 +1,27 @@
+--- a/net/minecraft/client/multiplayer/ClientChunkCache.java
++++ b/net/minecraft/client/multiplayer/ClientChunkCache.java
+@@ -121,11 +121,11 @@
+                 if (levelchunk instanceof ChunkOF)
+                 {
+                     ChunkOF chunkof = (ChunkOF)levelchunk;
+-                    Object object = p_104422_.getCustomData("ChunkDataOF");
++                    Object object1 = p_104422_.getCustomData("ChunkDataOF");
+ 
+-                    if (object instanceof ChunkDataOF)
++                    if (object1 instanceof ChunkDataOF)
+                     {
+-                        ChunkDataOF chunkdataof = (ChunkDataOF)object;
++                        ChunkDataOF chunkdataof = (ChunkDataOF)object1;
+                         chunkof.setChunkDataOF(chunkdataof);
+                         LevelChunkSection.THREAD_CHUNK_DATA_OF.set(chunkdataof);
+                         flag = true;
+@@ -152,7 +152,8 @@
+                     levelchunk.setLoaded(false);
+                 }
+ 
+-                levelchunk = new ChunkOF(this.level, new ChunkPos(p_104419_, p_104420_), p_104421_);
++                Object object = new ChunkOF(this.level, new ChunkPos(p_104419_, p_104420_), p_104421_);
++                levelchunk = (LevelChunk)object;
+                 levelchunk.replaceWithPacketData(p_104421_, p_104422_, p_104423_, p_104424_);
+                 this.storage.replace(i, levelchunk);
+             }

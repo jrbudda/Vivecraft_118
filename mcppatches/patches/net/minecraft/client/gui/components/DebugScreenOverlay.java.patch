@@ -1,0 +1,11 @@
+--- a/net/minecraft/client/gui/components/DebugScreenOverlay.java
++++ b/net/minecraft/client/gui/components/DebugScreenOverlay.java
+@@ -546,7 +546,7 @@
+         {
+             list.add("");
+ 
+-            for (String s1 : (Collection)Reflector.call(Reflector.BrandingControl_getBrandings, true, false))
++            for (String s1 : (Collection<String>)Reflector.call(Reflector.BrandingControl_getBrandings, true, false))
+             {
+                 if (!s1.startsWith("Minecraft "))
+                 {

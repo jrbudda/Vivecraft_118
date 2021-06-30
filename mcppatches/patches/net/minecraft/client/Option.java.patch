@@ -1,0 +1,20 @@
+--- a/net/minecraft/client/Option.java
++++ b/net/minecraft/client/Option.java
+@@ -178,7 +178,7 @@
+     });
+     public static final ProgressOption FRAMERATE_LIMIT = new ProgressOption("options.framerateLimit", 0.0D, 260.0D, 5.0F, (longs) ->
+     {
+-        return longs.enableVsync ? FRAMERATE_LIMIT.getMinValue() : (double)longs.framerateLimit;
++        return longs.enableVsync ? 0 : (double)longs.framerateLimit;
+     }, (p_193769_0_, p_193769_1_) ->
+     {
+         p_193769_0_.framerateLimit = (int)p_193769_1_.doubleValue();
+@@ -186,7 +186,7 @@
+ 
+         if (p_193769_0_.framerateLimit <= 0)
+         {
+-            p_193769_0_.framerateLimit = (int)FRAMERATE_LIMIT.getMaxValue();
++            p_193769_0_.framerateLimit = 260;
+             p_193769_0_.enableVsync = true;
+         }
+ 

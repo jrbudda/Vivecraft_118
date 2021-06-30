@@ -2,26 +2,20 @@ package org.vivecraft.settings.profile;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.json.JSONObject;
 
-/**
- * Created by StellaArtois on 13/04/15.
- */
 public class ProfileWriter
 {
     private String activeProfileName;
     private String set;
-    private Map<String, String> data = new HashMap<String, String>();
+    private Map<String, String> data = new HashMap<>();
     private JSONObject theProfile = null;
 
     public ProfileWriter(String set)
     {
         this.activeProfileName = ProfileManager.currentProfileName;
         this.set = set;
-
-        // Add a new empty activeProfileName set
-        data = new HashMap<String, String>();
+        this.data = new HashMap<>();
     }
 
     public ProfileWriter(String set, JSONObject theProfile)
@@ -29,34 +23,38 @@ public class ProfileWriter
         this.activeProfileName = ProfileManager.currentProfileName;
         this.set = set;
         this.theProfile = theProfile;
-
-        // Add a new empty activeProfileName set
-        data = new HashMap<String, String>();
+        this.data = new HashMap<>();
     }
 
     public void println(String s)
     {
-        String[] array = ProfileManager.splitKeyValue(s);
-        String setting = array[0];
-        String value = "";
-        if (array.length > 1) {
-            value = array[1];
+        String[] astring = ProfileManager.splitKeyValue(s);
+        String s = astring[0];
+        String s1 = "";
+
+        if (astring.length > 1)
+        {
+            s1 = astring[1];
         }
-        data.put(setting, value);
+
+        this.data.put(s, s1);
     }
 
     public void close()
     {
-        if (this.theProfile == null) {
+        if (this.theProfile == null)
+        {
             ProfileManager.setProfileSet(this.activeProfileName, this.set, this.data);
             ProfileManager.save();
         }
-        else {
+        else
+        {
             ProfileManager.setProfileSet(this.theProfile, this.set, this.data);
         }
     }
 
-    public void setData(Map<String, String> data) {
+    public void setData(Map<String, String> data)
+    {
         this.data = data;
     }
 }

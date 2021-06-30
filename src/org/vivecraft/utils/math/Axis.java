@@ -1,22 +1,21 @@
 package org.vivecraft.utils.math;
 
-/**
- *
- * @author Techjar
- */
-public enum Axis {
-	PITCH(1, 0, 0),
-	YAW(0, 1, 0),
-	ROLL(0, 0, 1),
-	UNKNOWN(0, 0, 0);
+public enum Axis
+{
+    PITCH(1.0F, 0.0F, 0.0F),
+    YAW(0.0F, 1.0F, 0.0F),
+    ROLL(0.0F, 0.0F, 1.0F),
+    UNKNOWN(0.0F, 0.0F, 0.0F);
 
-	private Vector3 vector;
+    private Vector3 vector;
 
-	private Axis(float x, float y, float z) {
-		this.vector = new Vector3(x, y, z);
-	}
+    private Axis(float x, float y, float z)
+    {
+        this.vector = new Vector3(x, y, z);
+    }
 
-	public Vector3 getVector() {
-		return vector.copy();
-	}
+    public Vector3 getVector()
+    {
+        return this.vector.copy();
+    }
 }

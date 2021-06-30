@@ -1,215 +1,193 @@
 package org.vivecraft.gui.physical.interactables;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.ArrayList;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.api.VRData;
-import org.vivecraft.gameplay.OpenVRPlayer;
+import org.vivecraft.gameplay.VRPlayer;
 import org.vivecraft.utils.math.Quaternion;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
+public class Slider implements Interactable
+{
+    public boolean enabled = true;
+    Slider.ModelSlider slider = new Slider.ModelSlider(80);
+    public Vec3 position = Vec3.ZERO;
+    public Quaternion rotation = new Quaternion();
+    Vec3 anchorPos = Vec3.ZERO;
+    Quaternion anchorRotation = new Quaternion();
+    Minecraft mc = Minecraft.getInstance();
+    public float scale = 0.005F;
+    boolean holding;
+    double slideOffset;
+    ArrayList<Slider.ScrollListener> listeners = new ArrayList<>();
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.model.EntityModel;
-import net.minecraft.client.renderer.model.ModelRenderer;
-import net.minecraft.client.renderer.model.ModelRenderer.ModelBox;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.HandSide;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.vector.Vector3d;
+    public boolean isEnabled()
+    {
+        return this.enabled;
+    }
 
-public class Slider implements Interactable{
-	public boolean enabled=true;
-	ModelSlider slider=new ModelSlider(80);
+    public void render(double partialTicks, int renderLayer)
+    {
+        this.slider.render(this.scale);
 
-	public Vector3d position=Vector3d.ZERO;
-	public Quaternion rotation=new Quaternion();
-	Vector3d anchorPos=Vector3d.ZERO;
-	Quaternion anchorRotation=new Quaternion();
-	Minecraft mc=Minecraft.getInstance();
-	public float scale=0.005f;
-	boolean holding;
+        if (this.holding)
+        {
+            double d0 = this.getTargetSlidePos(partialTicks) + this.slideOffset;
+            this.slider.setSliderPos(Math.min(Math.max(0.0D, d0), 1.0D));
+        }
+    }
 
-	double slideOffset;
+    double getTargetSlidePos(double partialTicks)
+    {
+        VRData vrdata = VRPlayer.get().vrdata_world_render;
 
-	@Override
-	public boolean isEnabled() {
-		return enabled;
-	}
+        if (vrdata == null)
+        {
+            vrdata = VRPlayer.get().vrdata_world_pre;
+        }
 
-	@Override
-	public void render(double partialTicks, int renderLayer) {
-		slider.render(scale);
+        int i = this.mc.options.mainHand == HumanoidArm.RIGHT ? 0 : 1;
+        Vec3 vec3 = vrdata.getController(i).getPosition();
+        Vec3 vec31 = this.getAnchorPos(partialTicks).add(this.getAnchorRotation(partialTicks).multiply(this.getPosition(partialTicks)));
+        Vec3 vec32 = this.getAnchorRotation(partialTicks).multiply(this.getRotation(partialTicks).multiply(new Vec3(0.0D, 0.0D, -1.0D)));
+        double d0 = vec31.subtract(vec3).dot(vec32);
+        return d0 / (double)((float)(this.slider.length - 15) * this.scale) + 0.5D;
+    }
 
-		if (holding){
-			double slide=getTargetSlidePos(partialTicks) + slideOffset;
-			slider.setSliderPos(Math.min(Math.max(0,slide),1));
-		}
-	}
+    public Vec3 getPosition(double partialTicks)
+    {
+        return this.position;
+    }
 
-	double getTargetSlidePos(double partialTicks){
-		VRData data= OpenVRPlayer.get().vrdata_world_render;
-		if (data==null)
-			data=OpenVRPlayer.get().vrdata_world_pre;
+    public Quaternion getRotation(double partialTicks)
+    {
+        return this.rotation;
+    }
 
-		int mainhand = (mc.gameSettings.mainHand == HandSide.RIGHT) ? 0 : 1;
-		Vector3d ctrPos=data.getController(mainhand).getPosition();
+    public Vec3 getAnchorPos(double partialTicks)
+    {
+        return this.anchorPos;
+    }
 
-		Vector3d sliderPos=getAnchorPos(partialTicks).add(getAnchorRotation(partialTicks).multiply(getPosition(partialTicks)));
-		Vector3d dir=getAnchorRotation(partialTicks).multiply(getRotation(partialTicks).multiply(new Vector3d(0,0,-1)));
+    public Quaternion getAnchorRotation(double partialTicks)
+    {
+        return this.anchorRotation;
+    }
 
-		double projected=sliderPos.subtract(ctrPos).dotProduct(dir);
-		return projected/((slider.length-15)*scale)+0.5;
-	}
+    public void touch()
+    {
+    }
 
-	@Override
-	public Vector3d getPosition(double partialTicks) {
-		return position;
-	}
+    public void untouch()
+    {
+    }
 
-	@Override
-	public Quaternion getRotation(double partialTicks) {
-		return rotation;
-	}
+    public void registerScrollListener(Slider.ScrollListener listener)
+    {
+        this.listeners.add(listener);
+    }
 
-	@Override
-	public Vector3d getAnchorPos(double partialTicks) {
-		return anchorPos;
-	}
+    public void unregisterScrollListener(Slider.ScrollListener listener)
+    {
+        this.listeners.remove(listener);
+    }
 
-	@Override
-	public Quaternion getAnchorRotation(double partialTicks) {
-		return anchorRotation;
-	}
+    public void notifyScroll(double perc)
+    {
+        for (Slider.ScrollListener slider$scrolllistener : this.listeners)
+        {
+            slider$scrolllistener.onScroll(perc);
+        }
+    }
 
-	@Override
-	public void touch() {}
+    public void update()
+    {
+        if (this.holding)
+        {
+            this.notifyScroll(this.getSlidePercent());
+        }
+    }
 
-	@Override
-	public void untouch() {
-	}
+    public AABB getBoundingBox()
+    {
+        ModelPart.Cube modelpart$cube = this.slider.knob.cubes.get(0);
+        AABB aabb = new AABB((double)(this.scale * modelpart$cube.minX), (double)(this.scale * modelpart$cube.minY), (double)(this.scale * modelpart$cube.minZ), (double)(this.scale * modelpart$cube.maxX), (double)(this.scale * modelpart$cube.maxY), (double)(this.scale * modelpart$cube.maxZ));
+        aabb = aabb.move(0.0D, 0.0D, (double)this.scale * (this.slider.sliderPos * (double)(this.slider.length - 15) - (double)((float)this.slider.length / 2.0F) + 15.0D));
+        return aabb.inflate(0.1D);
+    }
 
-	ArrayList<ScrollListener> listeners=new ArrayList<>();
+    public void click(int button)
+    {
+        if (!this.holding)
+        {
+            this.holding = true;
+            this.slideOffset = this.slider.getSliderPos() - this.getTargetSlidePos(0.0D);
+        }
+    }
 
-	public void registerScrollListener(ScrollListener listener){
-		listeners.add(listener);
-	}
-	public void unregisterScrollListener(ScrollListener listener){
-		listeners.remove(listener);
-	}
-	public void notifyScroll(double perc){
-		for(ScrollListener listener : listeners){
-			listener.onScroll(perc);
-		}
-	}
+    public void unclick(int button)
+    {
+        this.holding = false;
+    }
 
-	@Override
-	public void update(){
-		if(holding){
-			notifyScroll(getSlidePercent());
-		}
-	}
+    public double getSlidePercent()
+    {
+        return 1.0D - this.slider.getSliderPos();
+    }
 
-	public interface ScrollListener{
-		public void onScroll(double perc);
-	}
+    class ModelSlider extends EntityModel
+    {
+        public ResourceLocation TEXTURE = new ResourceLocation("textures/gui/container/creative_inventory/tabs.png");
+        ModelPart rail;
+        ModelPart knob;
+        int length;
+        private double sliderPos = 1.0D;
 
+        public ModelSlider(int length)
+        {
+            this.length = length;
+            this.rail = (new ModelPart(this, 0, 0)).setTexSize(256, 256);
+            int[][] aint = new int[][] {{141, 11, 167, 12}, {143, 11, 144, 12}, {166, 11, 167, 12}, {141, 11, 142, 12}, {141, 11, 142, 12}, {166, 11, 167, 12}};
+            this.knob = (new ModelPart(this, 0, 0)).setTexSize(256, 256);
+            int[][] aint1 = new int[][] {{232, 0, 244, 15}, {233, 14, 234, 15}, {233, 14, 234, 15}, {232, 0, 233, 1}, {232, 0, 233, 1}, {233, 14, 234, 15}};
+            this.setSliderPos(this.sliderPos);
+        }
 
-	@Override
-	public AxisAlignedBB getBoundingBox() {
-		
-		ModelBox cube=slider.knob.cubeList.get(0);
-		AxisAlignedBB bb= new AxisAlignedBB(scale*cube.posX1,scale*cube.posY1,scale*cube.posZ1,scale*cube.posX2,scale*cube.posY2,scale*cube.posZ2);
-		bb=bb.offset(0,0, scale*(slider.sliderPos*(slider.length-15)- slider.length/2f + 15));
-		bb=bb.grow(0.1);
-		return bb;
-	}
+        public double getSliderPos()
+        {
+            return this.sliderPos;
+        }
 
-	@Override
-	public void click(int button) {
-		if(!holding) {
-			holding = true;
-			slideOffset = slider.getSliderPos() - getTargetSlidePos(0);
-		}
-	}
+        public void setSliderPos(double sliderPos)
+        {
+            this.sliderPos = sliderPos;
+            this.knob.z = (float)(sliderPos * (double)(this.length - 15)) - (float)this.length / 2.0F;
+        }
 
-	@Override
-	public void unclick(int button) {
-		holding=false;
-	}
+        void render(float scale)
+        {
+            Minecraft.getInstance().getTextureManager().bind(this.TEXTURE);
+        }
 
-	public double getSlidePercent(){
-		return 1.0-slider.getSliderPos();
-	}
+        public void setupAnim(Entity p_102618_, float p_102619_, float p_102620_, float p_102621_, float p_102622_, float p_102623_)
+        {
+        }
 
+        public void renderToBuffer(PoseStack p_103111_, VertexConsumer p_103112_, int p_103113_, int p_103114_, float p_103115_, float p_103116_, float p_103117_, float p_103118_)
+        {
+        }
+    }
 
-	class ModelSlider extends EntityModel {
-		public ResourceLocation TEXTURE = new ResourceLocation("textures/gui/container/creative_inventory/tabs.png");
-
-		ModelRenderer rail;
-		ModelRenderer knob;
-		int length;
-
-		private double sliderPos =1.0;
-
-		public ModelSlider(int length){
-			this.length=length;
-			rail=new ModelRenderer(this,0,0).setTextureSize(256,256);
-			int[][] texturemapRail=new int[6][];
-			texturemapRail[0]=new int[]{141,11,167,12};//top
-			texturemapRail[1]=new int[]{143,11,144,12};//bottom
-			texturemapRail[2]=new int[]{166,11,167,12};//front
-			texturemapRail[3]=new int[]{141,11,142,12};//back
-			texturemapRail[4]=new int[]{141,11,142,12};//left
-			texturemapRail[5]=new int[]{166,11,167,12};//right
-		//	rail.cubeList.add(new ModelBox(rail,texturemapRail,-3,0,-length/2f,6,3, length,0,false));
-
-
-			knob=new ModelRenderer(this,0,0).setTextureSize(256,256);
-			int[][] texturemapKnob=new int[6][];
-			texturemapKnob[0]=new int[]{232,0,244,15};//top
-			texturemapKnob[1]=new int[]{233,14,234,15};//bottom
-			texturemapKnob[2]=new int[]{233,14,234,15};//front
-			texturemapKnob[3]=new int[]{232,0,233,1};//back
-			texturemapKnob[4]=new int[]{232,0,233,1};//left
-			texturemapKnob[5]=new int[]{233,14,234,15};//right
-	//		knob.cubeList.add(new ModelBox(knob,texturemapKnob,-6,0.5f,0,12,4,15,0,false));
-			setSliderPos(sliderPos);
-		}
-
-		public double getSliderPos() {
-			return sliderPos;
-		}
-
-		public void setSliderPos(double sliderPos) {
-			this.sliderPos = sliderPos;
-			knob.rotationPointZ=(float) (sliderPos*(length-15)) - length/2f;
-		}
-
-//		@Override
-//		public void render(Entity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scale) {
-//			render(scale);
-//		}	
-		
-		void render(float scale){
-			Minecraft.getInstance().getTextureManager().bindTexture(TEXTURE);
-//			rail.render(scale);
-//			knob.render(scale);
-		}
-
-		@Override
-		public void setRotationAngles(Entity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks,
-				float netHeadYaw, float headPitch) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void render(MatrixStack matrixStackIn, IVertexBuilder bufferIn, int packedLightIn, int packedOverlayIn,
-				float red, float green, float blue, float alpha) {
-			// TODO Auto-generated method stub
-			
-		}
-	}
+    public interface ScrollListener
+    {
+        void onScroll(double var1);
+    }
 }

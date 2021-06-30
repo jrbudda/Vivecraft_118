@@ -1,25 +1,23 @@
 --- a/net/minecraft/client/renderer/entity/MobRenderer.java
 +++ b/net/minecraft/client/renderer/entity/MobRenderer.java
-@@ -2,6 +2,8 @@
- 
- import com.mojang.blaze3d.matrix.MatrixStack;
- import com.mojang.blaze3d.vertex.IVertexBuilder;
-+
+@@ -3,6 +3,7 @@
+ import com.mojang.blaze3d.vertex.PoseStack;
+ import com.mojang.blaze3d.vertex.VertexConsumer;
+ import com.mojang.math.Matrix4f;
 +import net.minecraft.client.Minecraft;
- import net.minecraft.client.renderer.IRenderTypeBuffer;
+ import net.minecraft.client.model.EntityModel;
  import net.minecraft.client.renderer.LightTexture;
- import net.minecraft.client.renderer.RenderType;
-@@ -59,6 +61,13 @@
+ import net.minecraft.client.renderer.MultiBufferSource;
+@@ -59,6 +60,12 @@
          {
-             matrixStackIn.push();
-             Vector3d vector3d = leashHolder.getLeashPosition(partialTicks);
-+            // VIVE START 
-+            if (leashHolder == Minecraft.getInstance().player)
-+            {
-+            	vector3d = Minecraft.getInstance().vrPlayer.vrdata_world_render.getController(0).getPosition();        		         
-+            }
-+            // VIVE END 
+             p_115464_.pushPose();
+             Vec3 vec3 = p_115466_.getRopeHoldPosition(p_115463_);
 +
-             double d0 = (double)(MathHelper.lerp(partialTicks, entityLivingIn.renderYawOffset, entityLivingIn.prevRenderYawOffset) * ((float)Math.PI / 180F)) + (Math.PI / 2D);
-             Vector3d vector3d1 = entityLivingIn.func_241205_ce_();
-             double d1 = Math.cos(d0) * vector3d1.z + Math.sin(d0) * vector3d1.x;
++            if (p_115466_ == Minecraft.getInstance().player)
++            {
++                vec3 = Minecraft.getInstance().vrPlayer.vrdata_world_render.getController(0).getPosition();
++            }
++
+             double d0 = (double)(Mth.lerp(p_115463_, p_115462_.yBodyRot, p_115462_.yBodyRotO) * ((float)Math.PI / 180F)) + (Math.PI / 2D);
+             Vec3 vec31 = p_115462_.getLeashOffset();
+             double d1 = Math.cos(d0) * vec31.z + Math.sin(d0) * vec31.x;

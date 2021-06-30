@@ -1,118 +1,138 @@
 package org.vivecraft.render;
 
-import org.lwjgl.opengl.ARBFragmentShader;
 import org.lwjgl.opengl.ARBShaderObjects;
-import org.lwjgl.opengl.ARBVertexShader;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
-/**
- * Created with IntelliJ IDEA.
- * User: Engineer
- * Date: 8/6/13
- * Time: 10:45 PM
- * To change this template use File | Settings | File Templates.
- */
 public class ShaderHelper
 {
     private static int createShader(String shaderGLSL, int shaderType) throws Exception
     {
-        int shader = 0;
-        try {
-            shader = ARBShaderObjects.glCreateShaderObjectARB(shaderType);
-            if(shader == 0)
+        int i = 0;
+
+        try
+        {
+            i = ARBShaderObjects.glCreateShaderObjectARB(shaderType);
+
+            if (i == 0)
+            {
                 return 0;
+            }
+            else
+            {
+                ARBShaderObjects.glShaderSourceARB(i, (CharSequence)shaderGLSL);
+                ARBShaderObjects.glCompileShaderARB(i);
 
-            ARBShaderObjects.glShaderSourceARB(shader, shaderGLSL);
-            ARBShaderObjects.glCompileShaderARB(shader);
-
-            if (ARBShaderObjects.glGetObjectParameteriARB(shader, ARBShaderObjects.GL_OBJECT_COMPILE_STATUS_ARB) == GL11.GL_FALSE)
-                throw new RuntimeException("Error creating shader: " + getLogInfo(shader));
-
-            return shader;
+                if (ARBShaderObjects.glGetObjectParameteriARB(i, ARBShaderObjects.GL_OBJECT_COMPILE_STATUS_ARB) == 0)
+                {
+                    throw new RuntimeException("Error creating shader: " + getLogInfo(i));
+                }
+                else
+                {
+                    return i;
+                }
+            }
         }
-        catch(Exception exc) {
-            ARBShaderObjects.glDeleteObjectARB(shader);
-            throw exc;
+        catch (Exception exception)
+        {
+            ARBShaderObjects.glDeleteObjectARB(i);
+            throw exception;
         }
     }
 
     public static int checkGLError(String par1Str)
     {
-        int var2 = GL11.glGetError();
+        int i = GL11.glGetError();
 
-        if (var2 != 0)
+        if (i != 0)
         {
-            String var3 = "";//TODO: Fix? GLUtil.gluErrorString(var2);
+            String s = "";
             System.out.println("########## GL ERROR ##########");
             System.out.println("@ " + par1Str);
-            System.out.println(var2 + ": " + var3);
+            System.out.println(i + ": " + s);
         }
 
-        return var2;
+        return i;
     }
 
-    private static String getLogInfo(int obj) {
-        return ARBShaderObjects.glGetInfoLogARB(obj, ARBShaderObjects.glGetObjectParameteriARB(obj, ARBShaderObjects.GL_OBJECT_INFO_LOG_LENGTH_ARB));
+    private static String getLogInfo(int obj)
+    {
+        return ARBShaderObjects.glGetInfoLogARB(obj, ARBShaderObjects.glGetObjectParameteriARB(obj, 35716));
     }
 
     public static int initShaders(String vertexShaderGLSL, String fragmentShaderGLSL, boolean doAttribs)
     {
-        int vertShader = 0, pixelShader = 0;
-        int program = 0;
-
-        try {
-            vertShader = createShader(vertexShaderGLSL, ARBVertexShader.GL_VERTEX_SHADER_ARB);
-            pixelShader = createShader(fragmentShaderGLSL, ARBFragmentShader.GL_FRAGMENT_SHADER_ARB);
-        }
-        catch(Exception exc) {
-            exc.printStackTrace();
-            return 0;
-        }
-        finally {
-            if(vertShader == 0 || pixelShader == 0)
-                return 0;
-        }
-
-        program = ARBShaderObjects.glCreateProgramObjectARB();
-        if(program == 0)
-            return 0;
-
-        /*
-        * if the fragment shaders setup sucessfully,
-        * attach them to the shader program, link the shader program
-        * into the GL context and validate
-        */
-        ARBShaderObjects.glAttachObjectARB(program, vertShader);
-        ARBShaderObjects.glAttachObjectARB(program, pixelShader);
-
-        if (doAttribs)
+        int i = 0;
+        int j = 0;
+        int k = 0;
+        label98:
         {
-            // Position information will be attribute 0
-            GL20.glBindAttribLocation(program, 0, "in_Position");
-            checkGLError("@2");
-            // Color information will be attribute 1
-            GL20.glBindAttribLocation(program, 1, "in_Color");
-            checkGLError("@2a");
-            // Texture information will be attribute 2
-            GL20.glBindAttribLocation(program, 2, "in_TextureCoord");
-            checkGLError("@3");
+            byte b0;
+
+            try
+            {
+                i = createShader(vertexShaderGLSL, 35633);
+                j = createShader(fragmentShaderGLSL, 35632);
+                break label98;
+            }
+            catch (Exception exception)
+            {
+                exception.printStackTrace();
+                b0 = 0;
+            }
+            finally
+            {
+                if (i == 0 || j == 0)
+                {
+                    return 0;
+                }
+            }
+
+            return b0;
         }
+        k = ARBShaderObjects.glCreateProgramObjectARB();
 
-        ARBShaderObjects.glLinkProgramARB(program);
-        checkGLError("Link");
-
-        if (ARBShaderObjects.glGetObjectParameteriARB(program, ARBShaderObjects.GL_OBJECT_LINK_STATUS_ARB) == GL11.GL_FALSE) {
-            System.out.println(getLogInfo(program));
+        if (k == 0)
+        {
             return 0;
         }
+        else
+        {
+            ARBShaderObjects.glAttachObjectARB(k, i);
+            ARBShaderObjects.glAttachObjectARB(k, j);
 
-        ARBShaderObjects.glValidateProgramARB(program);
-        if (ARBShaderObjects.glGetObjectParameteriARB(program, ARBShaderObjects.GL_OBJECT_VALIDATE_STATUS_ARB) == GL11.GL_FALSE) {
-            System.out.println(getLogInfo(program));
-            return 0;
+            if (doAttribs)
+            {
+                GL20.glBindAttribLocation(k, 0, "in_Position");
+                checkGLError("@2");
+                GL20.glBindAttribLocation(k, 1, "in_Color");
+                checkGLError("@2a");
+                GL20.glBindAttribLocation(k, 2, "in_TextureCoord");
+                checkGLError("@3");
+            }
+
+            ARBShaderObjects.glLinkProgramARB(k);
+            checkGLError("Link");
+
+            if (ARBShaderObjects.glGetObjectParameteriARB(k, ARBShaderObjects.GL_OBJECT_LINK_STATUS_ARB) == 0)
+            {
+                System.out.println(getLogInfo(k));
+                return 0;
+            }
+            else
+            {
+                ARBShaderObjects.glValidateProgramARB(k);
+
+                if (ARBShaderObjects.glGetObjectParameteriARB(k, ARBShaderObjects.GL_OBJECT_VALIDATE_STATUS_ARB) == 0)
+                {
+                    System.out.println(getLogInfo(k));
+                    return 0;
+                }
+                else
+                {
+                    return k;
+                }
+            }
         }
-
-        return program;
     }
 }

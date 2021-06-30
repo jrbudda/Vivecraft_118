@@ -1,64 +1,93 @@
 package org.vivecraft.gameplay.trackers;
 
-import org.vivecraft.api.NetworkHelper;
-import org.vivecraft.provider.MCOpenVR;
-
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.entity.Pose;
-import net.minecraft.network.play.client.CCustomPayloadPacket;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.protocol.game.ServerboundCustomPayloadPacket;
+import net.minecraft.world.entity.Pose;
+import org.vivecraft.api.NetworkHelper;
 
-public class CrawlTracker extends Tracker {
-	private boolean wasCrawling;
-	public boolean crawling;
-	public boolean crawlsteresis;
+public class CrawlTracker extends Tracker
+{
+    private boolean wasCrawling;
+    public boolean crawling;
+    public boolean crawlsteresis;
 
-	public CrawlTracker(Minecraft mc) {
-		super(mc);
-	}
+    public CrawlTracker(Minecraft mc)
+    {
+        super(mc);
+    }
 
-	@Override
-	public boolean isActive(ClientPlayerEntity player) {
-		if(mc.vrSettings.seated) return false;
-		if(!mc.vrSettings.vrAllowCrawling) return false;
-		if(!NetworkHelper.serverAllowsCrawling) return false;
-		if(!player.isAlive()) return false;
-		if(player.isSpectator()) return false;
-		if(player.isSleeping()) return false;
-		if(player.isPassenger()) return false;
-		return true;
-	}
+    public boolean isActive(LocalPlayer player)
+    {
+        if (this.mc.vrSettings.seated)
+        {
+            return false;
+        }
+        else if (!this.mc.vrSettings.vrAllowCrawling)
+        {
+            return false;
+        }
+        else if (!NetworkHelper.serverAllowsCrawling)
+        {
+            return false;
+        }
+        else if (!player.isAlive())
+        {
+            return false;
+        }
+        else if (player.isSpectator())
+        {
+            return false;
+        }
+        else if (player.isSleeping())
+        {
+            return false;
+        }
+        else
+        {
+            return !player.isPassenger();
+        }
+    }
 
-	@Override
-	public void reset(ClientPlayerEntity player) {
-		crawling = false;
-		crawlsteresis = false;
-		updateState(player);
-	}
-	
-	@Override
-	public void doProcess(ClientPlayerEntity player) {
-		crawling = MCOpenVR.hmdPivotHistory.averagePosition(0.2f).y * mc.vrPlayer.worldScale + 0.1f < mc.vrSettings.crawlThreshold;
-		updateState(player);
-	}
+    public void reset(LocalPlayer player)
+    {
+        this.crawling = false;
+        this.crawlsteresis = false;
+        this.updateState(player);
+    }
 
-	private void updateState(ClientPlayerEntity player) {
-		if (crawling != wasCrawling) {
-			if (crawling) {
-				player.setPose(Pose.SWIMMING);
-				crawlsteresis = true;
-			}
+    public void doProcess(LocalPlayer player)
+    {
+        this.crawling = this.mc.vr.hmdPivotHistory.averagePosition((double)0.2F).y * (double)this.mc.vrPlayer.worldScale + (double)0.1F < (double)this.mc.vrSettings.crawlThreshold;
+        this.updateState(player);
+    }
 
-			if (NetworkHelper.serverAllowsCrawling) {
-				CCustomPayloadPacket pack = NetworkHelper.getVivecraftClientPacket(NetworkHelper.PacketDiscriminators.CRAWL, new byte[]{crawling ? (byte)1 : (byte)0});
-				if (mc.getConnection() != null)
-					mc.getConnection().sendPacket(pack);
-			}
+    private void updateState(LocalPlayer player)
+    {
+        if (this.crawling != this.wasCrawling)
+        {
+            if (this.crawling)
+            {
+                player.setPose(Pose.SWIMMING);
+                this.crawlsteresis = true;
+            }
 
-			wasCrawling = crawling;
-		}
+            if (NetworkHelper.serverAllowsCrawling)
+            {
+                ServerboundCustomPayloadPacket serverboundcustompayloadpacket = NetworkHelper.getVivecraftClientPacket(NetworkHelper.PacketDiscriminators.CRAWL, new byte[] {(byte)(this.crawling ? 1 : 0)});
 
-		if (!crawling && player.getPose() != Pose.SWIMMING)
-			crawlsteresis = false;
-	}
+                if (this.mc.getConnection() != null)
+                {
+                    this.mc.getConnection().send(serverboundcustompayloadpacket);
+                }
+            }
+
+            this.wasCrawling = this.crawling;
+        }
+
+        if (!this.crawling && player.getPose() != Pose.SWIMMING)
+        {
+            this.crawlsteresis = false;
+        }
+    }
 }

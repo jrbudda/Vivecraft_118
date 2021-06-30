@@ -1,0 +1,151 @@
+--- a/net/minecraft/client/renderer/BlockEntityWithoutLevelRenderer.java
++++ b/net/minecraft/client/renderer/BlockEntityWithoutLevelRenderer.java
+@@ -8,6 +8,7 @@
+ import java.util.Comparator;
+ import java.util.List;
+ import java.util.UUID;
++import net.minecraft.client.Minecraft;
+ import net.minecraft.client.model.ShieldModel;
+ import net.minecraft.client.model.TridentModel;
+ import net.minecraft.client.renderer.block.model.ItemTransforms;
+@@ -44,12 +45,13 @@
+ import net.minecraft.world.level.block.entity.TrappedChestBlockEntity;
+ import net.optifine.EmissiveTextures;
+ import org.apache.commons.lang3.StringUtils;
++import org.vivecraft.gameplay.trackers.SwingTracker;
+ 
+ public class BlockEntityWithoutLevelRenderer
+ {
+-    private static final ShulkerBoxBlockEntity[] SHULKER_BOXES = Arrays.stream(DyeColor.values()).sorted(Comparator.comparingInt(DyeColor::getId)).map(ShulkerBoxBlockEntity::new).toArray((p_199929_0_) ->
++    private static final ShulkerBoxBlockEntity[] SHULKER_BOXES = Arrays.stream(DyeColor.values()).sorted(Comparator.comparingInt(DyeColor::getId)).map(ShulkerBoxBlockEntity::new).toArray((p_lambda$static$0_0_) ->
+     {
+-        return new ShulkerBoxBlockEntity[p_199929_0_];
++        return new ShulkerBoxBlockEntity[p_lambda$static$0_0_];
+     });
+     private static final ShulkerBoxBlockEntity DEFAULT_SHULKER_BOX = new ShulkerBoxBlockEntity((DyeColor)null);
+     public static final BlockEntityWithoutLevelRenderer instance = new BlockEntityWithoutLevelRenderer();
+@@ -84,9 +86,9 @@
+         }
+     }
+ 
+-    public void renderRaw(ItemStack itemStackIn, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn)
++    public void renderRaw(ItemStack p_renderRaw_1_, PoseStack p_renderRaw_2_, MultiBufferSource p_renderRaw_3_, int p_renderRaw_4_, int p_renderRaw_5_)
+     {
+-        Item item = itemStackIn.getItem();
++        Item item = p_renderRaw_1_.getItem();
+ 
+         if (item instanceof BlockItem)
+         {
+@@ -96,9 +98,9 @@
+             {
+                 GameProfile gameprofile = null;
+ 
+-                if (itemStackIn.hasTag())
++                if (p_renderRaw_1_.hasTag())
+                 {
+-                    CompoundTag compoundtag = itemStackIn.getTag();
++                    CompoundTag compoundtag = p_renderRaw_1_.getTag();
+ 
+                     if (compoundtag.contains("SkullOwner", 10))
+                     {
+@@ -113,7 +115,7 @@
+                     }
+                 }
+ 
+-                SkullBlockRenderer.renderSkull((Direction)null, 180.0F, ((AbstractSkullBlock)block).getType(), gameprofile, 0.0F, matrixStackIn, bufferIn, combinedLightIn);
++                SkullBlockRenderer.renderSkull((Direction)null, 180.0F, ((AbstractSkullBlock)block).getType(), gameprofile, 0.0F, p_renderRaw_2_, p_renderRaw_3_, p_renderRaw_4_);
+             }
+             else
+             {
+@@ -121,7 +123,7 @@
+ 
+                 if (block instanceof AbstractBannerBlock)
+                 {
+-                    this.banner.fromItem(itemStackIn, ((AbstractBannerBlock)block).getColor());
++                    this.banner.fromItem(p_renderRaw_1_, ((AbstractBannerBlock)block).getColor());
+                     blockentity = this.banner;
+                 }
+                 else if (block instanceof BedBlock)
+@@ -164,37 +166,60 @@
+                     }
+                 }
+ 
+-                BlockEntityRenderDispatcher.instance.renderItem(blockentity, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
++                BlockEntityRenderDispatcher.instance.renderItem(blockentity, p_renderRaw_2_, p_renderRaw_3_, p_renderRaw_4_, p_renderRaw_5_);
+             }
+         }
+-        else if (item == Items.SHIELD)
++        else
+         {
+-            boolean flag = itemStackIn.getTagElement("BlockEntityTag") != null;
+-            matrixStackIn.pushPose();
+-            matrixStackIn.scale(1.0F, -1.0F, -1.0F);
+-            Material material = flag ? ModelBakery.SHIELD_BASE : ModelBakery.NO_PATTERN_SHIELD;
+-            VertexConsumer vertexconsumer1 = material.sprite().wrap(ItemRenderer.getFoilBufferDirect(bufferIn, this.shieldModel.renderType(material.atlasLocation()), true, itemStackIn.hasFoil()));
+-            this.shieldModel.handle().render(matrixStackIn, vertexconsumer1, combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
++            float f = 1.0F;
++            Minecraft.getInstance().getItemRenderer();
+ 
+-            if (flag)
++            if (ItemRenderer.isfphand)
+             {
+-                List<Pair<BannerPattern, DyeColor>> list = BannerBlockEntity.createPatterns(ShieldItem.getColor(itemStackIn), BannerBlockEntity.getItemPatterns(itemStackIn));
+-                BannerRenderer.renderPatterns(matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, this.shieldModel.plate(), material, false, list, itemStackIn.hasFoil());
++                f = SwingTracker.getItemFade(Minecraft.getInstance().player, p_renderRaw_1_);
+             }
+-            else
++
++            if (item == Items.SHIELD)
+             {
+-                this.shieldModel.plate().render(matrixStackIn, vertexconsumer1, combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
++                boolean flag = p_renderRaw_1_.getTagElement("BlockEntityTag") != null;
++                p_renderRaw_2_.pushPose();
++                p_renderRaw_2_.scale(1.0F, -1.0F, -1.0F);
++                Material material = flag ? ModelBakery.SHIELD_BASE : ModelBakery.NO_PATTERN_SHIELD;
++                VertexConsumer vertexconsumer1 = material.sprite().wrap(ItemRenderer.getFoilBufferDirect(p_renderRaw_3_, this.shieldModel.renderType(material.atlasLocation()), true, p_renderRaw_1_.hasFoil()));
++
++                if (f < 1.0F)
++                {
++                    vertexconsumer1 = material.sprite().wrap(ItemRenderer.getFoilBufferDirect(p_renderRaw_3_, RenderType.entityTranslucent(material.atlasLocation()), true, p_renderRaw_1_.hasFoil()));
++                }
++
++                this.shieldModel.handle().render(p_renderRaw_2_, vertexconsumer1, p_renderRaw_4_, p_renderRaw_5_, 1.0F, 1.0F, 1.0F, f);
++
++                if (flag)
++                {
++                    List<Pair<BannerPattern, DyeColor>> list = BannerBlockEntity.createPatterns(ShieldItem.getColor(p_renderRaw_1_), BannerBlockEntity.getItemPatterns(p_renderRaw_1_));
++                    BannerRenderer.renderPatterns(p_renderRaw_2_, p_renderRaw_3_, p_renderRaw_4_, p_renderRaw_5_, this.shieldModel.plate(), material, false, list, p_renderRaw_1_.hasFoil());
++                }
++                else
++                {
++                    this.shieldModel.plate().render(p_renderRaw_2_, vertexconsumer1, p_renderRaw_4_, p_renderRaw_5_, 1.0F, 1.0F, 1.0F, f);
++                }
++
++                p_renderRaw_2_.popPose();
+             }
++            else if (item == Items.TRIDENT)
++            {
++                p_renderRaw_2_.pushPose();
++                p_renderRaw_2_.scale(1.0F, -1.0F, -1.0F);
++                VertexConsumer vertexconsumer = ItemRenderer.getFoilBufferDirect(p_renderRaw_3_, this.tridentModel.renderType(TridentModel.TEXTURE), false, p_renderRaw_1_.hasFoil());
+ 
+-            matrixStackIn.popPose();
+-        }
+-        else if (item == Items.TRIDENT)
+-        {
+-            matrixStackIn.pushPose();
+-            matrixStackIn.scale(1.0F, -1.0F, -1.0F);
+-            VertexConsumer vertexconsumer = ItemRenderer.getFoilBufferDirect(bufferIn, this.tridentModel.renderType(TridentModel.TEXTURE), false, itemStackIn.hasFoil());
+-            this.tridentModel.renderToBuffer(matrixStackIn, vertexconsumer, combinedLightIn, combinedOverlayIn, 1.0F, 1.0F, 1.0F, 1.0F);
+-            matrixStackIn.popPose();
++                if (f < 1.0F)
++                {
++                    vertexconsumer = ItemRenderer.getFoilBufferDirect(p_renderRaw_3_, RenderType.entityTranslucent(TridentModel.TEXTURE), false, p_renderRaw_1_.hasFoil());
++                }
++
++                this.tridentModel.renderToBuffer(p_renderRaw_2_, vertexconsumer, p_renderRaw_4_, p_renderRaw_5_, 1.0F, 1.0F, 1.0F, f);
++                p_renderRaw_2_.popPose();
++            }
+         }
+     }
+ }

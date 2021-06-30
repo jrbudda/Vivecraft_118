@@ -1,99 +1,105 @@
 package org.vivecraft.gui.physical.interactables;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.gui.physical.PhysicalInventory;
 import org.vivecraft.gui.physical.PhysicalItemSlotGui;
 import org.vivecraft.gui.physical.WindowCoordinator;
 import org.vivecraft.utils.Utils;
 import org.vivecraft.utils.math.Quaternion;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+public class Trashbin extends CreativeItemSlot
+{
+    ModelResourceLocation binLoc;
+    boolean charging = false;
+    double charge = 0.0D;
+    double lastCharge = 0.0D;
+    double chargePerTick = 0.01D;
+    double chargeMultPerTick = 1.03D;
 
-import net.minecraft.client.renderer.model.ModelResourceLocation;
-import net.minecraft.item.ItemStack;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.vector.Vector3d;
+    public Trashbin(PhysicalItemSlotGui gui)
+    {
+        super(gui, ItemStack.EMPTY, -1);
+        this.binLoc = new ModelResourceLocation("vivecraft:trashbin");
+    }
 
-public class Trashbin extends CreativeItemSlot {
-	ModelResourceLocation binLoc;
+    public void render(double partialTicks, int renderLayer)
+    {
+        GlStateManager._pushMatrix();
+        double d0 = 0.4D;
+        Vec3 vec3 = new Vec3(-0.21D, -0.03D, -0.21D);
+        double d1 = (this.lastCharge + (this.charge - this.lastCharge) * partialTicks) * 5.0D * 360.0D % 360.0D;
+        Utils.glRotate(new Quaternion(-90.0F, 0.0F, 0.0F));
+        Utils.glRotate(new Quaternion(0.0F, (float)d1, 0.0F));
+        GlStateManager._translated(vec3.x, vec3.y, vec3.z);
+        GlStateManager._scalef((float)d0, (float)d0, (float)d0);
+        PhysicalInventory.renderCustomModel(this.binLoc);
+        GlStateManager._popMatrix();
+        super.render(partialTicks, renderLayer);
+    }
 
-	boolean charging=false;
-	double charge=0;
-	double lastCharge=0;
-	double chargePerTick=0.01;
-	double chargeMultPerTick=1.03;
+    public void update()
+    {
+        this.lastCharge = this.charge;
 
-	public Trashbin(PhysicalItemSlotGui gui) {
-		super(gui, ItemStack.EMPTY, -1);
-		binLoc=new ModelResourceLocation("vivecraft:trashbin");
-	}
+        if (this.charging)
+        {
+            this.charge += this.chargePerTick;
+            this.charge *= this.chargeMultPerTick;
 
-	@Override
-	public void render(double partialTicks, int renderLayer) {
+            if (this.charge >= 1.0D)
+            {
+                this.charging = false;
+                Vec3 vec3 = new Vec3(-0.3D, -0.3D, 0.0D);
+                Vec3 vec31 = this.getAnchorPos(0.0D).add(this.getAnchorRotation(0.0D).multiply(vec3));
+                Utils.spawnParticles(ParticleTypes.EXPLOSION, 100, vec31, new Vec3(0.1D, 0.1D, 0.1D), 0.0D);
+                this.mc.physicalGuiManager.windowCoordinator.enqueueOperation(new WindowCoordinator.ClearInventoryOperation());
+            }
+        }
+        else
+        {
+            this.charge = 0.0D;
+        }
+    }
 
-		GlStateManager.pushMatrix();
-		double binScale=0.4;
+    public void click(int button)
+    {
+        if (this.getDisplayedItem() != null && !this.getDisplayedItem().isEmpty())
+        {
+            super.click(button);
+        }
+        else
+        {
+            this.charging = true;
+        }
+    }
 
+    public void unclick(int button)
+    {
+        this.charging = false;
+    }
 
-		Vector3d offset=new Vector3d(-0.21,-0.03,-0.21);
-		double spin=((lastCharge+(charge-lastCharge)*partialTicks)*5*360)%360;
-		
-		Utils.glRotate(new Quaternion(-90,0,0));
-		Utils.glRotate(new Quaternion(0,(float) spin,0));
-		GlStateManager.translated(offset.x,offset.y,offset.z);
-		GlStateManager.scalef((float) binScale,(float) binScale,(float) binScale);
+    public ItemStack getDisplayedItem()
+    {
+        if (this.gui.touching == this)
+        {
+            ItemStack itemstack = this.mc.physicalGuiManager.getVirtualHeldItem();
 
-		PhysicalInventory.renderCustomModel(binLoc);
+            if (!itemstack.isEmpty())
+            {
+                return itemstack;
+            }
+        }
 
-		GlStateManager.popMatrix();
-		super.render(partialTicks, renderLayer);
-	}
+        return ItemStack.EMPTY;
+    }
 
-	@Override
-	public void update() {
-		lastCharge=charge;
-		if (charging){
-			charge+=chargePerTick;
-			charge*=chargeMultPerTick;
-			if(charge>=1){
-				charging=false;
-				Vector3d offset=new Vector3d(-0.3,-0.3,0);
-				Vector3d bagCenter=getAnchorPos(0).add(getAnchorRotation(0).multiply(offset));
-
-				Utils.spawnParticles(ParticleTypes.EXPLOSION,100,bagCenter,new Vector3d(0.1,0.1,0.1),0);
-				mc.physicalGuiManager.windowCoordinator.enqueueOperation(new WindowCoordinator.ClearInventoryOperation());
-			}
-		}else{
-			charge=0;
-		}
-	}
-
-	@Override
-	public void click(int button) {
-		if(getDisplayedItem()!=null && !getDisplayedItem().isEmpty()) {
-			super.click(button);
-		}else{
-			charging=true;
-		}
-	}
-
-	@Override
-	public void unclick(int button) {
-		charging=false;
-	}
-
-	@Override
-	public ItemStack getDisplayedItem() {
-		if(gui.touching ==this){
-			ItemStack fakeItem=mc.physicalGuiManager.getVirtualHeldItem();
-			if(!fakeItem.isEmpty())
-				return fakeItem;
-		}
-		return ItemStack.EMPTY;
-	}
-
-	@Override
-	public AxisAlignedBB getBoundingBox() {
-		return super.getBoundingBox().shrink(0.13);
-	}
+    public AABB getBoundingBox()
+    {
+        return super.getBoundingBox().deflate(0.13D);
+    }
 }

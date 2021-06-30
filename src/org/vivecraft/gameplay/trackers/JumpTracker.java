@@ -1,186 +1,223 @@
 package org.vivecraft.gameplay.trackers;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.api.NetworkHelper;
-import org.vivecraft.gameplay.OpenVRPlayer;
-import org.vivecraft.provider.MCOpenVR;
+import org.vivecraft.gameplay.VRPlayer;
 import org.vivecraft.settings.AutoCalibration;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.potion.Effects;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.TranslationTextComponent;
+public class JumpTracker extends Tracker
+{
+    public Vec3[] latchStart = new Vec3[] {new Vec3(0.0D, 0.0D, 0.0D), new Vec3(0.0D, 0.0D, 0.0D)};
+    public Vec3[] latchStartOrigin = new Vec3[] {new Vec3(0.0D, 0.0D, 0.0D), new Vec3(0.0D, 0.0D, 0.0D)};
+    public Vec3[] latchStartPlayer = new Vec3[] {new Vec3(0.0D, 0.0D, 0.0D), new Vec3(0.0D, 0.0D, 0.0D)};
+    private boolean c0Latched = false;
+    private boolean c1Latched = false;
 
-public class JumpTracker extends Tracker {
-
-	public Vector3d[] latchStart = new Vector3d[]{new Vector3d(0,0,0), new Vector3d(0,0,0)};
-	public Vector3d[] latchStartOrigin = new Vector3d[]{new Vector3d(0,0,0), new Vector3d(0,0,0)};
-	public Vector3d[] latchStartPlayer = new Vector3d[]{new Vector3d(0,0,0), new Vector3d(0,0,0)};
-	private boolean c0Latched = false;
-	private boolean c1Latched = false;
-
-	public JumpTracker(Minecraft mc) {
-		super(mc);
-	}
-
-	public boolean isClimbeyJump(){
-    	if(!this.isActive(Minecraft.getInstance().player)) return false;
-    	return(isClimbeyJumpEquipped());
-    }
-    
-    public boolean isClimbeyJumpEquipped(){
-    	return(NetworkHelper.serverAllowsClimbey && Minecraft.getInstance().player.isClimbeyJumpEquipped());
+    public JumpTracker(Minecraft mc)
+    {
+        super(mc);
     }
 
-	public boolean isActive(ClientPlayerEntity p){
-		if(Minecraft.getInstance().vrSettings.seated)
-			return false;
-		if(!Minecraft.getInstance().vrPlayer.getFreeMove() && !Minecraft.getInstance().vrSettings.simulateFalling)
-			return false;
-		if(!Minecraft.getInstance().vrSettings.realisticJumpEnabled)
-			return false;
-		if(p==null || !p.isAlive())
-			return false;
-		if(mc.playerController == null) return false;
-		if(p.isInWater() || p.isInLava() || !p.isOnGround())
-			return false;
-		if(p.isSneaking() || p.isPassenger())
-			return false;
+    public boolean isClimbeyJump()
+    {
+        return !this.isActive(Minecraft.getInstance().player) ? false : this.isClimbeyJumpEquipped();
+    }
 
-		return true;
-	}
+    public boolean isClimbeyJumpEquipped()
+    {
+        return NetworkHelper.serverAllowsClimbey && Minecraft.getInstance().player.isClimbeyJumpEquipped();
+    }
 
-	public boolean isjumping(){
-		return c1Latched || c0Latched;
-	}
+    public boolean isActive(LocalPlayer p)
+    {
+        if (Minecraft.getInstance().vrSettings.seated)
+        {
+            return false;
+        }
+        else if (!Minecraft.getInstance().vrPlayer.getFreeMove() && !Minecraft.getInstance().vrSettings.simulateFalling)
+        {
+            return false;
+        }
+        else if (!Minecraft.getInstance().vrSettings.realisticJumpEnabled)
+        {
+            return false;
+        }
+        else if (p != null && p.isAlive())
+        {
+            if (this.mc.gameMode == null)
+            {
+                return false;
+            }
+            else if (!p.isInWater() && !p.isInLava() && p.isOnGround())
+            {
+                return !p.isShiftKeyDown() && !p.isPassenger();
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
 
-	@Override
-	public void idleTick(ClientPlayerEntity player) {
-		MCOpenVR.getInputAction(MCOpenVR.keyClimbeyJump).setEnabled(isClimbeyJumpEquipped() && (this.isActive(player) || (mc.climbTracker.isClimbeyClimbEquipped() && mc.climbTracker.isGrabbingLadder())));
-	}
+    public boolean isjumping()
+    {
+        return this.c1Latched || this.c0Latched;
+    }
 
-	@Override
-	public void reset(ClientPlayerEntity player) {
-		c1Latched = false;
-		c0Latched = false;
-	}
+    public void idleTick(LocalPlayer player)
+    {
+        this.mc.vr.getInputAction(this.mc.vr.keyClimbeyJump).setEnabled(this.isClimbeyJumpEquipped() && (this.isActive(player) || this.mc.climbTracker.isClimbeyClimbEquipped() && this.mc.climbTracker.isGrabbingLadder()));
+    }
 
-	public void doProcess(ClientPlayerEntity player){
+    public void reset(LocalPlayer player)
+    {
+        this.c1Latched = false;
+        this.c0Latched = false;
+    }
 
-		if(isClimbeyJumpEquipped()){
+    public void doProcess(LocalPlayer player)
+    {
+        if (this.isClimbeyJumpEquipped())
+        {
+            VRPlayer vrplayer = this.mc.vrPlayer;
+            boolean[] aboolean = new boolean[2];
 
-			OpenVRPlayer provider = mc.vrPlayer;
+            for (int i = 0; i < 2; ++i)
+            {
+                aboolean[i] = this.mc.vr.keyClimbeyJump.isDown();
+            }
 
-			boolean[] ok = new boolean[2];
+            boolean flag = false;
 
-			for(int c=0;c<2;c++){
-				ok[c]=	MCOpenVR.keyClimbeyJump.isKeyDown();
-			}
+            if (!aboolean[0] && this.c0Latched)
+            {
+                this.mc.vr.triggerHapticPulse(0, 200);
+                flag = true;
+            }
 
-			boolean jump = false;
-			if(!ok[0] && c0Latched){ //let go right
-				MCOpenVR.triggerHapticPulse(0, 200);
-				jump = true;
-			}
-			
-			Vector3d rpos = mc.vrPlayer.vrdata_room_pre.getController(0).getPosition();
-			Vector3d lpos = mc.vrPlayer.vrdata_room_pre.getController(1).getPosition();
-			Vector3d now = rpos.add(lpos).scale(0.5);
+            Vec3 vec3 = this.mc.vrPlayer.vrdata_room_pre.getController(0).getPosition();
+            Vec3 vec31 = this.mc.vrPlayer.vrdata_room_pre.getController(1).getPosition();
+            Vec3 vec32 = vec3.add(vec31).scale(0.5D);
 
-			if(ok[0] && !c0Latched){ //grabbed right
-				latchStart[0] = now;
-				latchStartOrigin[0] = mc.vrPlayer.vrdata_world_pre.origin;
-				latchStartPlayer[0] = mc.player.getPositionVec();
-				MCOpenVR.triggerHapticPulse(0, 1000);
-			}
+            if (aboolean[0] && !this.c0Latched)
+            {
+                this.latchStart[0] = vec32;
+                this.latchStartOrigin[0] = this.mc.vrPlayer.vrdata_world_pre.origin;
+                this.latchStartPlayer[0] = this.mc.player.position();
+                this.mc.vr.triggerHapticPulse(0, 1000);
+            }
 
-			if(!ok[1] && c1Latched){ //let go left
-				MCOpenVR.triggerHapticPulse(1, 200);
-				jump = true;
-			}
+            if (!aboolean[1] && this.c1Latched)
+            {
+                this.mc.vr.triggerHapticPulse(1, 200);
+                flag = true;
+            }
 
-			if(ok[1] && !c1Latched){ //grabbed left
-				latchStart[1] = now;
-				latchStartOrigin[1] = mc.vrPlayer.vrdata_world_pre.origin;
-				latchStartPlayer[1] = mc.player.getPositionVec();
-				MCOpenVR.triggerHapticPulse(1, 1000);
-			}
+            if (aboolean[1] && !this.c1Latched)
+            {
+                this.latchStart[1] = vec32;
+                this.latchStartOrigin[1] = this.mc.vrPlayer.vrdata_world_pre.origin;
+                this.latchStartPlayer[1] = this.mc.player.position();
+                this.mc.vr.triggerHapticPulse(1, 1000);
+            }
 
-			c0Latched = ok[0];
-			c1Latched = ok[1];
+            this.c0Latched = aboolean[0];
+            this.c1Latched = aboolean[1];
+            int j = 0;
+            Vec3 vec33 = vec32.subtract(this.latchStart[j]);
+            vec33 = vec33.yRot(this.mc.vrPlayer.vrdata_world_pre.rotation_radians);
 
-			int c =0;
+            if (!flag && this.isjumping())
+            {
+                this.mc.vr.triggerHapticPulse(0, 200);
+                this.mc.vr.triggerHapticPulse(1, 200);
+            }
 
+            if (flag)
+            {
+                this.mc.climbTracker.forceActivate = true;
+                Vec3 vec34 = this.mc.vr.controllerHistory[0].netMovement(0.3D).add(this.mc.vr.controllerHistory[1].netMovement(0.3D));
+                double d0 = (this.mc.vr.controllerHistory[0].averageSpeed(0.3D) + this.mc.vr.controllerHistory[1].averageSpeed(0.3D)) / 2.0D;
+                vec34 = vec34.scale((double)0.33F * d0);
+                float f = 0.66F;
 
-			Vector3d delta= now.subtract(latchStart[c]);
+                if (vec34.length() > (double)f)
+                {
+                    vec34 = vec34.scale((double)f / vec34.length());
+                }
 
-			delta = delta.rotateYaw(mc.vrPlayer.vrdata_world_pre.rotation_radians);
-			
+                if (player.hasEffect(MobEffects.JUMP))
+                {
+                    vec34 = vec34.scale((double)player.getEffect(MobEffects.JUMP).getAmplifier() + 1.5D);
+                }
 
-			if(!jump && isjumping()){ //bzzzzzz
-				MCOpenVR.triggerHapticPulse(0, 200);
-				MCOpenVR.triggerHapticPulse(1, 200);
-			}
+                vec34 = vec34.yRot(this.mc.vrPlayer.vrdata_world_pre.rotation_radians);
+                Vec3 vec35 = this.mc.player.position().subtract(vec33);
 
-			if(jump){
-				mc.climbTracker.forceActivate = true;
+                if (vec33.y < 0.0D && vec34.y < 0.0D)
+                {
+                    double d2 = -vec34.x;
+                    double d1 = player.getDeltaMovement().x + d2 * 1.25D;
+                    d2 = -vec34.y;
+                    double d3 = -vec34.z;
+                    player.setDeltaMovement(d1, d2, player.getDeltaMovement().z + d3 * 1.25D);
+                    player.xOld = vec35.x;
+                    player.yOld = vec35.y;
+                    player.zOld = vec35.z;
+                    vec35 = vec35.add(player.getDeltaMovement());
+                    player.setPos(vec35.x, vec35.y, vec35.z);
+                    this.mc.vrPlayer.snapRoomOriginToPlayerEntity(player, false, true);
+                    this.mc.player.causeFoodExhaustion(0.3F);
+                    this.mc.player.setOnGround(false);
+                }
+                else
+                {
+                    this.mc.vrPlayer.snapRoomOriginToPlayerEntity(player, false, true);
+                }
+            }
+            else if (this.isjumping())
+            {
+                Vec3 vec36 = this.latchStartOrigin[0].subtract(this.latchStartPlayer[0]).add(this.mc.player.position()).subtract(vec33);
+                this.mc.vrPlayer.setRoomOrigin(vec36.x, vec36.y, vec36.z, false);
+            }
+        }
+        else if (this.mc.vr.hmdPivotHistory.netMovement(0.25D).y > 0.1D && this.mc.vr.hmdPivotHistory.latest().y - (double)AutoCalibration.getPlayerHeight() > (double)this.mc.vrSettings.jumpThreshold)
+        {
+            player.jumpFromGround();
+        }
+    }
 
-				Vector3d m = (MCOpenVR.controllerHistory[0].netMovement(0.3)
-						.add(MCOpenVR.controllerHistory[1].netMovement(0.3)));
-				
-				double sp =  (MCOpenVR.controllerHistory[0].averageSpeed(0.3) + MCOpenVR.controllerHistory[1].averageSpeed(0.3)) / 2 ;	
-									
-				m = m.scale(0.33f * sp);
-							
-				//cap
-				float limit = 0.66f;
-				if(m.length() > limit) m = m.scale(limit/m.length());
-						
-				if (player.isPotionActive(Effects.JUMP_BOOST))
-					m=m.scale((player.getActivePotionEffect(Effects.JUMP_BOOST).getAmplifier() + 1.5));
-				
-				m=m.rotateYaw(mc.vrPlayer.vrdata_world_pre.rotation_radians);
-				
-				Vector3d pl = mc.player.getPositionVec().subtract(delta);
-
-				if(delta.y < 0 && m.y < 0){
-
-					player.setMotion(
-							player.getMotion().x + -m.x * 1.25
-							,-m.y,
-							player.getMotion().z + -m.z * 1.25);
-					
-					player.lastTickPosX = pl.x;
-					player.lastTickPosY = pl.y;
-					player.lastTickPosZ = pl.z;			
-					pl = pl.add(player.getMotion());					
-					player.setPosition(pl.x, pl.y, pl.z);
-					mc.vrPlayer.snapRoomOriginToPlayerEntity(player, false, true);
-					mc.player.addExhaustion(.3f);    
-					mc.player.setOnGround(false);
-				} else {
-					mc.vrPlayer.snapRoomOriginToPlayerEntity(player, false, true);
-				}
-			}else if(isjumping()){
-				Vector3d thing = latchStartOrigin[0].subtract(latchStartPlayer[0]).add(mc.player.getPositionVec()).subtract(delta);
-				mc.vrPlayer.setRoomOrigin(thing.x, thing.y, thing.z, false);
-			}
-		}else {
-			if(MCOpenVR.hmdPivotHistory.netMovement(0.25).y > 0.1 &&
-					MCOpenVR.hmdPivotHistory.latest().y-AutoCalibration.getPlayerHeight() > mc.vrSettings.jumpThreshold
-					){
-				player.jump();
-			}			
-		}
-	}
-
-	public boolean isBoots(ItemStack i) {
-		if(i.isEmpty())return false;
-		if(!i.hasDisplayName()) return false;
-		if((i.getItem() != Items.LEATHER_BOOTS)) return false;
-		if(!(i.getTag().getBoolean("Unbreakable"))) return false;
-		return (i.getDisplayName() instanceof TranslationTextComponent && ((TranslationTextComponent)i.getDisplayName()).getKey().equals("vivecraft.item.jumpboots")) || i.getDisplayName().getString().equals("Jump Boots");
-	}
+    public boolean isBoots(ItemStack i)
+    {
+        if (i.isEmpty())
+        {
+            return false;
+        }
+        else if (!i.hasCustomHoverName())
+        {
+            return false;
+        }
+        else if (i.getItem() != Items.LEATHER_BOOTS)
+        {
+            return false;
+        }
+        else if (!i.getTag().getBoolean("Unbreakable"))
+        {
+            return false;
+        }
+        else
+        {
+            return i.getHoverName() instanceof TranslatableComponent && ((TranslatableComponent)i.getHoverName()).getKey().equals("vivecraft.item.jumpboots") || i.getHoverName().getString().equals("Jump Boots");
+        }
+    }
 }

@@ -1,0 +1,13 @@
+--- a/net/minecraft/client/renderer/entity/EntityRenderDispatcher.java
++++ b/net/minecraft/client/renderer/entity/EntityRenderDispatcher.java
+@@ -60,8 +60,8 @@
+ public class EntityRenderDispatcher implements ResourceManagerReloadListener
+ {
+     private static final RenderType SHADOW_RENDER_TYPE = RenderType.entityShadow(new ResourceLocation("textures/misc/shadow.png"));
+-    private Map < EntityType<?>, EntityRenderer<? >> renderers = ImmutableMap.of();
+-    private Map < String, EntityRenderer <? extends Player >> playerRenderers = ImmutableMap.of();
++    private Map <EntityType, EntityRenderer> renderers = ImmutableMap.of();
++    private Map <String, EntityRenderer> playerRenderers = ImmutableMap.of();
+     public final TextureManager textureManager;
+     private Level level;
+     public Camera camera;

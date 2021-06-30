@@ -1,0 +1,53 @@
+--- a/net/minecraft/client/player/AbstractClientPlayer.java
++++ b/net/minecraft/client/player/AbstractClientPlayer.java
+@@ -23,6 +23,7 @@
+ import net.optifine.player.CapeUtils;
+ import net.optifine.player.PlayerConfigurations;
+ import net.optifine.reflect.Reflector;
++import org.vivecraft.api.PatreonReceiver;
+ 
+ public abstract class AbstractClientPlayer extends Player
+ {
+@@ -55,6 +56,7 @@
+ 
+         CapeUtils.downloadCape(this);
+         PlayerConfigurations.getPlayerConfiguration(this);
++        PatreonReceiver.addPlayerInfo(this);
+     }
+ 
+     public boolean isSpectator()
+@@ -207,9 +209,9 @@
+         return this.locationOfCape;
+     }
+ 
+-    public void setLocationOfCape(ResourceLocation locationOfCape)
++    public void setLocationOfCape(ResourceLocation p_setLocationOfCape_1_)
+     {
+-        this.locationOfCape = locationOfCape;
++        this.locationOfCape = p_setLocationOfCape_1_;
+     }
+ 
+     public boolean hasElytraCape()
+@@ -226,9 +228,9 @@
+         }
+     }
+ 
+-    public void setElytraOfCape(boolean elytraOfCape)
++    public void setElytraOfCape(boolean p_setElytraOfCape_1_)
+     {
+-        this.elytraOfCape = elytraOfCape;
++        this.elytraOfCape = p_setElytraOfCape_1_;
+     }
+ 
+     public boolean isElytraOfCape()
+@@ -241,8 +243,8 @@
+         return this.reloadCapeTimeMs;
+     }
+ 
+-    public void setReloadCapeTimeMs(long reloadCapeTimeMs)
++    public void setReloadCapeTimeMs(long p_setReloadCapeTimeMs_1_)
+     {
+-        this.reloadCapeTimeMs = reloadCapeTimeMs;
++        this.reloadCapeTimeMs = p_setReloadCapeTimeMs_1_;
+     }
+ }

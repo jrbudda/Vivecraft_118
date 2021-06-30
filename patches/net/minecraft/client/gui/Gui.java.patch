@@ -1,0 +1,387 @@
+--- a/net/minecraft/client/gui/Gui.java
++++ b/net/minecraft/client/gui/Gui.java
+@@ -7,6 +7,7 @@
+ import com.mojang.blaze3d.platform.GlStateManager;
+ import com.mojang.blaze3d.systems.RenderSystem;
+ import com.mojang.blaze3d.vertex.BufferBuilder;
++import com.mojang.blaze3d.vertex.BufferUploader;
+ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+ import com.mojang.blaze3d.vertex.PoseStack;
+ import com.mojang.blaze3d.vertex.Tesselator;
+@@ -63,6 +64,7 @@
+ import net.minecraft.world.entity.player.Player;
+ import net.minecraft.world.food.FoodData;
+ import net.minecraft.world.item.ItemStack;
++import net.minecraft.world.item.Items;
+ import net.minecraft.world.level.GameType;
+ import net.minecraft.world.level.Level;
+ import net.minecraft.world.level.block.Blocks;
+@@ -119,6 +121,7 @@
+     private int screenWidth;
+     private int screenHeight;
+     private final Map<ChatType, List<ChatListener>> chatListeners = Maps.newHashMap();
++    public boolean showPlayerList;
+ 
+     public Gui(Minecraft p_93005_)
+     {
+@@ -158,30 +161,8 @@
+         this.screenHeight = this.minecraft.getWindow().getGuiScaledHeight();
+         Font font = this.getFont();
+         RenderSystem.enableBlend();
+-
+-        if (Config.isVignetteEnabled())
+-        {
+-            this.renderVignette(this.minecraft.getCameraEntity());
+-        }
+-        else
+-        {
+-            RenderSystem.enableDepthTest();
+-            RenderSystem.defaultBlendFunc();
+-        }
+-
+-        ItemStack itemstack = this.minecraft.player.inventory.getArmor(3);
+-
+-        if (this.minecraft.options.getCameraType().isFirstPerson() && itemstack.getItem() == Blocks.CARVED_PUMPKIN.asItem())
+-        {
+-            this.renderPumpkin();
+-        }
+-
+-        float f = Mth.lerp(p_93032_, this.minecraft.player.oPortalTime, this.minecraft.player.portalTime);
+-
+-        if (f > 0.0F && !this.minecraft.player.hasEffect(MobEffects.CONFUSION))
+-        {
+-            this.renderPortalOverlay(f);
+-        }
++        RenderSystem.enableDepthTest();
++        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
+ 
+         if (this.minecraft.gameMode.getPlayerMode() == GameType.SPECTATOR)
+         {
+@@ -198,9 +179,8 @@
+             this.minecraft.getTextureManager().bind(GUI_ICONS_LOCATION);
+             RenderSystem.enableBlend();
+             RenderSystem.enableAlphaTest();
+-            this.renderCrosshair(p_93031_);
+             GlStateManager._enableAlphaTest();
+-            RenderSystem.defaultBlendFunc();
++            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
+             this.minecraft.getProfiler().push("bossHealth");
+             this.bossOverlay.render(p_93031_);
+             this.minecraft.getProfiler().pop();
+@@ -240,15 +220,15 @@
+             this.minecraft.getProfiler().push("sleep");
+             RenderSystem.disableDepthTest();
+             RenderSystem.disableAlphaTest();
+-            float f2 = (float)this.minecraft.player.getSleepTimer();
+-            float f1 = f2 / 100.0F;
++            float f1 = (float)this.minecraft.player.getSleepTimer();
++            float f = f1 / 100.0F;
+ 
+-            if (f1 > 1.0F)
++            if (f > 1.0F)
+             {
+-                f1 = 1.0F - (f2 - 100.0F) / 10.0F;
++                f = 1.0F - (f1 - 100.0F) / 10.0F;
+             }
+ 
+-            int j = (int)(220.0F * f1) << 24 | 1052704;
++            int j = (int)(220.0F * f) << 24 | 1052704;
+             fill(p_93031_, 0, 0, this.screenWidth, this.screenHeight, j);
+             RenderSystem.enableAlphaTest();
+             RenderSystem.enableDepthTest();
+@@ -273,8 +253,8 @@
+             if (this.overlayMessageString != null && this.overlayMessageTime > 0)
+             {
+                 this.minecraft.getProfiler().push("overlayMessage");
+-                float f3 = (float)this.overlayMessageTime - p_93032_;
+-                int i1 = (int)(f3 * 255.0F / 20.0F);
++                float f2 = (float)this.overlayMessageTime - p_93032_;
++                int i1 = (int)(f2 * 255.0F / 20.0F);
+ 
+                 if (i1 > 255)
+                 {
+@@ -286,12 +266,12 @@
+                     RenderSystem.pushMatrix();
+                     RenderSystem.translatef((float)(this.screenWidth / 2), (float)(this.screenHeight - 68), 0.0F);
+                     RenderSystem.enableBlend();
+-                    RenderSystem.defaultBlendFunc();
++                    RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
+                     int k1 = 16777215;
+ 
+                     if (this.animateOverlayMessageColor)
+                     {
+-                        k1 = Mth.hsvToRgb(f3 / 50.0F, 0.7F, 0.6F) & 16777215;
++                        k1 = Mth.hsvToRgb(f2 / 50.0F, 0.7F, 0.6F) & 16777215;
+                     }
+ 
+                     int k = i1 << 24 & -16777216;
+@@ -308,18 +288,18 @@
+             if (this.title != null && this.titleTime > 0)
+             {
+                 this.minecraft.getProfiler().push("titleAndSubtitle");
+-                float f4 = (float)this.titleTime - p_93032_;
++                float f3 = (float)this.titleTime - p_93032_;
+                 int j1 = 255;
+ 
+                 if (this.titleTime > this.titleFadeOutTime + this.titleStayTime)
+                 {
+-                    float f5 = (float)(this.titleFadeInTime + this.titleStayTime + this.titleFadeOutTime) - f4;
+-                    j1 = (int)(f5 * 255.0F / (float)this.titleFadeInTime);
++                    float f4 = (float)(this.titleFadeInTime + this.titleStayTime + this.titleFadeOutTime) - f3;
++                    j1 = (int)(f4 * 255.0F / (float)this.titleFadeInTime);
+                 }
+ 
+                 if (this.titleTime <= this.titleFadeOutTime)
+                 {
+-                    j1 = (int)(f4 * 255.0F / (float)this.titleFadeOutTime);
++                    j1 = (int)(f3 * 255.0F / (float)this.titleFadeOutTime);
+                 }
+ 
+                 j1 = Mth.clamp(j1, 0, 255);
+@@ -329,7 +309,7 @@
+                     RenderSystem.pushMatrix();
+                     RenderSystem.translatef((float)(this.screenWidth / 2), (float)(this.screenHeight / 2), 0.0F);
+                     RenderSystem.enableBlend();
+-                    RenderSystem.defaultBlendFunc();
++                    RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
+                     RenderSystem.pushMatrix();
+                     RenderSystem.scalef(4.0F, 4.0F, 4.0F);
+                     int l1 = j1 << 24 & -16777216;
+@@ -377,8 +357,27 @@
+                 this.displayScoreboardSidebar(p_93031_, objective1);
+             }
+ 
++            if (this.minecraft.screen != null)
++            {
++                float f5 = 0.5F;
++                GlStateManager._enableBlend();
++                RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.SRC_ALPHA);
++                GlStateManager._disableTexture();
++                GlStateManager._depthMask(false);
++                Tesselator tesselator = Tesselator.getInstance();
++                BufferBuilder bufferbuilder = tesselator.getBuilder();
++                bufferbuilder.begin(7, DefaultVertexFormat.POSITION_COLOR);
++                bufferbuilder.vertex(0.0D, (double)this.minecraft.screen.height, 990.0D).color(0.0F, 0.0F, 0.0F, f5).endVertex();
++                bufferbuilder.vertex((double)this.minecraft.screen.width, (double)this.minecraft.screen.height, 990.0D).color(0.0F, 0.0F, 0.0F, f5).endVertex();
++                bufferbuilder.vertex((double)this.minecraft.screen.width, 0.0D, 990.0D).color(0.0F, 0.0F, 0.0F, f5).endVertex();
++                bufferbuilder.vertex(0.0D, 0.0D, 990.0D).color(0.0F, 0.0F, 0.0F, f5).endVertex();
++                tesselator.end();
++                GlStateManager._depthMask(true);
++                GlStateManager._enableTexture();
++            }
++
+             RenderSystem.enableBlend();
+-            RenderSystem.defaultBlendFunc();
++            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
+             RenderSystem.disableAlphaTest();
+             RenderSystem.pushMatrix();
+             RenderSystem.translatef(0.0F, (float)(this.screenHeight - 48), 0.0F);
+@@ -388,14 +387,14 @@
+             RenderSystem.popMatrix();
+             objective1 = scoreboard.getDisplayObjective(0);
+ 
+-            if (this.minecraft.options.keyPlayerList.isDown() && (!this.minecraft.isLocalServer() || this.minecraft.player.connection.getOnlinePlayers().size() > 1 || objective1 != null))
++            if (!this.minecraft.options.keyPlayerList.isDown() && !this.showPlayerList || this.minecraft.isLocalServer() && this.minecraft.player.connection.getOnlinePlayers().size() <= 1 && objective1 == null)
+             {
+-                this.tabList.setVisible(true);
+-                this.tabList.render(p_93031_, this.screenWidth, scoreboard, objective1);
++                this.tabList.setVisible(false);
+             }
+             else
+             {
+-                this.tabList.setVisible(false);
++                this.tabList.setVisible(true);
++                this.tabList.render(p_93031_, this.screenWidth, scoreboard, objective1);
+             }
+         }
+ 
+@@ -608,11 +607,33 @@
+             this.blit(p_93011_, i - 91, this.screenHeight - 22, 0, 0, 182, 22);
+             this.blit(p_93011_, i - 91 - 1 + player.inventory.selected * 20, this.screenHeight - 22 - 1, 0, 22, 24, 22);
+ 
+-            if (!itemstack.isEmpty())
++            if (this.minecraft.interactTracker.hotbar >= 0 && this.minecraft.interactTracker.hotbar < 9 && player.inventory.selected != this.minecraft.interactTracker.hotbar)
++            {
++                RenderSystem.color4f(0.0F, 1.0F, 0.0F, 1.0F);
++                this.blit(p_93011_, i - 91 - 1 + this.minecraft.interactTracker.hotbar * 20, this.screenHeight - 22 - 1, 0, 22, 24, 22);
++                RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
++            }
++
++            if (!itemstack.isEmpty() || this.minecraft.vrSettings.vrTouchHotbar)
+             {
+                 if (humanoidarm == HumanoidArm.LEFT)
+                 {
+-                    this.blit(p_93011_, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
++                    if (this.minecraft.interactTracker.hotbar == 9)
++                    {
++                        RenderSystem.color4f(0.0F, 0.0F, 1.0F, 1.0F);
++                        this.blit(p_93011_, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
++                        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
++                    }
++                    else
++                    {
++                        this.blit(p_93011_, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
++                    }
++                }
++                else if (this.minecraft.interactTracker.hotbar == 9)
++                {
++                    RenderSystem.color4f(0.0F, 0.0F, 1.0F, 1.0F);
++                    this.blit(p_93011_, i + 91, this.screenHeight - 23, 53, 22, 29, 24);
++                    RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+                 }
+                 else
+                 {
+@@ -623,7 +644,7 @@
+             this.setBlitOffset(j);
+             RenderSystem.enableRescaleNormal();
+             RenderSystem.enableBlend();
+-            RenderSystem.defaultBlendFunc();
++            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
+             CustomItems.setRenderOffHand(false);
+ 
+             for (int i1 = 0; i1 < 9; ++i1)
+@@ -674,6 +695,7 @@
+ 
+             RenderSystem.disableRescaleNormal();
+             RenderSystem.disableBlend();
++            this.renderViveHudIcons(p_93011_);
+         }
+     }
+ 
+@@ -828,9 +850,9 @@
+     {
+         Scoreboard scoreboard = p_93038_.getScoreboard();
+         Collection<Score> collection = scoreboard.getPlayerScores(p_93038_);
+-        List<Score> list = collection.stream().filter((p_212911_0_) ->
++        List<Score> list = collection.stream().filter((p_lambda$renderScoreboard$1_0_) ->
+         {
+-            return p_212911_0_.getOwner() != null && !p_212911_0_.getOwner().startsWith("#");
++            return p_lambda$renderScoreboard$1_0_.getOwner() != null && !p_lambda$renderScoreboard$1_0_.getOwner().startsWith("#");
+         }).collect(Collectors.toList());
+ 
+         if (list.size() > 15)
+@@ -1215,24 +1237,6 @@
+ 
+     private void renderPumpkin()
+     {
+-        RenderSystem.disableDepthTest();
+-        RenderSystem.depthMask(false);
+-        RenderSystem.defaultBlendFunc();
+-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+-        RenderSystem.disableAlphaTest();
+-        this.minecraft.getTextureManager().bind(PUMPKIN_BLUR_LOCATION);
+-        Tesselator tesselator = Tesselator.getInstance();
+-        BufferBuilder bufferbuilder = tesselator.getBuilder();
+-        bufferbuilder.begin(7, DefaultVertexFormat.POSITION_TEX);
+-        bufferbuilder.vertex(0.0D, (double)this.screenHeight, -90.0D).uv(0.0F, 1.0F).endVertex();
+-        bufferbuilder.vertex((double)this.screenWidth, (double)this.screenHeight, -90.0D).uv(1.0F, 1.0F).endVertex();
+-        bufferbuilder.vertex((double)this.screenWidth, 0.0D, -90.0D).uv(1.0F, 0.0F).endVertex();
+-        bufferbuilder.vertex(0.0D, 0.0D, -90.0D).uv(0.0F, 0.0F).endVertex();
+-        tesselator.end();
+-        RenderSystem.depthMask(true);
+-        RenderSystem.enableDepthTest();
+-        RenderSystem.enableAlphaTest();
+-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+     }
+ 
+     private void updateVignetteBrightness(Entity p_93021_)
+@@ -1531,4 +1535,99 @@
+     {
+         this.debugScreen.clearChunkCache();
+     }
++
++    private void renderViveHudIcons(PoseStack matrixstack)
++    {
++        if (this.minecraft.getCameraEntity() instanceof Player)
++        {
++            int i = this.minecraft.getWindow().getGuiScaledWidth();
++            int j = this.minecraft.getWindow().getGuiScaledHeight();
++            Font font = this.minecraft.gui.getFont();
++            Player player = (Player)this.minecraft.getCameraEntity();
++            int k = 0;
++            MobEffect mobeffect = null;
++
++            if (player.isSprinting())
++            {
++                mobeffect = MobEffects.MOVEMENT_SPEED;
++            }
++
++            if (player.isVisuallySwimming())
++            {
++                mobeffect = MobEffects.DOLPHINS_GRACE;
++            }
++
++            if (player.isShiftKeyDown())
++            {
++                mobeffect = MobEffects.BLINDNESS;
++            }
++
++            if (player.isFallFlying())
++            {
++                k = -1;
++            }
++
++            if (this.minecraft.crawlTracker.crawling)
++            {
++                k = -2;
++            }
++
++            int l = this.minecraft.getWindow().getGuiScaledWidth() / 2 - 109;
++            int i1 = this.minecraft.getWindow().getGuiScaledHeight() - 39;
++
++            if (k == -1)
++            {
++                this.minecraft.getItemRenderer().renderGuiItem(new ItemStack(Items.ELYTRA), l, i1);
++                mobeffect = null;
++            }
++            else if (k == -2)
++            {
++                if (player.isShiftKeyDown())
++                {
++                    l -= 19;
++                }
++                else
++                {
++                    mobeffect = null;
++                }
++
++                this.minecraft.getItemRenderer().renderGuiItem(new ItemStack(Items.RABBIT_FOOT), l, i1);
++            }
++
++            if (mobeffect != null)
++            {
++                TextureAtlasSprite textureatlassprite = this.minecraft.getMobEffectTextures().get(mobeffect);
++                GlStateManager._color4f(1.0F, 1.0F, 1.0F, 1.0F);
++                this.minecraft.getTextureManager().bind(textureatlassprite.atlas().location());
++                GuiComponent.blit(matrixstack, l, i1, 0, 18, 18, textureatlassprite);
++            }
++        }
++    }
++
++    public void drawMouseMenuQuad(int mouseX, int mouseY)
++    {
++        RenderSystem.enableBlend();
++        RenderSystem.enableAlphaTest();
++        RenderSystem.disableDepthTest();
++        RenderSystem.disableLighting();
++        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
++        this.minecraft.getTextureManager().bind(GUI_ICONS_LOCATION);
++        float f = 16.0F * this.minecraft.vrSettings.menuCrosshairScale;
++        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR, GlStateManager.DestFactor.ZERO, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
++        this.drawCentredTexturedModalRect(mouseX, mouseY, f, f, 0, 0, 15, 15);
++    }
++
++    public void drawCentredTexturedModalRect(int centreX, int centreY, float width, float height, int u, int v, int texWidth, int texHeight)
++    {
++        float f = 0.00390625F;
++        float f1 = 0.00390625F;
++        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
++        bufferbuilder.begin(7, DefaultVertexFormat.POSITION_TEX);
++        bufferbuilder.vertex((double)((float)centreX - width / 2.0F), (double)((float)centreY + height / 2.0F), (double)this.getBlitOffset()).uv((float)(u + 0) * f, (float)(v + texHeight) * f1).endVertex();
++        bufferbuilder.vertex((double)((float)centreX + width / 2.0F), (double)((float)centreY + height / 2.0F), (double)this.getBlitOffset()).uv((float)(u + texWidth) * f, (float)(v + texHeight) * f1).endVertex();
++        bufferbuilder.vertex((double)((float)centreX + width / 2.0F), (double)((float)centreY - height / 2.0F), (double)this.getBlitOffset()).uv((float)(u + texWidth) * f, (float)(v + 0) * f1).endVertex();
++        bufferbuilder.vertex((double)((float)centreX - width / 2.0F), (double)((float)centreY - height / 2.0F), (double)this.getBlitOffset()).uv((float)(u + 0) * f, (float)(v + 0) * f1).endVertex();
++        bufferbuilder.end();
++        BufferUploader.end(bufferbuilder);
++    }
+ }

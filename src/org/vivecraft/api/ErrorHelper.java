@@ -1,9 +1,7 @@
 package org.vivecraft.api;
 
-/**
- * Created by StellaArtois on 2/7/2016.
- */
-public class ErrorHelper {
+public class ErrorHelper
+{
     public long createdTime;
     public long endTime;
     public String title;
@@ -16,6 +14,6 @@ public class ErrorHelper {
         this.message = message;
         this.resolution = resolution;
         this.createdTime = System.currentTimeMillis();
-        this.endTime = this.createdTime + (displayTimeSecs * 1000);
+        this.endTime = this.createdTime + displayTimeSecs * 1000L;
     }
 }

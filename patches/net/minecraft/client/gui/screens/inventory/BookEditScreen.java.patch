@@ -1,0 +1,106 @@
+--- a/net/minecraft/client/gui/screens/inventory/BookEditScreen.java
++++ b/net/minecraft/client/gui/screens/inventory/BookEditScreen.java
+@@ -41,6 +41,7 @@
+ import org.apache.commons.lang3.StringUtils;
+ import org.apache.commons.lang3.mutable.MutableBoolean;
+ import org.apache.commons.lang3.mutable.MutableInt;
++import org.vivecraft.gameplay.screenhandlers.KeyboardHandler;
+ 
+ public class BookEditScreen extends Screen
+ {
+@@ -56,19 +57,19 @@
+     private int currentPage;
+     private final List<String> pages = Lists.newArrayList();
+     private String title = "";
+-    private final TextFieldHelper pageEdit = new TextFieldHelper(this::getCurrentPageText, this::setCurrentPageText, this::getClipboard, this::setClipboard, (p_98179_) ->
++    private final TextFieldHelper pageEdit = new TextFieldHelper(this::getCurrentPageText, this::setCurrentPageText, this::getClipboard, this::setClipboard, (p_238774_1_) ->
+     {
+-        return p_98179_.length() < 1024 && this.font.wordWrapHeight(p_98179_, 114) <= 128;
++        return p_238774_1_.length() < 1024 && this.font.wordWrapHeight(p_238774_1_, 114) <= 128;
+     });
+     private final TextFieldHelper titleEdit = new TextFieldHelper(() ->
+     {
+         return this.title;
+-    }, (p_98175_) ->
++    }, (p_238772_1_) ->
+     {
+-        this.title = p_98175_;
+-    }, this::getClipboard, this::setClipboard, (p_98170_) ->
++        this.title = p_238772_1_;
++    }, this::getClipboard, this::setClipboard, (p_238771_0_) ->
+     {
+-        return p_98170_.length() < 16;
++        return p_238771_0_.length() < 16;
+     });
+     private long lastClickTime;
+     private int lastIndex = -1;
+@@ -138,17 +139,17 @@
+     {
+         this.clearDisplayCache();
+         this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
+-        this.signButton = this.addButton(new Button(this.width / 2 - 100, 196, 98, 20, new TranslatableComponent("book.signButton"), (p_98177_) ->
++        this.signButton = this.addButton(new Button(this.width / 2 - 100, 196, 98, 20, new TranslatableComponent("book.signButton"), (p_214201_1_) ->
+         {
+             this.isSigning = true;
+             this.updateButtonVisibility();
+         }));
+-        this.doneButton = this.addButton(new Button(this.width / 2 + 2, 196, 98, 20, CommonComponents.GUI_DONE, (p_98173_) ->
++        this.doneButton = this.addButton(new Button(this.width / 2 + 2, 196, 98, 20, CommonComponents.GUI_DONE, (p_214204_1_) ->
+         {
+             this.minecraft.setScreen((Screen)null);
+             this.saveChanges(false);
+         }));
+-        this.finalizeButton = this.addButton(new Button(this.width / 2 - 100, 196, 98, 20, new TranslatableComponent("book.finalizeButton"), (p_98168_) ->
++        this.finalizeButton = this.addButton(new Button(this.width / 2 - 100, 196, 98, 20, new TranslatableComponent("book.finalizeButton"), (p_214195_1_) ->
+         {
+             if (this.isSigning)
+             {
+@@ -156,7 +157,7 @@
+                 this.minecraft.setScreen((Screen)null);
+             }
+         }));
+-        this.cancelButton = this.addButton(new Button(this.width / 2 + 2, 196, 98, 20, CommonComponents.GUI_CANCEL, (p_98157_) ->
++        this.cancelButton = this.addButton(new Button(this.width / 2 + 2, 196, 98, 20, CommonComponents.GUI_CANCEL, (p_214212_1_) ->
+         {
+             if (this.isSigning)
+             {
+@@ -167,15 +168,16 @@
+         }));
+         int i = (this.width - 192) / 2;
+         int j = 2;
+-        this.forwardButton = this.addButton(new PageButton(i + 116, 159, true, (p_98144_) ->
++        this.forwardButton = this.addButton(new PageButton(i + 116, 159, true, (p_214208_1_) ->
+         {
+             this.pageForward();
+         }, true));
+-        this.backButton = this.addButton(new PageButton(i + 43, 159, false, (p_98113_) ->
++        this.backButton = this.addButton(new PageButton(i + 43, 159, false, (p_214205_1_) ->
+         {
+             this.pageBack();
+         }, true));
+         this.updateButtonVisibility();
++        KeyboardHandler.setOverlayShowing(true);
+     }
+ 
+     private void pageBack()
+@@ -678,16 +680,16 @@
+             MutableInt mutableint = new MutableInt();
+             MutableBoolean mutableboolean = new MutableBoolean();
+             StringSplitter stringsplitter = this.font.getSplitter();
+-            stringsplitter.splitLines(s, 114, Style.EMPTY, true, (p_98132_, p_98133_, p_98134_) ->
++            stringsplitter.splitLines(s, 114, Style.EMPTY, true, (p_238762_6_, p_238762_7_, p_238762_8_) ->
+             {
+                 int k3 = mutableint.getAndIncrement();
+-                String s2 = s.substring(p_98133_, p_98134_);
++                String s2 = s.substring(p_238762_7_, p_238762_8_);
+                 mutableboolean.setValue(s2.endsWith("\n"));
+                 String s3 = StringUtils.stripEnd(s2, " \n");
+                 int l3 = k3 * 9;
+                 BookEditScreen.Pos2i bookeditscreen$pos2i1 = this.convertLocalToScreen(new BookEditScreen.Pos2i(0, l3));
+-                intlist.add(p_98133_);
+-                list.add(new BookEditScreen.LineInfo(p_98132_, s3, bookeditscreen$pos2i1.x, bookeditscreen$pos2i1.y));
++                intlist.add(p_238762_7_);
++                list.add(new BookEditScreen.LineInfo(p_238762_6_, s3, bookeditscreen$pos2i1.x, bookeditscreen$pos2i1.y));
+             });
+             int[] aint = intlist.toIntArray();
+             boolean flag = i == s.length();

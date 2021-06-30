@@ -4,8 +4,8 @@
      {
          this.ticksUntilEnable = ticksUntilEnable;
  
--        for (Button button : this.buttonList)
-+        for (Widget button : this.buttonList)
+-        for (Button button : this.getButtonList())
++        for (Button button : (List<Button>)(List<?>)this.getButtonList())
          {
              button.active = false;
          }
@@ -13,8 +13,8 @@
  
          if (--this.ticksUntilEnable == 0)
          {
--            for (Button button : this.buttonList)
-+            for (Widget button : this.buttonList)
+-            for (Button button : this.getButtonList())
++            for (Button button : (List<Button>)(List<?>)this.getButtonList())
              {
                  button.active = true;
              }

@@ -1,99 +1,119 @@
 package org.vivecraft.gameplay.trackers;
 
-import org.vivecraft.gameplay.OpenVRPlayer;
-import org.vivecraft.provider.MCOpenVR;
-
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.network.play.client.CPlayerDiggingPacket;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ChatType;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.world.phys.Vec3;
+import org.vivecraft.gameplay.VRPlayer;
 
+public class BackpackTracker extends Tracker
+{
+    public boolean[] wasIn = new boolean[2];
+    public int previousSlot = 0;
+    private Vec3 down = new Vec3(0.0D, -1.0D, 0.0D);
 
-public class BackpackTracker extends Tracker {
-	public boolean[] wasIn = new boolean[2];
+    public BackpackTracker(Minecraft mc)
+    {
+        super(mc);
+    }
 
-	public int previousSlot = 0;
+    public boolean isActive(LocalPlayer p)
+    {
+        Minecraft minecraft = Minecraft.getInstance();
 
-	public BackpackTracker(Minecraft mc) {
-		super(mc);
-	}
+        if (minecraft.vrSettings.seated)
+        {
+            return false;
+        }
+        else if (!minecraft.vrSettings.backpackSwitching)
+        {
+            return false;
+        }
+        else if (p == null)
+        {
+            return false;
+        }
+        else if (minecraft.gameMode == null)
+        {
+            return false;
+        }
+        else if (!p.isAlive())
+        {
+            return false;
+        }
+        else if (p.isSleeping())
+        {
+            return false;
+        }
+        else
+        {
+            return !minecraft.bowTracker.isDrawing;
+        }
+    }
 
-	public boolean isActive(ClientPlayerEntity p){
-		Minecraft mc = Minecraft.getInstance();
-		if(mc.vrSettings.seated) return false;
-		if(!mc.vrSettings.backpackSwitching) return false;
-		if(p == null) return false;
-		if(mc.playerController == null) return false;
-		if(!p.isAlive()) return false;
-		if(p.isSleeping()) return false;
-		if(mc.bowTracker.isDrawing) return false;
-		return true;
-	}
+    public void doProcess(LocalPlayer player)
+    {
+        VRPlayer vrplayer = this.mc.vrPlayer;
+        Vec3 vec3 = vrplayer.vrdata_room_pre.getHeadRear();
 
-	
-	private Vector3d down = new Vector3d(0, -1, 0);
-	
-	public void doProcess(ClientPlayerEntity player){
-		OpenVRPlayer provider = mc.vrPlayer;
+        for (int i = 0; i < 2; ++i)
+        {
+            Vec3 vec31 = vrplayer.vrdata_room_pre.getController(i).getPosition();
+            Vec3 vec32 = vrplayer.vrdata_room_pre.getHand(i).getDirection();
+            Vec3 vec33 = vrplayer.vrdata_room_pre.hmd.getDirection();
+            Vec3 vec34 = vec3.subtract(vec31);
+            double d0 = vec32.dot(this.down);
+            double d1 = vec34.dot(vec33);
+            boolean flag = Math.abs(vec3.y - vec31.y) < 0.25D;
+            boolean flag1 = d1 > 0.0D && vec34.length() > 0.05D;
+            boolean flag2 = d0 > 0.6D;
+            boolean flag3 = d1 < 0.0D && vec34.length() > 0.25D;
+            boolean flag4 = d0 < 0.0D;
+            boolean flag5 = flag && flag1 && flag2;
+            Minecraft minecraft = Minecraft.getInstance();
 
-		Vector3d hmdPos=provider.vrdata_room_pre.getHeadRear();
+            if (flag5)
+            {
+                if (!this.wasIn[i])
+                {
+                    if (i == 0)
+                    {
+                        if (!minecraft.climbTracker.isGrabbingLadder() || !minecraft.climbTracker.isClaws(minecraft.player.getMainHandItem()))
+                        {
+                            if (player.inventory.selected != 0)
+                            {
+                                this.previousSlot = player.inventory.selected;
+                                player.inventory.selected = 0;
+                            }
+                            else
+                            {
+                                player.inventory.selected = this.previousSlot;
+                                this.previousSlot = 0;
+                            }
+                        }
+                    }
+                    else if (!minecraft.climbTracker.isGrabbingLadder() || !minecraft.climbTracker.isClaws(minecraft.player.getOffhandItem()))
+                    {
+                        if (minecraft.vrSettings.physicalGuiEnabled)
+                        {
+                            minecraft.physicalGuiManager.toggleInventoryBag();
+                        }
+                        else
+                        {
+                            player.connection.send(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.SWAP_ITEM_WITH_OFFHAND, BlockPos.ZERO, Direction.DOWN));
+                        }
+                    }
 
-		for(int c=0; c<2; c++) {
-			Vector3d controllerPos = provider.vrdata_room_pre.getController(c).getPosition();//.add(provider.getCustomControllerVector(c, new Vec3(0, 0, -0.1)));
-			Vector3d controllerDir = provider.vrdata_room_pre.getHand(c).getDirection();
-			Vector3d hmddir = provider.vrdata_room_pre.hmd.getDirection();
-			Vector3d delta = hmdPos.subtract(controllerPos);
-			double dot = controllerDir.dotProduct(down);
-			double dotDelta = delta.dotProduct(hmddir);
-			
-			boolean below  = ((Math.abs(hmdPos.y - controllerPos.y)) < 0.25);
-			boolean behind = (dotDelta > 0) && delta.length() > 0.05; 
-			boolean aimdown = (dot > .6);
-			
-			boolean infront = (dotDelta < 0) && delta.length() > 0.25; 
-			boolean aimup = (dot < 0);
-						
-			boolean zone = below && behind && aimdown;
-			
-			Minecraft mc = Minecraft.getInstance();
-			if (zone){
-				if(!wasIn[c]){
-					if(c==0){ //mainhand
-						if((mc.climbTracker.isGrabbingLadder() && 
-								mc.climbTracker.isClaws(mc.player.getHeldItemMainhand()))){}
-						else{
-						if(player.inventory.currentItem != 0){
-							previousSlot = player.inventory.currentItem;
-							player.inventory.currentItem = 0;	
-						} else {
-							player.inventory.currentItem = previousSlot;
-							previousSlot = 0;
-						}}
-					}
-					else { //offhand
-						if((mc.climbTracker.isGrabbingLadder() && 
-								mc.climbTracker.isClaws(mc.player.getHeldItemOffhand()))){}
-						else {
-							if (mc.vrSettings.physicalGuiEnabled) {
-								mc.physicalGuiManager.toggleInventoryBag();
-							} else
-								player.connection.sendPacket(new CPlayerDiggingPacket(CPlayerDiggingPacket.Action.SWAP_ITEM_WITH_OFFHAND, BlockPos.ZERO, Direction.DOWN));
-						}
-					}
-					MCOpenVR.triggerHapticPulse(c, 1500);
-					wasIn[c] = true;
-				}
-			} else {
-				if(!infront && !aimup) {
-					//noop
-				} else {
-					wasIn[c] = false;
-				}
-			}
-		}
-}
-
+                    minecraft.vr.triggerHapticPulse(i, 1500);
+                    this.wasIn[i] = true;
+                }
+            }
+            else if (flag3 || flag4)
+            {
+                this.wasIn[i] = false;
+            }
+        }
+    }
 }

@@ -1,258 +1,271 @@
 package org.vivecraft.utils;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
 import java.awt.Color;
 import java.util.ArrayList;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.debug.DebugRenderer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.utils.math.Quaternion;
 import org.vivecraft.utils.math.Vector3;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
+public class Debug
+{
+    Vec3 root;
+    Quaternion rotation;
+    public static boolean isEnabled = true;
+    static Debug.Polygon cross = new Debug.Polygon(6);
+    static Debug.Polygon arrowHead = new Debug.Polygon(8);
+    private static Debug.DebugRendererManual renderer = new Debug.DebugRendererManual();
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.debug.DebugRenderer;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.vector.Vector3d;
+    public Debug(Vec3 root)
+    {
+        this.root = root;
+        this.rotation = new Quaternion();
+    }
 
-public class Debug {
-	Vector3d root;
-	Quaternion rotation;
-	public static boolean isEnabled=true;
+    public Debug(Vec3 root, Quaternion rotation)
+    {
+        this.root = root;
+        this.rotation = rotation;
+    }
 
-	static Polygon cross=new Polygon(6);
-	static Polygon arrowHead=new Polygon(8);
-	static {
-		cross.colors[0]=new Color(0,0,0,0);
-		cross.vertices[0]=new Vector3d(0,-0.1,0);
-		cross.vertices[1]=new Vector3d(0,0.1,0);
-		cross.colors[2]=new Color(0,0,0,0);
+    public void drawPoint(Vec3 point, Color color)
+    {
+        point = this.rotation.multiply(point);
+        Vec3 vec3 = this.root.add(point);
+        Debug.Polygon debug$polygon = cross.offset(vec3);
 
-		cross.vertices[2]=new Vector3d(0,0,-0.1);
-		cross.vertices[3]=new Vector3d(0,0,0.1);
-		cross.colors[4]=new Color(0,0,0,0);
+        for (int i = 0; i < debug$polygon.colors.length; ++i)
+        {
+            if (debug$polygon.colors[i] == null)
+            {
+                debug$polygon.colors[i] = color;
+            }
+        }
 
-		cross.vertices[4]=new Vector3d(-0.1,0,0);
-		cross.vertices[5]=new Vector3d(0.1,0,0);
+        renderer.toDraw.add(debug$polygon);
+    }
 
-		arrowHead.colors[0]=new Color(0,0,0,0);
-		arrowHead.vertices[0]=new Vector3d(0,0,0);
-		arrowHead.vertices[1]=new Vector3d(-0.05,-0.05,0);
+    public void drawVector(Vec3 start, Vec3 direction, Color color)
+    {
+        Debug.Polygon debug$polygon = new Debug.Polygon(2);
+        start = this.rotation.multiply(start);
+        direction = this.rotation.multiply(direction);
+        debug$polygon.vertices[0] = this.root.add(start);
+        debug$polygon.colors[0] = new Color(0, 0, 0, 0);
+        debug$polygon.vertices[1] = this.root.add(start).add(direction);
+        debug$polygon.colors[1] = color;
+        Quaternion quaternion = Quaternion.createFromToVector(new Vector3(0.0F, 1.0F, 0.0F), new Vector3(direction.normalize()));
+        Debug.Polygon debug$polygon1 = arrowHead.rotated(quaternion).offset(this.root.add(start).add(direction));
 
-		arrowHead.colors[2]=new Color(0,0,0,0);
-		arrowHead.vertices[2]=new Vector3d(0,0,0);
-		arrowHead.vertices[3]=new Vector3d(0.05,-0.05,0);
+        for (int i = 0; i < debug$polygon1.colors.length; ++i)
+        {
+            if (debug$polygon1.colors[i] == null)
+            {
+                debug$polygon1.colors[i] = color;
+            }
+        }
 
-		arrowHead.colors[4]=new Color(0,0,0,0);
-		arrowHead.vertices[4]=new Vector3d(0,0,0);
-		arrowHead.vertices[5]=new Vector3d(0,-0.05,-0.05);
+        renderer.toDraw.add(debug$polygon);
+        renderer.toDraw.add(debug$polygon1);
+    }
 
-		arrowHead.colors[6]=new Color(0,0,0,0);
-		arrowHead.vertices[6]=new Vector3d(0,0,0);
-		arrowHead.vertices[7]=new Vector3d(0,-0.05,0.05);
-	}
+    public void drawLine(Vec3 start, Vec3 end, Color color)
+    {
+        start = this.rotation.multiply(start);
+        end = this.rotation.multiply(end);
+        Debug.Polygon debug$polygon = new Debug.Polygon(2);
+        debug$polygon.vertices[0] = this.root.add(start);
+        debug$polygon.colors[0] = new Color(0, 0, 0, 0);
+        debug$polygon.vertices[1] = this.root.add(end);
+        debug$polygon.colors[1] = color;
+        renderer.toDraw.add(debug$polygon);
+    }
 
-	public Debug(Vector3d root){
-		this.root=root;
-		this.rotation=new Quaternion();
-	}
-	public Debug(Vector3d root, Quaternion rotation){
-		this.root=root;
-		this.rotation=rotation;
-	}
+    public void drawBoundingBox(AABB box, Color color)
+    {
+        Debug.Polygon debug$polygon = new Debug.Polygon(16);
+        Vec3[] avec3 = new Vec3[4];
+        Vec3[] avec31 = new Vec3[4];
+        int i = 0;
+        avec3[0] = new Vec3(box.minX, box.minY, box.minZ);
+        avec3[1] = new Vec3(box.minX, box.minY, box.maxZ);
+        avec3[2] = new Vec3(box.maxX, box.minY, box.maxZ);
+        avec3[3] = new Vec3(box.maxX, box.minY, box.minZ);
+        avec31[0] = new Vec3(box.minX, box.maxY, box.minZ);
+        avec31[1] = new Vec3(box.minX, box.maxY, box.maxZ);
+        avec31[2] = new Vec3(box.maxX, box.maxY, box.maxZ);
+        avec31[3] = new Vec3(box.maxX, box.maxY, box.minZ);
 
-	public void drawPoint(Vector3d point, Color color){
-		point=rotation.multiply(point);
-		Vector3d global=root.add(point);
-		Polygon poly=cross.offset(global);
-		for (int i = 0; i < poly.colors.length; i++) {
-			if(poly.colors[i]==null)
-				poly.colors[i]=color;
-		}
-		renderer.toDraw.add(poly);
-	}
+        for (int j = 0; j < 4; ++j)
+        {
+            avec3[j] = this.root.add(this.rotation.multiply(avec3[j]));
+            avec31[j] = this.root.add(this.rotation.multiply(avec31[j]));
+        }
 
-	public void drawVector(Vector3d start, Vector3d direction, Color color){
-		Polygon poly=new Polygon(2);
-		
-		start=rotation.multiply(start);
-		direction=rotation.multiply(direction);
-		
-		poly.vertices[0]=root.add(start);
-		poly.colors[0]=new Color(0,0,0,0);
+        for (int k = 0; k < 5; ++k)
+        {
+            if (k == 0)
+            {
+                debug$polygon.colors[i] = new Color(0, 0, 0, 0);
+            }
+            else
+            {
+                debug$polygon.colors[i] = color;
+            }
 
-		poly.vertices[1]=root.add(start).add(direction);
-		poly.colors[1]=color;
+            debug$polygon.vertices[i] = avec3[k % 4];
+            ++i;
+        }
 
-		Quaternion rot=Quaternion.createFromToVector(new Vector3(0,1,0),new Vector3(direction.normalize()));
-		Polygon arrow=arrowHead.rotated(rot).offset(root.add(start).add(direction));
+        for (int l = 0; l < 5; ++l)
+        {
+            debug$polygon.colors[i] = color;
+            debug$polygon.vertices[i] = avec31[l % 4];
+            ++i;
+        }
 
-		for (int i = 0; i < arrow.colors.length; i++) {
-			if(arrow.colors[i]==null)
-				arrow.colors[i]=color;
-		}
+        for (int i1 = 1; i1 < 4; ++i1)
+        {
+            debug$polygon.vertices[i] = avec3[i1];
+            debug$polygon.colors[i] = new Color(0, 0, 0, 0);
+            ++i;
+            debug$polygon.vertices[i] = avec31[i1];
+            debug$polygon.colors[i] = color;
+            ++i;
+        }
 
-		renderer.toDraw.add(poly);
-		renderer.toDraw.add(arrow);
-	}
+        renderer.toDraw.add(debug$polygon);
+    }
 
-	public void drawLine(Vector3d start, Vector3d end, Color color){
-		start=rotation.multiply(start);
-		end=rotation.multiply(end);
-		
-		Polygon poly=new Polygon(2);
+    public static Debug.DebugRendererManual getRenderer()
+    {
+        return renderer;
+    }
 
-		poly.vertices[0]=root.add(start);
-		poly.colors[0]=new Color(0,0,0,0);
+    static
+    {
+        cross.colors[0] = new Color(0, 0, 0, 0);
+        cross.vertices[0] = new Vec3(0.0D, -0.1D, 0.0D);
+        cross.vertices[1] = new Vec3(0.0D, 0.1D, 0.0D);
+        cross.colors[2] = new Color(0, 0, 0, 0);
+        cross.vertices[2] = new Vec3(0.0D, 0.0D, -0.1D);
+        cross.vertices[3] = new Vec3(0.0D, 0.0D, 0.1D);
+        cross.colors[4] = new Color(0, 0, 0, 0);
+        cross.vertices[4] = new Vec3(-0.1D, 0.0D, 0.0D);
+        cross.vertices[5] = new Vec3(0.1D, 0.0D, 0.0D);
+        arrowHead.colors[0] = new Color(0, 0, 0, 0);
+        arrowHead.vertices[0] = new Vec3(0.0D, 0.0D, 0.0D);
+        arrowHead.vertices[1] = new Vec3(-0.05D, -0.05D, 0.0D);
+        arrowHead.colors[2] = new Color(0, 0, 0, 0);
+        arrowHead.vertices[2] = new Vec3(0.0D, 0.0D, 0.0D);
+        arrowHead.vertices[3] = new Vec3(0.05D, -0.05D, 0.0D);
+        arrowHead.colors[4] = new Color(0, 0, 0, 0);
+        arrowHead.vertices[4] = new Vec3(0.0D, 0.0D, 0.0D);
+        arrowHead.vertices[5] = new Vec3(0.0D, -0.05D, -0.05D);
+        arrowHead.colors[6] = new Color(0, 0, 0, 0);
+        arrowHead.vertices[6] = new Vec3(0.0D, 0.0D, 0.0D);
+        arrowHead.vertices[7] = new Vec3(0.0D, -0.05D, 0.05D);
+    }
 
-		poly.vertices[1]=root.add(end);
-		poly.colors[1]=color;
+    public static class DebugRendererManual implements DebugRenderer.SimpleDebugRenderer
+    {
+        public boolean manualClearing = false;
+        ArrayList<Debug.Polygon> toDraw = new ArrayList<>();
 
-		renderer.toDraw.add(poly);
-	}
-	
-	public void drawBoundingBox(AxisAlignedBB box, Color color){
-		Polygon poly=new Polygon(16);
-		Vector3d[] lower=new Vector3d[4];
-		Vector3d[] upper=new Vector3d[4];
-		int index=0;
-		
-		lower[0]=new Vector3d(box.minX,box.minY,box.minZ);
-		lower[1]=new Vector3d(box.minX,box.minY,box.maxZ);
-		lower[2]=new Vector3d(box.maxX,box.minY,box.maxZ);
-		lower[3]=new Vector3d(box.maxX,box.minY,box.minZ);
-		
-		upper[0]=new Vector3d(box.minX,box.maxY,box.minZ);
-		upper[1]=new Vector3d(box.minX,box.maxY,box.maxZ);
-		upper[2]=new Vector3d(box.maxX,box.maxY,box.maxZ);
-		upper[3]=new Vector3d(box.maxX,box.maxY,box.minZ);
-		
-		
-		for (int i = 0; i < 4; i++) {
-			lower[i]=root.add(rotation.multiply(lower[i]));
-			upper[i]=root.add(rotation.multiply(upper[i]));
-		}
-		
-		for (int i = 0; i < 5; i++) {
-			if(i==0)
-				poly.colors[index]=new Color(0,0,0,0);
-			else
-				poly.colors[index]=color;
-			poly.vertices[index]=lower[i%4];
-			index++;
-		}
-		
-		for (int i = 0; i < 5; i++) {
-			poly.colors[index]=color;
-			poly.vertices[index]=upper[i%4];
-			index++;
-		}
-		
-		for (int i = 1; i < 4; i++) {
-			poly.vertices[index]=lower[i];
-			poly.colors[index]=new Color(0,0,0,0);
-			index++;
-			poly.vertices[index]=upper[i];
-			poly.colors[index]=color;
-			index++;
-		}
-		renderer.toDraw.add(poly);
-	}
+        public void render(float partialTicks, long finishTimeNano)
+        {
+            Player player = Minecraft.getInstance().player;
+            double d0 = player.xOld + (player.getX() - player.xOld) * (double)partialTicks;
+            double d1 = player.yOld + (player.getY() - player.yOld) * (double)partialTicks;
+            double d2 = player.zOld + (player.getZ() - player.zOld) * (double)partialTicks;
+            GlStateManager._lineWidth(5.0F);
+            GlStateManager._disableTexture();
+            GlStateManager._disableLighting();
+            GlStateManager._depthMask(false);
+            GlStateManager._disableDepthTest();
+            Tesselator tesselator = Tesselator.getInstance();
+            BufferBuilder bufferbuilder = tesselator.getBuilder();
+            bufferbuilder.begin(3, DefaultVertexFormat.POSITION_COLOR);
 
-	static class Polygon{
-		public Polygon(int size){
-			vertices=new Vector3d[size];
-			colors=new Color[size];
-		}
-		Vector3d [] vertices;
-		Color [] colors;
+            for (Debug.Polygon debug$polygon : this.toDraw)
+            {
+                for (int i = 0; i < debug$polygon.vertices.length; ++i)
+                {
+                    this.renderVertex(bufferbuilder, debug$polygon.vertices[i], debug$polygon.colors[i], d0, d1, d2);
+                }
+            }
 
-		public Polygon offset(Vector3d offset){
-			Polygon pol=new Polygon(vertices.length);
-			for (int i = 0; i < vertices.length; i++) {
-				pol.vertices[i]=vertices[i].add(offset);
-				pol.colors[i]=colors[i];
-			}
-			return pol;
-		}
+            tesselator.end();
+            GlStateManager._depthMask(true);
+            GlStateManager._enableTexture();
+            GlStateManager._enableLighting();
+            GlStateManager._enableDepthTest();
 
-		public Polygon rotated(Quaternion quat){
-			Polygon pol=new Polygon(vertices.length);
-			for (int i = 0; i < vertices.length; i++) {
-				pol.vertices[i]=quat.multiply(new Vector3(vertices[i])).toVector3d();
-				pol.colors[i]=colors[i];
-			}
-			return pol;
-		}
-	}
+            if (!this.manualClearing)
+            {
+                this.toDraw.clear();
+            }
+        }
 
+        public void clear()
+        {
+            this.toDraw.clear();
+        }
 
-	private static DebugRendererManual renderer=new DebugRendererManual();
-	public static DebugRendererManual getRenderer() {
-		return renderer;
-	}
+        void renderVertex(BufferBuilder buffer, Vec3 vert, Color color, double offX, double offY, double offZ)
+        {
+            buffer.vertex(vert.x - offX, vert.y - offY, vert.z - offZ).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+        }
 
-	public static class DebugRendererManual implements DebugRenderer.IDebugRenderer{
-		public boolean manualClearing=false;
+        public void render(PoseStack p_113507_, MultiBufferSource p_113508_, double p_113509_, double p_113510_, double p_113511_)
+        {
+        }
+    }
 
-		ArrayList<Polygon> toDraw=new ArrayList<>();
-	
-		public void render(float partialTicks, long finishTimeNano) {
+    static class Polygon
+    {
+        Vec3[] vertices;
+        Color[] colors;
 
-			PlayerEntity entityplayer = Minecraft.getInstance().player;
-			double d0 = entityplayer.lastTickPosX + (entityplayer.getPosX() - entityplayer.lastTickPosX) * (double)partialTicks;
-			double d1 = entityplayer.lastTickPosY + (entityplayer.getPosY() - entityplayer.lastTickPosY) * (double)partialTicks;
-			double d2 = entityplayer.lastTickPosZ + (entityplayer.getPosZ() - entityplayer.lastTickPosZ) * (double)partialTicks;
+        public Polygon(int size)
+        {
+            this.vertices = new Vec3[size];
+            this.colors = new Color[size];
+        }
 
-			//GlStateManager.enableBlend();
-			//GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-			GlStateManager.lineWidth(5.0F);
-			GlStateManager.disableTexture();
-			GlStateManager.disableLighting();
-			GlStateManager.depthMask(false);
-			GlStateManager.disableDepthTest();
+        public Debug.Polygon offset(Vec3 offset)
+        {
+            Debug.Polygon debug$polygon = new Debug.Polygon(this.vertices.length);
 
-			Tessellator tessellator=Tessellator.getInstance();
-			BufferBuilder buffer=tessellator.getBuffer();
-			buffer.begin(3, DefaultVertexFormats.POSITION_COLOR);
+            for (int i = 0; i < this.vertices.length; ++i)
+            {
+                debug$polygon.vertices[i] = this.vertices[i].add(offset);
+                debug$polygon.colors[i] = this.colors[i];
+            }
 
+            return debug$polygon;
+        }
 
-			for (Polygon polygon: toDraw) {
-				for(int i=0; i<polygon.vertices.length; i++){
-					renderVertex(buffer,polygon.vertices[i],polygon.colors[i],d0,d1,d2);
-				}
-			}
+        public Debug.Polygon rotated(Quaternion quat)
+        {
+            Debug.Polygon debug$polygon = new Debug.Polygon(this.vertices.length);
 
-			tessellator.draw();
+            for (int i = 0; i < this.vertices.length; ++i)
+            {
+                debug$polygon.vertices[i] = quat.multiply(new Vector3(this.vertices[i])).toVector3d();
+                debug$polygon.colors[i] = this.colors[i];
+            }
 
-			GlStateManager.depthMask(true);
-			GlStateManager.enableTexture();
-			GlStateManager.enableLighting();
-			//GlStateManager.disableBlend();
-
-			GlStateManager.enableDepthTest();
-
-			if(!manualClearing)
-				toDraw.clear();
-		}
-
-		public void clear(){
-			toDraw.clear();
-		}
-
-		void renderVertex(BufferBuilder buffer, Vector3d vert, Color color, double offX, double offY, double offZ){
-			buffer.pos(vert.x-offX,vert.y-offY,vert.z-offZ).color(color.getRed(),color.getGreen(),color.getBlue(),color.getAlpha()).endVertex();
-		}
-
-		@Override
-		public void render(MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, double camX, double camY,
-				double camZ) {
-			// TODO Auto-generated method stub
-			
-		}
-	}
+            return debug$polygon;
+        }
+    }
 }

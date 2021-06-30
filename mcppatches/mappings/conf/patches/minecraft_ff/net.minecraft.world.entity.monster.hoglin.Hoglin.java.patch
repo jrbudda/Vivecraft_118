@@ -1,0 +1,13 @@
+﻿diff -r -U 3 minecraft\net\minecraft\world\entity\monster\hoglin\Hoglin.java minecraft_patched\net\minecraft\world\entity\monster\hoglin\Hoglin.java
+--- minecraft\net\minecraft\world\entity\monster\hoglin\Hoglin.java
++++ minecraft_patched\net\minecraft\world\entity\monster\hoglin\Hoglin.java
+@@ -116,7 +116,7 @@
+    }
+ 
+    public Brain<Hoglin> m_6274_() {
+-      return super.m_6274_();
++      return (Brain<Hoglin>)super.m_6274_();
+    }
+ 
+    protected void m_8024_() {
+

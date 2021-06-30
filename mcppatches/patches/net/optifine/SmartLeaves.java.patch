@@ -7,5 +7,5 @@
 -                            for (BakedQuad bakedquad : list)
 +                            for (BakedQuad bakedquad : (List<BakedQuad>)list)
                              {
-                                 List list1 = ibakedmodel.getQuads((BlockState)null, bakedquad.getFace(), RANDOM);
+                                 List list1 = bakedmodel.getQuads((BlockState)null, bakedquad.getDirection(), RANDOM);
  

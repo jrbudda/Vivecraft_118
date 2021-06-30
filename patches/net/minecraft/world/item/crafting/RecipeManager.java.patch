@@ -1,0 +1,186 @@
+--- a/net/minecraft/world/item/crafting/RecipeManager.java
++++ b/net/minecraft/world/item/crafting/RecipeManager.java
+@@ -22,6 +22,7 @@
+ import net.minecraft.Util;
+ import net.minecraft.core.NonNullList;
+ import net.minecraft.core.Registry;
++import net.minecraft.network.chat.TranslatableComponent;
+ import net.minecraft.resources.ResourceLocation;
+ import net.minecraft.server.packs.resources.ResourceManager;
+ import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+@@ -29,7 +30,10 @@
+ import net.minecraft.util.profiling.ProfilerFiller;
+ import net.minecraft.world.Container;
+ import net.minecraft.world.item.ItemStack;
++import net.minecraft.world.item.Items;
+ import net.minecraft.world.level.Level;
++import net.minecraft.world.level.block.Blocks;
++import net.optifine.reflect.Reflector;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+@@ -54,51 +58,92 @@
+         {
+             ResourceLocation resourcelocation = entry.getKey();
+ 
+-            try
++            if (!resourcelocation.getPath().startsWith("_"))
+             {
+-                Recipe<?> recipe = fromJson(resourcelocation, GsonHelper.convertToJsonObject(entry.getValue(), "top element"));
+-                map.computeIfAbsent(recipe.getType(), (p_44075_) ->
++                try
+                 {
+-                    return ImmutableMap.builder();
+-                }).put(resourcelocation, recipe);
+-            }
+-            catch (IllegalArgumentException | JsonParseException jsonparseexception)
+-            {
+-                LOGGER.error("Parsing error loading recipe {}", resourcelocation, jsonparseexception);
++                    if (Reflector.CraftingHelper_processConditions.exists() && entry.getValue().isJsonObject() && !Reflector.callBoolean(Reflector.CraftingHelper_processConditions, entry.getValue().getAsJsonObject(), "conditions"))
++                    {
++                        LOGGER.debug("Skipping loading recipe {} as it's conditions were not met", (Object)resourcelocation);
++                    }
++                    else
++                    {
++                        Recipe<?> recipe = fromJson(resourcelocation, GsonHelper.convertToJsonObject(entry.getValue(), "top element"));
++
++                        if (recipe == null)
++                        {
++                            LOGGER.info("Skipping loading recipe {} as it's serializer returned null", (Object)resourcelocation);
++                        }
++                        else
++                        {
++                            map.computeIfAbsent(recipe.getType(), (recipeType) ->
++                            {
++                                return ImmutableMap.builder();
++                            }).put(resourcelocation, recipe);
++                        }
++                    }
++                }
++                catch (JsonParseException | IllegalArgumentException illegalargumentexception)
++                {
++                    LOGGER.error("Parsing error loading recipe {}", resourcelocation, illegalargumentexception);
++                }
+             }
+         }
+ 
+-        this.recipes = map.entrySet().stream().collect(ImmutableMap.toImmutableMap(Entry::getKey, (p_44033_) ->
++        ItemStack itemstack = new ItemStack(Items.LEATHER_BOOTS);
++        itemstack.setHoverName(new TranslatableComponent("vivecraft.item.jumpboots"));
++        itemstack.getTag().putBoolean("Unbreakable", true);
++        itemstack.getTag().putInt("HideFlags", 4);
++        ItemStack itemstack1 = new ItemStack(Items.SHEARS);
++        itemstack1.setHoverName(new TranslatableComponent("vivecraft.item.climbclaws"));
++        itemstack1.getTag().putBoolean("Unbreakable", true);
++        itemstack1.getTag().putInt("HideFlags", 4);
++        ItemStack itemstack2 = new ItemStack(Items.ENDER_EYE);
++        itemstack2.setHoverName(new TranslatableComponent("vivecraft.item.telescope"));
++        itemstack2.getTag().putBoolean("Unbreakable", true);
++        itemstack2.getTag().putInt("HideFlags", 4);
++        ShapedRecipe shapedrecipe2 = new ShapedRecipe(new ResourceLocation("jumpboots"), "Vivecraft", 1, 2, NonNullList.m_122783_(Ingredient.EMPTY, Ingredient.m_43929_(Items.LEATHER_BOOTS), Ingredient.m_43927_(new ItemStack(Blocks.SLIME_BLOCK))), itemstack);
++        ShapedRecipe shapedrecipe = new ShapedRecipe(new ResourceLocation("climbclaws"), "Vivecraft", 3, 2, NonNullList.m_122783_(Ingredient.EMPTY, Ingredient.m_43929_(Items.SPIDER_EYE), Ingredient.EMPTY, Ingredient.m_43929_(Items.SPIDER_EYE), Ingredient.m_43929_(Items.SHEARS), Ingredient.EMPTY, Ingredient.m_43929_(Items.SHEARS)), itemstack1);
++        ShapedRecipe shapedrecipe1 = new ShapedRecipe(new ResourceLocation("telescope"), "Vivecraft", 3, 1, NonNullList.m_122783_(Ingredient.EMPTY, Ingredient.m_43929_(Items.DIAMOND), Ingredient.m_43929_(Items.ENDER_EYE), Ingredient.m_43929_(Items.DIAMOND)), itemstack2);
++
++        if (map.containsKey(shapedrecipe2.getType()))
++        {
++            map.get(shapedrecipe2.getType()).put(shapedrecipe2.getId(), shapedrecipe2);
++            map.get(shapedrecipe.getType()).put(shapedrecipe.getId(), shapedrecipe);
++            map.get(shapedrecipe1.getType()).put(shapedrecipe1.getId(), shapedrecipe1);
++        }
++
++        this.recipes = map.entrySet().stream().collect(ImmutableMap.toImmutableMap(Entry::getKey, (recipeEntry) ->
+         {
+-            return p_44033_.getValue().build();
++            return recipeEntry.getValue().build();
+         }));
+         LOGGER.info("Loaded {} recipes", (int)map.size());
+     }
+ 
+     public <C extends Container, T extends Recipe<C>> Optional<T> getRecipeFor(RecipeType<T> p_44016_, C p_44017_, Level p_44018_)
+     {
+-        return this.byType(p_44016_).values().stream().flatMap((p_44064_) ->
++        return this.byType(p_44016_).values().stream().flatMap((recipe) ->
+         {
+-            return Util.toStream(p_44016_.tryMatch(p_44064_, p_44018_, p_44017_));
++            return Util.toStream(p_44016_.tryMatch(recipe, p_44018_, p_44017_));
+         }).findFirst();
+     }
+ 
+     public <C extends Container, T extends Recipe<C>> List<T> getAllRecipesFor(RecipeType<T> p_44014_)
+     {
+-        return this.byType(p_44014_).values().stream().map((p_44053_) ->
++        return this.byType(p_44014_).values().stream().map((recipe) ->
+         {
+-            return (T)p_44053_;
++            return recipe;
+         }).collect(Collectors.toList());
+     }
+ 
+     public <C extends Container, T extends Recipe<C>> List<T> getRecipesFor(RecipeType<T> p_44057_, C p_44058_, Level p_44059_)
+     {
+-        return this.byType(p_44057_).values().stream().flatMap((p_44023_) ->
++        return this.byType(p_44057_).values().stream().flatMap((recipe) ->
+         {
+-            return Util.toStream(p_44057_.tryMatch(p_44023_, p_44059_, p_44058_));
+-        }).sorted(Comparator.comparing((p_44012_) ->
++            return Util.toStream(p_44057_.tryMatch(recipe, p_44059_, p_44058_));
++        }).sorted(Comparator.comparing((recipe) ->
+         {
+-            return p_44012_.getResultItem().getDescriptionId();
++            return recipe.getResultItem().getDescriptionId();
+         })).collect(Collectors.toList());
+     }
+ 
+@@ -130,25 +175,25 @@
+ 
+     public Optional <? extends Recipe<? >> byKey(ResourceLocation p_44044_)
+     {
+-        return this.recipes.values().stream().map((p_44050_) ->
++        return this.recipes.values().stream().map((recipeMap) ->
+         {
+-            return p_44050_.get(p_44044_);
++            return recipeMap.get(p_44044_);
+         }).filter(Objects::nonNull).findFirst();
+     }
+ 
+     public Collection < Recipe<? >> getRecipes()
+     {
+-        return this.recipes.values().stream().flatMap((p_44066_) ->
++        return this.recipes.values().stream().flatMap((recipeMap) ->
+         {
+-            return p_44066_.values().stream();
++            return recipeMap.values().stream();
+         }).collect(Collectors.toSet());
+     }
+ 
+     public Stream<ResourceLocation> getRecipeIds()
+     {
+-        return this.recipes.values().stream().flatMap((p_44035_) ->
++        return this.recipes.values().stream().flatMap((recipeMap) ->
+         {
+-            return p_44035_.keySet().stream();
++            return recipeMap.keySet().stream();
+         });
+     }
+ 
+@@ -165,16 +210,16 @@
+     {
+         this.hasErrors = false;
+         Map < RecipeType<?>, Map < ResourceLocation, Recipe<? >>> map = Maps.newHashMap();
+-        p_44025_.forEach((p_44042_) ->
++        p_44025_.forEach((recipe) ->
+         {
+-            Map < ResourceLocation, Recipe<? >> map1 = map.computeIfAbsent(p_44042_.getType(), (p_44068_) -> {
++            Map < ResourceLocation, Recipe<? >> map1 = map.computeIfAbsent(recipe.getType(), (recipeType) -> {
+                 return Maps.newHashMap();
+             });
+-            Recipe<?> recipe = map1.put(p_44042_.getId(), p_44042_);
++            Recipe<?> recipe = map1.put(recipe.getId(), recipe);
+ 
+             if (recipe != null)
+             {
+-                throw new IllegalStateException("Duplicate recipe ignored with ID " + p_44042_.getId());
++                throw new IllegalStateException("Duplicate recipe ignored with ID " + recipe.getId());
+             }
+         });
+         this.recipes = ImmutableMap.copyOf(map);

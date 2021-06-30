@@ -1,169 +1,177 @@
 package org.vivecraft.gui.physical.interactables;
 
 import java.util.ArrayList;
-
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.api.VRData;
 import org.vivecraft.gui.physical.PhysicalInventory;
 import org.vivecraft.gui.physical.PhysicalItemSlotGui;
 import org.vivecraft.utils.math.Quaternion;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.vector.Vector3d;
+public class ArmorDisplay extends PhysicalItemSlotGui
+{
+    PhysicalInventory inventory;
+    boolean armorMode;
+    ArrayList<ArmorDisplay.ArmorItemSlot> armorSlots = new ArrayList<>();
 
-public class ArmorDisplay extends PhysicalItemSlotGui{
-	//TODO better Model
-	//TODO fix helmet in the way
+    public ArmorDisplay(PhysicalInventory inventory)
+    {
+        super(inventory.entity);
+        this.inventory = inventory;
+    }
 
-	PhysicalInventory inventory;
-	boolean armorMode;
-	ArrayList<ArmorItemSlot> armorSlots=new ArrayList<>();
-	public ArmorDisplay(PhysicalInventory inventory){
-		super(inventory.entity);
-		this.inventory=inventory;
-	}
+    public void open(Object payload)
+    {
+        this.container = this.inventory.container;
+        this.loadSlots();
+        this.isOpen = true;
+    }
 
-	@Override
-	public void open(Object payload) {
-		this.container=inventory.container;
-		loadSlots();
-		isOpen=true;
-	}
+    public void close()
+    {
+        this.isOpen = false;
+        this.setArmorMode(false);
+    }
 
-	@Override
-	public void close() {
-		isOpen=false;
-		setArmorMode(false);
-	}
+    public void setArmorMode(boolean armorMode)
+    {
+        this.armorMode = armorMode;
 
-	public void setArmorMode(boolean armorMode) {
-		this.armorMode = armorMode;
+        for (ArmorDisplay.ArmorItemSlot armordisplay$armoritemslot : this.armorSlots)
+        {
+            armordisplay$armoritemslot.enabled = armorMode;
+        }
 
-		for(ArmorItemSlot slot:armorSlots){
-			slot.enabled=armorMode;
-		}
-		mc.vrSettings.tmpRenderSelf=armorMode;
-	}
+        this.mc.vrSettings.tmpRenderSelf = armorMode;
+    }
 
-	@Override
-	public void tryOpenWindow() {}
+    public void tryOpenWindow()
+    {
+    }
 
-	@Override
-	public void render(double partialTicks) {
-		super.render(partialTicks);
+    public void render(double partialTicks)
+    {
+        super.render(partialTicks);
+    }
 
-		/*for(ArmorItemSlot slot: armorSlots){
-			Debug debug=new Debug(slot.getAnchorPos(0),slot.getAnchorRotation(0));
-			AxisAlignedBB bb=slot.getBoundingBox().offset(slot.position.x,slot.position.y,slot.position.z);
-			debug.drawBoundingBox(bb, Color.blue);
-		}*/
-	}
+    public void loadSlots()
+    {
+        this.armorSlots.clear();
+        this.interactables.clear();
 
-	public void loadSlots(){
-		armorSlots.clear();
-		interactables.clear();
+        if (this.inventory.metaData.hasExtra && this.inventory.container != null)
+        {
+            int i = this.inventory.metaData.armorOffset;
+            ArmorDisplay.ArmorItemSlot armordisplay$armoritemslot = new ArmorDisplay.ArmorItemSlot(this, i);
+            armordisplay$armoritemslot.feetBound = false;
+            armordisplay$armoritemslot.position = new Vec3(0.0D, 0.0D, 0.0D);
+            armordisplay$armoritemslot.slot = this.inventory.container.getSlot(armordisplay$armoritemslot.slotId);
+            this.armorSlots.add(armordisplay$armoritemslot);
+            ArmorDisplay.ArmorItemSlot armordisplay$armoritemslot1 = new ArmorDisplay.ArmorItemSlot(this, i + 1);
+            armordisplay$armoritemslot1.position = new Vec3(0.0D, -0.4D, 0.0D);
+            armordisplay$armoritemslot1.feetBound = false;
+            armordisplay$armoritemslot1.slot = this.inventory.container.getSlot(armordisplay$armoritemslot1.slotId);
+            this.armorSlots.add(armordisplay$armoritemslot1);
+            ArmorDisplay.ArmorItemSlot armordisplay$armoritemslot2 = new ArmorDisplay.ArmorItemSlot(this, i + 2);
+            armordisplay$armoritemslot2.slot = this.inventory.container.getSlot(armordisplay$armoritemslot2.slotId);
+            armordisplay$armoritemslot2.feetBound = true;
+            armordisplay$armoritemslot2.position = new Vec3(0.0D, 0.7D, 0.0D);
+            this.armorSlots.add(armordisplay$armoritemslot2);
+            ArmorDisplay.ArmorItemSlot armordisplay$armoritemslot3 = new ArmorDisplay.ArmorItemSlot(this, i + 3);
+            armordisplay$armoritemslot3.position = new Vec3(0.0D, 0.1D, 0.0D);
+            armordisplay$armoritemslot3.feetBound = true;
+            armordisplay$armoritemslot3.slot = this.inventory.container.getSlot(armordisplay$armoritemslot3.slotId);
+            this.armorSlots.add(armordisplay$armoritemslot3);
 
-		if(!inventory.metaData.hasExtra || inventory.container==null)
-			return;
-		int offset=inventory.metaData.armorOffset;
-		ArmorItemSlot helmet=new ArmorItemSlot(this,offset);
-		helmet.feetBound=false;
-		helmet.position=new Vector3d(0,0,0);
-		helmet.slot=inventory.container.getSlot(helmet.slotId);
-		armorSlots.add(helmet);
+            for (ArmorDisplay.ArmorItemSlot armordisplay$armoritemslot4 : this.armorSlots)
+            {
+                armordisplay$armoritemslot4.enabled = this.armorMode;
+            }
 
-		ArmorItemSlot chest=new ArmorItemSlot(this,offset+1);
-		chest.position=new Vector3d(0,-0.4,0);
-		chest.feetBound=false;
-		chest.slot=inventory.container.getSlot(chest.slotId);
-		armorSlots.add(chest);
+            this.interactables.addAll(this.armorSlots);
+        }
+    }
 
-		ArmorItemSlot pants=new ArmorItemSlot(this,offset+2);
-		pants.slot=inventory.container.getSlot(pants.slotId);
-		pants.feetBound=true;
-		pants.position=new Vector3d(0,0.7,0);
-		armorSlots.add(pants);
+    public Vec3 getAnchorPos(double partialTicks)
+    {
+        return new Vec3(this.mc.gameRenderer.rveX, this.mc.gameRenderer.rveY, this.mc.gameRenderer.rveZ);
+    }
 
-		ArmorItemSlot boots=new ArmorItemSlot(this,offset+3);
-		boots.position=new Vector3d(0,0.1,0);
-		boots.feetBound=true;
-		boots.slot=inventory.container.getSlot(boots.slotId);
-		armorSlots.add(boots);
+    public Quaternion getAnchorRotation(double partialTicks)
+    {
+        return new Quaternion(0.0F, -this.entity.yRot, 0.0F);
+    }
 
-		for(ArmorItemSlot slot: armorSlots){
-			slot.enabled=armorMode;
-		}
-		interactables.addAll(armorSlots);
-	}
+    class ArmorItemSlot extends PhysicalItemSlot
+    {
+        public AABB boundingBox = super.getBoundingBox();
+        boolean placed;
+        public boolean feetBound;
 
-	class ArmorItemSlot extends PhysicalItemSlot{
-		public AxisAlignedBB boundingBox=super.getBoundingBox();
-		boolean placed;
-		public boolean feetBound;
-		public ArmorItemSlot(PhysicalItemSlotGui gui, int slotId) {
-			super(gui, slotId);
-			preview=false;
-		}
+        public ArmorItemSlot(PhysicalItemSlotGui gui, int slotId)
+        {
+            super(gui, slotId);
+            this.preview = false;
+        }
 
-		@Override
-		public ItemStack getDisplayedItem() {
-			return ItemStack.EMPTY;
-		}
+        public ItemStack getDisplayedItem()
+        {
+            return ItemStack.EMPTY;
+        }
 
-		@Override
-		public void touch() {
-			if(!mc.physicalGuiManager.getVirtualHeldItem().isEmpty()) {
-				super.click(0);
-				placed = false;
-			}else
-				placed = true;
-		}
+        public void touch()
+        {
+            if (!this.mc.physicalGuiManager.getVirtualHeldItem().isEmpty())
+            {
+                super.click(0);
+                this.placed = false;
+            }
+            else
+            {
+                this.placed = true;
+            }
+        }
 
-		@Override
-		public void untouch() {
-			if(!placed && !slot.getStack().isEmpty())
-				super.click(0);
-		}
+        public void untouch()
+        {
+            if (!this.placed && !this.slot.getItem().isEmpty())
+            {
+                super.click(0);
+            }
+        }
 
-		@Override
-		public void click(int button) {
-			if(placed) {
-				super.click(0);
-			}
-			placed=true;
-		}
+        public void click(int button)
+        {
+            if (this.placed)
+            {
+                super.click(0);
+            }
 
-		@Override
-		public boolean isEnabled() {
-			if(!mc.physicalGuiManager.getVirtualHeldItem().isEmpty() &&
-					!slot.isItemValid(mc.physicalGuiManager.getVirtualHeldItem()))
-				return false;
-			return super.isEnabled();
-		}
+            this.placed = true;
+        }
 
-		@Override
-		public AxisAlignedBB getBoundingBox() {
-			return boundingBox;
-		}
+        public boolean isEnabled()
+        {
+            return !this.mc.physicalGuiManager.getVirtualHeldItem().isEmpty() && !this.slot.mayPlace(this.mc.physicalGuiManager.getVirtualHeldItem()) ? false : super.isEnabled();
+        }
 
-		@Override
-		public Vector3d getAnchorPos(double partialTicks) {
-			if(feetBound)
-				return ArmorDisplay.this.getAnchorPos(partialTicks);
-			else{
-				VRData data=mc.vrPlayer.getVRDataWorld();
-				return data.hmd.getPosition();
-			}
-		}
-	}
+        public AABB getBoundingBox()
+        {
+            return this.boundingBox;
+        }
 
-	@Override
-	public Vector3d getAnchorPos(double partialTicks) {
-		return new Vector3d(mc.gameRenderer.rveX,mc.gameRenderer.rveY,mc.gameRenderer.rveZ);
-	}
-
-	@Override
-	public Quaternion getAnchorRotation(double partialTicks) {
-		return new Quaternion(0,-entity.rotationYaw,0);
-	}
+        public Vec3 getAnchorPos(double partialTicks)
+        {
+            if (this.feetBound)
+            {
+                return ArmorDisplay.this.getAnchorPos(partialTicks);
+            }
+            else
+            {
+                VRData vrdata = this.mc.vrPlayer.getVRDataWorld();
+                return vrdata.hmd.getPosition();
+            }
+        }
+    }
 }

@@ -1,0 +1,125 @@
+--- a/net/minecraft/client/renderer/entity/ItemRenderer.java
++++ b/net/minecraft/client/renderer/entity/ItemRenderer.java
+@@ -63,8 +63,12 @@
+ import net.optifine.EmissiveTextures;
+ import net.optifine.reflect.Reflector;
+ import net.optifine.reflect.ReflectorForge;
++import net.optifine.render.GlAlphaState;
+ import net.optifine.render.VertexBuilderWrapper;
+ import net.optifine.shaders.Shaders;
++import org.vivecraft.gameplay.trackers.SwingTracker;
++import org.vivecraft.gameplay.trackers.TelescopeTracker;
++import org.vivecraft.render.SpecialItemRenderer;
+ 
+ public class ItemRenderer implements ResourceManagerReloadListener
+ {
+@@ -76,6 +80,11 @@
+     private final ItemColors itemColors;
+     public ModelManager modelManager = null;
+     private static boolean renderItemGui = false;
++    public static boolean ismainhand = false;
++    public static boolean isfphand = false;
++    float fade = 1.0F;
++    float manualFade = 1.0F;
++    private GlAlphaState alphaState = new GlAlphaState();
+ 
+     public ItemRenderer(TextureManager p_115100_, ModelManager p_115101_, ItemColors p_115102_)
+     {
+@@ -149,6 +158,16 @@
+             }
+ 
+             p_115147_.translate(-0.5D, -0.5D, -0.5D);
++            LocalPlayer localplayer = Minecraft.getInstance().player;
++
++            if (localplayer != null && isfphand)
++            {
++                this.fade = SwingTracker.getItemFade(localplayer, p_115144_);
++            }
++            else
++            {
++                this.fade = this.manualFade;
++            }
+ 
+             if (!p_115151_.isCustomRenderer() && (p_115144_.getItem() != Items.TRIDENT || flag))
+             {
+@@ -171,6 +190,12 @@
+                 else
+                 {
+                     RenderType rendertype = ItemBlockRenderTypes.getRenderType(p_115144_, flag1);
++
++                    if (isfphand && this.fade < 1.0F)
++                    {
++                        rendertype = Sheets.translucentCullBlockSheet();
++                    }
++
+                     VertexConsumer vertexconsumer;
+ 
+                     if (p_115144_.getItem() == Items.COMPASS && p_115144_.hasFoil())
+@@ -343,6 +368,19 @@
+                 }
+             }
+ 
++            if (Minecraft.getInstance().jumpTracker.isBoots(p_115166_))
++            {
++                k = this.makeColor(1, 0, 255, 0);
++            }
++            else if (Minecraft.getInstance().climbTracker.isClaws(p_115166_))
++            {
++                k = this.makeColor(1, 130, 0, 75);
++            }
++            else if (TelescopeTracker.isTelescope(p_115166_))
++            {
++                k = this.makeColor(1, 190, 110, 135);
++            }
++
+             float f = (float)(k >> 16 & 255) / 255.0F;
+             float f1 = (float)(k >> 8 & 255) / 255.0F;
+             float f2 = (float)(k & 255) / 255.0F;
+@@ -353,7 +391,7 @@
+             }
+             else
+             {
+-                p_115164_.putBulkData(posestack$pose, bakedquad, f, f1, f2, p_115167_, p_115168_);
++                SpecialItemRenderer.addQuad(p_115164_, posestack$pose, bakedquad, f, f1, f2, this.fade, p_115167_, p_115168_);
+             }
+         }
+     }
+@@ -410,10 +448,12 @@
+         this.textureManager.bind(TextureAtlas.LOCATION_BLOCKS);
+         this.textureManager.getTexture(TextureAtlas.LOCATION_BLOCKS).setFilter(false, false);
+         RenderSystem.enableRescaleNormal();
++        GlStateManager.getAlphaState(this.alphaState);
++        GlStateManager._enableAlphaTest();
+         RenderSystem.enableAlphaTest();
+         RenderSystem.defaultAlphaFunc();
+         RenderSystem.enableBlend();
+-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
++        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+         RenderSystem.translatef((float)p_115129_, (float)p_115130_, 100.0F + this.blitOffset);
+         RenderSystem.translatef(8.0F, 8.0F, 0.0F);
+@@ -591,4 +631,24 @@
+     {
+         return VanillaResourceType.MODELS;
+     }
++
++    private int makeColor(int a, int r, int g, int b)
++    {
++        return a << 24 | r << 16 | g << 8 | b;
++    }
++
++    public float getCurrentFade()
++    {
++        return this.fade;
++    }
++
++    public float getFade()
++    {
++        return this.manualFade;
++    }
++
++    public void setFade(float fade)
++    {
++        this.manualFade = fade;
++    }
+ }

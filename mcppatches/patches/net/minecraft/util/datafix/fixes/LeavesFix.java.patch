@@ -1,6 +1,6 @@
 --- a/net/minecraft/util/datafix/fixes/LeavesFix.java
 +++ b/net/minecraft/util/datafix/fixes/LeavesFix.java
-@@ -265,7 +265,7 @@
+@@ -278,7 +278,7 @@
  
              for (int i = 0; i < this.palette.size(); ++i)
              {
@@ -9,36 +9,43 @@
                  String s = dynamic.get("Name").asString("");
  
                  if (LeavesFix.LEAVES.containsKey(s))
-@@ -307,12 +307,12 @@
+@@ -320,12 +320,12 @@
  
-         private int getDistance(int p_208459_1_)
+         int getDistance(int p_16279_)
          {
--            return this.isLog(p_208459_1_) ? 0 : Integer.parseInt(this.palette.get(p_208459_1_).get("Properties").get("distance").asString(""));
-+            return this.isLog(p_208459_1_) ? 0 : Integer.parseInt(((Dynamic<?>) (this.palette.get(p_208459_1_))).get("Properties").get("distance").asString(""));
+-            return this.isLog(p_16279_) ? 0 : Integer.parseInt(this.palette.get(p_16279_).get("Properties").get("distance").asString(""));
++            return this.isLog(p_16279_) ? 0 : Integer.parseInt(((Dynamic<?> ) this.palette.get(p_16279_)).get("Properties").get("distance").asString(""));
          }
  
-         private void setDistance(int p_208454_1_, int p_208454_2_, int p_208454_3_)
+         void setDistance(int p_16260_, int p_16261_, int p_16262_)
          {
--            Dynamic<?> dynamic = this.palette.get(p_208454_2_);
-+            Dynamic<?> dynamic = (Dynamic<?>) this.palette.get(p_208454_2_);
+-            Dynamic<?> dynamic = this.palette.get(p_16261_);
++            Dynamic<?> dynamic = (Dynamic<?>) this.palette.get(p_16261_);
              String s = dynamic.get("Name").asString("");
              boolean flag = Objects.equals(dynamic.get("Properties").get("persistent").asString(""), "true");
-             int i = this.getStateId(s, flag, p_208454_3_);
-@@ -347,7 +347,7 @@
-     {
-         private final Type < Pair < String, Dynamic<? >>> blockStateType = DSL.named(TypeReferences.BLOCK_STATE.typeName(), DSL.remainderType());
+             int i = this.getStateId(s, flag, p_16262_);
+@@ -363,7 +363,7 @@
+         protected static final String PROPERTIES_TAG = "Properties";
+         private final Type < Pair < String, Dynamic<? >>> blockStateType = DSL.named(References.BLOCK_STATE.typeName(), DSL.remainderType());
          protected final OpticFinder < List < Pair < String, Dynamic<? >>> > paletteFinder = DSL.fieldFinder("Palette", DSL.list(this.blockStateType));
 -        protected final List < Dynamic<? >> palette;
 +        protected final List palette;
          protected final int index;
          @Nullable
-         protected ArbitraryBitLengthIntArray storage;
-@@ -390,7 +390,7 @@
-             return this.isSkippable() ? p_208465_1_ : p_208465_1_.update(DSL.remainderFinder(), (p_212510_1_) ->
+         protected PackedBitStorage storage;
+@@ -400,13 +400,13 @@
+                 this.storage = new PackedBitStorage(i, 4096, along);
+             }
+         }
+-
++        
+         public Typed<?> write(Typed<?> p_16289_)
+         {
+             return this.isSkippable() ? p_16289_ : p_16289_.update(DSL.remainderFinder(), (p_16305_) ->
              {
-                 return p_212510_1_.set("BlockStates", p_212510_1_.createLongList(Arrays.stream(this.storage.func_233047_a_())));
--            }).set(this.paletteFinder, this.palette.stream(). < Pair < String, Dynamic<? >>> map((p_212509_0_) ->
-+            }).set((OpticFinder)this.paletteFinder, this.palette.stream(). < Pair <String, Dynamic>> map((p_212509_0_) ->
+                 return p_16305_.set("BlockStates", p_16305_.createLongList(Arrays.stream(this.storage.getRaw())));
+-            }).set(this.paletteFinder, this.palette.stream(). < Pair < String, Dynamic<? >>> map((p_16300_) ->
++            }).set((OpticFinder)this.paletteFinder, this.palette.stream().map((p_16300_) ->
              {
-                 return Pair.of(TypeReferences.BLOCK_STATE.typeName(), p_212509_0_);
+                 return Pair.of(References.BLOCK_STATE.typeName(), p_16300_);
              }).collect(Collectors.toList()));

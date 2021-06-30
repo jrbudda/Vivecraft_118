@@ -1,79 +1,91 @@
 package org.vivecraft.gui.physical.interactables;
 
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.gui.physical.PhysicalInventory;
 import org.vivecraft.gui.physical.WindowCoordinator;
 import org.vivecraft.utils.math.Quaternion;
 
-import net.minecraft.inventory.container.ClickType;
-import net.minecraft.util.math.vector.Vector3d;
+public class HotBarItemSlot extends PhysicalItemSlot
+{
+    PhysicalInventory.Hotbar gui;
 
-public class HotBarItemSlot extends PhysicalItemSlot {
-	PhysicalInventory.Hotbar gui;
-	public HotBarItemSlot(PhysicalInventory.Hotbar gui, int slotId) {
-		super(gui,slotId);
-		this.gui=gui;
-	}
+    public HotBarItemSlot(PhysicalInventory.Hotbar gui, int slotId)
+    {
+        super(gui, slotId);
+        this.gui = gui;
+    }
 
-	@Override
-	public void touch() {
-		if(gui.parent.isOpen()) {
-			super.touch();
-		}else{
-			//mc.physicalGuiManager.setHideItemTouchingSlotOverride(slot.getStack());
-			popOut=true;
-		}
-	}
+    public void touch()
+    {
+        if (this.gui.parent.isOpen())
+        {
+            super.touch();
+        }
+        else
+        {
+            this.popOut = true;
+        }
+    }
 
-	@Override
-	public Vector3d getAnchorPos(double partialTicks) {
-		return gui.getAnchorPos(partialTicks);
-	}
+    public Vec3 getAnchorPos(double partialTicks)
+    {
+        return this.gui.getAnchorPos(partialTicks);
+    }
 
-	@Override
-	public Quaternion getAnchorRotation(double partialTicks) {
-		return gui.getAnchorRotation(partialTicks);
-	}
+    public Quaternion getAnchorRotation(double partialTicks)
+    {
+        return this.gui.getAnchorRotation(partialTicks);
+    }
 
-	@Override
-	public void click(int button) {
-		int offset=gui.parent.metaData.hotbarOffset;
+    public void click(int button)
+    {
+        int i = this.gui.parent.metaData.hotbarOffset;
 
-		if(gui.parent.isOpen()){
-			super.click(button);
-		}else{
-			for (Interactable inter: gui.interactables){
-				if(inter instanceof PhysicalItemSlot) {
-					PhysicalItemSlot slot=(PhysicalItemSlot)inter;
-					slot.opacity = 1;
-				}
-			}
+        if (this.gui.parent.isOpen())
+        {
+            super.click(button);
+        }
+        else
+        {
+            for (Interactable interactable : this.gui.interactables)
+            {
+                if (interactable instanceof PhysicalItemSlot)
+                {
+                    PhysicalItemSlot physicalitemslot = (PhysicalItemSlot)interactable;
+                    physicalitemslot.opacity = 1.0D;
+                }
+            }
 
-			if (mc.player.inventory.currentItem==slotId-offset){
-				if(mc.physicalGuiManager.isHoldingHotbarSlot){
-					mc.physicalGuiManager.isHoldingHotbarSlot=false;
-				}else{
-					mc.physicalGuiManager.isHoldingHotbarSlot=true;
-					opacity=0.1;
-				}
-			}else{
-				mc.physicalGuiManager.isHoldingHotbarSlot=true;
-				opacity=0.1;
-			}
+            if (this.mc.player.inventory.selected == this.slotId - i)
+            {
+                if (this.mc.physicalGuiManager.isHoldingHotbarSlot)
+                {
+                    this.mc.physicalGuiManager.isHoldingHotbarSlot = false;
+                }
+                else
+                {
+                    this.mc.physicalGuiManager.isHoldingHotbarSlot = true;
+                    this.opacity = 0.1D;
+                }
+            }
+            else
+            {
+                this.mc.physicalGuiManager.isHoldingHotbarSlot = true;
+                this.opacity = 0.1D;
+            }
 
+            this.mc.player.inventory.selected = this.slotId - i;
+        }
+    }
 
-			mc.player.inventory.currentItem=slotId-offset;
-
-		}
-	}
-
-	@Override
-	public void onDragDrop(Interactable source) {
-		if(source instanceof HotBarItemSlot){
-			HotBarItemSlot sourceSlot=(HotBarItemSlot) source;
-			int target=slotId-gui.metaData.hotbarOffset;
-
-			mc.physicalGuiManager.windowCoordinator.enqueueOperation(
-					new WindowCoordinator.ClickOperation(mc.physicalGuiManager,sourceSlot.slotId,ClickType.SWAP,true,target));
-		}
-	}
+    public void onDragDrop(Interactable source)
+    {
+        if (source instanceof HotBarItemSlot)
+        {
+            HotBarItemSlot hotbaritemslot = (HotBarItemSlot)source;
+            int i = this.slotId - this.gui.metaData.hotbarOffset;
+            this.mc.physicalGuiManager.windowCoordinator.enqueueOperation(new WindowCoordinator.ClickOperation(this.mc.physicalGuiManager, hotbaritemslot.slotId, ClickType.SWAP, true, i));
+        }
+    }
 }

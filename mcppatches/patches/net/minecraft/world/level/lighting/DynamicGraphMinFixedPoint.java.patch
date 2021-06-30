@@ -1,0 +1,21 @@
+--- a/net/minecraft/world/level/lighting/DynamicGraphMinFixedPoint.java
++++ b/net/minecraft/world/level/lighting/DynamicGraphMinFixedPoint.java
+@@ -121,14 +121,16 @@
+     public void removeIf(LongPredicate p_75582_)
+     {
+         LongList longlist = new LongArrayList();
+-        this.computedLevels.keySet().forEach((p_75583_2_) ->
++        this.computedLevels.keySet().forEach((long p_75583_2_) ->
+         {
+             if (p_75582_.test(p_75583_2_))
+             {
+                 longlist.add(p_75583_2_);
+             }
+         });
+-        longlist.forEach(this::removeFromQueue);
++        longlist.forEach((long derp) ->{
++        	removeFromQueue(derp);
++        });
+     }
+ 
+     private void dequeue(long p_75559_, int p_75560_, int p_75561_, boolean p_75562_)

@@ -1,100 +1,191 @@
 --- a/net/optifine/shaders/ShadersRender.java
 +++ b/net/optifine/shaders/ShadersRender.java
-@@ -3,6 +3,7 @@
- import com.mojang.blaze3d.matrix.MatrixStack;
+@@ -2,6 +2,7 @@
+ 
  import com.mojang.blaze3d.platform.GLX;
  import com.mojang.blaze3d.platform.GlStateManager;
-+import com.mojang.blaze3d.systems.RenderSystem;
- import com.mojang.blaze3d.vertex.IVertexBuilder;
- import java.nio.IntBuffer;
- import java.util.Iterator;
-@@ -15,6 +16,7 @@
- import net.minecraft.client.renderer.FirstPersonRenderer;
- import net.minecraft.client.renderer.GameRenderer;
- import net.minecraft.client.renderer.IRenderTypeBuffer;
-+import net.minecraft.client.renderer.RenderHelper;
- import net.minecraft.client.renderer.RenderType;
- import net.minecraft.client.renderer.WorldRenderer;
- import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
-@@ -28,6 +30,7 @@
- import net.minecraft.tileentity.EndPortalTileEntity;
- import net.minecraft.tileentity.TileEntity;
- import net.minecraft.util.Direction;
-+import net.minecraft.util.Hand;
- import net.minecraft.util.ResourceLocation;
- import net.minecraft.util.math.AxisAlignedBB;
- import net.minecraft.util.math.BlockPos;
-@@ -196,7 +199,7 @@
++import com.mojang.blaze3d.platform.Lighting;
+ import com.mojang.blaze3d.vertex.BufferBuilder;
+ import com.mojang.blaze3d.vertex.PoseStack;
+ import com.mojang.blaze3d.vertex.VertexConsumer;
+@@ -256,7 +257,7 @@
          }
      }
  
--    public static void renderShadowMap(GameRenderer entityRenderer, ActiveRenderInfo activeRenderInfo, int pass, float partialTicks, long finishTimeNano)
-+    public static void renderShadowMap(GameRenderer gameRenderer, ActiveRenderInfo activeRenderInfo, int pass, float partialTicks, long finishTimeNano)
+-    public static void renderShadowMap(GameRenderer entityRenderer, Camera activeRenderInfo, int pass, float partialTicks, long finishTimeNano)
++    public static void renderShadowMap(GameRenderer gameRenderer, Camera activeRenderInfo, int pass, float partialTicks, long finishTimeNano)
      {
-         if (Shaders.usedShadowDepthBuffers > 0 && --Shaders.shadowPassCounter <= 0)
+         if (Shaders.hasShadowMap)
          {
-@@ -262,6 +265,9 @@
-             worldrenderer.renderBlockLayer(RenderTypes.SOLID, matrixstack, d0, d1, d2);
-             Shaders.checkGLError("shadow terrain solid");
-             GlStateManager.enableAlphaTest();
-+            //Vivecraft - needed???
-+            GlStateManager.alphaFunc(516, 0.1F);
-+            //
-             worldrenderer.renderBlockLayer(RenderTypes.CUTOUT_MIPPED, matrixstack, d0, d1, d2);
-             Shaders.checkGLError("shadow terrain cutoutmipped");
-             minecraft.getTextureManager().getTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE).setBlurMipmapDirect(false, false);
-@@ -278,7 +284,13 @@
-             EntityRendererManager entityrenderermanager = minecraft.getRenderManager();
-             IRenderTypeBuffer.Impl irendertypebuffer$impl = worldrenderer1.getRenderTypeTextures().getBufferSource();
-             boolean flag = Shaders.isShadowPass && !minecraft.player.isSpectator();
--
-+            
-+            //Vivecraft fix something	
-+            Matrix4f light = new Matrix4f();
-+            light.setIdentity();
-+            RenderHelper.setupLevelDiffuseLighting(light);
-+            //
-+            
-             for (WorldRenderer.LocalRenderInformationContainer worldrenderer$localrenderinformationcontainer : worldrenderer1.getRenderInfosEntities())
-             {
-                 ChunkRenderDispatcher.ChunkRender chunkrenderdispatcher$chunkrender = worldrenderer$localrenderinformationcontainer.renderChunk;
-@@ -286,12 +298,24 @@
+@@ -343,6 +344,7 @@
+                 levelrenderer.renderChunkLayer(RenderTypes.SOLID, posestack, d0, d1, d2);
+                 Shaders.checkGLError("shadow terrain solid");
+                 GlStateManager._enableAlphaTest();
++                GlStateManager._alphaFunc(516, 0.1F);
+                 levelrenderer.renderChunkLayer(RenderTypes.CUTOUT_MIPPED, posestack, d0, d1, d2);
+                 Shaders.checkGLError("shadow terrain cutoutmipped");
+                 minecraft.getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS).setFilter(false, false);
+@@ -360,7 +362,19 @@
+             LevelRenderer levelrenderer1 = minecraft.levelRenderer;
+             EntityRenderDispatcher entityrenderdispatcher = minecraft.getEntityRenderDispatcher();
+             MultiBufferSource.BufferSource multibuffersource$buffersource = levelrenderer1.getRenderTypeTextures().bufferSource();
+-            boolean flag = Shaders.isShadowPass && !minecraft.player.isSpectator();
++
++            if (Shaders.isShadowPass && !minecraft.player.isSpectator())
++            {
++                boolean flag1 = true;
++            }
++            else
++            {
++                boolean flag2 = false;
++            }
++
++            Matrix4f matrix4f = new Matrix4f();
++            matrix4f.setIdentity();
++            Lighting.setupLevel(matrix4f);
  
-                 for (Entity entity : chunk.getEntityLists()[chunkrenderdispatcher$chunkrender.getPosition().getY() / 16])
+             for (LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo : Shaders.isRenderShadowEntities() ? levelrenderer1.getRenderInfosEntities() : Collections.EMPTY_LIST)
+             {
+@@ -369,12 +383,23 @@
+ 
+                 for (Entity entity : levelchunk.getEntitySections()[chunkrenderdispatcher$renderchunk.getOrigin().getY() / 16])
                  {
--                    if ((entityrenderermanager.shouldRender(entity, clippinghelper, d0, d1, d2) || entity.isRidingOrBeingRiddenBy(minecraft.player)) && (entity != activeRenderInfo.getRenderViewEntity() || flag || activeRenderInfo.isThirdPerson() || activeRenderInfo.getRenderViewEntity() instanceof LivingEntity && ((LivingEntity)activeRenderInfo.getRenderViewEntity()).isSleeping()) && (!(entity instanceof ClientPlayerEntity) || activeRenderInfo.getRenderViewEntity() == entity))
-+                	//always render self shadow. add true.
-+                    if ((entityrenderermanager.shouldRender(entity, clippinghelper, d0, d1, d2) || entity.isRidingOrBeingRiddenBy(minecraft.player)) && (true || entity != activeRenderInfo.getRenderViewEntity() || flag || activeRenderInfo.isThirdPerson() || activeRenderInfo.getRenderViewEntity() instanceof LivingEntity && ((LivingEntity)activeRenderInfo.getRenderViewEntity()).isSleeping()) && (!(entity instanceof ClientPlayerEntity) || activeRenderInfo.getRenderViewEntity() == entity))
+-                    if ((entityrenderdispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(minecraft.player)) && (entity != activeRenderInfo.getEntity() || flag || activeRenderInfo.isDetached() || activeRenderInfo.getEntity() instanceof LivingEntity && ((LivingEntity)activeRenderInfo.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || activeRenderInfo.getEntity() == entity))
++                    if ((entityrenderdispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(minecraft.player)) && (!(entity instanceof LocalPlayer) || activeRenderInfo.getEntity() == entity))
                      {
--                        worldrenderer1.renderedEntity = entity;
--                        Shaders.nextEntity(entity);
--                        worldrenderer1.renderEntity(entity, d0, d1, d2, partialTicks, matrixstack, irendertypebuffer$impl);
--                        worldrenderer1.renderedEntity = null;
-+                    	//Vivecraft shadow location.
-+                    	if(entity == activeRenderInfo.getRenderViewEntity()) { 
-+                    		gameRenderer.restoreRVEPos((LivingEntity) entity);
-+                    	}
-+                    	//
-+                    	worldrenderer1.renderedEntity = entity;
-+                    	Shaders.nextEntity(entity);
-+                    	worldrenderer1.renderEntity(entity, d0, d1, d2, partialTicks, matrixstack, irendertypebuffer$impl);
-+                    	worldrenderer1.renderedEntity = null;
-+                    	//Vivecraft
-+                    	if(entity == activeRenderInfo.getRenderViewEntity()) {
-+                    		gameRenderer.cacheRVEPos((LivingEntity) entity);
-+                    		gameRenderer.setupRVE();
-+                    	}
-+                    	//
++                        if (entity == activeRenderInfo.getEntity())
++                        {
++                            gameRenderer.restoreRVEPos((LivingEntity)entity);
++                        }
++
+                         levelrenderer1.renderedEntity = entity;
+                         Shaders.nextEntity(entity);
+                         levelrenderer1.renderEntity(entity, d0, d1, d2, partialTicks, posestack, multibuffersource$buffersource);
+                         levelrenderer1.renderedEntity = null;
++
++                        if (entity == activeRenderInfo.getEntity())
++                        {
++                            gameRenderer.cacheRVEPos((LivingEntity)entity);
++                            gameRenderer.setupRVE();
++                        }
                      }
                  }
              }
-@@ -399,7 +423,8 @@
-             GlStateManager.depthMask(true);
-             GlStateManager.enableCull();
-             GlStateManager.disableBlend();
+@@ -387,9 +412,9 @@
+             Shaders.endEntities();
+             Shaders.beginBlockEntities();
+             SignRenderer.updateTextRenderDistance();
+-            boolean flag1 = Reflector.IForgeTileEntity_getRenderBoundingBox.exists();
++            boolean flag = Reflector.IForgeTileEntity_getRenderBoundingBox.exists();
+             Frustum frustum1 = frustum;
+-            label100:
++            label101:
+ 
+             for (LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo1 : Shaders.isRenderShadowBlockEntities() ? levelrenderer1.getRenderInfosTileEntities() : Collections.EMPTY_LIST)
+             {
+@@ -408,12 +433,12 @@
+                         {
+                             if (!iterator.hasNext())
+                             {
+-                                continue label100;
++                                continue label101;
+                             }
+ 
+                             blockentity = (BlockEntity)iterator.next();
+ 
+-                            if (!flag1)
++                            if (!flag)
+                             {
+                                 break;
+                             }
+@@ -482,7 +507,6 @@
+             GlStateManager._depthMask(true);
+             GlStateManager._enableCull();
+             GlStateManager._disableBlend();
 -            GL30.glFlush();
-+            // VIVECRAFT: yeah still no 3.0
-+            //GL30.glFlush();
              Shaders.checkGLError("shadow flush");
              Shaders.isShadowPass = false;
-             minecraft.getProfiler().endStartSection("shadow postprocess");
+             minecraft.getProfiler().popPush("shadow postprocess");
+@@ -578,52 +602,46 @@
+ 
+     public static void preRender(RenderType renderType, BufferBuilder buffer)
+     {
+-        if (Shaders.isRenderingWorld)
++        if (Shaders.isRenderingWorld && !Shaders.isShadowPass)
+         {
+-            if (!Shaders.isShadowPass)
++            if (renderType.isGlint())
+             {
+-                if (renderType.isGlint())
+-                {
+-                    renderEnchantedGlintBegin();
+-                }
+-                else if (renderType.getName().equals("eyes"))
+-                {
+-                    Shaders.beginSpiderEyes();
+-                }
+-                else if (renderType.getName().equals("crumbling"))
+-                {
+-                    beginBlockDamage();
+-                }
+-                else if (renderType == RenderType.LINES)
+-                {
+-                    Shaders.beginLeash();
+-                }
++                renderEnchantedGlintBegin();
++            }
++            else if (renderType.getName().equals("eyes"))
++            {
++                Shaders.beginSpiderEyes();
++            }
++            else if (renderType.getName().equals("crumbling"))
++            {
++                beginBlockDamage();
++            }
++            else if (renderType == RenderType.LINES)
++            {
++                Shaders.beginLeash();
+             }
+         }
+     }
+ 
+     public static void postRender(RenderType renderType, BufferBuilder buffer)
+     {
+-        if (Shaders.isRenderingWorld)
++        if (Shaders.isRenderingWorld && !Shaders.isShadowPass)
+         {
+-            if (!Shaders.isShadowPass)
++            if (renderType.isGlint())
+             {
+-                if (renderType.isGlint())
+-                {
+-                    renderEnchantedGlintEnd();
+-                }
+-                else if (renderType.getName().equals("eyes"))
+-                {
+-                    Shaders.endSpiderEyes();
+-                }
+-                else if (renderType.getName().equals("crumbling"))
+-                {
+-                    endBlockDamage();
+-                }
+-                else if (renderType == RenderType.LINES)
+-                {
+-                    Shaders.endLeash();
+-                }
++                renderEnchantedGlintEnd();
++            }
++            else if (renderType.getName().equals("eyes"))
++            {
++                Shaders.endSpiderEyes();
++            }
++            else if (renderType.getName().equals("crumbling"))
++            {
++                endBlockDamage();
++            }
++            else if (renderType == RenderType.LINES)
++            {
++                Shaders.endLeash();
+             }
+         }
+     }

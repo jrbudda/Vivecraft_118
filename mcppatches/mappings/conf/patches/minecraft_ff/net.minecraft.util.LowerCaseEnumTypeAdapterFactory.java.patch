@@ -1,0 +1,13 @@
+﻿diff -r -U 3 minecraft\net\minecraft\util\LowerCaseEnumTypeAdapterFactory.java minecraft_patched\net\minecraft\util\LowerCaseEnumTypeAdapterFactory.java
+--- minecraft\net\minecraft\util\LowerCaseEnumTypeAdapterFactory.java
++++ minecraft_patched\net\minecraft\util\LowerCaseEnumTypeAdapterFactory.java
+@@ -16,7 +16,7 @@
+ public class LowerCaseEnumTypeAdapterFactory implements TypeAdapterFactory {
+    @Nullable
+    public <T> TypeAdapter<T> create(Gson p_13982_, TypeToken<T> p_13983_) {
+-      Class<T> oclass = p_13983_.getRawType();
++      Class<T> oclass = (Class<T>)p_13983_.getRawType();
+       if (!oclass.isEnum()) {
+          return null;
+       } else {
+

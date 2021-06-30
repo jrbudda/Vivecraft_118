@@ -1,158 +1,158 @@
 package org.vivecraft.gameplay.trackers;
 
-import org.vivecraft.gameplay.OpenVRPlayer;
-import org.vivecraft.provider.MCOpenVR;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.entity.animal.horse.Horse;
+import net.minecraft.world.phys.Vec3;
+import org.vivecraft.gameplay.VRPlayer;
 import org.vivecraft.settings.VRSettings;
 import org.vivecraft.utils.Utils;
 import org.vivecraft.utils.math.Quaternion;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.entity.passive.horse.AbstractHorseEntity;
-import net.minecraft.entity.passive.horse.HorseEntity;
-import net.minecraft.util.math.vector.Vector3d;
+public class HorseTracker extends Tracker
+{
+    double boostTrigger = 1.4D;
+    double pullTrigger = 0.8D;
+    int speedLevel = 0;
+    int maxSpeedLevel = 3;
+    int coolDownMillis = 500;
+    long lastBoostMillis = -1L;
+    double turnspeed = 6.0D;
+    double bodyturnspeed = 0.2D;
+    double baseSpeed = 0.2D;
+    Horse horse = null;
+    HorseTracker.ModelInfo info = new HorseTracker.ModelInfo();
 
-public class HorseTracker extends Tracker {
+    public HorseTracker(Minecraft mc)
+    {
+        super(mc);
+    }
 
+    public boolean isActive(LocalPlayer p)
+    {
+        return false;
+    }
 
-	public HorseTracker(Minecraft mc) {
-		super(mc);
-	}
+    public void reset(LocalPlayer player)
+    {
+        super.reset(player);
 
-	@Override
-	public boolean isActive(ClientPlayerEntity p) {
-		if(true) return false;
-		if (Minecraft.getInstance().vrSettings.seated)
-			return false;
-		if (p == null || !p.isAlive())
-			return false;
-		if(mc.playerController == null) return false;
-		if (Minecraft.getInstance().gameSettings.keyBindForward.isKeyDown())
-			return false;
-		if (!(p.getRidingEntity() instanceof AbstractHorseEntity))
-			return false;
-		if (Minecraft.getInstance().bowTracker.isNotched())
-			return false;
+        if (this.horse != null)
+        {
+            this.horse.setNoAi(false);
+        }
+    }
 
-		return true;
-	}
+    public void doProcess(LocalPlayer player)
+    {
+        this.horse = (Horse)player.getVehicle();
+        this.horse.setNoAi(true);
+        float f = (this.horse.yRot + 360.0F) % 360.0F;
+        float f1 = (this.horse.yBodyRot + 360.0F) % 360.0F;
+        Vec3 vec3 = this.mc.vr.controllerHistory[1].netMovement(0.1D).scale(10.0D);
+        Vec3 vec31 = this.mc.vr.controllerHistory[0].netMovement(0.1D).scale(10.0D);
+        double d0 = Math.min(-vec3.y, -vec31.y);
 
-	double boostTrigger = 1.4;
-	double pullTrigger = 0.8;
+        if (d0 > this.boostTrigger)
+        {
+            this.boost();
+        }
 
-	int speedLevel = 0;
-	int maxSpeedLevel = 3;
+        Quaternion quaternion = new Quaternion(0.0F, -this.horse.yBodyRot, 0.0F);
+        Vec3 vec32 = quaternion.multiply(new Vec3(0.0D, 0.0D, -1.0D));
+        Vec3 vec33 = quaternion.multiply(new Vec3(1.0D, 0.0D, 0.0D));
+        Vec3 vec34 = quaternion.multiply(new Vec3(-1.0D, 0.0D, 0.0D));
+        Quaternion quaternion1 = new Quaternion(0.0F, VRSettings.inst.vrWorldRotation, 0.0F);
+        Vec3 vec35 = VRPlayer.get().roomOrigin.add(quaternion1.multiply(this.mc.vr.controllerHistory[1].latest()));
+        Vec3 vec36 = VRPlayer.get().roomOrigin.add(quaternion1.multiply(this.mc.vr.controllerHistory[0].latest()));
+        double d1 = vec35.subtract(this.info.leftReinPos).dot(vec32) + vec35.subtract(this.info.leftReinPos).dot(vec33);
+        double d2 = vec36.subtract(this.info.rightReinPos).dot(vec32) + vec36.subtract(this.info.rightReinPos).dot(vec34);
 
-	int coolDownMillis = 500;
-	long lastBoostMillis = -1;
+        if (this.speedLevel < 0)
+        {
+            this.speedLevel = 0;
+        }
 
-	double turnspeed = 6;
-	double bodyturnspeed = 0.2;
-	double baseSpeed = 0.2;
+        if (d1 > this.pullTrigger + 0.3D && d2 > this.pullTrigger + 0.3D && Math.abs(d2 - d1) < 0.1D)
+        {
+            if (this.speedLevel <= 0 && System.currentTimeMillis() > this.lastBoostMillis + (long)this.coolDownMillis)
+            {
+                this.speedLevel = -1;
+            }
+            else
+            {
+                this.doBreak();
+            }
+        }
+        else
+        {
+            double d3 = 0.0D;
+            double d4 = 0.0D;
 
-	HorseEntity horse =null;
-	@Override
-	public void reset(ClientPlayerEntity player) {
-		super.reset(player);
-		if (horse!=null)
-			horse.setNoAI(false);
-	}
+            if (d1 > this.pullTrigger)
+            {
+                d3 = d1 - this.pullTrigger;
+            }
 
-	@Override
-	public void doProcess(ClientPlayerEntity player) {
-		horse = (HorseEntity) player.getRidingEntity();
-		horse.setNoAI(true);
-		float absYaw = (horse.rotationYaw + 360) % 360;
-		float absYawOffset = (horse.renderYawOffset + 360) % 360;
+            if (d2 > this.pullTrigger)
+            {
+                d4 = d2 - this.pullTrigger;
+            }
 
-		Vector3d speedLeft = MCOpenVR.controllerHistory[1].netMovement(0.1).scale(1 / 0.1);
-		Vector3d speedRight = MCOpenVR.controllerHistory[0].netMovement(0.1).scale(1 / 0.1);
-		double speedDown = Math.min(-speedLeft.y, -speedRight.y);
+            this.horse.yRot = (float)((double)f + (d4 - d3) * this.turnspeed);
+        }
 
-		if (speedDown > boostTrigger) {
-			boost();
-		}
+        this.horse.yBodyRot = (float)Utils.lerpMod((double)f1, (double)f, this.bodyturnspeed, 360.0D);
+        this.horse.yHeadRot = f;
+        Vec3 vec37 = quaternion.multiply(new Vec3(0.0D, 0.0D, (double)this.speedLevel * this.baseSpeed));
+        this.horse.setDeltaMovement(vec37.x, this.horse.getDeltaMovement().y, vec37.z);
+    }
 
-		Quaternion horseRot = new Quaternion(0, -horse.renderYawOffset, 0);
-		Vector3d back = horseRot.multiply(new Vector3d(0, 0, -1));
-		Vector3d left = horseRot.multiply(new Vector3d(1, 0, 0));
-		Vector3d right = horseRot.multiply(new Vector3d(-1, 0, 0));
+    boolean boost()
+    {
+        if (this.speedLevel >= this.maxSpeedLevel)
+        {
+            return false;
+        }
+        else if (System.currentTimeMillis() < this.lastBoostMillis + (long)this.coolDownMillis)
+        {
+            return false;
+        }
+        else
+        {
+            ++this.speedLevel;
+            this.lastBoostMillis = System.currentTimeMillis();
+            return true;
+        }
+    }
 
-		Quaternion worldRot = new Quaternion(0, VRSettings.inst.vrWorldRotation, 0);
+    boolean doBreak()
+    {
+        if (this.speedLevel <= 0)
+        {
+            return false;
+        }
+        else if (System.currentTimeMillis() < this.lastBoostMillis + (long)this.coolDownMillis)
+        {
+            return false;
+        }
+        else
+        {
+            System.out.println("Breaking");
+            --this.speedLevel;
+            this.lastBoostMillis = System.currentTimeMillis();
+            return true;
+        }
+    }
 
-		Vector3d posL = OpenVRPlayer.get().roomOrigin.add(worldRot.multiply(MCOpenVR.controllerHistory[1].latest()));
-		Vector3d posR = OpenVRPlayer.get().roomOrigin.add(worldRot.multiply(MCOpenVR.controllerHistory[0].latest()));
+    public HorseTracker.ModelInfo getModelInfo()
+    {
+        return this.info;
+    }
 
-		double distanceL = posL.subtract(info.leftReinPos).dotProduct(back) + posL.subtract(info.leftReinPos).dotProduct(left);
-		double distanceR = posR.subtract(info.rightReinPos).dotProduct(back) + posR.subtract(info.rightReinPos).dotProduct(right);
-
-		if (speedLevel<0)
-			speedLevel=0;
-
-		if (distanceL > pullTrigger + 0.3 && distanceR > pullTrigger + 0.3 && Math.abs(distanceR - distanceL) < 0.1) {
-			if (speedLevel <= 0 && System.currentTimeMillis() > lastBoostMillis + coolDownMillis) {
-				speedLevel=-1;
-			} else {
-				doBreak();
-			}
-		} else {
-			double pullL = 0, pullR = 0;
-			if (distanceL > pullTrigger) {
-				pullL = (distanceL - pullTrigger);
-
-			}
-			if (distanceR > pullTrigger) {
-				pullR = distanceR - pullTrigger;
-			}
-			horse.rotationYaw = (float) (absYaw + (pullR - pullL) * turnspeed);
-		}
-
-
-
-	horse.renderYawOffset=(float)Utils.lerpMod(absYawOffset,absYaw,bodyturnspeed,360);
-	horse.rotationYawHead=absYaw;
-
-	Vector3d movement = horseRot.multiply(new Vector3d(0, 0, speedLevel * baseSpeed));
-
-	horse.setMotion(movement.x, horse.getMotion().y, movement.z);
-}
-
-	boolean boost() {
-		if (speedLevel >= maxSpeedLevel) {
-			return false;
-		}
-		if (System.currentTimeMillis() < lastBoostMillis + coolDownMillis) {
-			return false;
-		}
-
-	//	System.out.println("Boost");
-		speedLevel++;
-		lastBoostMillis = System.currentTimeMillis();
-		return true;
-	}
-
-	boolean doBreak() {
-		if (speedLevel <= 0) {
-			return false;
-		}
-		if (System.currentTimeMillis() < lastBoostMillis + coolDownMillis) {
-			return false;
-		}
-		System.out.println("Breaking");
-
-		speedLevel--;
-		lastBoostMillis = System.currentTimeMillis();
-		return true;
-	}
-
-	ModelInfo info = new ModelInfo();
-
-	public ModelInfo getModelInfo() {
-		return info;
-	}
-
-public class ModelInfo {
-	public Vector3d leftReinPos = Vector3d.ZERO;
-	public Vector3d rightReinPos = Vector3d.ZERO;
-}
+    public class ModelInfo
+    {
+        public Vec3 leftReinPos = Vec3.ZERO;
+        public Vec3 rightReinPos = Vec3.ZERO;
+    }
 }

@@ -1,0 +1,24 @@
+--- a/net/minecraft/world/item/PotionItem.java
++++ b/net/minecraft/world/item/PotionItem.java
+@@ -3,6 +3,8 @@
+ import java.util.List;
+ import javax.annotation.Nullable;
+ import net.minecraft.advancements.CriteriaTriggers;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.player.LocalPlayer;
+ import net.minecraft.core.NonNullList;
+ import net.minecraft.core.Registry;
+ import net.minecraft.network.chat.Component;
+@@ -77,6 +79,12 @@
+             }
+         }
+ 
++        if (p_42986_ instanceof LocalPlayer && p_42984_.getHoverName().getString().equals("DRINK ME"))
++        {
++            Minecraft.getInstance().vrPlayer.wfMode = -0.05D;
++            Minecraft.getInstance().vrPlayer.wfCount = 400;
++        }
++
+         return p_42984_;
+     }
+ 

@@ -1,13 +1,34 @@
 --- a/net/minecraft/client/renderer/entity/EntityRenderer.java
 +++ b/net/minecraft/client/renderer/entity/EntityRenderer.java
-@@ -135,7 +135,9 @@
-             int i = "deadmau5".equals(displayNameIn.getString()) ? -10 : 0;
-             matrixStackIn.push();
-             matrixStackIn.translate(0.0D, (double)f, 0.0D);
--            matrixStackIn.rotate(this.renderManager.getCameraOrientation());
-+            //Vivecraft get correct normal for nameplate
-+            matrixStackIn.rotate(this.renderManager.getCameraOrientationOffset(0.5f));
-+            //
-             matrixStackIn.scale(-0.025F, -0.025F, 0.025F);
-             Matrix4f matrix4f = matrixStackIn.getLast().getMatrix();
-             float f1 = Minecraft.getInstance().gameSettings.getTextBackgroundOpacity(0.25F);
+@@ -130,7 +130,7 @@
+             int i = "deadmau5".equals(p_114499_.getString()) ? -10 : 0;
+             p_114500_.pushPose();
+             p_114500_.translate(0.0D, (double)f, 0.0D);
+-            p_114500_.mulPose(this.entityRenderDispatcher.cameraOrientation());
++            p_114500_.mulPose(this.entityRenderDispatcher.getCameraOrientationOffset(0.5F));
+             p_114500_.scale(-0.025F, -0.025F, 0.025F);
+             Matrix4f matrix4f = p_114500_.last().pose();
+             float f1 = Minecraft.getInstance().options.getBackgroundOpacity(0.25F);
+@@ -158,9 +158,9 @@
+         return this.entityType == null ? null : Either.makeLeft(this.entityType);
+     }
+ 
+-    public void setType(Either<EntityType, BlockEntityType> type)
++    public void setType(Either<EntityType, BlockEntityType> p_setType_1_)
+     {
+-        this.entityType = type.getLeft().get();
++        this.entityType = p_setType_1_.getLeft().get();
+     }
+ 
+     public ResourceLocation getLocationTextureCustom()
+@@ -168,8 +168,8 @@
+         return this.locationTextureCustom;
+     }
+ 
+-    public void setLocationTextureCustom(ResourceLocation locationTextureCustom)
++    public void setLocationTextureCustom(ResourceLocation p_setLocationTextureCustom_1_)
+     {
+-        this.locationTextureCustom = locationTextureCustom;
++        this.locationTextureCustom = p_setLocationTextureCustom_1_;
+     }
+ }

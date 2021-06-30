@@ -1,110 +1,144 @@
 package org.vivecraft.gameplay.trackers;
 
 import java.util.Random;
-
-import org.vivecraft.gameplay.OpenVRPlayer;
-import org.vivecraft.provider.MCOpenVR;
-
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.UseAction;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.phys.Vec3;
+import org.vivecraft.gameplay.VRPlayer;
 
-/**
- * Created by Hendrik on 02-Aug-16.
- */
-public class EatingTracker extends Tracker{
-	float mouthtoEyeDistance=0.0f;
-	float threshold=0.25f;
-	public boolean[] eating= new boolean[2];
-	int eattime=2100;
-	long eatStart;
+public class EatingTracker extends Tracker
+{
+    float mouthtoEyeDistance = 0.0F;
+    float threshold = 0.25F;
+    public boolean[] eating = new boolean[2];
+    int eattime = 2100;
+    long eatStart;
+    private Random r = new Random();
 
-	public EatingTracker(Minecraft mc) {
-		super(mc);
-	}
+    public EatingTracker(Minecraft mc)
+    {
+        super(mc);
+    }
 
-	public boolean isEating(){
-		return eating[0] || eating[1];
-	}
-	
-	public boolean isActive(ClientPlayerEntity p){
-		if(Minecraft.getInstance().vrSettings.seated)
-			return false;
-		if(p == null) return false;
-		if(mc.playerController == null) return false;
-		if(!p.isAlive()) return false;
-		if(p.isSleeping()) return false;
-		if(p.getHeldItemMainhand() != null){
-			UseAction action=p.getHeldItemMainhand().getUseAction();
-			if(	action == UseAction.EAT || action == UseAction.DRINK) return true;
-		}
-		if(p.getHeldItemOffhand() != null){
-			UseAction action=p.getHeldItemOffhand().getUseAction();
-			if(	action == UseAction.EAT || action == UseAction.DRINK) return true;
-		}
-		return false;
-	}
+    public boolean isEating()
+    {
+        return this.eating[0] || this.eating[1];
+    }
 
-private Random r = new Random();
+    public boolean isActive(LocalPlayer p)
+    {
+        if (Minecraft.getInstance().vrSettings.seated)
+        {
+            return false;
+        }
+        else if (p == null)
+        {
+            return false;
+        }
+        else if (this.mc.gameMode == null)
+        {
+            return false;
+        }
+        else if (!p.isAlive())
+        {
+            return false;
+        }
+        else if (p.isSleeping())
+        {
+            return false;
+        }
+        else
+        {
+            if (p.getMainHandItem() != null)
+            {
+                UseAnim useanim = p.getMainHandItem().getUseAnimation();
 
-	@Override
-	public void reset(ClientPlayerEntity player) {
-		eating[0]=false;
-		eating[1]=false;
-	}
+                if (useanim == UseAnim.EAT || useanim == UseAnim.DRINK)
+                {
+                    return true;
+                }
+            }
 
-	public void doProcess(ClientPlayerEntity player){
+            if (p.getOffhandItem() != null)
+            {
+                UseAnim useanim1 = p.getOffhandItem().getUseAnimation();
 
-		OpenVRPlayer provider = mc.vrPlayer;
-		
-		Vector3d hmdPos=provider.vrdata_room_pre.hmd.getPosition();
-		Vector3d mouthPos=provider.vrdata_room_pre.getController(0).getCustomVector(new Vector3d(0,-mouthtoEyeDistance,0)).add(hmdPos);
+                if (useanim1 == UseAnim.EAT || useanim1 == UseAnim.DRINK)
+                {
+                    return true;
+                }
+            }
 
-		for(int c=0;c<2;c++){
+            return false;
+        }
+    }
 
-			Vector3d controllerPos = MCOpenVR.controllerHistory[c].averagePosition(0.333).add(provider.vrdata_room_pre.getController(c).getCustomVector(new Vector3d(0,0,-0.1)));
-			controllerPos = controllerPos.add(mc.vrPlayer.vrdata_room_pre.getController(c).getDirection().scale(0.1));
-			
-			if(mouthPos.distanceTo(controllerPos)<threshold){
-				ItemStack is = c==0?player.getHeldItemMainhand():player.getHeldItemOffhand();
-				if(is == ItemStack.EMPTY) continue;
-				
-				int crunchiness = 0;
-				if(is.getUseAction() == UseAction.DRINK){ //thats how liquid works.
-					if(provider.vrdata_room_pre.getController(c).getCustomVector(new Vector3d(0,1,0)).y > 0) continue;
-				} if(is.getUseAction() == UseAction.EAT){ 
-					crunchiness=2;
-				} else {
-					continue;
-				}
+    public void reset(LocalPlayer player)
+    {
+        this.eating[0] = false;
+        this.eating[1] = false;
+    }
 
-				if(!eating[c]){
-					Minecraft.getInstance().physicalGuiManager.preClickAction();
-					if(	mc.playerController.processRightClick(player, player.world,c==0?Hand.MAIN_HAND:Hand.OFF_HAND).isSuccessOrConsume()){
-						mc.gameRenderer.itemRenderer.resetEquippedProgress(c==0?Hand.MAIN_HAND:Hand.OFF_HAND);
-						eating[c]=true;
-						eatStart=Util.milliTime();
-					}
-				}
+    public void doProcess(LocalPlayer player)
+    {
+        VRPlayer vrplayer = this.mc.vrPlayer;
+        Vec3 vec3 = vrplayer.vrdata_room_pre.hmd.getPosition();
+        Vec3 vec31 = vrplayer.vrdata_room_pre.getController(0).getCustomVector(new Vec3(0.0D, (double)(-this.mouthtoEyeDistance), 0.0D)).add(vec3);
 
-				if(eating[c]) {
-					long t = player.getItemInUseCount();
-					if(t>0)
-						if(t%5 <= crunchiness)
-							MCOpenVR.triggerHapticPulse(c, 700 );
-				}
-				
-				if(Util.milliTime()-eatStart > eattime)
-					eating[c]=false;
+        for (int i = 0; i < 2; ++i)
+        {
+            Vec3 vec32 = this.mc.vr.controllerHistory[i].averagePosition(0.333D).add(vrplayer.vrdata_room_pre.getController(i).getCustomVector(new Vec3(0.0D, 0.0D, -0.1D)));
+            vec32 = vec32.add(this.mc.vrPlayer.vrdata_room_pre.getController(i).getDirection().scale(0.1D));
 
-			}else {
-				eating[c]=false;
-			}
-		}
-	}
+            if (vec31.distanceTo(vec32) < (double)this.threshold)
+            {
+                ItemStack itemstack = i == 0 ? player.getMainHandItem() : player.getOffhandItem();
+
+                if (itemstack != ItemStack.EMPTY)
+                {
+                    int j = 0;
+
+                    if ((itemstack.getUseAnimation() != UseAnim.DRINK || !(vrplayer.vrdata_room_pre.getController(i).getCustomVector(new Vec3(0.0D, 1.0D, 0.0D)).y > 0.0D)) && itemstack.getUseAnimation() == UseAnim.EAT)
+                    {
+                        j = 2;
+
+                        if (!this.eating[i])
+                        {
+                            Minecraft.getInstance().physicalGuiManager.preClickAction();
+
+                            if (this.mc.gameMode.useItem(player, player.level, i == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND).consumesAction())
+                            {
+                                this.mc.gameRenderer.itemInHandRenderer.itemUsed(i == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
+                                this.eating[i] = true;
+                                this.eatStart = Util.getMillis();
+                            }
+                        }
+
+                        if (this.eating[i])
+                        {
+                            long k = (long)player.getUseItemRemainingTicks();
+
+                            if (k > 0L && k % 5L <= (long)j)
+                            {
+                                this.mc.vr.triggerHapticPulse(i, 700);
+                            }
+                        }
+
+                        if (Util.getMillis() - this.eatStart > (long)this.eattime)
+                        {
+                            this.eating[i] = false;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                this.eating[i] = false;
+            }
+        }
+    }
 }

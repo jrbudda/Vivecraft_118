@@ -1,11 +1,11 @@
 --- a/net/minecraft/client/renderer/texture/Stitcher.java
 +++ b/net/minecraft/client/renderer/texture/Stitcher.java
-@@ -13,7 +13,7 @@
+@@ -12,7 +12,7 @@
  
  public class Stitcher
  {
--    private static final Comparator<Stitcher.Holder> COMPARATOR_HOLDER = Comparator.comparing((p_lambda$static$0_0_) ->
-+    private static final Comparator<Stitcher.Holder> COMPARATOR_HOLDER = Comparator.comparing((Stitcher.Holder p_lambda$static$0_0_) ->
+-    private static final Comparator<Stitcher.Holder> HOLDER_COMPARATOR = Comparator.comparing((holderIn) ->
++    private static final Comparator<Stitcher.Holder> HOLDER_COMPARATOR = Comparator.comparing(( Stitcher.Holder holderIn) ->
      {
-         return -p_lambda$static$0_0_.height;
-     }).thenComparing((p_lambda$static$1_0_) ->
+         return -holderIn.height;
+     }).thenComparing((holderIn) ->

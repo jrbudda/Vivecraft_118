@@ -3,12 +3,9 @@ package org.vivecraft.settings.profile;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
-
+import java.util.Map.Entry;
 import org.json.JSONObject;
 
-/**
- * Created by StellaArtois on 13/04/15.
- */
 public class ProfileReader
 {
     private String set;
@@ -30,40 +27,47 @@ public class ProfileReader
         this.theProfiles = theProfiles;
     }
 
-    public String readLine() throws IOException {
+    public String readLine() throws IOException
+    {
+        String s = null;
 
-        String line = null;
-
-        // Return next line from current profile only...
-        if (this.currentProfile == null) {
-            if (this.theProfiles == null) {
+        if (this.currentProfile == null)
+        {
+            if (this.theProfiles == null)
+            {
                 this.currentProfile = ProfileManager.getProfileSet(this.profile, this.set);
             }
-            else {
+            else
+            {
                 this.currentProfile = ProfileManager.getProfileSet(this.theProfiles, this.set);
             }
+
             this.profileSettingsIt = this.currentProfile.entrySet().iterator();
         }
 
-        if (this.profileSettingsIt.hasNext()) {
-            Map.Entry thisEntry = (Map.Entry) this.profileSettingsIt.next();
-            String setting = (String)thisEntry.getKey();
-            String value = (String)thisEntry.getValue();
-            if (value == null) {
-                value = "";
+        if (this.profileSettingsIt.hasNext())
+        {
+            Entry entry = (Entry)this.profileSettingsIt.next();
+            String s1 = (String)entry.getKey();
+            String s2 = (String)entry.getValue();
+
+            if (s2 == null)
+            {
+                s2 = "";
             }
-            line = setting + ":" + value;
+
+            s = s1 + ":" + s2;
         }
 
-        return line;
+        return s;
     }
 
     public void close()
     {
-
     }
 
-    public Map<String, String> getData() {
-        return currentProfile;
+    public Map<String, String> getData()
+    {
+        return this.currentProfile;
     }
 }

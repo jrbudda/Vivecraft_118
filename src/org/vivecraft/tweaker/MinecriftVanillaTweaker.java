@@ -2,7 +2,6 @@ package org.vivecraft.tweaker;
 
 import java.io.File;
 import java.util.List;
-
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 

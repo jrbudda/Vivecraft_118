@@ -1,57 +1,56 @@
 package org.vivecraft.gui.settings;
 
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.screens.Screen;
 import org.vivecraft.gui.framework.GuiVROptionButton;
 import org.vivecraft.gui.framework.GuiVROptionsBase;
 import org.vivecraft.settings.VRSettings;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.Widget;
+public class GuiTeleportSettings extends GuiVROptionsBase
+{
+    private static VRSettings.VrOptions[] teleportSettings = new VRSettings.VrOptions[] {VRSettings.VrOptions.SIMULATE_FALLING, VRSettings.VrOptions.LIMIT_TELEPORT};
+    private static VRSettings.VrOptions[] limitedTeleportSettings = new VRSettings.VrOptions[] {VRSettings.VrOptions.TELEPORT_UP_LIMIT, VRSettings.VrOptions.TELEPORT_DOWN_LIMIT, VRSettings.VrOptions.TELEPORT_HORIZ_LIMIT};
 
-public class GuiTeleportSettings extends GuiVROptionsBase {
-	private static VRSettings.VrOptions[] teleportSettings = new VRSettings.VrOptions[] {
-			VRSettings.VrOptions.SIMULATE_FALLING,
-			VRSettings.VrOptions.LIMIT_TELEPORT
-	};
+    public GuiTeleportSettings(Screen guiScreen)
+    {
+        super(guiScreen);
+    }
 
-	private static VRSettings.VrOptions[] limitedTeleportSettings = new VRSettings.VrOptions[] {
-			VRSettings.VrOptions.TELEPORT_UP_LIMIT,
-			VRSettings.VrOptions.TELEPORT_DOWN_LIMIT,
-			VRSettings.VrOptions.TELEPORT_HORIZ_LIMIT
-	};
+    public void init()
+    {
+        this.vrTitle = "vivecraft.options.screen.teleport";
+        super.init(teleportSettings, true);
 
-	public GuiTeleportSettings(Screen guiScreen) {
-		super(guiScreen);
-	}
+        if (this.settings.vrLimitedSurvivalTeleport)
+        {
+            super.init(limitedTeleportSettings, false);
+        }
 
-	@Override
-	public void init()
-	{
-		vrTitle = "vivecraft.options.screen.teleport";
+        super.addDefaultButtons();
+    }
 
-		super.init(teleportSettings, true);
-		if (settings.vrLimitedSurvivalTeleport)
-			super.init(limitedTeleportSettings, false);
+    protected void loadDefaults()
+    {
+        VRSettings vrsettings = this.minecraft.vrSettings;
+        vrsettings.vrLimitedSurvivalTeleport = true;
+        vrsettings.simulateFalling = true;
+        vrsettings.vrTeleportDownLimit = 4;
+        vrsettings.vrTeleportUpLimit = 1;
+        vrsettings.vrTeleportHorizLimit = 16;
+        vrsettings.saveOptions();
+        this.reinit = true;
+    }
 
-		super.addDefaultButtons();
-	}
+    protected void actionPerformed(AbstractWidget widget)
+    {
+        if (widget instanceof GuiVROptionButton)
+        {
+            GuiVROptionButton guivroptionbutton = (GuiVROptionButton)widget;
 
-	@Override
-	protected void loadDefaults() {
-		VRSettings vrSettings = minecraft.vrSettings;
-		vrSettings.vrLimitedSurvivalTeleport = true;
-		vrSettings.simulateFalling = true;
-		vrSettings.vrTeleportDownLimit = 4;
-		vrSettings.vrTeleportUpLimit = 1;
-		vrSettings.vrTeleportHorizLimit = 16;
-		vrSettings.saveOptions();
-		this.reinit = true;
-	}
-
-	@Override
-	protected void actionPerformed(Widget widget) {
-		if(!(widget instanceof GuiVROptionButton)) return;
-		GuiVROptionButton button = (GuiVROptionButton) widget;
-		if (button.id == VRSettings.VrOptions.LIMIT_TELEPORT.ordinal())
-			this.reinit = true;
-	}
+            if (guivroptionbutton.id == VRSettings.VrOptions.LIMIT_TELEPORT.ordinal())
+            {
+                this.reinit = true;
+            }
+        }
+    }
 }

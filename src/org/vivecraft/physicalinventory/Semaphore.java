@@ -1,72 +1,101 @@
 package org.vivecraft.physicalinventory;
 
-public class Semaphore {
-	private boolean locked=true;
-	final private Object lock=new Object();
-	long timeout=-1;
+public class Semaphore
+{
+    private boolean locked = true;
+    private final Object lock = new Object();
+    long timeout = -1L;
 
-	public Semaphore(){}
+    public Semaphore()
+    {
+    }
 
-	public Semaphore(long timeout){
-		this.timeout=timeout;
-	}
+    public Semaphore(long timeout)
+    {
+        this.timeout = timeout;
+    }
 
-	public void waitFor(){
-		synchronized (lock){
-			if(!locked)
-				return;
-			Thread watchDog=null;
-			if (timeout!=-1) {
-				watchDog = new Thread(new Runnable() {
-					@Override
-					public void run() {
-							try {
-								Thread.sleep(timeout);
-								wakeUp();
-							} catch (InterruptedException e) {
+    public void waitFor()
+    {
+        synchronized (this.lock)
+        {
+            if (this.locked)
+            {
+                Thread thread = null;
 
-						}
-					}
-				});
-				watchDog.start();
-			}
+                if (this.timeout != -1L)
+                {
+                    thread = new Thread(new Runnable()
+                    {
+                        public void run()
+                        {
+                            try
+                            {
+                                Thread.sleep(Semaphore.this.timeout);
+                                Semaphore.this.wakeUp();
+                            }
+                            catch (InterruptedException interruptedexception1)
+                            {
+                            }
+                        }
+                    });
+                    thread.start();
+                }
 
-			try {
-				lock.wait();
-				if(watchDog!=null)
-					watchDog.interrupt();
-			} catch (InterruptedException e) {}
-		}
-	}
+                try
+                {
+                    this.lock.wait();
 
-	public void wakeUp(){
-		synchronized (lock){
-			if(!locked)
-				return;
-			locked=false;
-			lock.notifyAll();
-		}
-	}
+                    if (thread != null)
+                    {
+                        thread.interrupt();
+                    }
+                }
+                catch (InterruptedException interruptedexception)
+                {
+                }
+            }
+        }
+    }
 
-	public void reactivate(){
-		synchronized (lock){
-			locked=true;
-		}
-	}
+    public void wakeUp()
+    {
+        synchronized (this.lock)
+        {
+            if (this.locked)
+            {
+                this.locked = false;
+                this.lock.notifyAll();
+            }
+        }
+    }
 
-	public boolean isActive(){
-		return locked;
-	}
+    public void reactivate()
+    {
+        synchronized (this.lock)
+        {
+            this.locked = true;
+        }
+    }
 
-	public long getTimeout() {
-		synchronized (lock) {
-			return timeout;
-		}
-	}
+    public boolean isActive()
+    {
+        return this.locked;
+    }
 
-	public void setTimeout(long timeout) {
-		synchronized (lock) {
-			this.timeout = timeout;
-		}
-	}
+    public long getTimeout()
+    {
+        synchronized (this.lock)
+        {
+            return this.timeout;
+        }
+    }
+
+    public void setTimeout(long timeout)
+    {
+        synchronized (this.lock)
+        {
+            this.timeout = timeout;
+        }
+    }
 }

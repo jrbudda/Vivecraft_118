@@ -1,86 +1,32 @@
 --- a/net/optifine/override/PlayerControllerOF.java
 +++ b/net/optifine/override/PlayerControllerOF.java
-@@ -1,5 +1,7 @@
- package net.optifine.override;
- 
+@@ -14,6 +14,7 @@
+ import net.minecraft.world.level.Level;
+ import net.minecraft.world.phys.BlockHitResult;
+ import net.minecraft.world.phys.EntityHitResult;
 +import org.vivecraft.api.NetworkHelper;
-+
- import net.minecraft.client.Minecraft;
- import net.minecraft.client.entity.player.ClientPlayerEntity;
- import net.minecraft.client.multiplayer.PlayerController;
-@@ -7,6 +9,7 @@
- import net.minecraft.client.world.ClientWorld;
- import net.minecraft.entity.Entity;
- import net.minecraft.entity.player.PlayerEntity;
-+import net.minecraft.network.play.client.CPlayerDiggingPacket;
- import net.minecraft.util.ActionResultType;
- import net.minecraft.util.Direction;
- import net.minecraft.util.Hand;
-@@ -29,6 +32,7 @@
-     /**
-      * Called when the player is hitting a block with an item.
-      */
-+    @Override
-     public boolean clickBlock(BlockPos loc, Direction face)
+ 
+ public class PlayerControllerOF extends MultiPlayerGameMode
+ {
+@@ -47,13 +48,21 @@
+     public InteractionResult useItem(Player p_105236_, Level p_105237_, InteractionHand p_105238_)
      {
          this.acting = true;
-@@ -37,7 +41,8 @@
++        NetworkHelper.overrideLook(p_105236_, Minecraft.getInstance().vrPlayer.getRightClickLookOverride(p_105236_, p_105238_.ordinal()));
+         InteractionResult interactionresult = super.useItem(p_105236_, p_105237_, p_105238_);
          this.acting = false;
-         return flag;
-     }
--
-+    
-+    @Override
-     public boolean onPlayerDamageBlock(BlockPos posBlock, Direction directionFacing)
-     {
-         this.acting = true;
-@@ -47,16 +52,33 @@
-         return flag;
+         return interactionresult;
      }
  
-+    @Override
-     public ActionResultType processRightClick(PlayerEntity player, World worldIn, Hand hand)
-     {
-         this.acting = true;
-+		//Vivecraft
-+		NetworkHelper.overrideLook(player, Minecraft.getInstance().vrPlayer.getRightClickLookOverride(player, hand.ordinal()));
-+		//	
-         ActionResultType actionresulttype = super.processRightClick(player, worldIn, hand);
-         this.acting = false;
-         return actionresulttype;
-     }
- 
-+    //Vivecraft
-+    @Override
-+    public void onStoppedUsingItem(PlayerEntity playerIn)
++    public void releaseUsingItem(Player p_105278_)
 +    {
-+		NetworkHelper.overrideLook(playerIn, Minecraft.getInstance().vrPlayer.getRightClickLookOverride(playerIn, playerIn.getActiveHand().ordinal()));
-+    	super.onStoppedUsingItem(playerIn);
++        NetworkHelper.overrideLook(p_105278_, Minecraft.getInstance().vrPlayer.getRightClickLookOverride(p_105278_, p_105278_.getUsedItemHand().ordinal()));
++        super.releaseUsingItem(p_105278_);
 +    }
-+    //
 +
-+    @Override
-     public ActionResultType func_217292_a(ClientPlayerEntity player, ClientWorld worldIn, Hand hand, BlockRayTraceResult rayTrace)
+     public InteractionResult useItemOn(LocalPlayer p_105263_, ClientLevel p_105264_, InteractionHand p_105265_, BlockHitResult p_105266_)
      {
-+		//Vivecraft
-+		NetworkHelper.overrideLook(player, rayTrace.getHitVec().subtract(player.getEyePosition(1)).normalize());
-+		//	
++        NetworkHelper.overrideLook(p_105263_, p_105266_.getLocation().subtract(p_105263_.getEyePosition(1.0F)).normalize());
          this.acting = true;
-         this.lastClickBlockPos = rayTrace.getPos();
-         ActionResultType actionresulttype = super.func_217292_a(player, worldIn, hand, rayTrace);
-@@ -67,6 +89,7 @@
-     /**
-      * Handles right clicking an entity, sends a packet to the server.
-      */
-+    @Override
-     public ActionResultType interactWithEntity(PlayerEntity player, Entity target, Hand hand)
-     {
-         this.lastClickEntity = target;
-@@ -76,6 +99,7 @@
-     /**
-      * Handles right clicking an entity from the entities side, sends a packet to the server.
-      */
-+    @Override
-     public ActionResultType interactWithEntity(PlayerEntity player, Entity target, EntityRayTraceResult ray, Hand hand)
-     {
-         this.lastClickEntity = target;
+         this.lastClickBlockPos = p_105266_.getBlockPos();
+         InteractionResult interactionresult = super.useItemOn(p_105263_, p_105264_, p_105265_, p_105266_);

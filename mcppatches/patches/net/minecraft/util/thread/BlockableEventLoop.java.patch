@@ -1,0 +1,11 @@
+--- a/net/minecraft/util/thread/BlockableEventLoop.java
++++ b/net/minecraft/util/thread/BlockableEventLoop.java
+@@ -220,7 +220,7 @@
+         }
+         else
+         {
+-            R[] ar = this.pendingRunnables.toArray(new Runnable[this.pendingRunnables.size()]);
++            R[] ar = (R[]) this.pendingRunnables.toArray(new Runnable[this.pendingRunnables.size()]);
+             double d0 = this.getChunkUpdateWeight(ar);
+ 
+             if (d0 < 5.0D)

@@ -1,241 +1,131 @@
 package org.vivecraft.gui.physical.interactables;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.gui.physical.PhysicalItemSlotGui;
-import org.vivecraft.provider.MCOpenVR;
 import org.vivecraft.utils.math.Quaternion;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.HandSide;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.vector.Vector3d;
+public class PhysicalItemSlot implements Interactable
+{
+    public PhysicalItemSlotGui gui;
+    public Minecraft mc;
+    public boolean enabled = true;
+    public boolean preview = true;
+    public int slotId;
+    public Vec3 position = new Vec3(0.0D, 0.0D, -0.5D);
+    public double popOutScaleMult = 1.2D;
+    public boolean popOut = false;
+    public Quaternion rotation = new Quaternion();
+    public Quaternion fullBlockRotation = new Quaternion(-90.0F, 0.0F, 0.0F);
+    public Vec3 counterPos = new Vec3(0.0D, 0.0D, 0.0D);
+    public Quaternion counterRot = new Quaternion();
+    public Slot slot;
+    public double scale = 0.2D;
+    public double opacity = 1.0D;
+    public double fullBlockScaleMult = 1.9D;
+    public double counterScale = 0.1D;
 
-public class PhysicalItemSlot implements Interactable {
-	public PhysicalItemSlotGui gui;
-	public Minecraft mc;
-	public boolean enabled = true;
-	public boolean preview=true;
-	public PhysicalItemSlot(PhysicalItemSlotGui gui, int slotId) {
-		this.slotId = slotId;
-		this.gui=gui;
-		this.mc=Minecraft.getInstance();
-	}
+    public PhysicalItemSlot(PhysicalItemSlotGui gui, int slotId)
+    {
+        this.slotId = slotId;
+        this.gui = gui;
+        this.mc = Minecraft.getInstance();
+    }
 
-	@Override
-	public boolean isEnabled() {
-		return enabled;
-	}
+    public boolean isEnabled()
+    {
+        return this.enabled;
+    }
 
-	/**
-	 * Render this slot at the set position and rotation
-	 * */
-	public void render(double partialTicks, int renderLayer){
-/*		if(this.getOpacity()==0)
-			return;
+    public void render(double partialTicks, int renderLayer)
+    {
+    }
 
-		ItemRenderer renderItem = Minecraft.getInstance().getItemRenderer();
-		ItemStack item = getDisplayedItem();
-		if (item==null)
-			return;
-		float scale = (float) this.scale;
-		if (renderItem.shouldRenderItemIn3D(item)) {
-			scale *= this.fullBlockScaleMult;
-		}
+    public Vec3 getPosition(double partialTicks)
+    {
+        return this.position;
+    }
 
-		if(popOut){
-			scale*=popOutScaleMult;
-		}
+    public Quaternion getRotation(double partialTicks)
+    {
+        return this.rotation;
+    }
 
-		boolean is3d = renderItem.shouldRenderItemIn3D(item);
-		double itemSize = is3d ? 1 / 2f : 1 / 16f;
+    public Quaternion getAnchorRotation(double partialTicks)
+    {
+        return this.gui.getAnchorRotation(partialTicks);
+    }
 
-		if (is3d) {
-			Utils.glRotate(this.fullBlockRotation);
-			GlStateManager.translated(0, scale * itemSize * 0.5, 0);
-		} else {
-			GlStateManager.translated(0, 0, -scale * itemSize * 0.5);
-		}
+    public Vec3 getAnchorPos(double partialTicks)
+    {
+        return this.gui.getAnchorPos(partialTicks);
+    }
 
-		GlStateManager.scalef(scale, scale, scale);
+    public ItemStack getDisplayedItem()
+    {
+        if (this.preview && this.gui.touching == this)
+        {
+            ItemStack itemstack = this.mc.physicalGuiManager.getVirtualHeldItem();
 
-		GlStateManager.pushMatrix();
+            if (!itemstack.isEmpty())
+            {
+                return itemstack;
+            }
+        }
 
-		if(renderLayer==0) {
-			renderItem.setFade((float) this.getOpacity());
-			renderItem.renderItem(item, mc.player, TransformType.FIXED, false);
-		}
-		GlStateManager.popMatrix();
+        return this.slot != null ? this.slot.getItem() : null;
+    }
 
-		GlStateManager.pushMatrix();
-		if (item.getCount() > 1 && renderLayer==1) {
-			double itemHeight = itemSize;
-			double itemWidth = 1 / 2f;
-			if (is3d) {
-				Utils.glRotate(this.fullBlockRotation.inverse());
-				//if(renderLayer==0)
-					GlStateManager.scaled((float) 1 / this.fullBlockScaleMult, (float) 1 / this.fullBlockScaleMult, (float) 1 / this.fullBlockScaleMult);
-				itemHeight *= this.fullBlockScaleMult;
-				itemWidth *= this.fullBlockScaleMult;
-			}
-	//		GlStateManager.multMatrixf(Convert.matrix(this.counterRot).toMCMatrix4f());
+    public double getOpacity()
+    {
+        return this.gui.touching == this && this.preview && !this.mc.physicalGuiManager.getVirtualHeldItem().isEmpty() ? 0.5D : this.opacity;
+    }
 
-			Vector3d counterpos = new Vector3d(-itemWidth * 0.5, -itemWidth * 0.5, -itemHeight * 0.5 - 0.05);
-			counterpos = counterpos.add(this.counterPos);
+    public void touch()
+    {
+        int i = this.mc.options.mainHand == HumanoidArm.RIGHT ? 0 : 1;
+        this.popOut = true;
 
-			GlStateManager.translated(counterpos.x,counterpos.y,counterpos.z);
+        if (this.getDisplayedItem() != null && !this.getDisplayedItem().isEmpty())
+        {
+            this.mc.vr.triggerHapticPulse(i, 500);
+        }
 
-			GlStateManager.scaled(counterScale/this.scale, counterScale/this.scale, counterScale/this.scale);
+        if (this.preview && !this.mc.physicalGuiManager.getVirtualHeldItem().isEmpty())
+        {
+            this.mc.physicalGuiManager.setHideItemTouchingSlotOverride(ItemStack.EMPTY);
+        }
+        else
+        {
+            this.mc.physicalGuiManager.setHideItemTouchingSlotOverride((ItemStack)null);
+        }
+    }
 
-			if (this.getOpacity() == 1) {
-				GameRenderer.drawText(mc.fontRenderer, "" + item.getCount(),
-						0,0,0, 0, 0, true);
-			}
-		}
+    public void untouch()
+    {
+        this.popOut = false;
+        this.mc.physicalGuiManager.setHideItemTouchingSlotOverride((ItemStack)null);
+    }
 
-		renderItem.setFade(1);
-		GlStateManager.popMatrix();
-		*/
-	}
+    public void click(int button)
+    {
+        if (this.gui.isOpen())
+        {
+            this.opacity = 1.0D;
+            this.mc.physicalGuiManager.clickSlot(this.slotId, button);
+        }
+    }
 
+    public void unclick(int button)
+    {
+    }
 
-	/**
-	 * The corresponding vanilla slot number
-	 *
-	 * @see <a href="http://wiki.vg/Inventory">wiki.vg/Inventory</a> for reference
-	 */
-	public int slotId;
-
-	/**
-	 * Position in meters relative to the position of the entity or block<br>
-	 * If block, the middle of the block (0.5,0.5,0.5) is considered the origin<br>
-	 * If relative to connected blocks (e.g. double Chest) the leftmost (w/a frontmost) when looking from the front is the origin<br>
-	 * The coordinate systems forward vector is the entity or blocks backwards vector<br>
-	 * (the direction you're looking you face each other) using minecrafts coordinate system,<br>
-	 * meaning +X is left, +Y is up, +Z is forward, +pitch is rotation down, +yaw rotation right and +roll rotation clockwise<br>
-	 * <br>
-	 * The item is rendered with its *back-face* at this position if it is a flat item<br>
-	 * or with its bottom face at this position if it is 3d<br>
-	 * <br>
-	 * Example: (0.5,0.5,-0.5) is on the front face, in the top left corner
-	 */
-	public Vector3d position = new Vector3d(0, 0, -0.5);
-
-	public Vector3d getPosition(double partialTicks) {
-		return position;
-	}
-
-	public Quaternion getRotation(double partialTicks) {
-		return rotation;
-	}
-
-	public Quaternion getAnchorRotation(double partialTicks){
-		return gui.getAnchorRotation(partialTicks);
-	}
-
-	public Vector3d getAnchorPos(double partialTicks){
-		return gui.getAnchorPos(partialTicks);
-	}
-
-	public double popOutScaleMult=1.2;
-	public boolean popOut=false;
-
-	/**
-	 * The rotation of the slot, relative to the entity or blocks backwards vector (see {@link PhysicalItemSlot#position})<br>
-	 * Defines which way the *back-face* of the itemslot is looking, meaning lying flat is a 90° pitch down (so +90° in minecraft terms)
-	 */
-	public Quaternion rotation = new Quaternion();
-
-	public Quaternion fullBlockRotation = new Quaternion(-90, 0, 0);
-
-	/**
-	 * The position of the counter relative to {@link PhysicalItemSlot#position} and aligned with {@link PhysicalItemSlot#rotation}
-	 * originated at the lower right corner of the items top face. In short: this is an offset from the counters normal position
-	 */
-	public Vector3d counterPos = new Vector3d(0, 0, 0);
-
-	/**
-	 * The rotation of the counter relative to {@link PhysicalItemSlot#rotation}
-	 */
-	public Quaternion counterRot = new Quaternion();
-
-	public Slot slot;
-
-	public ItemStack getDisplayedItem(){
-		if(preview && gui.touching ==this){
-			ItemStack fakeItem=mc.physicalGuiManager.getVirtualHeldItem();
-			if(!fakeItem.isEmpty())
-				return fakeItem;
-		}
-
-		if(slot!=null)
-			return slot.getStack();
-		else return null;
-	}
-
-	/**
-	 * The size of the rendered item in meters (width and height)
-	 */
-	public double scale = 0.2;
-
-	public double opacity = 1;
-
-	public double getOpacity(){
-		if(gui.touching ==this && preview && !mc.physicalGuiManager.getVirtualHeldItem().isEmpty())
-			return 0.5;
-		return opacity;
-	}
-
-	/**
-	 * Scales the item if it is a 3d block. 2 matches the size of a held item
-	 */
-	public double fullBlockScaleMult = 1.9;
-
-	/**
-	 * Scale of the counter
-	 *
-	 * @see PhysicalItemSlot#scale
-	 */
-	public double counterScale = 0.1;
-
-	@Override
-	public void touch() {
-		int mainhand = (mc.gameSettings.mainHand == HandSide.RIGHT) ? 0 : 1;
-
-		popOut=true;
-
-		if(getDisplayedItem()!=null && !getDisplayedItem().isEmpty()) {
-			MCOpenVR.triggerHapticPulse(mainhand, 500);
-		}
-
-		if(preview && !mc.physicalGuiManager.getVirtualHeldItem().isEmpty()){
-			mc.physicalGuiManager.setHideItemTouchingSlotOverride(ItemStack.EMPTY);
-			//opacity=0.5;
-		}else{
-			mc.physicalGuiManager.setHideItemTouchingSlotOverride(null);
-		}
-	}
-
-	@Override
-	public void untouch() {
-		popOut=false;
-		mc.physicalGuiManager.setHideItemTouchingSlotOverride(null);
-	}
-
-	@Override
-	public void click(int button) {
-		if (!gui.isOpen())
-			return;
-		opacity=1;
-		mc.physicalGuiManager.clickSlot(slotId,button);
-	}
-
-	@Override
-	public void unclick(int button) {
-	}
-
-	@Override
-	public AxisAlignedBB getBoundingBox() {
-		return new AxisAlignedBB(-gui.touchDistance,-gui.touchDistance,-gui.touchDistance,gui.touchDistance,gui.touchDistance,gui.touchDistance);
-	}
+    public AABB getBoundingBox()
+    {
+        return new AABB(-this.gui.touchDistance, -this.gui.touchDistance, -this.gui.touchDistance, this.gui.touchDistance, this.gui.touchDistance, this.gui.touchDistance);
+    }
 }

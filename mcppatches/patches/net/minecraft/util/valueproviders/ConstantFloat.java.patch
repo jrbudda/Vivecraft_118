@@ -1,0 +1,17 @@
+--- a/net/minecraft/util/valueproviders/ConstantFloat.java
++++ b/net/minecraft/util/valueproviders/ConstantFloat.java
+@@ -11,12 +11,12 @@
+     public static final Codec<ConstantFloat> CODEC = Codec.either(Codec.FLOAT, RecordCodecBuilder.create((p_302529_0_) ->
+     {
+         return p_302529_0_.group(Codec.FLOAT.fieldOf("value").forGetter((p_302537_0_) -> {
+-            return p_302537_0_.value;
++            return ((ConstantFloat)p_302537_0_).value;
+         })).apply(p_302529_0_, ConstantFloat::new);
+     })).xmap((p_302527_0_) ->
+     {
+         return p_302527_0_.map(ConstantFloat::of, (p_302534_0_) -> {
+-            return p_302534_0_;
++            return (ConstantFloat) p_302534_0_;
+         });
+     }, (p_302525_0_) ->
+     {

@@ -1,0 +1,11 @@
+--- a/net/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher.java
++++ b/net/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher.java
+@@ -176,7 +176,7 @@
+         return this.context;
+     }
+ 
+-    public Map<BlockEntityType, BlockEntityRenderer> getBlockEntityRenderMap()
++    public Map getBlockEntityRenderMap()
+     {
+         if (this.renderers instanceof ImmutableMap)
+         {

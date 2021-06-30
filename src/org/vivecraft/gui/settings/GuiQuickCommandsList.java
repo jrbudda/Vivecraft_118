@@ -1,117 +1,116 @@
 package org.vivecraft.gui.settings;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.gui.widget.list.ExtendedList;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.network.chat.TextComponent;
 
-public class GuiQuickCommandsList extends ExtendedList<GuiQuickCommandsList.CommandEntry>
+public class GuiQuickCommandsList extends ObjectSelectionList<GuiQuickCommandsList.CommandEntry>
 {
     private final GuiQuickCommandEditor parent;
     private final Minecraft mc;
-        
+
     public GuiQuickCommandsList(GuiQuickCommandEditor parent, Minecraft mc)
     {
         super(mc, parent.width, parent.height, 32, parent.height - 32, 20);
         this.parent = parent;
         this.mc = mc;
-        
-        String[] commands = minecraft.vrSettings.vrQuickCommands;
-               
-        String var5 = null;
-        int var4 = 0;
-        int var7 = commands.length;
-        for (int i = 0; i < var7; i++)
+        String[] astring = this.minecraft.vrSettings.vrQuickCommands;
+        String s = null;
+        int i = 0;
+
+        for (String s1 : astring)
         {
-        	String kb = commands[i];
-            int width = minecraft.fontRenderer.getStringWidth(kb);
-            this.addEntry(new GuiQuickCommandsList.CommandEntry(kb, this));
+            this.minecraft.font.width(s1);
+            this.addEntry(new GuiQuickCommandsList.CommandEntry(s1, this));
         }
     }
-        
-    public class CommandEntry extends ExtendedList.AbstractListEntry<GuiQuickCommandsList.CommandEntry>
+
+    public class CommandEntry extends ObjectSelectionList.Entry<GuiQuickCommandsList.CommandEntry>
     {
         private final Button btnDelete;
-        public final TextFieldWidget txt;
-        
+        public final EditBox txt;
+
         private CommandEntry(String command, GuiQuickCommandsList parent)
         {
-            txt = new TextFieldWidget(minecraft.fontRenderer, parent.width / 2 - 100, 60, 200, 20, new StringTextComponent(""));
-            txt.setText(command);
-            this.btnDelete = new Button(0, 0, 18, 18, "X", (p) -> {
-                	CommandEntry.this.txt.setText("");
-                	CommandEntry.this.txt.changeFocus(true);
-            });          
+            this.txt = new EditBox(GuiQuickCommandsList.this.minecraft.font, parent.width / 2 - 100, 60, 200, 20, new TextComponent(""));
+            this.txt.setValue(command);
+            this.btnDelete = new Button(0, 0, 18, 18, "X", (p) ->
+            {
+                this.txt.setValue("");
+                this.txt.changeFocus(true);
+            });
         }
-               
-        @Override
-        public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        	if(btnDelete.mouseClicked(mouseX, mouseY, button))
-        		return true;
-        	if(txt.mouseClicked(mouseX, mouseY, button))
-        		return true;
-        	return super.mouseClicked(mouseX, mouseY, button);
-        }
-        
-        @Override
-        public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        	if(btnDelete.mouseDragged(mouseX, mouseY, button, deltaX, deltaY))
-        		return true;
-        	if(txt.mouseDragged(mouseX, mouseY, button, deltaX, deltaY))
-        		return true;
-        	return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
-        }
-        
-        @Override
-        public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        	if(btnDelete.mouseReleased(mouseX, mouseY, button))
-        		return true;
-        	if(txt.mouseReleased(mouseX, mouseY, button))
-        		return true;
-        	return super.mouseReleased(mouseX, mouseY, button);
-        }     
-        
-        @Override
-        public boolean mouseScrolled(double p_mouseScrolled_1_, double p_mouseScrolled_3_, double p_mouseScrolled_5_) {
-          	if(btnDelete.mouseScrolled( p_mouseScrolled_1_,  p_mouseScrolled_3_,  p_mouseScrolled_5_))
-        		return true;
-        	if(txt.mouseScrolled( p_mouseScrolled_1_,  p_mouseScrolled_3_,  p_mouseScrolled_5_))
-        		return true;
-        	return super.mouseScrolled(p_mouseScrolled_1_, p_mouseScrolled_3_, p_mouseScrolled_5_);
-        }
-        
-        @Override
-        public boolean charTyped(char p_charTyped_1_, int p_charTyped_2_) {
-        	if (txt.isFocused()) 
-        		return txt.charTyped(p_charTyped_1_, p_charTyped_2_);
-        	return super.charTyped(p_charTyped_1_, p_charTyped_2_);
-        }
-        
-        @Override
-        public boolean keyPressed(int key, int action, int mods) {
-        	if (txt.isFocused()) 
-        		return txt.keyPressed(key, action, mods);
-        	return super.keyPressed(key, action, mods);
-        }
-        
-        @Override
-		public void render(MatrixStack matrixstack, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean p_194999_5_,float partialTicks)
+
+        public boolean mouseClicked(double p_94737_, double p_94738_, int p_94739_)
         {
-        	txt.x = x;
-        	txt.y = y;
-        	
-        	txt.render(matrixstack, mouseX, mouseY, partialTicks);
-        	//GuiQuickCommandsList.this.minecraft.fontRenderer.drawString(command, x + 40  - GuiQuickCommandsList.this.maxListLabelWidth, y + p_148279_5_ / 2 - GuiQuickCommandsList.this.minecraft.fontRenderer.FONT_HEIGHT / 2, 16777215);
-
-        	this.btnDelete.x =txt.x+txt.getWidth() + 2;
-        	this.btnDelete.y= txt.y;
-        	this.btnDelete.visible = true;
-        	this.btnDelete.render(matrixstack, mouseX, mouseY, partialTicks);
-
+            if (this.btnDelete.mouseClicked(p_94737_, p_94738_, p_94739_))
+            {
+                return true;
+            }
+            else
+            {
+                return this.txt.mouseClicked(p_94737_, p_94738_, p_94739_) ? true : super.mouseClicked(p_94737_, p_94738_, p_94739_);
+            }
         }
 
+        public boolean mouseDragged(double p_94740_, double p_94741_, int p_94742_, double p_94743_, double p_94744_)
+        {
+            if (this.btnDelete.mouseDragged(p_94740_, p_94741_, p_94742_, p_94743_, p_94744_))
+            {
+                return true;
+            }
+            else
+            {
+                return this.txt.mouseDragged(p_94740_, p_94741_, p_94742_, p_94743_, p_94744_) ? true : super.mouseDragged(p_94740_, p_94741_, p_94742_, p_94743_, p_94744_);
+            }
+        }
+
+        public boolean mouseReleased(double p_94753_, double p_94754_, int p_94755_)
+        {
+            if (this.btnDelete.mouseReleased(p_94753_, p_94754_, p_94755_))
+            {
+                return true;
+            }
+            else
+            {
+                return this.txt.mouseReleased(p_94753_, p_94754_, p_94755_) ? true : super.mouseReleased(p_94753_, p_94754_, p_94755_);
+            }
+        }
+
+        public boolean mouseScrolled(double p_94734_, double p_94735_, double p_94736_)
+        {
+            if (this.btnDelete.mouseScrolled(p_94734_, p_94735_, p_94736_))
+            {
+                return true;
+            }
+            else
+            {
+                return this.txt.mouseScrolled(p_94734_, p_94735_, p_94736_) ? true : super.mouseScrolled(p_94734_, p_94735_, p_94736_);
+            }
+        }
+
+        public boolean charTyped(char p_94732_, int p_94733_)
+        {
+            return this.txt.isFocused() ? this.txt.charTyped(p_94732_, p_94733_) : super.charTyped(p_94732_, p_94733_);
+        }
+
+        public boolean keyPressed(int p_94745_, int p_94746_, int p_94747_)
+        {
+            return this.txt.isFocused() ? this.txt.keyPressed(p_94745_, p_94746_, p_94747_) : super.keyPressed(p_94745_, p_94746_, p_94747_);
+        }
+
+        public void render(PoseStack p_93523_, int p_93524_, int p_93525_, int p_93526_, int p_93527_, int p_93528_, int p_93529_, int p_93530_, boolean p_93531_, float p_93532_)
+        {
+            this.txt.x = p_93526_;
+            this.txt.y = p_93525_;
+            this.txt.render(p_93523_, p_93529_, p_93530_, p_93532_);
+            this.btnDelete.x = this.txt.x + this.txt.getWidth() + 2;
+            this.btnDelete.y = this.txt.y;
+            this.btnDelete.visible = true;
+            this.btnDelete.render(p_93523_, p_93529_, p_93530_, p_93532_);
+        }
     }
 }

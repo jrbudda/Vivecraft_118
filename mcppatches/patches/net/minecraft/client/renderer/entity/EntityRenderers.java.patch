@@ -1,0 +1,26 @@
+--- a/net/minecraft/client/renderer/entity/EntityRenderers.java
++++ b/net/minecraft/client/renderer/entity/EntityRenderers.java
+@@ -38,9 +38,9 @@
+         PROVIDERS.put(p_174037_, p_174038_);
+     }
+ 
+-    public static Map < EntityType<?>, EntityRenderer<? >> createEntityRenderers(EntityRendererProvider.Context p_174050_)
++    public static Map<EntityType, EntityRenderer> createEntityRenderers(EntityRendererProvider.Context p_174050_)
+     {
+-        Builder < EntityType<?>, EntityRenderer<? >> builder = ImmutableMap.builder();
++        Builder<EntityType, EntityRenderer> builder = ImmutableMap.builder();
+         PROVIDERS.forEach((p_208814_2_, p_208814_3_) ->
+         {
+             try {
+@@ -54,9 +54,9 @@
+         return builder.build();
+     }
+ 
+-    public static Map < String, EntityRenderer <? extends Player >> createPlayerRenderers(EntityRendererProvider.Context p_174052_)
++    public static Map<String, EntityRenderer> createPlayerRenderers(EntityRendererProvider.Context p_174052_)
+     {
+-        Builder < String, EntityRenderer <? extends Player >> builder = ImmutableMap.builder();
++        Builder <String, EntityRenderer> builder = ImmutableMap.builder();
+         PLAYER_PROVIDERS.forEach((p_208819_2_, p_208819_3_) ->
+         {
+             try {

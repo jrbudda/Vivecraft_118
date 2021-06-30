@@ -1,0 +1,14 @@
+--- a/net/minecraft/server/level/DistanceManager.java
++++ b/net/minecraft/server/level/DistanceManager.java
+@@ -342,9 +342,9 @@
+                 {
+                     fileoutputstream.close();
+                 }
+-                catch (Throwable throwable1)
++                catch (Throwable throwable2)
+                 {
+-                    throwable1.addSuppressed(throwable1);
++                    throwable1.addSuppressed(throwable2);
+                 }
+ 
+                 throw throwable1;

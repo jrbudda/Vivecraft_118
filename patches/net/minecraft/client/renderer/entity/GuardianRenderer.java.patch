@@ -1,28 +1,31 @@
 --- a/net/minecraft/client/renderer/entity/GuardianRenderer.java
 +++ b/net/minecraft/client/renderer/entity/GuardianRenderer.java
-@@ -1,7 +1,11 @@
- package net.minecraft.client.renderer.entity;
- 
-+import org.vivecraft.render.RenderPass;
-+
- import com.mojang.blaze3d.matrix.MatrixStack;
- import com.mojang.blaze3d.vertex.IVertexBuilder;
-+
+@@ -5,6 +5,7 @@
+ import com.mojang.math.Matrix3f;
+ import com.mojang.math.Matrix4f;
+ import com.mojang.math.Vector3f;
 +import net.minecraft.client.Minecraft;
- import net.minecraft.client.renderer.IRenderTypeBuffer;
+ import net.minecraft.client.model.GuardianModel;
+ import net.minecraft.client.renderer.MultiBufferSource;
  import net.minecraft.client.renderer.RenderType;
- import net.minecraft.client.renderer.culling.ClippingHelper;
-@@ -78,7 +82,13 @@
-             float f3 = entityIn.getEyeHeight();
-             matrixStackIn.push();
-             matrixStackIn.translate(0.0D, (double)f3, 0.0D);
-+           
-+            //Vivecraft
-             Vector3d vector3d = this.getPosition(livingentity, (double)livingentity.getHeight() * 0.5D, partialTicks);
-+            if(livingentity == Minecraft.getInstance().getRenderViewEntity())
-+                vector3d = Minecraft.getInstance().vrPlayer.getVRDataWorld().getEye(RenderPass.CENTER).getPosition().subtract(0,0.3 * Minecraft.getInstance().vrPlayer.worldScale,0);
-+            //         
+@@ -16,6 +17,7 @@
+ import net.minecraft.world.entity.monster.Guardian;
+ import net.minecraft.world.phys.AABB;
+ import net.minecraft.world.phys.Vec3;
++import org.vivecraft.render.RenderPass;
+ 
+ public class GuardianRenderer extends MobRenderer<Guardian, GuardianModel>
+ {
+@@ -79,6 +81,12 @@
+             p_114832_.pushPose();
+             p_114832_.translate(0.0D, (double)f3, 0.0D);
+             Vec3 vec3 = this.getPosition(livingentity, (double)livingentity.getBbHeight() * 0.5D, p_114831_);
 +
-             Vector3d vector3d1 = this.getPosition(entityIn, (double)f3, partialTicks);
-             Vector3d vector3d2 = vector3d.subtract(vector3d1);
-             float f4 = (float)(vector3d2.length() + 1.0D);
++            if (livingentity == Minecraft.getInstance().getCameraEntity())
++            {
++                vec3 = Minecraft.getInstance().vrPlayer.getVRDataWorld().getEye(RenderPass.CENTER).getPosition().subtract(0.0D, 0.3D * (double)Minecraft.getInstance().vrPlayer.worldScale, 0.0D);
++            }
++
+             Vec3 vec31 = this.getPosition(p_114829_, (double)f3, p_114831_);
+             Vec3 vec32 = vec3.subtract(vec31);
+             float f4 = (float)(vec32.length() + 1.0D);

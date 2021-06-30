@@ -1,0 +1,20 @@
+--- a/net/optifine/shaders/ShadersRender.java
++++ b/net/optifine/shaders/ShadersRender.java
+@@ -348,7 +348,7 @@
+             MultiBufferSource.BufferSource multibuffersource$buffersource = levelrenderer1.getRenderTypeTextures().bufferSource();
+             boolean flag = Shaders.isShadowPass && !minecraft.player.isSpectator();
+ 
+-            for (Entity entity : Shaders.isRenderShadowEntities() ? Shaders.getCurrentWorld().entitiesForRendering() : Collections.EMPTY_LIST)
++            for (Entity entity : Shaders.isRenderShadowEntities() ? Shaders.getCurrentWorld().entitiesForRendering() : (List<Entity>)Collections.EMPTY_LIST)
+             {
+                 if ((entityrenderdispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(minecraft.player)) && (entity != activeRenderInfo.getEntity() || flag || activeRenderInfo.isDetached() || activeRenderInfo.getEntity() instanceof LivingEntity && ((LivingEntity)activeRenderInfo.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || activeRenderInfo.getEntity() == entity))
+                 {
+@@ -372,7 +372,7 @@
+             Frustum frustum1 = frustum;
+             label97:
+ 
+-            for (LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo : Shaders.isRenderShadowBlockEntities() ? levelrenderer1.getRenderInfosTileEntities() : Collections.EMPTY_LIST)
++            for (LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo : Shaders.isRenderShadowBlockEntities() ? levelrenderer1.getRenderInfosTileEntities() : (List<LevelRenderer.RenderChunkInfo>)Collections.EMPTY_LIST)
+             {
+                 List<BlockEntity> list = levelrenderer$renderchunkinfo.chunk.getCompiledChunk().getRenderableBlockEntities();
+ 

@@ -6,130 +6,150 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import org.vivecraft.provider.MCOpenVR;
-import org.vivecraft.utils.Utils;
-
 import net.minecraft.launchwrapper.IClassTransformer;
-
-// With apologies to Optifine. Copyright sp614x, this is built on his work.
-// The existing classes are overwritten by all of the classes in the minecrift library. The
-// minecrift code implements all of the Forge event handlers via reflection so we are 'Forge
-// compatible' for non-core mods. Forge coremods most likely wont play nicely with us however.
+import org.vivecraft.utils.Utils;
 
 public class MinecriftClassTransformer implements IClassTransformer
 {
-	private static final boolean DEBUG = Boolean.parseBoolean(System.getProperty("legacy.debugClassLoading", "false"));
-	
+    private static final boolean DEBUG = Boolean.parseBoolean(System.getProperty("legacy.debugClassLoading", "false"));
     private ZipFile mcZipFile = null;
-    private final Stage stage;
-    
+    private final MinecriftClassTransformer.Stage stage;
     private final Map<String, byte[]> cache;
-	private static Set<String> myClasses = new HashSet<String>();
-    
-    public MinecriftClassTransformer() {
-    	this(Stage.MAIN, null);
+    private static Set<String> myClasses = new HashSet<>();
+
+    public MinecriftClassTransformer()
+    {
+        this(MinecriftClassTransformer.Stage.MAIN, (Map<String, byte[]>)null);
     }
 
-    public MinecriftClassTransformer(Stage stage, Map<String, byte[]> cache)
+    public MinecriftClassTransformer(MinecriftClassTransformer.Stage stage, Map<String, byte[]> cache)
     {
-    	this.stage = stage;
-    	this.cache = cache;
-    	if (stage == Stage.MAIN) {
-	        try
-	        {
-	            this.mcZipFile = Utils.getVivecraftZip();
-	        }
-	        catch (Exception var6)
-	        {
-	            var6.printStackTrace();
-	        }
-	
-	        if (this.mcZipFile == null)
-	        {
-	            debug("*** Can not find the Minecrift JAR in the classpath ***");
-	            debug("*** Minecrift will not be loaded! ***");
-	        }
-    	} else if (cache == null) {
-    		throw new IllegalArgumentException("Cache map required for cache/replace stage");
-    	}
+        this.stage = stage;
+        this.cache = cache;
+
+        if (stage == MinecriftClassTransformer.Stage.MAIN)
+        {
+            try
+            {
+                this.mcZipFile = Utils.getVivecraftZip();
+            }
+            catch (Exception exception)
+            {
+                exception.printStackTrace();
+            }
+
+            if (this.mcZipFile == null)
+            {
+                debug("*** Can not find the Minecrift JAR in the classpath ***");
+                debug("*** Minecrift will not be loaded! ***");
+            }
+        }
+        else if (cache == null)
+        {
+            throw new IllegalArgumentException("Cache map required for cache/replace stage");
+        }
     }
 
     public byte[] transform(String name, String transformedName, byte[] bytes)
     {
-    	switch (stage) {
-    		case MAIN:
-		    	byte[] minecriftClass = this.getMinecriftClass(name);
-		
-		    	if (minecriftClass == null) {
-		    		if (DEBUG) debug(String.format("Vivecraft: Passthrough %s %s", name, transformedName));
-		    		//if (DEBUG) writeToFile("original", transformedName , "", bytes);
-		    	}
-		    	else {
-		    		myClasses.add(name);
-		    		
-		    		// Perform any additional mods using ASM
-		    		minecriftClass = performAsmModification(minecriftClass, transformedName);
-		    		
-		    		int b = bytes == null ? 0 : bytes.length;
-		    		
-		    		if(b != minecriftClass.length) {
-		    			debug(String.format("Vivecraft: Overwrite %s %s (%d != %d)", name, transformedName, b, minecriftClass.length));
-		    			myClasses.add(transformedName);
-		    		}
-		    		//if (DEBUG) writeToFile("original", transformedName, "", bytes);
-		    		//if (DEBUG) writeToFile("transformed", transformedName, name, minecriftClass);
-		    	}
-		    	
-		    	return minecriftClass != null ? minecriftClass : bytes;
-    		case CACHE:
-    			if(myClasses.contains(transformedName)) {
-    				if(DEBUG) debug(String.format("Cache '%s' - '%s'", name, transformedName));
-    				cache.put(transformedName, bytes);
-    			}
-    			return bytes;
-    		case REPLACE:
-    			if(cache.containsKey(transformedName)){
-    				if(DEBUG) debug(String.format("Replace '%s' - '%s'", name, transformedName));
-    				return cache.get(transformedName);
-    			}
-    			return bytes;
-    	}
-    	return bytes;
+        switch (this.stage)
+        {
+            case MAIN:
+                byte[] abyte = this.getMinecriftClass(name);
+
+                if (abyte == null)
+                {
+                    if (DEBUG)
+                    {
+                        debug(String.format("Vivecraft: Passthrough %s %s", name, transformedName));
+                    }
+                }
+                else
+                {
+                    myClasses.add(name);
+                    abyte = this.performAsmModification(abyte, transformedName);
+                    int i = bytes == null ? 0 : bytes.length;
+
+                    if (i != abyte.length)
+                    {
+                        debug(String.format("Vivecraft: Overwrite %s %s (%d != %d)", name, transformedName, i, abyte.length));
+                        myClasses.add(transformedName);
+                    }
+                }
+
+                return abyte != null ? abyte : bytes;
+
+            case CACHE:
+                if (myClasses.contains(transformedName))
+                {
+                    if (DEBUG)
+                    {
+                        debug(String.format("Cache '%s' - '%s'", name, transformedName));
+                    }
+
+                    this.cache.put(transformedName, bytes);
+                }
+
+                return bytes;
+
+            case REPLACE:
+                if (this.cache.containsKey(transformedName))
+                {
+                    if (DEBUG)
+                    {
+                        debug(String.format("Replace '%s' - '%s'", name, transformedName));
+                    }
+
+                    return this.cache.get(transformedName);
+                }
+
+                return bytes;
+
+            default:
+                return bytes;
+        }
     }
 
     private void writeToFile(String dir, String transformedName, String name, byte[] bytes)
     {
-        FileOutputStream stream = null;
-        ;
-        String filepath = String.format("%s/%s/%s/%s%s.%s", System.getProperty("user.home"), "minecrift_transformed_classes", dir, transformedName.replace(".", "/"), name, "class");
-        File file = new File(filepath);
-        debug("Writing to: " + filepath);
-        try {
-            File dir1 = file.getParentFile();
-            dir1.mkdirs();
-            file.createNewFile();
-            stream = new FileOutputStream(filepath);
-            stream.write(bytes);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (stream != null) {
-                    stream.close();
+        FileOutputStream fileoutputstream = null;
+        String s = String.format("%s/%s/%s/%s%s.%s", System.getProperty("user.home"), "minecrift_transformed_classes", dir, transformedName.replace(".", "/"), name, "class");
+        File file1 = new File(s);
+        debug("Writing to: " + s);
+
+        try
+        {
+            File file2 = file1.getParentFile();
+            file2.mkdirs();
+            file1.createNewFile();
+            fileoutputstream = new FileOutputStream(s);
+            fileoutputstream.write(bytes);
+        }
+        catch (FileNotFoundException filenotfoundexception)
+        {
+            filenotfoundexception.printStackTrace();
+        }
+        catch (IOException ioexception1)
+        {
+            ioexception1.printStackTrace();
+        }
+        finally
+        {
+            try
+            {
+                if (fileoutputstream != null)
+                {
+                    fileoutputstream.close();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            }
+            catch (IOException ioexception)
+            {
+                ioexception.printStackTrace();
             }
         }
     }
@@ -142,38 +162,39 @@ public class MinecriftClassTransformer implements IClassTransformer
         }
         else
         {
-            String fullName = name + ".class";
-            ZipEntry ze = this.mcZipFile.getEntry(fullName);
+            String s = name + ".class";
+            ZipEntry zipentry = this.mcZipFile.getEntry(s);
 
-            if (ze == null) {
-            	fullName = name + ".clazz";
-            	ze = this.mcZipFile.getEntry(fullName);
+            if (zipentry == null)
+            {
+                s = name + ".clazz";
+                zipentry = this.mcZipFile.getEntry(s);
             }
-            
-            if (ze == null)
-            { 
-                	return null;
+
+            if (zipentry == null)
+            {
+                return null;
             }
             else
             {
                 try
                 {
-                    InputStream e = this.mcZipFile.getInputStream(ze);
-                    byte[] bytes = readAll(e);
+                    InputStream inputstream = this.mcZipFile.getInputStream(zipentry);
+                    byte[] abyte = readAll(inputstream);
 
-                    if ((long)bytes.length != ze.getSize())
+                    if ((long)abyte.length != zipentry.getSize())
                     {
-                        debug("Invalid size for " + fullName + ": " + bytes.length + ", should be: " + ze.getSize());
+                        debug("Invalid size for " + s + ": " + abyte.length + ", should be: " + zipentry.getSize());
                         return null;
                     }
                     else
                     {
-                        return bytes;
+                        return abyte;
                     }
                 }
-                catch (IOException var6)
+                catch (IOException ioexception)
                 {
-                    var6.printStackTrace();
+                    ioexception.printStackTrace();
                     return null;
                 }
             }
@@ -182,21 +203,20 @@ public class MinecriftClassTransformer implements IClassTransformer
 
     public static byte[] readAll(InputStream is) throws IOException
     {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buf = new byte[1024];
+        ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
+        byte[] abyte = new byte[1024];
 
         while (true)
         {
-            int bytes = is.read(buf);
+            int i = is.read(abyte);
 
-            if (bytes < 0)
+            if (i < 0)
             {
                 is.close();
-                byte[] bytes1 = baos.toByteArray();
-                return bytes1;
+                return bytearrayoutputstream.toByteArray();
             }
 
-            baos.write(buf, 0, bytes);
+            bytearrayoutputstream.write(abyte, 0, i);
         }
     }
 
@@ -205,23 +225,15 @@ public class MinecriftClassTransformer implements IClassTransformer
         System.out.println(str);
     }
 
-    private byte[] performAsmModification(final byte[] origBytecode, String className)
+    private byte[] performAsmModification(byte[] origBytecode, String className)
     {
-//        if (className.equals("net.minecraft.entity.Entity")) {
-//            debug("Further transforming class " + className + " via ASM");
-//            ClassReader cr = new ClassReader(origBytecode);
-//            ClassWriter cw = new ClassWriter(cr, 0);
-//            EntityTransform et = new EntityTransform(cw);
-//            cr.accept(et, 0);
-//            return cw.toByteArray();
-//        }
-
         return origBytecode;
     }
 
-	public enum Stage {
-		MAIN,
-		CACHE,
-		REPLACE
-	}
+    public static enum Stage
+    {
+        MAIN,
+        CACHE,
+        REPLACE;
+    }
 }

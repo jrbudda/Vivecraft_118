@@ -1,0 +1,11 @@
+--- a/net/minecraft/world/entity/Mob.java
++++ b/net/minecraft/world/entity/Mob.java
+@@ -1388,7 +1388,7 @@
+                 if (this.level instanceof ServerLevel)
+                 {
+                     SpawnEggItem spawneggitem = (SpawnEggItem)itemstack.getItem();
+-                    Optional<Mob> optional = spawneggitem.spawnOffspringFromSpawnEgg(p_21500_, this, this.getType(), (ServerLevel)this.level, this.position(), itemstack);
++                    Optional<Mob> optional = spawneggitem.spawnOffspringFromSpawnEgg(p_21500_, this, (EntityType<? extends Mob>) this.getType(), (ServerLevel)this.level, this.position(), itemstack);
+                     optional.ifPresent((p_21474_2_) ->
+                     {
+                         this.onOffspringSpawnedFromEgg(p_21500_, p_21474_2_);

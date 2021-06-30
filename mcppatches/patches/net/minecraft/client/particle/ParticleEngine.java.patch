@@ -1,0 +1,27 @@
+--- a/net/minecraft/client/particle/ParticleEngine.java
++++ b/net/minecraft/client/particle/ParticleEngine.java
+@@ -346,7 +346,7 @@
+     @Nullable
+     private <T extends ParticleOptions> Particle makeParticle(T p_107396_, double p_107397_, double p_107398_, double p_107399_, double p_107400_, double p_107401_, double p_107402_)
+     {
+-        ParticleProvider<T> particleprovider = this.providers.get(Registry.PARTICLE_TYPE.getKey(p_107396_.getType()));
++        ParticleProvider<T> particleprovider = (ParticleProvider<T>) this.providers.get(Registry.PARTICLE_TYPE.getKey(p_107396_.getType()));
+         return particleprovider == null ? null : particleprovider.createParticle(p_107396_, this.level, p_107397_, p_107398_, p_107399_, p_107400_, p_107401_, p_107402_);
+     }
+ 
+@@ -676,8 +676,14 @@
+         return this.trackedParticleCounts.getInt(p_172280_) < p_172280_.getLimit();
+     }
+ 
+-    private boolean reuseBarrierParticle(Particle var1, Queue<Particle> var2)
++    private boolean reuseBarrierParticle(Particle var1, Queue<Particle> deque)
+     {
++    	Particle var4;
++        for(Iterator it = deque.iterator(); it.hasNext(); var4 = (Particle)it.next()) {
++           ;
++        }
++
++        return false;
+     }
+ 
+     public void addBlockHitEffects(BlockPos pos, BlockHitResult target)

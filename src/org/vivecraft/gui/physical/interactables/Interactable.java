@@ -1,26 +1,43 @@
 package org.vivecraft.gui.physical.interactables;
 
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.utils.math.Quaternion;
 
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.vector.Vector3d;
+public interface Interactable
+{
+    void render(double var1, int var3);
 
-public interface Interactable{
-	void render(double partialTicks, int renderLayer);
-	Vector3d getPosition(double partialTicks);
-	Quaternion getRotation(double partialTicks);
+    Vec3 getPosition(double var1);
 
-	Vector3d getAnchorPos(double partialTicks);
-	Quaternion getAnchorRotation(double partialTicks);
+    Quaternion getRotation(double var1);
 
-	boolean isEnabled();
-	default boolean isTouchable(){ return isEnabled(); }
-	void touch();
-	void untouch();
-	void click(int button);
-	void unclick(int button);
-	default void update(){};
-	default void onDragDrop(Interactable source){}
+    Vec3 getAnchorPos(double var1);
 
-	AxisAlignedBB getBoundingBox();
+    Quaternion getAnchorRotation(double var1);
+
+    boolean isEnabled();
+
+default boolean isTouchable()
+    {
+        return this.isEnabled();
+    }
+
+    void touch();
+
+    void untouch();
+
+    void click(int var1);
+
+    void unclick(int var1);
+
+default void update()
+    {
+    }
+
+default void onDragDrop(Interactable source)
+    {
+    }
+
+    AABB getBoundingBox();
 }

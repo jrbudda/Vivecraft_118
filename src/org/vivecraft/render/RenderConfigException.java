@@ -1,9 +1,7 @@
 package org.vivecraft.render;
 
-/**
- * Created by StellaArtois on 2/7/2016.
- */
-public class RenderConfigException extends Exception {
+public class RenderConfigException extends Exception
+{
     public String title;
     public String error;
 
@@ -13,8 +11,8 @@ public class RenderConfigException extends Exception {
         this.error = error;
     }
 
-    public String toString(){
-		return error;   	
+    public String toString()
+    {
+        return this.error;
     }
-    
 }

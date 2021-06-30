@@ -1,584 +1,507 @@
 package org.vivecraft.gameplay.trackers;
 
 import java.util.Random;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LadderBlock;
+import net.minecraft.world.level.block.VineBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.api.NetworkHelper;
 import org.vivecraft.gameplay.VRMovementStyle;
-import org.vivecraft.provider.MCOpenVR;
-import org.vivecraft.provider.OpenVRUtil;
+import org.vivecraft.provider.openvr_jna.OpenVRUtil;
+import org.vivecraft.utils.Utils;
 import org.vivecraft.utils.math.Angle;
 import org.vivecraft.utils.math.Matrix4f;
 import org.vivecraft.utils.math.Quaternion;
 import org.vivecraft.utils.math.Vector3;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.LadderBlock;
-import net.minecraft.block.VineBlock;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Direction.Axis;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RayTraceContext;
-import net.minecraft.util.math.RayTraceResult.Type;
-import net.minecraft.util.math.vector.Vector3d;
-
-public class TeleportTracker extends Tracker{
+public class TeleportTracker extends Tracker
+{
     private float teleportEnergy;
-    private Vector3d movementTeleportDestination = new Vector3d(0.0,0.0,0.0);
+    private Vec3 movementTeleportDestination = new Vec3(0.0D, 0.0D, 0.0D);
     private Direction movementTeleportDestinationSideHit;
     public double movementTeleportProgress;
     public double movementTeleportDistance;
-    private Vector3d[] movementTeleportArc = new Vector3d[50];
+    private Vec3[] movementTeleportArc = new Vec3[50];
     public int movementTeleportArcSteps = 0;
-    public double lastTeleportArcDisplayOffset = 0;
+    public double lastTeleportArcDisplayOffset = 0.0D;
     public VRMovementStyle vrMovementStyle = new VRMovementStyle();
 
-	public TeleportTracker(Minecraft mc) {
-		super(mc);
-	}
-
-	public float getTeleportEnergy () {return teleportEnergy;	}
-
-    public boolean isAiming(){
-    	return movementTeleportProgress > 0;
+    public TeleportTracker(Minecraft mc)
+    {
+        super(mc);
     }
-    
-    public Vector3d getDestination(){
-    	return movementTeleportDestination;
+
+    public float getTeleportEnergy()
+    {
+        return this.teleportEnergy;
     }
-    
-	public boolean isActive(ClientPlayerEntity p){
-		if(p == null) return false;
-		if(mc.playerController == null) return false;
-		if(!p.isAlive()) return false;
-		if(p.isSleeping()) return false;
-		return true;
-	}
 
+    public boolean isAiming()
+    {
+        return this.movementTeleportProgress > 0.0D;
+    }
 
-	@Override
-	public void reset(ClientPlayerEntity player) {
-		movementTeleportDestination=new Vector3d(0,0,0);
-		movementTeleportArcSteps = 0;
-		movementTeleportProgress = 0;
-	}
+    public Vec3 getDestination()
+    {
+        return this.movementTeleportDestination;
+    }
 
-	public void doProcess(ClientPlayerEntity player){ //on tick
-
-
-		Random rand = new Random();
-
-        if (teleportEnergy < 100) { teleportEnergy++;}
-        
-        boolean doTeleport = false;
-        Vector3d dest = null;
-
-        boolean bindingTeleport = MCOpenVR.keyTeleport.isKeyDown() && mc.vrPlayer.isTeleportEnabled();
-        boolean seatedTeleport = mc.vrSettings.seated && !mc.vrPlayer.getFreeMove() && (player.movementInput.moveForward != 0 || player.movementInput.moveStrafe != 0);
-
-        if ((bindingTeleport || seatedTeleport) && !player.isPassenger())
+    public boolean isActive(LocalPlayer p)
+    {
+        if (p == null)
         {
-            dest = movementTeleportDestination;
+            return false;
+        }
+        else if (this.mc.gameMode == null)
+        {
+            return false;
+        }
+        else if (!p.isAlive())
+        {
+            return false;
+        }
+        else
+        {
+            return !p.isSleeping();
+        }
+    }
 
-            if (vrMovementStyle.teleportOnRelease)
+    public void reset(LocalPlayer player)
+    {
+        this.movementTeleportDestination = new Vec3(0.0D, 0.0D, 0.0D);
+        this.movementTeleportArcSteps = 0;
+        this.movementTeleportProgress = 0.0D;
+    }
+
+    public void doProcess(LocalPlayer player)
+    {
+        Random random = new Random();
+
+        if (this.teleportEnergy < 100.0F)
+        {
+            ++this.teleportEnergy;
+        }
+
+        boolean flag = false;
+        Vec3 vec3 = null;
+        boolean flag1 = this.mc.vr.keyTeleport.isDown() && this.mc.vrPlayer.isTeleportEnabled();
+        boolean flag2 = this.mc.vrSettings.seated && !this.mc.vrPlayer.getFreeMove() && (player.input.forwardImpulse != 0.0F || player.input.leftImpulse != 0.0F);
+
+        if ((flag1 || flag2) && !player.isPassenger())
+        {
+            vec3 = this.movementTeleportDestination;
+
+            if (this.vrMovementStyle.teleportOnRelease)
             {
-                if (player.movementTeleportTimer==0)
+                if (player.movementTeleportTimer == 0)
                 {
-                     String sound = vrMovementStyle.startTeleportingSound;
-//                    if (sound != null)
-//                    {
-//                        player.playSound(SoundEvents(sound), vrMovementStyle.startTeleportingSoundVolume,
-//                                1.0F / (rand.nextFloat() * 0.4F + 1.2F) + 1.0f * 0.5F);
-//                    }
+                    String playCustomTeleportSound = this.vrMovementStyle.startTeleportingSound;
                 }
-                player.movementTeleportTimer++;
+
+                ++player.movementTeleportTimer;
+
                 if (player.movementTeleportTimer > 0)
                 {
-                    movementTeleportProgress = (float) player.movementTeleportTimer / 1.0f;
-                    if (movementTeleportProgress>=1.0f)
+                    this.movementTeleportProgress = (double)((float)player.movementTeleportTimer / 1.0F);
+
+                    if (this.movementTeleportProgress >= 1.0D)
                     {
-                        movementTeleportProgress = 1.0f;
+                        this.movementTeleportProgress = 1.0D;
                     }
 
-                    if (dest.x != 0 || dest.y != 0 || dest.z != 0)
+                    if (vec3.x != 0.0D || vec3.y != 0.0D || vec3.z != 0.0D)
                     {
-                        Vector3d eyeCenterPos = mc.vrPlayer.vrdata_world_pre.hmd.getPosition();
+                        Vec3 vec38 = this.mc.vrPlayer.vrdata_world_pre.hmd.getPosition();
+                        Vec3 vec31 = vec3.add(-vec38.x, -vec38.y, -vec38.z).normalize();
+                        Vec3 vec32 = player.getLookAngle();
+                        Vec3 vec33 = vec32.cross(new Vec3(0.0D, 1.0D, 0.0D));
+                        Vec3 vec34 = vec33.cross(vec32);
 
-                        // cloud of sparks moving past you
-                        Vector3d motionDir = dest.add(-eyeCenterPos.x, -eyeCenterPos.y, -eyeCenterPos.z).normalize();
-                        Vector3d forward;
-						
-						forward	= player.getLookVec();
-
-                        Vector3d right = forward.crossProduct(new Vector3d(0, 1, 0));
-                        Vector3d up = right.crossProduct(forward);
-
-                        if (vrMovementStyle.airSparkles)
+                        if (this.vrMovementStyle.airSparkles)
                         {
-                            for (int iParticle = 0; iParticle < 3; iParticle++)
+                            for (int i = 0; i < 3; ++i)
                             {
-                                double forwardDist = rand.nextDouble() * 1.0 + 3.5;
-                                double upDist = rand.nextDouble() * 2.5;
-                                double rightDist = rand.nextDouble() * 4.0 - 2.0;
-
-                                Vector3d sparkPos = new Vector3d(eyeCenterPos.x + forward.x * forwardDist,
-                                        eyeCenterPos.y + forward.y * forwardDist,
-                                        eyeCenterPos.z + forward.z * forwardDist);
-                                sparkPos = sparkPos.add(right.x * rightDist, right.y * rightDist, right.z * rightDist);
-                                sparkPos = sparkPos.add(up.x * upDist, up.y * upDist, up.z * upDist);
-
-                                double speed = -0.6;
-//                                EntityFX particle = new ParticleVRTeleportFX(
-//                                        player.world,
-//                                        sparkPos.x, sparkPos.y, sparkPos.z,
-//                                        motionDir.x * speed, motionDir.y * speed, motionDir.z * speed,
-//                                        1.0f);
-//                                mc.effectRenderer.addEffect(particle);
+                                double d0 = random.nextDouble() * 1.0D + 3.5D;
+                                double d1 = random.nextDouble() * 2.5D;
+                                double d2 = random.nextDouble() * 4.0D - 2.0D;
+                                Vec3 vec36 = new Vec3(vec38.x + vec32.x * d0, vec38.y + vec32.y * d0, vec38.z + vec32.z * d0);
+                                vec36 = vec36.add(vec33.x * d2, vec33.y * d2, vec33.z * d2);
+                                vec36.add(vec34.x * d1, vec34.y * d1, vec34.z * d1);
+                                double d3 = -0.6D;
                             }
                         }
                     }
                 }
+            }
+            else if (player.movementTeleportTimer >= 0 && (vec3.x != 0.0D || vec3.y != 0.0D || vec3.z != 0.0D))
+            {
+                if (player.movementTeleportTimer == 0)
+                {
+                }
+
+                ++player.movementTeleportTimer;
+                Vec3 vec39 = player.position();
+                double d6 = vec3.distanceTo(vec39);
+                double d7 = (double)player.movementTeleportTimer * 1.0D / (d6 + 3.0D);
+
+                if (player.movementTeleportTimer > 0)
+                {
+                    this.movementTeleportProgress = d7;
+
+                    if (this.vrMovementStyle.destinationSparkles)
+                    {
+                    }
+
+                    Vec3 vec310 = vec3.add(-player.getX(), -player.getY(), -player.getZ()).normalize();
+                    Vec3 vec311 = player.getLookAngle();
+                    Vec3 vec35 = vec311.cross(new Vec3(0.0D, 1.0D, 0.0D));
+                    Vec3 vec312 = vec35.cross(vec311);
+
+                    if (this.vrMovementStyle.airSparkles)
+                    {
+                        for (int j = 0; j < 3; ++j)
+                        {
+                            double d8 = random.nextDouble() * 1.0D + 3.5D;
+                            double d9 = random.nextDouble() * 2.5D;
+                            double d4 = random.nextDouble() * 4.0D - 2.0D;
+                            Vec3 vec37 = new Vec3(player.getX() + vec311.x * d8, player.getY() + vec311.y * d8, player.getZ() + vec311.z * d8);
+                            vec37 = vec37.add(vec35.x * d4, vec35.y * d4, vec35.z * d4);
+                            vec37.add(vec312.x * d9, vec312.y * d9, vec312.z * d9);
+                            double d5 = -0.6D;
+                        }
+                    }
+                }
+                else
+                {
+                    this.movementTeleportProgress = 0.0D;
+                }
+
+                if (d7 >= 1.0D)
+                {
+                    flag = true;
+                }
+            }
+        }
+        else
+        {
+            if (this.vrMovementStyle.teleportOnRelease && this.movementTeleportProgress >= 1.0D)
+            {
+                vec3 = this.movementTeleportDestination;
+                flag = true;
+            }
+
+            player.movementTeleportTimer = 0;
+            this.movementTeleportProgress = 0.0D;
+        }
+
+        if (flag && vec3 != null && (vec3.x != 0.0D || vec3.y != 0.0D || vec3.z != 0.0D))
+        {
+            this.movementTeleportDistance = (double)Mth.sqrt(vec3.distanceToSqr(player.position()));
+
+            if (this.movementTeleportDistance > 0.0D && this.vrMovementStyle.endTeleportingSound != null)
+            {
+                boolean flag3 = true;
             }
             else
             {
-                if (player.movementTeleportTimer >= 0 && (dest.x != 0 || dest.y != 0 || dest.z != 0))
-                {
-                    if (player.movementTeleportTimer == 0)
-                    {
-//                        String sound = vrMovementStyle.startTeleportingSound;
-//                        if (sound != null)
-//                        {
-//                            player.playSound(SoundEvents.getRegisteredSoundEvent(sound), vrMovementStyle.startTeleportingSoundVolume,
-//                                    1.0F / (rand.nextFloat() * 0.4F + 1.2F) + 1.0f * 0.5F);
-//                        }
-                    }
-                    player.movementTeleportTimer++;
-
-                    Vector3d playerPos = player.getPositionVec();
-                    double dist = dest.distanceTo(playerPos);
-                    double progress = (player.movementTeleportTimer * 1.0) / (dist + 3.0);
-
-                    if (player.movementTeleportTimer > 0)
-                    {
-                        movementTeleportProgress = progress;
-
-                        // spark at dest point
-                        if (vrMovementStyle.destinationSparkles)
-                        {
-                          //  player.world.spawnParticle("instantSpell", dest.x, dest.y, dest.z, 0, 1.0, 0);
-                        }
-
-                        // cloud of sparks moving past you
-                        Vector3d motionDir = dest.add(-player.getPosX(), -player.getPosY(), -player.getPosZ()).normalize();
-                        Vector3d forward = player.getLookVec();
-                        Vector3d right = forward.crossProduct(new Vector3d(0, 1, 0));
-                        Vector3d up = right.crossProduct(forward);
-
-                        if (vrMovementStyle.airSparkles)
-                        {
-                            for (int iParticle = 0; iParticle < 3; iParticle++)
-                            {
-                                double forwardDist = rand.nextDouble() * 1.0 + 3.5;
-                                double upDist = rand.nextDouble() * 2.5;
-                                double rightDist = rand.nextDouble() * 4.0 - 2.0;
-                                Vector3d sparkPos = new Vector3d(player.getPosX() + forward.x * forwardDist,
-                                        player.getPosY() + forward.y * forwardDist,
-                                        player.getPosZ() + forward.z * forwardDist);
-                                sparkPos = sparkPos.add(right.x * rightDist, right.y * rightDist, right.z * rightDist);
-                                sparkPos = sparkPos.add(up.x * upDist, up.y * upDist, up.z * upDist);
-
-                                double speed = -0.6;
-//                                EntityFX particle = new ParticleVRTeleportFX(
-//                                        player.world,
-//                                        sparkPos.x, sparkPos.y, sparkPos.z,
-//                                        motionDir.x * speed, motionDir.y * speed, motionDir.z * speed,
-//                                        1.0f);
-//                                mc.effectRenderer.addEffect(particle);
-                            }
-                        }
-                    } else
-                    {
-                        movementTeleportProgress = 0;
-                    }
-
-                    if (progress >= 1.0)
-                    {
-                        doTeleport = true;
-                    }
-                }
+                boolean flag4 = false;
             }
-        }
-        else //not holding down Ltrigger
-        {
-            if (vrMovementStyle.teleportOnRelease && movementTeleportProgress>=1.0f)
-            {
-                dest = movementTeleportDestination;
-                doTeleport = true;
-            }
-            player.movementTeleportTimer = 0;
-            movementTeleportProgress = 0;
-        }
 
-        if (doTeleport && dest!=null && (dest.x != 0 || dest.y !=0 || dest.z != 0)) //execute teleport
-        {
-            movementTeleportDistance = (float)MathHelper.sqrt(dest.squareDistanceTo(player.getPositionVec()));
-            boolean playCustomTeleportSound = movementTeleportDistance > 0.0f && vrMovementStyle.endTeleportingSound != null;
             Block block = null;
 
-     	   //execute teleport               
-            if(!mc.vrPlayer.isTeleportSupported()){
-            	String tp = "/tp " + dest.x + " " +dest.y + " " + dest.z;      
-            	mc.player.sendChatMessage(tp);
-            } else {          
-            	if(NetworkHelper.serverSupportsDirectTeleport)	player.teleported = true;
-            	player.moveForced(dest.x, dest.y, dest.z);
-            }
-
-            doTeleportCallback();           
-            mc.player.stepSound(new BlockPos(dest), dest);
-
-        }
-  
-	}
-	
-    public void updateTeleportDestinations(GameRenderer renderer, Minecraft mc, ClientPlayerEntity player)
-    { //called every frame
-        mc.getProfiler().startSection("updateTeleportDestinations");
-
-        // no teleporting if on a server that disallows teleporting
-
-        if (vrMovementStyle.arcAiming)
-        {
-            movementTeleportDestination=new Vector3d(0,0,0);
-
-            if (movementTeleportProgress>0.0f)
+            if (!this.mc.vrPlayer.isTeleportSupported())
             {
-                updateTeleportArc(mc, player);
+                String s1 = "/tp " + vec3.x + " " + vec3.y + " " + vec3.z;
+                this.mc.player.chat(s1);
             }
+            else
+            {
+                if (NetworkHelper.serverSupportsDirectTeleport)
+                {
+                    player.teleported = true;
+                }
+
+                player.moveTo(vec3.x, vec3.y, vec3.z);
+            }
+
+            this.doTeleportCallback();
+            this.mc.player.stepSound(new BlockPos(vec3), vec3);
         }
-        else //non-arc modes.
-        {
-//            Vector3d start = mc.gameRenderer.getControllerRenderPos(1);
-//            Vector3d aimDir = mc.vrPlayer.vrdata_world_render.getController(1).getDirection();
-//            
-//            // setup teleport forwards to the mouse cursor
-//            double movementTeleportDistance = 250.0;
-//            Vector3d movementTeleportPos = start.addVector(
-//                    aimDir.x * movementTeleportDistance,
-//                    aimDir.y * movementTeleportDistance,
-//                    aimDir.z * movementTeleportDistance);
-//            RayTraceResult collision = mc.world.rayTraceBlocks(start, movementTeleportPos, !mc.player.isInWater(), true, false);
-//            Vector3d traceDir = start.subtract(movementTeleportPos).normalize();
-//            Vector3d reverseEpsilon = new Vector3d(-traceDir.x * 0.02, -traceDir.y * 0.02, -traceDir.z * 0.02);
-//
-//            // don't update while charging up a teleport
-//            if (movementTeleportProgress != 0)
-//                return;
-//
-//            if (collision != null && collision.typeOfHit != Type.MISS)
-//            {
-//                checkAndSetTeleportDestination(mc, player, start, collision, reverseEpsilon);
-//            }
-        }
-        mc.getProfiler().endSection();
     }
 
-    private void updateTeleportArc(Minecraft mc, ClientPlayerEntity player)
+    public void updateTeleportDestinations(GameRenderer renderer, Minecraft mc, LocalPlayer player)
     {
-        Vector3d start = mc.vrPlayer.vrdata_world_render.getController(1).getPosition(); //and here i was just thinking there was never a need to use the render positions for logic.
-        Vector3d tiltedAim = mc.vrPlayer.vrdata_world_render.getController(1).getDirection(); 
-        Matrix4f handRotation = MCOpenVR.getAimRotation(1);
-        
-        if(mc.vrSettings.seated){
-        	start = mc.gameRenderer.getControllerRenderPos(0);
-        	tiltedAim = mc.vrPlayer.vrdata_world_render.getController(0).getDirection(); 
-        	handRotation =MCOpenVR.getAimRotation(0);
-        }
-        
-        Matrix4f rot = Matrix4f.rotationY(mc.vrPlayer.vrdata_world_render.rotation_radians);
-        handRotation = Matrix4f.multiply(rot, handRotation);
-        
-        // extract hand roll
-        Quaternion handQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(handRotation);
-        Angle euler = handQuat.toEuler();
-        //TODO: use vrdata for this
-        
-        int maxSteps = 50;
-        movementTeleportArc[0] = new Vector3d(
-        		start.x,
-        		start.y,
-        		start.z);
-        
-        movementTeleportArcSteps = 1;
+        mc.getProfiler().push("updateTeleportDestinations");
 
-        // calculate gravity vector for arc
-        float gravityAcceleration = 0.098f;
-        Matrix4f rollCounter = OpenVRUtil.rotationZMatrix((float)Math.toRadians(-euler.getRoll()));
-        Matrix4f gravityTilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -.8f);
-        Matrix4f gravityRotation = Matrix4f.multiply(handRotation, rollCounter);
-        
-        Vector3 forward = new Vector3(0,1,0);
-        Vector3 gravityDirection = gravityRotation.transform(forward);
-        Vector3d gravity = gravityDirection.negate().toVector3d();
-        
-        gravity = gravity.scale(gravityAcceleration);
-
-        
-     //   gravity.rotateAroundY(this.worldRotationRadians);
-
-        // calculate initial move step	
-        float speed = 0.5f;
-        Vector3d velocity = new Vector3d(
-                tiltedAim.x * speed,
-                tiltedAim.y * speed,
-                tiltedAim.z * speed);
-
-        Vector3d pos = new Vector3d(start.x, start.y, start.z);
-        Vector3d newPos;
-
-        // trace arc
-        for (int i=movementTeleportArcSteps;i<maxSteps;i++)
+        if (this.vrMovementStyle.arcAiming)
         {
-        	if (i*4 > teleportEnergy) {
-        		break;
-        		}
-        	newPos = new Vector3d(
-            pos.x + velocity.x,
-            pos.y + velocity.y,
-            pos.z + velocity.z);
+            this.movementTeleportDestination = new Vec3(0.0D, 0.0D, 0.0D);
 
-      	
-            boolean	water =false;
-            if(mc.vrSettings.seated )
-            	water = mc.gameRenderer.inwater;
-            else{
-            	water = !mc.world.getFluidState(new BlockPos(start)).isEmpty();
-            }
-        	
-            //bool params are 'checkcollision' and 'return misses'
-         //   RayTraceResult collision = TPrayTraceBlocks(mc.world, pos, newPos, water ? RayTraceContext.FluidMode.NONE : RayTraceContext.FluidMode.ANY , true, false) ;
-			BlockRayTraceResult collision = 
-					mc.world.rayTraceBlocks(
-					new RayTraceContext(
-							pos,
-							newPos,
-							RayTraceContext.BlockMode.COLLIDER, water ? RayTraceContext.FluidMode.ANY : RayTraceContext.FluidMode.ANY,
-							mc.player));
-            
-            if (collision != null && collision.getType() != Type.MISS)
+            if (this.movementTeleportProgress > 0.0D)
             {
-        		
-                movementTeleportArc[i] = collision.getHitVec();
+                this.updateTeleportArc(mc, player);
+            }
+        }
 
-                movementTeleportArcSteps = i + 1;
+        mc.getProfiler().pop();
+    }
 
-                Vector3d traceDir = pos.subtract(newPos).normalize();
-                Vector3d reverseEpsilon = new Vector3d(-traceDir.x * 0.02, -traceDir.y * 0.02, -traceDir.z * 0.02);
+    private void updateTeleportArc(Minecraft mc, LocalPlayer player)
+    {
+        Vec3 vec3 = mc.vrPlayer.vrdata_world_render.getController(1).getPosition();
+        Vec3 vec31 = mc.vrPlayer.vrdata_world_render.getController(1).getDirection();
+        Matrix4f matrix4f = mc.vr.getAimRotation(1);
 
-                checkAndSetTeleportDestination(mc, player, start, collision, reverseEpsilon);
-                                        
-    			Vector3d diff = mc.player.getPositionVec().subtract(movementTeleportDestination);
-       
-        		double yDiff = diff.y;
-        		movementTeleportDistance = diff.length();
-        		double xzdiff = Math.sqrt(diff.x * diff.x + diff.z*diff.z);
-        		
-        		boolean ok = true;
-        		
-            	if(mc.player.isSneaking()) {
-            		if(yDiff > 0.2)
-            			ok = false;
-            	}        	
+        if (mc.vrSettings.seated)
+        {
+            vec3 = mc.gameRenderer.getControllerRenderPos(0);
+            vec31 = mc.vrPlayer.vrdata_world_render.getController(0).getDirection();
+            matrix4f = mc.vr.getAimRotation(0);
+        }
 
-            	if (!mc.player.abilities.allowFlying && NetworkHelper.isLimitedSurvivalTeleport()) { //survival mode mode
-        			if(NetworkHelper.getTeleportDownLimit() > 0 && yDiff > NetworkHelper.getTeleportDownLimit() + 0.2)
-        	    		ok = false;
-        			else if(NetworkHelper.getTeleportUpLimit() > 0 && -yDiff > ((double)NetworkHelper.getTeleportUpLimit()) * player.getMuhJumpFactor() + 0.2)
-        	    		ok = false;  			
-        			else if(NetworkHelper.getTeleportHorizLimit() > 0 && xzdiff > ((double)NetworkHelper.getTeleportHorizLimit()) * player.getMuhSpeedFactor() + 0.2)
-        	    		ok = false;
-            	}
-                
-            	if(!ok) { //u fail.
-            		movementTeleportDestination = new Vector3d(0, 0, 0);
-            		movementTeleportDistance = 0;
-            	}
-            	
+        Matrix4f matrix4f1 = Matrix4f.rotationY(mc.vrPlayer.vrdata_world_render.rotation_radians);
+        matrix4f = Matrix4f.multiply(matrix4f1, matrix4f);
+        Quaternion quaternion = OpenVRUtil.convertMatrix4ftoRotationQuat(matrix4f);
+        Angle angle = quaternion.toEuler();
+        int i = 50;
+        this.movementTeleportArc[0] = new Vec3(vec3.x, vec3.y, vec3.z);
+        this.movementTeleportArcSteps = 1;
+        float f = 0.098F;
+        Matrix4f matrix4f2 = Utils.rotationZMatrix((float)Math.toRadians((double)(-angle.getRoll())));
+        Matrix4f matrix4f3 = Utils.rotationXMatrix(-2.5132742F);
+        Matrix4f matrix4f4 = Matrix4f.multiply(matrix4f, matrix4f2);
+        Vector3 vector3 = new Vector3(0.0F, 1.0F, 0.0F);
+        Vector3 vector31 = matrix4f4.transform(vector3);
+        Vec3 vec32 = vector31.negate().toVector3d();
+        vec32 = vec32.scale((double)f);
+        float f1 = 0.5F;
+        Vec3 vec33 = new Vec3(vec31.x * (double)f1, vec31.y * (double)f1, vec31.z * (double)f1);
+        Vec3 vec34 = new Vec3(vec3.x, vec3.y, vec3.z);
+
+        for (int j = this.movementTeleportArcSteps; j < i && !((float)(j * 4) > this.teleportEnergy); ++j)
+        {
+            Vec3 vec35 = new Vec3(vec34.x + vec33.x, vec34.y + vec33.y, vec34.z + vec33.z);
+            boolean flag = false;
+
+            if (mc.vrSettings.seated)
+            {
+                flag = mc.gameRenderer.inwater;
+            }
+            else
+            {
+                flag = !mc.level.getFluidState(new BlockPos(vec3)).isEmpty();
+            }
+
+            BlockHitResult blockhitresult = mc.level.clip(new ClipContext(vec34, vec35, ClipContext.Block.COLLIDER, flag ? ClipContext.Fluid.ANY : ClipContext.Fluid.ANY, mc.player));
+
+            if (blockhitresult != null && blockhitresult.getType() != HitResult.Type.MISS)
+            {
+                this.movementTeleportArc[j] = blockhitresult.getLocation();
+                this.movementTeleportArcSteps = j + 1;
+                Vec3 vec36 = vec34.subtract(vec35).normalize();
+                Vec3 vec37 = new Vec3(-vec36.x * 0.02D, -vec36.y * 0.02D, -vec36.z * 0.02D);
+                this.checkAndSetTeleportDestination(mc, player, vec3, blockhitresult, vec37);
+                Vec3 vec38 = mc.player.position().subtract(this.movementTeleportDestination);
+                double d0 = vec38.y;
+                this.movementTeleportDistance = vec38.length();
+                double d1 = Math.sqrt(vec38.x * vec38.x + vec38.z * vec38.z);
+                boolean flag1 = true;
+
+                if (mc.player.isShiftKeyDown() && d0 > 0.2D)
+                {
+                    flag1 = false;
+                }
+
+                if (!mc.player.abilities.mayfly && NetworkHelper.isLimitedSurvivalTeleport())
+                {
+                    if (NetworkHelper.getTeleportDownLimit() > 0 && d0 > (double)NetworkHelper.getTeleportDownLimit() + 0.2D)
+                    {
+                        flag1 = false;
+                    }
+                    else if (NetworkHelper.getTeleportUpLimit() > 0 && -d0 > (double)NetworkHelper.getTeleportUpLimit() * (double)player.getMuhJumpFactor() + 0.2D)
+                    {
+                        flag1 = false;
+                    }
+                    else if (NetworkHelper.getTeleportHorizLimit() > 0 && d1 > (double)NetworkHelper.getTeleportHorizLimit() * (double)player.getMuhSpeedFactor() + 0.2D)
+                    {
+                        flag1 = false;
+                    }
+                }
+
+                if (!flag1)
+                {
+                    this.movementTeleportDestination = new Vec3(0.0D, 0.0D, 0.0D);
+                    this.movementTeleportDistance = 0.0D;
+                }
+
                 break;
             }
 
-            pos = new Vector3d(newPos.x, newPos.y, newPos.z);
-
-
-            movementTeleportArc[i] = new Vector3d(
-            		newPos.x,
-            		newPos.y,
-            		newPos.z);
-
-            movementTeleportArcSteps = i + 1;
-
-            velocity = velocity.add(gravity);
-
+            vec34 = new Vec3(vec35.x, vec35.y, vec35.z);
+            this.movementTeleportArc[j] = new Vec3(vec35.x, vec35.y, vec35.z);
+            this.movementTeleportArcSteps = j + 1;
+            vec33 = vec33.add(vec32);
         }
     }
 
-    
-    private void doTeleportCallback(){ //not really a callback anymore, is it?
-        Minecraft mc = Minecraft.getInstance();
-
-        mc.swingTracker.disableSwing = 3;
-
-        if(NetworkHelper.isLimitedSurvivalTeleport()){
-          mc.player.addExhaustion((float) (movementTeleportDistance / 16 * 1.2f));    
-          
-          if (mc.playerController.isNotCreative() && vrMovementStyle.arcAiming){
-          	teleportEnergy -= movementTeleportDistance * 4;	
-          }       
-        }
-        
-        mc.player.fallDistance = 0.0F;
-
-        mc.player.movementTeleportTimer = -1;
-        
-    }
-	
-    // look for a valid place to stand on the block that the trace collided with
-    private boolean checkAndSetTeleportDestination(Minecraft mc, ClientPlayerEntity player, Vector3d start, BlockRayTraceResult collision, Vector3d reverseEpsilon)
+    private void doTeleportCallback()
     {
+        Minecraft minecraft = Minecraft.getInstance();
+        minecraft.swingTracker.disableSwing = 3;
 
-    	BlockPos bp = ((BlockRayTraceResult)collision).getPos();
+        if (NetworkHelper.isLimitedSurvivalTeleport())
+        {
+            minecraft.player.causeFoodExhaustion((float)(this.movementTeleportDistance / 16.0D * (double)1.2F));
 
-    	BlockState testClimb = player.world.getBlockState(bp); 	
-    	
-    	if (!mc.world.getFluidState(bp).isEmpty()){
-    		Vector3d hitVec = new Vector3d(collision.getHitVec().x, bp.getY(), collision.getHitVec().z );
+            if (minecraft.gameMode.hasMissTime() && this.vrMovementStyle.arcAiming)
+            {
+                this.teleportEnergy = (float)((double)this.teleportEnergy - this.movementTeleportDistance * 4.0D);
+            }
+        }
 
-    		Vector3d offset = hitVec.subtract(player.getPosX(), player.getBoundingBox().minY, player.getPosZ());
-    		AxisAlignedBB bb = player.getBoundingBox().offset(offset.x, offset.y, offset.z);
-    		boolean emptySpotReq = mc.world.hasNoCollisions(player,bb);
-
-    		if(!emptySpotReq){
-    			Vector3d center = Vector3d.copyCenteredHorizontally(bp);
-    			offset = center.subtract(player.getPosX(), player.getBoundingBox().minY, player.getPosZ());
-    			bb = player.getBoundingBox().offset(offset.x, offset.y, offset.z);
-    			emptySpotReq = mc.world.hasNoCollisions(player,bb);	
-    		}
-    		float ex = 0;
-    		if(mc.vrSettings.seated)ex = 0.5f;
-    		if(emptySpotReq){
-    			movementTeleportDestination = new Vector3d(bb.getCenter().x,bb.minY+ex, bb.getCenter().z);
-    			movementTeleportDestinationSideHit = collision.getFace();
-    			return true;
-    		}
-
-    	} else if (collision.getFace() != Direction.UP) 
-    	{ //sides  		    		
-    		//jrbudda require arc hitting top of block.	unless ladder or vine or creative or limits off.
-
-    		if (testClimb.getBlock() instanceof LadderBlock|| testClimb.getBlock() instanceof VineBlock) {
-    			Vector3d dest = new Vector3d(bp.getX()+0.5, bp.getY() + 0.5, bp.getZ()+0.5);
-
-    			Block playerblock = mc.world.getBlockState(bp.down()).getBlock();
-    			if(playerblock == testClimb.getBlock()) dest = dest.add(0,-1,0);
-
-    			movementTeleportDestination = dest.scale(1);
-    			movementTeleportDestinationSideHit = collision.getFace();
-    			
-    			return true; //really should check if the block above is passable. Maybe later.
-    		} else {
-    			if (!mc.player.abilities.allowFlying && NetworkHelper.isLimitedSurvivalTeleport())
-    				return false; //if creative, check if can hop on top.
-    		}
-    	}
-
-    	double y = 0;
-    	BlockPos hitBlock = collision.getPos().down();
-
-    	for(int k = 0; k<2; k++){
-
-    		testClimb = player.world.getBlockState(hitBlock);
-    		if (testClimb.getCollisionShape(mc.world, hitBlock).isEmpty()){
-    			hitBlock = hitBlock.up();
-    			continue;
-    		}
-    		
-    		double height = testClimb.getCollisionShape(mc.world, hitBlock).getEnd(Axis.Y);
-    		
-    		Vector3d hitVec = new Vector3d(collision.getHitVec().x, hitBlock.getY() + height, collision.getHitVec().z );
-    		Vector3d offset = hitVec.subtract(player.getPosX(), player.getBoundingBox().minY, player.getPosZ());
-    		AxisAlignedBB bb = player.getBoundingBox().offset(offset.x, offset.y, offset.z);
-    		double ex = 0;
-    		if (testClimb.getBlock() == Blocks.SOUL_SAND || testClimb.getBlock() == Blocks.HONEY_BLOCK) ex = 0.05;
-
-    		boolean emptySpotReq = mc.world.hasNoCollisions(player,bb) &&
-    				!mc.world.hasNoCollisions(player,bb.grow(0, .125 + ex, 0));     
-
-    		if(!emptySpotReq){
-    			Vector3d center = Vector3d.copyCenteredWithVerticalOffset(hitBlock, height);
-    			offset = center.subtract(player.getPosX(), player.getBoundingBox().minY, player.getPosZ());
-    			bb = player.getBoundingBox().offset(offset.x, offset.y, offset.z);
-    			emptySpotReq = mc.world.hasNoCollisions(player,bb) &&
-    					!mc.world.hasNoCollisions(player,bb.grow(0, .125 + ex, 0));     	
-    		}
-
-    		if(emptySpotReq){
-    			Vector3d dest = new Vector3d(bb.getCenter().x, hitBlock.getY() + height, bb.getCenter().z);
-
-    			movementTeleportDestination = dest.scale(1);
-    			
-    			return true;
-    		}
-    		
-    		hitBlock = hitBlock.up();
-    	}
-
-    	return false;
+        minecraft.player.fallDistance = 0.0F;
+        minecraft.player.movementTeleportTimer = -1;
     }
 
-    // rough interpolation between arc locations
-    public Vector3d getInterpolatedArcPosition(float progress)
+    private boolean checkAndSetTeleportDestination(Minecraft mc, LocalPlayer player, Vec3 start, BlockHitResult collision, Vec3 reverseEpsilon)
     {
-        // not enough points to interpolate or before start
-        if (movementTeleportArcSteps == 1 || progress <= 0.0f)
+        BlockPos blockpos = collision.getBlockPos();
+        BlockState blockstate = player.level.getBlockState(blockpos);
+
+        if (!mc.level.getFluidState(blockpos).isEmpty())
         {
-            return new Vector3d(
-                    movementTeleportArc[0].x,
-                    movementTeleportArc[0].y,
-                    movementTeleportArc[0].z);
+            Vec3 vec3 = new Vec3(collision.getLocation().x, (double)blockpos.getY(), collision.getLocation().z);
+            Vec3 vec31 = vec3.subtract(player.getX(), player.getBoundingBox().minY, player.getZ());
+            AABB aabb = player.getBoundingBox().move(vec31.x, vec31.y, vec31.z);
+            boolean flag = mc.level.noCollision(player, aabb);
+
+            if (!flag)
+            {
+                Vec3 vec32 = Vec3.atBottomCenterOf(blockpos);
+                vec31 = vec32.subtract(player.getX(), player.getBoundingBox().minY, player.getZ());
+                aabb = player.getBoundingBox().move(vec31.x, vec31.y, vec31.z);
+                flag = mc.level.noCollision(player, aabb);
+            }
+
+            float f = 0.0F;
+
+            if (mc.vrSettings.seated)
+            {
+                f = 0.5F;
+            }
+
+            if (flag)
+            {
+                this.movementTeleportDestination = new Vec3(aabb.getCenter().x, aabb.minY + (double)f, aabb.getCenter().z);
+                this.movementTeleportDestinationSideHit = collision.getDirection();
+                return true;
+            }
+        }
+        else if (collision.getDirection() != Direction.UP)
+        {
+            if (blockstate.getBlock() instanceof LadderBlock || blockstate.getBlock() instanceof VineBlock)
+            {
+                Vec3 vec36 = new Vec3((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D);
+                Block block = mc.level.getBlockState(blockpos.below()).getBlock();
+
+                if (block == blockstate.getBlock())
+                {
+                    vec36 = vec36.add(0.0D, -1.0D, 0.0D);
+                }
+
+                this.movementTeleportDestination = vec36.scale(1.0D);
+                this.movementTeleportDestinationSideHit = collision.getDirection();
+                return true;
+            }
+
+            if (!mc.player.abilities.mayfly && NetworkHelper.isLimitedSurvivalTeleport())
+            {
+                return false;
+            }
         }
 
-        // past end of arc
-        if (progress>=1.0f)
+        double d1 = 0.0D;
+        BlockPos blockpos1 = collision.getBlockPos().below();
+
+        for (int i = 0; i < 2; ++i)
         {
-            return new Vector3d(
-                    movementTeleportArc[movementTeleportArcSteps-1].x,
-                    movementTeleportArc[movementTeleportArcSteps-1].y,
-                    movementTeleportArc[movementTeleportArcSteps-1].z);
+            blockstate = player.level.getBlockState(blockpos1);
+
+            if (blockstate.getCollisionShape(mc.level, blockpos1).isEmpty())
+            {
+                blockpos1 = blockpos1.above();
+            }
+            else
+            {
+                double d2 = blockstate.getCollisionShape(mc.level, blockpos1).max(Direction.Axis.Y);
+                Vec3 vec33 = new Vec3(collision.getLocation().x, (double)blockpos1.getY() + d2, collision.getLocation().z);
+                Vec3 vec34 = vec33.subtract(player.getX(), player.getBoundingBox().minY, player.getZ());
+                AABB aabb1 = player.getBoundingBox().move(vec34.x, vec34.y, vec34.z);
+                double d0 = 0.0D;
+
+                if (blockstate.getBlock() == Blocks.SOUL_SAND || blockstate.getBlock() == Blocks.HONEY_BLOCK)
+                {
+                    d0 = 0.05D;
+                }
+
+                boolean flag1 = mc.level.noCollision(player, aabb1) && !mc.level.noCollision(player, aabb1.inflate(0.0D, 0.125D + d0, 0.0D));
+
+                if (!flag1)
+                {
+                    Vec3 vec35 = Vec3.upFromBottomCenterOf(blockpos1, d2);
+                    vec34 = vec35.subtract(player.getX(), player.getBoundingBox().minY, player.getZ());
+                    aabb1 = player.getBoundingBox().move(vec34.x, vec34.y, vec34.z);
+                    flag1 = mc.level.noCollision(player, aabb1) && !mc.level.noCollision(player, aabb1.inflate(0.0D, 0.125D + d0, 0.0D));
+                }
+
+                if (flag1)
+                {
+                    Vec3 vec37 = new Vec3(aabb1.getCenter().x, (double)blockpos1.getY() + d2, aabb1.getCenter().z);
+                    this.movementTeleportDestination = vec37.scale(1.0D);
+                    return true;
+                }
+
+                blockpos1 = blockpos1.above();
+            }
         }
 
-        // which two points are we between?
-        float stepFloat = progress * (float)(movementTeleportArcSteps - 1);
-        int step = (int) Math.floor(stepFloat);
-
-        double deltaX = movementTeleportArc[step+1].x - movementTeleportArc[step].x;
-        double deltaY = movementTeleportArc[step+1].y - movementTeleportArc[step].y;
-        double deltaZ = movementTeleportArc[step+1].z - movementTeleportArc[step].z;
-
-        float stepProgress = stepFloat - step;
-
-        return new Vector3d(
-                movementTeleportArc[step].x + deltaX * stepProgress,
-                movementTeleportArc[step].y + deltaY * stepProgress,
-                movementTeleportArc[step].z + deltaZ * stepProgress);
+        return false;
     }
 
+    public Vec3 getInterpolatedArcPosition(float progress)
+    {
+        if (this.movementTeleportArcSteps != 1 && !(progress <= 0.0F))
+        {
+            if (progress >= 1.0F)
+            {
+                return new Vec3(this.movementTeleportArc[this.movementTeleportArcSteps - 1].x, this.movementTeleportArc[this.movementTeleportArcSteps - 1].y, this.movementTeleportArc[this.movementTeleportArcSteps - 1].z);
+            }
+            else
+            {
+                float f = progress * (float)(this.movementTeleportArcSteps - 1);
+                int i = (int)Math.floor((double)f);
+                double d0 = this.movementTeleportArc[i + 1].x - this.movementTeleportArc[i].x;
+                double d1 = this.movementTeleportArc[i + 1].y - this.movementTeleportArc[i].y;
+                double d2 = this.movementTeleportArc[i + 1].z - this.movementTeleportArc[i].z;
+                float f1 = f - (float)i;
+                return new Vec3(this.movementTeleportArc[i].x + d0 * (double)f1, this.movementTeleportArc[i].y + d1 * (double)f1, this.movementTeleportArc[i].z + d2 * (double)f1);
+            }
+        }
+        else
+        {
+            return new Vec3(this.movementTeleportArc[0].x, this.movementTeleportArc[0].y, this.movementTeleportArc[0].z);
+        }
+    }
 }
-

@@ -1,27 +1,37 @@
 package org.vivecraft.gameplay.trackers;
 
-import org.vivecraft.gameplay.OpenVRPlayer;
-
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraft.client.player.LocalPlayer;
 
-/**
- * register in {@link OpenVRPlayer}
- * */
-public abstract class Tracker {
-	public Minecraft mc;
-	public Tracker(Minecraft mc){
-		this.mc=mc;
-	}
+public abstract class Tracker
+{
+    public Minecraft mc;
 
-	public abstract boolean isActive(ClientPlayerEntity player);
-	public abstract void doProcess(ClientPlayerEntity player);
-	public void reset(ClientPlayerEntity player){}
-	public void idleTick(ClientPlayerEntity player){}
+    public Tracker(Minecraft mc)
+    {
+        this.mc = mc;
+    }
 
-	public EntryPoint getEntryPoint(){return EntryPoint.LIVING_UPDATE;}
+    public abstract boolean isActive(LocalPlayer var1);
 
-	public enum EntryPoint{
-		LIVING_UPDATE, SPECIAL_ITEMS
-	}
+    public abstract void doProcess(LocalPlayer var1);
+
+    public void reset(LocalPlayer player)
+    {
+    }
+
+    public void idleTick(LocalPlayer player)
+    {
+    }
+
+    public Tracker.EntryPoint getEntryPoint()
+    {
+        return Tracker.EntryPoint.LIVING_UPDATE;
+    }
+
+    public static enum EntryPoint
+    {
+        LIVING_UPDATE,
+        SPECIAL_ITEMS;
+    }
 }

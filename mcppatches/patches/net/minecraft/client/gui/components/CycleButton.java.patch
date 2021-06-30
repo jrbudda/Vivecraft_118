@@ -1,0 +1,24 @@
+--- a/net/minecraft/client/gui/components/CycleButton.java
++++ b/net/minecraft/client/gui/components/CycleButton.java
+@@ -175,17 +175,17 @@
+ 
+     public static CycleButton.Builder<Boolean> booleanBuilder(Component p_168897_, Component p_168898_)
+     {
+-        return (new CycleButton.Builder<>((p_195303_2_) ->
++        return (new CycleButton.Builder<Boolean>((p_195303_2_) ->
+         {
+-            return p_195303_2_ ? p_168897_ : p_168898_;
++            return (boolean) p_195303_2_ ? p_168897_ : p_168898_;
+         })).withValues(BOOLEAN_OPTIONS);
+     }
+ 
+     public static CycleButton.Builder<Boolean> onOffBuilder()
+     {
+-        return (new CycleButton.Builder<>((p_195294_0_) ->
++        return (new CycleButton.Builder<Boolean>((p_195294_0_) ->
+         {
+-            return p_195294_0_ ? CommonComponents.OPTION_ON : CommonComponents.OPTION_OFF;
++            return (boolean) p_195294_0_ ? CommonComponents.OPTION_ON : CommonComponents.OPTION_OFF;
+         })).withValues(BOOLEAN_OPTIONS);
+     }
+ 

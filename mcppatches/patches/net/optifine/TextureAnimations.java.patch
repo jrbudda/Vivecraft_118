@@ -8,7 +8,7 @@
 +        return (TextureAnimation[]) list.toArray(new TextureAnimation[list.size()]);
      }
  
-     private static TextureAnimation[] getTextureAnimations(IResourcePack rp)
+     private static TextureAnimation[] getTextureAnimations(PackResources rp)
 @@ -144,7 +144,7 @@
                  }
              }

@@ -1,0 +1,37 @@
+--- a/net/minecraft/client/renderer/block/LiquidBlockRenderer.java
++++ b/net/minecraft/client/renderer/block/LiquidBlockRenderer.java
+@@ -87,7 +87,7 @@
+     public boolean tesselate(BlockAndTintGetter p_110955_, BlockPos p_110956_, VertexConsumer p_110957_, FluidState p_110958_)
+     {
+         BlockState blockstate = p_110958_.createLegacyBlock();
+-        boolean f;
++        boolean flg, flag7 = false;
+ 
+         try
+         {
+@@ -142,7 +142,6 @@
+                 float f28 = (float)(i >> 16 & 255) / 255.0F;
+                 float f1 = (float)(i >> 8 & 255) / 255.0F;
+                 float f2 = (float)(i & 255) / 255.0F;
+-                boolean flag7 = false;
+                 float f3 = p_110955_.getShade(Direction.DOWN, true);
+                 float f4 = p_110955_.getShade(Direction.UP, true);
+                 float f5 = p_110955_.getShade(Direction.NORTH, true);
+@@ -430,7 +429,7 @@
+                 return flag7;
+             }
+ 
+-            f = false;
++            flg = flag7;
+         }
+         finally
+         {
+@@ -440,7 +439,7 @@
+             }
+         }
+ 
+-        return f;
++        return flg;
+     }
+ 
+     private void vertex(VertexConsumer p_110985_, double p_110986_, double p_110987_, double p_110988_, float p_110989_, float p_110990_, float p_110991_, float p_110992_, float p_110993_, int p_110994_)

@@ -899,12 +899,11 @@ class Commands(object):
 
                 for flag in [_winreg.KEY_WOW64_64KEY, _winreg.KEY_WOW64_32KEY]:
                     try:
-                        k = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r'Software\JavaSoft\Java Development Kit', 0,
+                        k = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r'Software\JavaSoft\JDK', 0,
                                             _winreg.KEY_READ | flag)
                         version, _ = _winreg.QueryValueEx(k, 'CurrentVersion')
                         k.Close()
-                        k = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
-                                            r'Software\JavaSoft\Java Development Kit\%s' % version, 0,
+                        k = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r'Software\JavaSoft\JDK\%s' % version, 0,
                                             _winreg.KEY_READ | flag)
                         path, _ = _winreg.QueryValueEx(k, 'JavaHome')
                         k.Close()
@@ -947,7 +946,8 @@ class Commands(object):
             sys.exit(1)
         self.cmdjavac = '"%s"' % os.path.join(results[0], 'javac')
         self.cmdjava = '"%s"' % os.path.join(results[0], 'java')
-
+        self.logger.error('java runtime is ' + self.cmdjava)
+        
     def checkscala(self):
         cmd = None
         try:
@@ -1205,26 +1205,49 @@ class Commands(object):
             self.logger.error('==================')
             self.logger.error('')
             raise
-
-    def load_srg_arrays(self, file):
-        if  not os.path.isfile(file):
-            return None
-        srg_types = {'PK:': ['', ''], 'CL:': ['', ''], 'FD:': ['', ''], 'MD:': ['', '', '', '']}
+      
+    def parse_tsrg2_array(self, file):  
+        srg_types = {'PK': ['obf_name', 'deobf_name'],
+                     'CL': ['obf_name', 'deobf_name'],
+                     'FD': ['obf_name', 'deobf_name'],
+                     'MD': ['obf_name', 'obf_desc', 'deobf_name', 'deobf_desc']}
         parsed_dict = {'PK': [], 'CL': [], 'FD': [], 'MD': []}
 
-        def get_parsed_line(keyword, buf):
-            return [value[1] for value in zip(srg_types[keyword], [i.strip() for i in buf])]
 
         with open(file, 'r') as srg_file:
+            cclass = ['','']
             for buf in srg_file:
-                buf = buf.strip()
-                if  '#' in buf: buf = buf[:buf.find('#')]
-                if buf == '' or buf[0] == '#':
+                key = ''
+                if 'tsrg' in buf:
                     continue
-                buf = buf.split()
-                parsed_dict[buf[0][:2]].append(get_parsed_line(buf[0], buf[1:]))
+                if buf.startswith('\t\t'):
+                    #params, ignore
+                    continue
+                elif buf.startswith('\t'):
+                    if cclass[0] == '':
+                        print 'invalid srg ' + buf + ' has no class '
+                        continue
+                    #f or m
+                    buf = buf.split()
+                    if len(buf) == 3:
+                        #fd
+                        key = 'FD'
+                        parsed_dict[key].append([cclass[0] + "/" + buf[0], cclass[1] + '/' + buf[1]])
+                    elif len(buf) == 4:
+                        #md
+                        key = 'MD'
+                        parsed_dict[key].append([cclass[0] + "/" + buf[0], buf[1], cclass[1] + '/' + buf[2], buf[1]])
+                    else:
+                        key = 'wut'
+                        #what
+                else:
+                    #class
+                    key = 'CL'
+                    buf = buf.split()
+                    cclass = [buf[0], buf[1]]
+                    parsed_dict[key].append([buf[0], buf[1]])
         return parsed_dict
-    
+      
     def createclssrg(self, side):
         reobsrg = {CLIENT: self.reobsrgclient, SERVER: self.reobsrgserver}
         clssrg  = {CLIENT: self.reobsrgclientcls, SERVER: self.reobsrgservercls}
@@ -1239,12 +1262,17 @@ class Commands(object):
             if '=CL_00' in line:
                 columns = line.split("=")
                 renames[columns[0]] = columns[1] + '_' # This is added here just to make sure our numbers don't run on to anything else
-        
-        srg = self.load_srg_arrays(reobsrg[side])
+                
+        #def stripTuple(srg):
+        #    for a in srg:
+        #        for l in srg[a]:
+        #            srg[a][l] = [v[1] for v in l]
+                
+        srg = self.parse_tsrg2_array(reobsrg[side])
         os.remove(reobsrg[side])
         
         fixed = {'PK': [], 'CL': [], 'FD': [], 'MD': []}
-        fixed['PK'] = [v for v in srg['PK']]
+        fixed['PK'] = [v[1] for v in srg['PK']]
         def rename(match):
             return 'L' + renames.get(match.group(1), match.group(1)) + ';'        
         for v in srg['CL']:
@@ -1409,6 +1437,7 @@ class Commands(object):
             zipjar.extractall(pathsrclk[side])
         
     def applyexceptor(self, side, exc_update=False, dryrun=False):
+        return
         """Apply exceptor to the given side"""
         excinput = {CLIENT: self.rgclientout, SERVER: self.rgserverout}
         excinputdry = {CLIENT: self.cmpjarclient, SERVER: self.cmpjarserver}        
@@ -1848,8 +1877,8 @@ class Commands(object):
                         names['params'][row['param']] = row['name']
 
         regexps = {
-            'methods': re.compile(r'func_[0-9]+_[a-zA-Z_]+'),
-            'fields': re.compile(r'field_[0-9]+_[a-zA-Z_]+'),
+            'methods': re.compile(r'm_[0-9]+_'),
+            'fields': re.compile(r'f_[0-9]+_'),
             'params': re.compile(r'p_[\w]+_\d+_'),
         }
 

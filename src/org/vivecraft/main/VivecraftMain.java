@@ -1,125 +1,131 @@
 package org.vivecraft.main;
 
+import com.google.common.base.Throwables;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-
-import org.vivecraft.asm.VivecraftASMTransformer;
-import org.vivecraft.tweaker.MinecriftClassTransformer;
-import org.vivecraft.tweaker.MinecriftClassTransformer.Stage;
-
-import com.google.common.base.Throwables;
-
+import java.util.Map;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.LaunchClassLoader;
+import org.vivecraft.tweaker.MinecriftClassTransformer;
 
 public class VivecraftMain
 {
-	private static final String[] encapsulatedTransformers = new String[]{
-	};
-	private static final String[] removedTransformers = new String[]{
-		"guichaguri.betterfps.transformers.PatcherTransformer",
-		"sampler.asm.Transformer"
-	};
-	
-	public static void main(String[] p_main_0_)
+    private static final String[] encapsulatedTransformers = new String[0];
+    private static final String[] removedTransformers = new String[] {"guichaguri.betterfps.transformers.PatcherTransformer", "sampler.asm.Transformer"};
+
+    public static void main(String[] p_main_0_)
     {
-		LaunchClassLoader load = (LaunchClassLoader) Thread.currentThread().getContextClassLoader();
-		
-		try {
-			Field f = load.getClass().getDeclaredField("transformers");
-			f.setAccessible(true);
-			
-			
-			List<IClassTransformer> transformers = (List<IClassTransformer>) f.get(load);
-			List<IClassTransformer> encapsulateObf = new ArrayList<IClassTransformer>();
-			List<IClassTransformer> encapsulateDeobf = new ArrayList<IClassTransformer>();
+        LaunchClassLoader launchclassloader = (LaunchClassLoader)Thread.currentThread().getContextClassLoader();
 
-			boolean passedDeobf = false;
-			System.out.println("************** Vivecraft classloader pre-filter ***************");
-			for (final Iterator it = transformers.iterator(); it.hasNext(); ) {
-				IClassTransformer t = (IClassTransformer) it.next();
+        try
+        {
+            Field field = launchclassloader.getClass().getDeclaredField("transformers");
+            field.setAccessible(true);
+            List<IClassTransformer> list = (List)field.get(launchclassloader);
+            List<IClassTransformer> list1 = new ArrayList<>();
+            List<IClassTransformer> list2 = new ArrayList<>();
+            boolean flag = false;
+            System.out.println("************** Vivecraft classloader pre-filter ***************");
+            Iterator iterator = list.iterator();
 
-				System.out.println(t.getClass().getName());
+            while (iterator.hasNext())
+            {
+                IClassTransformer iclasstransformer = (IClassTransformer)iterator.next();
+                System.out.println(iclasstransformer.getClass().getName());
 
-				if (t.getClass().getName().equals("net.minecraftforge.fml.common.asm.transformers.DeobfuscationTransformer")) {
-					passedDeobf = true;
-				}
-				for (String dt : encapsulatedTransformers) {
-				    if (t.getClass().getName().equals(dt) || t.getClass().getName().equals("$wrapper." + dt)) {
-				    	if (passedDeobf) {
-				    		encapsulateDeobf.add(t);
-				    	} else {
-				    		encapsulateObf.add(t);
-				    	}
-				    	it.remove();
-				    	break;
-				    }
-				}
-				for (String dt : removedTransformers) {
-				    if (t.getClass().getName().equals(dt) || t.getClass().getName().equals("$wrapper." + dt)) {
-				    	it.remove();
-				    	break;
-				    }
-				}
-			}
+                if (iclasstransformer.getClass().getName().equals("net.minecraftforge.fml.common.asm.transformers.DeobfuscationTransformer"))
+                {
+                    flag = true;
+                }
 
-			//transformers.add(2, new VivecraftASMTransformer(true));
-			transformers.add(2, new MinecriftClassTransformer(Stage.MAIN, null));
-			int forgeObfIndex = 0;
-			for (int i = 0; i < transformers.size(); i++) {
-				IClassTransformer t = transformers.get(i);
-				if (t.getClass().getName().equals("$wrapper.net.minecraftforge.fml.common.asm.transformers.EventSubscriberTransformer")) {
-					forgeObfIndex = i + 1;
-					break;
-				}
-			}
+                for (String s : encapsulatedTransformers)
+                {
+                    if (iclasstransformer.getClass().getName().equals(s) || iclasstransformer.getClass().getName().equals("$wrapper." + s))
+                    {
+                        if (flag)
+                        {
+                            list2.add(iclasstransformer);
+                        }
+                        else
+                        {
+                            list1.add(iclasstransformer);
+                        }
 
-			if (encapsulateObf.size() > 0) { //Dirty Harry Potter.
-				HashMap<String, byte[]> cacheMap = new HashMap<String, byte[]>();
-				transformers.add(forgeObfIndex, new MinecriftClassTransformer(Stage.CACHE, cacheMap));
-				transformers.addAll(forgeObfIndex + 1, encapsulateObf);
-				transformers.add(forgeObfIndex + encapsulateObf.size() + 1, new MinecriftClassTransformer(Stage.REPLACE, cacheMap));
-				forgeObfIndex += encapsulateObf.size() + 2;
-			}
-			if (encapsulateDeobf.size() > 0) { //Dirtier Harry Potter.
-				HashMap<String, byte[]> cacheMap = new HashMap<String, byte[]>();
-				transformers.add(transformers.size() - 1, new MinecriftClassTransformer(Stage.CACHE, cacheMap));
-				transformers.addAll(transformers.size() - 1, encapsulateDeobf);
-				transformers.add(transformers.size() - 1, new MinecriftClassTransformer(Stage.REPLACE, cacheMap));
-			}
+                        iterator.remove();
+                        break;
+                    }
+                }
 
-			/*try {
-				Class.forName("net.minecraftforge.fml.common.API"); // don't ask
-				transformers.add(forgeObfIndex, new MinecriftForgeClassTransformer());
-				transformers.add(transformers.size() - 1, new MinecriftForgeLateClassTransformer());
-			} catch (ClassNotFoundException e) {}*/
+                for (String s2 : removedTransformers)
+                {
+                    if (iclasstransformer.getClass().getName().equals(s2) || iclasstransformer.getClass().getName().equals("$wrapper." + s2))
+                    {
+                        iterator.remove();
+                        break;
+                    }
+                }
+            }
 
-	    	System.out.println("************** Vivecraft classloader filter ***************");
-			for (final Iterator it = transformers.iterator(); it.hasNext(); ) {
-				IClassTransformer t = (IClassTransformer) it.next();
-				System.out.println(t.getClass().getName());
-			}
-			
-		} catch (Exception e) {
-			System.out.println("************** Vivecraft filter error ***************");
-			e.printStackTrace();
-		}
+            list.add(2, new MinecriftClassTransformer(MinecriftClassTransformer.Stage.MAIN, (Map<String, byte[]>)null));
+            int i = 0;
 
-		try {
-			final String launchTarget = "net.minecraft.client.main.Main";
-       	 	final Class<?> clazz = Class.forName(launchTarget, false, load);
-         	final Method mainMethod = clazz.getMethod("main", String[].class);
-         	mainMethod.invoke(null, (Object) p_main_0_);
-		} catch (Exception e) {
-	    	System.out.println("************** Vivecraft critical error ***************");
-			Throwables.throwIfUnchecked(e);
-			throw new RuntimeException(e);
-		}
-    	
+            for (int j = 0; j < list.size(); ++j)
+            {
+                IClassTransformer iclasstransformer1 = list.get(j);
+
+                if (iclasstransformer1.getClass().getName().equals("$wrapper.net.minecraftforge.fml.common.asm.transformers.EventSubscriberTransformer"))
+                {
+                    i = j + 1;
+                    break;
+                }
+            }
+
+            if (list1.size() > 0)
+            {
+                HashMap<String, byte[]> hashmap = new HashMap<>();
+                list.add(i, new MinecriftClassTransformer(MinecriftClassTransformer.Stage.CACHE, hashmap));
+                list.addAll(i + 1, list1);
+                list.add(i + list1.size() + 1, new MinecriftClassTransformer(MinecriftClassTransformer.Stage.REPLACE, hashmap));
+                int k = i + list1.size() + 2;
+            }
+
+            if (list2.size() > 0)
+            {
+                HashMap<String, byte[]> hashmap1 = new HashMap<>();
+                list.add(list.size() - 1, new MinecriftClassTransformer(MinecriftClassTransformer.Stage.CACHE, hashmap1));
+                list.addAll(list.size() - 1, list2);
+                list.add(list.size() - 1, new MinecriftClassTransformer(MinecriftClassTransformer.Stage.REPLACE, hashmap1));
+            }
+
+            System.out.println("************** Vivecraft classloader filter ***************");
+
+            for (IClassTransformer iclasstransformer2 : list)
+            {
+                System.out.println(iclasstransformer2.getClass().getName());
+            }
+        }
+        catch (Exception exception1)
+        {
+            System.out.println("************** Vivecraft filter error ***************");
+            exception1.printStackTrace();
+        }
+
+        try
+        {
+            String s1 = "net.minecraft.client.main.Main";
+            Class<?> oclass = Class.forName("net.minecraft.client.main.Main", false, launchclassloader);
+            Method method = oclass.getMethod("main", String[].class);
+            method.invoke((Object)null, p_main_0_);
+        }
+        catch (Exception exception)
+        {
+            System.out.println("************** Vivecraft critical error ***************");
+            Throwables.throwIfUnchecked(exception);
+            throw new RuntimeException(exception);
+        }
     }
-
 }

@@ -1,296 +1,327 @@
 package org.vivecraft.gui.framework;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import java.util.ArrayList;
 import java.util.List;
-
-import net.minecraft.util.text.TranslationTextComponent;
-import net.optifine.Lang;
-import org.lwjgl.glfw.GLFW;
-import org.vivecraft.gui.framework.VROptionLayout.Position;
-import org.vivecraft.settings.VRSettings;
-
-import com.mojang.blaze3d.matrix.MatrixStack;
-
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.gui.widget.list.ExtendedList;
-import net.minecraft.util.math.vector.Vector2f;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.phys.Vec2;
+import net.optifine.Lang;
+import org.vivecraft.settings.VRSettings;
 
 public abstract class GuiVROptionsBase extends Screen
 {
-	public static final int DONE_BUTTON = 200;
-	public static final int DEFAULTS_BUTTON = 201;
+    public static final int DONE_BUTTON = 200;
+    public static final int DEFAULTS_BUTTON = 201;
+    protected final Screen lastScreen;
+    protected final VRSettings settings;
+    private VRTooltipManager tooltipManager = new VRTooltipManager(this, new TooltipProviderVROptions());
+    protected boolean reinit;
+    protected boolean drawDefaultButtons = true;
+    protected ObjectSelectionList visibleList = null;
+    private int nextButtonIndex = 0;
+    public String vrTitle = "Title";
+    private Button btnDone;
+    private Button btnDefaults;
 
-	protected final Screen lastScreen;
-	protected final VRSettings settings;
-	private VRTooltipManager tooltipManager = new VRTooltipManager(this, new TooltipProviderVROptions());
-
-	protected boolean reinit;
-	protected boolean drawDefaultButtons = true;
-	protected ExtendedList visibleList = null;
-	private int nextButtonIndex = 0;
-	public String vrTitle = "Title";
-	
-	private Button btnDone;
-	private Button btnDefaults;
-
-	public GuiVROptionsBase(Screen lastScreen)
-	{
-		super(new StringTextComponent(""));
-		this.lastScreen = lastScreen;
-		this.settings = Minecraft.getInstance().vrSettings;
-	}
-
-	protected void addDefaultButtons() {
-		
-		this.addButton(btnDone = new Button(this.width / 2 + 5, this.height - 30, 150, 20, new TranslationTextComponent("gui.back"), (p) ->
-		{
-			if (!GuiVROptionsBase.this.onDoneClicked()) {
-				GuiVROptionsBase.this.minecraft.vrSettings.saveOptions();
-				GuiVROptionsBase.this.minecraft.displayGuiScreen(GuiVROptionsBase.this.lastScreen);
-			}
-		}));
-		
-		this.addButton(btnDefaults = new Button(this.width / 2 - 155, this.height - 30, 150, 20, new TranslationTextComponent("vivecraft.gui.loaddefaults"), (p) ->
-		{
-			GuiVROptionsBase.this.loadDefaults();
-			GuiVROptionsBase.this.minecraft.vrSettings.saveOptions();
-			GuiVROptionsBase.this.reinit = true;
-		}));
-	}
-
-	protected boolean onDoneClicked() {
-		return false;
-	}
-
-	/**
-	 * Adds the buttons (and other controls) to the screen in question. Called when the GUI is displayed and when the
-	 * window resizes, the buttonList is cleared beforehand.
-	 */
-	protected void init(VROptionLayout[] settings, boolean clear)
-	{ // specify options and layout
-		
-		if (clear) {
-	        this.buttons.clear();
-	        this.children.clear();
-		}	
-		
-		int i = 0;
-		for (VROptionLayout layout : settings)
-		{
-			if (layout.getOption() !=null && layout.getOption().getEnumFloat())
-			{ // Option Slider
-				this.addButton(new GuiVROptionSlider(layout.getOrdinal(), layout.getX(this.width),layout.getY(this.height), layout.getOption(), layout.getOption().getValueMin(), layout.getOption().getValueMax()) {
-					public void onClick(double mouseX, double mouseY) {
-						if (layout.getCustomHandler() != null && layout.getCustomHandler().apply(this, new Vector2f((float)mouseX, (float)mouseY)))
-							return;
-						super.onClick(mouseX, mouseY);
-					}
-				});
-			}
-			else if (layout.getOption() != null)
-			{ // Option Button
-				this.addButton(
-						new GuiVROptionButton(layout.getOrdinal(), layout.getX(this.width), layout.getY(this.height), layout.getOption(), layout.getButtonText(), (p) -> {
-						if (layout.getCustomHandler() != null && layout.getCustomHandler().apply((GuiVROptionButton) p, new Vector2f((float)0, (float)0)))
-							return;
-						GuiVROptionsBase.this.settings.setOptionValue(((GuiVROptionButton)p).getOption());
-						p.setMessage(new StringTextComponent(layout.getButtonText()));
-				}));
-			}
-			else if (layout.getScreen() != null)
-			{ // Screen button
-				this.addButton(new GuiVROptionButton(layout.getOrdinal(), layout.getX(this.width), layout.getY(this.height), layout.getButtonText(), (p) -> {
-						try {
-							if (layout.getCustomHandler() != null && layout.getCustomHandler().apply((GuiVROptionButton) p, new Vector2f((float)0, (float)0)))
-								return;
-							GuiVROptionsBase.this.settings.saveOptions();
-							GuiVROptionsBase.this.minecraft.displayGuiScreen(layout.getScreen().getConstructor(Screen.class).newInstance(GuiVROptionsBase.this));
-						} catch (ReflectiveOperationException e) {
-							e.printStackTrace();
-						}
-				}));
-			}
-			else if (layout.getCustomHandler() != null)
-			{ // Custom click handler button
-				this.addButton(new GuiVROptionButton(layout.getOrdinal(), layout.getX(this.width), layout.getY(this.height), layout.getButtonText(), (p) -> {
-						layout.getCustomHandler().apply((GuiVROptionButton) p, new Vector2f((float)0, (float)0));
-				}));
-			}
-			else { //just a button, do something with it on your own time.
-				this.addButton(new GuiVROptionButton(layout.getOrdinal(), layout.getX(this.width), layout.getY(this.height), layout.getButtonText(), (p) -> {
-				}));
-			}
-		}
-		++i;
-	}
-	
-	protected void loadDefaults() {
-		
-	}
-	
-	protected void init(VROptionEntry[] settings, boolean clear)
-	{ //auto-layout a list of options.
-		
-		if (clear) {
-	        this.buttons.clear();
-	        this.children.clear();
-	        this.nextButtonIndex = 0;
-		}	
-		
-		ArrayList<VROptionLayout> layouts = new ArrayList<>();
-		if (this.nextButtonIndex < this.buttons.size())
-			this.nextButtonIndex = this.buttons.size();
-		int j = this.nextButtonIndex;
-		for (int i = 0; i < settings.length; i++) {
-			Position pos = settings[i].center ? Position.POS_CENTER : (j % 2 == 0 ? Position.POS_LEFT : Position.POS_RIGHT);
-			if (settings[i].center && j % 2 != 0) ++j;
-			if (settings[i].option != null) {
-				if (settings[i].option != VRSettings.VrOptions.DUMMY) {
-					layouts.add(new VROptionLayout(settings[i].option, settings[i].customHandler, pos, (float) Math.floor(j / 2f), VROptionLayout.ENABLED, settings[i].title));
-				}
-			} else if (settings[i].customHandler != null) {
-				layouts.add(new VROptionLayout(settings[i].customHandler, pos, (float) Math.floor(j / 2f), VROptionLayout.ENABLED, settings[i].title));
-			}
-			if (settings[i].center) ++j;
-			++j;
-		}
-		this.nextButtonIndex = j;
-
-		this.init(layouts.toArray(new VROptionLayout[0]), false);
-	}
-
-	protected void init(VRSettings.VrOptions[] settings, boolean clear) {
-		VROptionEntry[] entries = new VROptionEntry[settings.length];
-		for (int i = 0; i < settings.length; i++) {
-			entries[i] = new VROptionEntry(settings[i]);
-		}
-
-		this.init(entries, clear);
-	}
-
-
-	@Override
-	public void render(MatrixStack matrixstack, int mouseX, int mouseY, float partialTicks)
-	{
-		if (reinit) {
-			this.reinit = false;
-			this.init();
-		}
-		this.renderBackground(matrixstack);
-		if (visibleList != null)
-			visibleList.render(matrixstack, mouseX, mouseY, partialTicks);
-		this.drawCenteredString(matrixstack,this.font, Lang.get(this.vrTitle), this.width / 2, 15, 16777215);
-
-		if (btnDefaults != null)
-			btnDefaults.visible = drawDefaultButtons;
-		if (btnDone != null)
-			btnDone.visible = drawDefaultButtons;
-
-		super.render(matrixstack, mouseX, mouseY, partialTicks);
-		this.tooltipManager.drawTooltips(matrixstack, mouseX, mouseY, buttons);
-	}
-    protected void actionPerformed(Widget button)
+    public GuiVROptionsBase(Screen lastScreen)
     {
+        super(new TextComponent(""));
+        this.lastScreen = lastScreen;
+        this.settings = Minecraft.getInstance().vrSettings;
     }
 
-    protected void actionPerformedRightClick(Widget button)
+    protected void addDefaultButtons()
     {
-    }
-
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton)
-    {
-    	boolean flag = super.mouseClicked(mouseX, mouseY, mouseButton);
-    	Widget Button = getSelectedButton((int)mouseX, (int)mouseY, this.buttons);
-
-        if (Button != null)
+        this.addButton(this.btnDone = new Button(this.width / 2 + 5, this.height - 30, 150, 20, new TranslatableComponent("gui.back"), (p) ->
         {
-            if (!(Button instanceof GuiVROptionSlider))
+            if (!this.onDoneClicked())
             {
-                Button.playDownSound(minecraft.getSoundHandler());
+                this.minecraft.vrSettings.saveOptions();
+                this.minecraft.setScreen(this.lastScreen);
             }
+        }));
+        this.addButton(this.btnDefaults = new Button(this.width / 2 - 155, this.height - 30, 150, 20, new TranslatableComponent("vivecraft.gui.loaddefaults"), (p) ->
+        {
+            this.loadDefaults();
+            this.minecraft.vrSettings.saveOptions();
+            this.reinit = true;
+        }));
+    }
 
-            if (mouseButton == 0)
+    protected boolean onDoneClicked()
+    {
+        return false;
+    }
+
+    protected void init(VROptionLayout[] settings, boolean clear)
+    {
+        if (clear)
+        {
+            this.buttons.clear();
+            this.children.clear();
+        }
+
+        int i = 0;
+
+        for (final VROptionLayout vroptionlayout : settings)
+        {
+            if (vroptionlayout.getOption() != null && vroptionlayout.getOption().getEnumFloat())
             {
-                this.actionPerformed(Button);
+                this.addButton(new GuiVROptionSlider(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getOption(), (double)vroptionlayout.getOption().getValueMin(), (double)vroptionlayout.getOption().getValueMax())
+                {
+                    public void onClick(double p_93634_, double p_93635_)
+                    {
+                        if (vroptionlayout.getCustomHandler() == null || !vroptionlayout.getCustomHandler().apply(this, new Vec2((float)p_93634_, (float)p_93635_)))
+                        {
+                            super.onClick(p_93634_, p_93635_);
+                        }
+                    }
+                });
             }
-            else if (mouseButton == 1)
+            else if (vroptionlayout.getOption() != null)
             {
-                this.actionPerformedRightClick(Button);
+                this.addButton(new GuiVROptionButton(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getOption(), vroptionlayout.getButtonText(), (p) ->
+                {
+                    if (vroptionlayout.getCustomHandler() == null || !vroptionlayout.getCustomHandler().apply((GuiVROptionButton)p, new Vec2(0.0F, 0.0F)))
+                    {
+                        this.settings.setOptionValue(((GuiVROptionButton)p).getOption());
+                        p.setMessage(new TextComponent(vroptionlayout.getButtonText()));
+                    }
+                }));
+            }
+            else if (vroptionlayout.getScreen() != null)
+            {
+                this.addButton(new GuiVROptionButton(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getButtonText(), (p) ->
+                {
+                    try {
+                        if (vroptionlayout.getCustomHandler() != null && vroptionlayout.getCustomHandler().apply((GuiVROptionButton)p, new Vec2(0.0F, 0.0F)))
+                        {
+                            return;
+                        }
+
+                        this.settings.saveOptions();
+                        this.minecraft.setScreen(vroptionlayout.getScreen().getConstructor(Screen.class).newInstance(this));
+                    }
+                    catch (ReflectiveOperationException reflectiveoperationexception)
+                    {
+                        reflectiveoperationexception.printStackTrace();
+                    }
+                }));
+            }
+            else if (vroptionlayout.getCustomHandler() != null)
+            {
+                this.addButton(new GuiVROptionButton(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getButtonText(), (p) ->
+                {
+                    vroptionlayout.getCustomHandler().apply((GuiVROptionButton)p, new Vec2(0.0F, 0.0F));
+                }));
+            }
+            else
+            {
+                this.addButton(new GuiVROptionButton(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getButtonText(), (p) ->
+                {
+                }));
             }
         }
-        else
+
+        ++i;
+    }
+
+    protected void loadDefaults()
+    {
+    }
+
+    protected void init(VROptionEntry[] settings, boolean clear)
+    {
+        if (clear)
         {
-        	if (visibleList!=null)
-        		return visibleList.mouseClicked(mouseX, mouseY, mouseButton);
-        }       
+            this.buttons.clear();
+            this.children.clear();
+            this.nextButtonIndex = 0;
+        }
+
+        ArrayList<VROptionLayout> arraylist = new ArrayList<>();
+
+        if (this.nextButtonIndex < this.buttons.size())
+        {
+            this.nextButtonIndex = this.buttons.size();
+        }
+
+        int i = this.nextButtonIndex;
+
+        for (int j = 0; j < settings.length; ++j)
+        {
+            VROptionLayout.Position vroptionlayout$position = settings[j].center ? VROptionLayout.Position.POS_CENTER : (i % 2 == 0 ? VROptionLayout.Position.POS_LEFT : VROptionLayout.Position.POS_RIGHT);
+
+            if (settings[j].center && i % 2 != 0)
+            {
+                ++i;
+            }
+
+            if (settings[j].option != null)
+            {
+                if (settings[j].option != VRSettings.VrOptions.DUMMY)
+                {
+                    arraylist.add(new VROptionLayout(settings[j].option, settings[j].customHandler, vroptionlayout$position, (float)Math.floor((double)((float)i / 2.0F)), true, settings[j].title));
+                }
+            }
+            else if (settings[j].customHandler != null)
+            {
+                arraylist.add(new VROptionLayout(settings[j].customHandler, vroptionlayout$position, (float)Math.floor((double)((float)i / 2.0F)), true, settings[j].title));
+            }
+
+            if (settings[j].center)
+            {
+                ++i;
+            }
+
+            ++i;
+        }
+
+        this.nextButtonIndex = i;
+        this.init(arraylist.toArray(new VROptionLayout[0]), false);
+    }
+
+    protected void init(VRSettings.VrOptions[] settings, boolean clear)
+    {
+        VROptionEntry[] avroptionentry = new VROptionEntry[settings.length];
+
+        for (int i = 0; i < settings.length; ++i)
+        {
+            avroptionentry[i] = new VROptionEntry(settings[i]);
+        }
+
+        this.init(avroptionentry, clear);
+    }
+
+    public void render(PoseStack p_96562_, int p_96563_, int p_96564_, float p_96565_)
+    {
+        if (this.reinit)
+        {
+            this.reinit = false;
+            this.init();
+        }
+
+        this.renderBackground(p_96562_);
+
+        if (this.visibleList != null)
+        {
+            this.visibleList.render(p_96562_, p_96563_, p_96564_, p_96565_);
+        }
+
+        drawCenteredString(p_96562_, this.font, Lang.get(this.vrTitle), this.width / 2, 15, 16777215);
+
+        if (this.btnDefaults != null)
+        {
+            this.btnDefaults.visible = this.drawDefaultButtons;
+        }
+
+        if (this.btnDone != null)
+        {
+            this.btnDone.visible = this.drawDefaultButtons;
+        }
+
+        super.render(p_96562_, p_96563_, p_96564_, p_96565_);
+        this.tooltipManager.drawTooltips(p_96562_, p_96563_, p_96564_, this.buttons);
+    }
+
+    protected void actionPerformed(AbstractWidget button)
+    {
+    }
+
+    protected void actionPerformedRightClick(AbstractWidget button)
+    {
+    }
+
+    public boolean mouseClicked(double p_94737_, double p_94738_, int p_94739_)
+    {
+        boolean flag = super.mouseClicked(p_94737_, p_94738_, p_94739_);
+        AbstractWidget abstractwidget = this.getSelectedButton((int)p_94737_, (int)p_94738_, this.buttons);
+
+        if (abstractwidget != null)
+        {
+            if (!(abstractwidget instanceof GuiVROptionSlider))
+            {
+                abstractwidget.playDownSound(this.minecraft.getSoundManager());
+            }
+
+            if (p_94739_ == 0)
+            {
+                this.actionPerformed(abstractwidget);
+            }
+            else if (p_94739_ == 1)
+            {
+                this.actionPerformedRightClick(abstractwidget);
+            }
+        }
+        else if (this.visibleList != null)
+        {
+            return this.visibleList.mouseClicked(p_94737_, p_94738_, p_94739_);
+        }
+
         return flag;
-
     }
 
-    @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-    	if (visibleList != null)
-    		return visibleList.mouseReleased(mouseX, mouseY, button);
-    	return super.mouseReleased(mouseX, mouseY, button);
+    public boolean mouseReleased(double p_94753_, double p_94754_, int p_94755_)
+    {
+        return this.visibleList != null ? this.visibleList.mouseReleased(p_94753_, p_94754_, p_94755_) : super.mouseReleased(p_94753_, p_94754_, p_94755_);
     }
 
-    @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-    	if (visibleList != null)
-    		return visibleList.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
-    	return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+    public boolean mouseDragged(double p_94740_, double p_94741_, int p_94742_, double p_94743_, double p_94744_)
+    {
+        return this.visibleList != null ? this.visibleList.mouseDragged(p_94740_, p_94741_, p_94742_, p_94743_, p_94744_) : super.mouseDragged(p_94740_, p_94741_, p_94742_, p_94743_, p_94744_);
     }
 
-    @Override
-	public boolean mouseScrolled(double p_mouseScrolled_1_, double p_mouseScrolled_3_, double p_mouseScrolled_5_) {
-    	if (visibleList != null)
-    		visibleList.mouseScrolled(p_mouseScrolled_1_, p_mouseScrolled_3_, p_mouseScrolled_5_);
-    	return super.mouseScrolled(p_mouseScrolled_1_, p_mouseScrolled_3_, p_mouseScrolled_5_);
+    public boolean mouseScrolled(double p_94734_, double p_94735_, double p_94736_)
+    {
+        if (this.visibleList != null)
+        {
+            this.visibleList.mouseScrolled(p_94734_, p_94735_, p_94736_);
+        }
+
+        return super.mouseScrolled(p_94734_, p_94735_, p_94736_);
     }
 
-    private Widget getSelectedButton(int x, int y, List<Widget> listButtons)
+    private AbstractWidget getSelectedButton(int x, int y, List<AbstractWidget> listButtons)
     {
         for (int i = 0; i < listButtons.size(); ++i)
         {
-        	Widget Button = listButtons.get(i);
+            AbstractWidget abstractwidget = listButtons.get(i);
 
-            if (Button.visible && Button.isHovered())
+            if (abstractwidget.visible && abstractwidget.isHovered())
             {
-            	return Button;
+                return abstractwidget;
             }
         }
 
         return null;
     }
 
-    @Override
-    public boolean keyPressed(int key, int action, int mods)
+    public boolean keyPressed(int p_94745_, int p_94746_, int p_94747_)
     {
-        if (key == GLFW.GLFW_KEY_ESCAPE) //esc
-		{
-			if(!this.onDoneClicked()) {
-				this.minecraft.vrSettings.saveOptions();
-				this.minecraft.displayGuiScreen(GuiVROptionsBase.this.lastScreen);
-			}
-			return true;
+        if (p_94745_ == 256)
+        {
+            if (!this.onDoneClicked())
+            {
+                this.minecraft.vrSettings.saveOptions();
+                this.minecraft.setScreen(this.lastScreen);
+            }
+
+            return true;
         }
         else
         {
-        	if(visibleList != null && visibleList.keyPressed(key, action, mods))
-        		return true;
-            return super.keyPressed(key, action, mods);
+            return this.visibleList != null && this.visibleList.keyPressed(p_94745_, p_94746_, p_94747_) ? true : super.keyPressed(p_94745_, p_94746_, p_94747_);
         }
     }
-    
-    @Override
-    public boolean charTyped(char p_charTyped_1_, int p_charTyped_2_) {
-    	if (visibleList != null && visibleList.charTyped(p_charTyped_1_, p_charTyped_2_))
-    		return true;
-    	return super.charTyped(p_charTyped_1_, p_charTyped_2_);
+
+    public boolean charTyped(char p_94732_, int p_94733_)
+    {
+        return this.visibleList != null && this.visibleList.charTyped(p_94732_, p_94733_) ? true : super.charTyped(p_94732_, p_94733_);
     }
 }

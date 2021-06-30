@@ -4,19 +4,17 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.vivecraft.settings.VRSettings;
-import org.vivecraft.utils.Utils;
-
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.util.text.ITextProperties;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextComponent;
 import net.optifine.Lang;
 import net.optifine.gui.TooltipProvider;
+import org.vivecraft.settings.VRSettings;
+import org.vivecraft.utils.Utils;
 
 public class TooltipProviderVROptions implements TooltipProvider
 {
@@ -40,55 +38,79 @@ public class TooltipProviderVROptions implements TooltipProvider
         return false;
     }
 
-    public String[] getTooltipLines(Widget btn, int width)
-	{
-    	if (!(btn instanceof GuiVROptionButton))
-    		return null;
+    public String[] getTooltipLines(AbstractWidget btn, int width)
+    {
+        if (!(btn instanceof GuiVROptionButton))
+        {
+            return null;
+        }
+        else
+        {
+            VRSettings.VrOptions vrsettings$vroptions = ((GuiVROptionButton)btn).getOption();
 
-		VRSettings.VrOptions option = ((GuiVROptionButton)btn).getOption();
-		if (option == null)
-			return null;
+            if (vrsettings$vroptions == null)
+            {
+                return null;
+            }
+            else
+            {
+                String s = "vivecraft.options." + vrsettings$vroptions.name() + ".tooltip";
+                String s1 = Lang.get(s, (String)null);
 
-		String key = "vivecraft.options." + option.name() + ".tooltip";
-		String str = Lang.get(key, null);
+                if (s1 == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    String[] astring = s1.split("\\r?\\n", -1);
+                    List<String> list = new ArrayList<>();
 
-		if (str == null)
-			return null;
+                    for (String s2 : astring)
+                    {
+                        if (s2.isEmpty())
+                        {
+                            list.add(s2);
+                        }
+                        else
+                        {
+                            int i = s2.indexOf(s2.trim().charAt(0));
+                            TextComponent textcomponent = i > 0 ? new TextComponent(String.join("", Collections.nCopies(i, " "))) : null;
+                            List<FormattedText> list1 = Utils.wrapText(new TextComponent(s2), width, Minecraft.getInstance().font, textcomponent);
+                            Style style = Style.EMPTY;
 
-		String[] lines = str.split("\\r?\\n", -1);
+                            for (FormattedText formattedtext : list1)
+                            {
+                                list.add(Utils.styleToFormatString(style) + formattedtext.getString());
+                                String s3 = formattedtext.getString();
 
-		List<String> newLines = new ArrayList<>();
-		for (String line : lines) {
-			if (line.isEmpty()) {
-				newLines.add(line);
-				continue;
-			}
+                                for (int j = 0; j < s3.length(); ++j)
+                                {
+                                    if (s3.charAt(j) == 167)
+                                    {
+                                        if (j + 1 >= s3.length())
+                                        {
+                                            break;
+                                        }
 
-			int spaceCount = line.indexOf(line.trim().charAt(0));
-			StringTextComponent spaces = spaceCount > 0 ? new StringTextComponent(String.join("", Collections.nCopies(spaceCount, " "))) : null;
-			List<ITextProperties> list = Utils.wrapText(new StringTextComponent(line), width, Minecraft.getInstance().fontRenderer, spaces);
+                                        char c0 = s3.charAt(j + 1);
+                                        ChatFormatting chatformatting = ChatFormatting.getByCode(c0);
 
-			Style style = Style.EMPTY;
-			for (ITextProperties text : list) {
-				newLines.add(Utils.styleToFormatString(style) + text.getString());
+                                        if (chatformatting != null)
+                                        {
+                                            style = style.applyLegacyFormat(chatformatting);
+                                        }
 
-				String s = text.getString();
-				for (int i = 0; i < s.length(); i++) {
-					if (s.charAt(i) == '\u00a7') {
-						if (i + 1 >= s.length())
-							break;
+                                        ++j;
+                                    }
+                                }
+                            }
+                        }
+                    }
 
-						char c = s.charAt(i + 1);
-						TextFormatting format = TextFormatting.fromFormattingCode(c);
-						if (format != null)
-							style = style.forceFormatting(format);
-
-						i++;
-					}
-				}
-			}
-		}
-
-		return newLines.toArray(new String[0]);
+                    return list.toArray(new String[0]);
+                }
+            }
+        }
     }
 }

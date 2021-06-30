@@ -1,7 +1,27 @@
 --- a/com/mojang/blaze3d/platform/GlStateManager.java
 +++ b/com/mojang/blaze3d/platform/GlStateManager.java
-@@ -52,7 +52,7 @@
-         return new GlStateManager.BooleanState[p_lambda$static$2_0_];
+@@ -37,21 +37,21 @@
+ 
+ public class GlStateManager
+ {
+-    private static final FloatBuffer MATRIX_BUFFER = GLX.make(MemoryUtil.memAllocFloat(16), (p_209238_0_) ->
++    private static final FloatBuffer MATRIX_BUFFER = GLX.make(MemoryUtil.memAllocFloat(16), (p_lambda$static$0_0_) ->
+     {
+-        DebugMemoryUntracker.untrack(MemoryUtil.memAddress(p_209238_0_));
++        DebugMemoryUntracker.untrack(MemoryUtil.memAddress(p_lambda$static$0_0_));
+     });
+     private static final GlStateManager.AlphaState ALPHA_TEST = new GlStateManager.AlphaState();
+     private static final GlStateManager.BooleanState LIGHTING = new GlStateManager.BooleanState(2896);
+-    private static final GlStateManager.BooleanState[] LIGHT_ENABLE = IntStream.range(0, 8).mapToObj((p_227620_0_) ->
++    private static final GlStateManager.BooleanState[] LIGHT_ENABLE = IntStream.range(0, 8).mapToObj((p_lambda$static$1_0_) ->
+     {
+-        return new GlStateManager.BooleanState(16384 + p_227620_0_);
+-    }).toArray((p_227618_0_) ->
++        return new GlStateManager.BooleanState(16384 + p_lambda$static$1_0_);
++    }).toArray((p_lambda$static$2_0_) ->
+     {
+-        return new GlStateManager.BooleanState[p_227618_0_];
++        return new GlStateManager.BooleanState[p_lambda$static$2_0_];
      });
      private static final GlStateManager.ColorMaterialState COLOR_MATERIAL = new GlStateManager.ColorMaterialState();
 -    private static final GlStateManager.BlendState BLEND = new GlStateManager.BlendState();
@@ -9,68 +29,527 @@
      private static final GlStateManager.DepthState DEPTH = new GlStateManager.DepthState();
      private static final GlStateManager.FogState FOG = new GlStateManager.FogState();
      private static final GlStateManager.CullState CULL = new GlStateManager.CullState();
-@@ -351,6 +351,12 @@
+@@ -62,12 +62,12 @@
+     private static final GlStateManager.ScissorState SCISSOR = new GlStateManager.ScissorState();
+     private static final FloatBuffer FLOAT_ARG_BUFFER = MemoryTracker.createFloatBuffer(4);
+     private static int activeTexture;
+-    private static final GlStateManager.TextureState[] TEXTURES = IntStream.range(0, 32).mapToObj((p_227616_0_) ->
++    private static final GlStateManager.TextureState[] TEXTURES = IntStream.range(0, 32).mapToObj((p_lambda$static$3_0_) ->
+     {
+         return new GlStateManager.TextureState();
+-    }).toArray((p_227614_0_) ->
++    }).toArray((p_lambda$static$4_0_) ->
+     {
+-        return new GlStateManager.TextureState[p_227614_0_];
++        return new GlStateManager.TextureState[p_lambda$static$4_0_];
+     });
+     private static int shadeModel = 7425;
+     private static final GlStateManager.BooleanState RESCALE_NORMAL = new GlStateManager.BooleanState(32826);
+@@ -162,14 +162,11 @@
+         {
+             alphaLockState.setFuncRef(p_84151_, p_84152_);
+         }
+-        else
++        else if (p_84151_ != ALPHA_TEST.func || p_84152_ != ALPHA_TEST.reference)
+         {
+-            if (p_84151_ != ALPHA_TEST.func || p_84152_ != ALPHA_TEST.reference)
+-            {
+-                ALPHA_TEST.func = p_84151_;
+-                ALPHA_TEST.reference = p_84152_;
+-                GL11.glAlphaFunc(p_84151_, p_84152_);
+-            }
++            ALPHA_TEST.func = p_84151_;
++            ALPHA_TEST.reference = p_84152_;
++            GL11.glAlphaFunc(p_84151_, p_84152_);
+         }
+     }
+ 
+@@ -330,22 +327,19 @@
+         {
+             blendLockState.setFactors(p_84329_, p_84330_);
+         }
+-        else
++        else if (p_84329_ != BLEND.srcRgb || p_84330_ != BLEND.dstRgb || p_84329_ != BLEND.srcAlpha || p_84330_ != BLEND.dstAlpha)
+         {
+-            if (p_84329_ != BLEND.srcRgb || p_84330_ != BLEND.dstRgb || p_84329_ != BLEND.srcAlpha || p_84330_ != BLEND.dstAlpha)
+-            {
+-                BLEND.srcRgb = p_84329_;
+-                BLEND.dstRgb = p_84330_;
+-                BLEND.srcAlpha = p_84329_;
+-                BLEND.dstAlpha = p_84330_;
++            BLEND.srcRgb = p_84329_;
++            BLEND.dstRgb = p_84330_;
++            BLEND.srcAlpha = p_84329_;
++            BLEND.dstAlpha = p_84330_;
+ 
+-                if (Config.isShaders())
+-                {
+-                    Shaders.uniform_blendFunc.setValue(p_84329_, p_84330_, p_84329_, p_84330_);
+-                }
+-
+-                GL11.glBlendFunc(p_84329_, p_84330_);
++            if (Config.isShaders())
++            {
++                Shaders.uniform_blendFunc.setValue(p_84329_, p_84330_, p_84329_, p_84330_);
+             }
++
++            GL11.glBlendFunc(p_84329_, p_84330_);
+         }
+     }
+ 
+@@ -353,26 +347,28 @@
      {
          RenderSystem.assertThread(RenderSystem::isOnRenderThread);
  
-+        // VIVECRAFT: correct bad blend function that trashes alpha channel
-+        if (srcFactor == SourceFactor.SRC_ALPHA.param && dstFactor == DestFactor.ONE_MINUS_SRC_ALPHA.param && srcFactorAlpha == SourceFactor.ONE.param && dstFactorAlpha == DestFactor.ZERO.param) {
-+            dstFactorAlpha = DestFactor.ONE_MINUS_SRC_ALPHA.param;
++        if (p_84336_ == GlStateManager.SourceFactor.SRC_ALPHA.value && p_84337_ == GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA.value && p_84338_ == GlStateManager.SourceFactor.ONE.value && p_84339_ == GlStateManager.DestFactor.ZERO.value)
++        {
++            p_84339_ = GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA.value;
 +        }
-+        //
 +
          if (blendLock.isLocked())
          {
-             blendLockState.setFactors(srcFactor, dstFactor, srcFactorAlpha, dstFactorAlpha);
-@@ -1030,7 +1036,13 @@
-         getMatrix(2982, MATRIX_BUFFER);
-         multMatrix(MATRIX_BUFFER);
-     }
+             blendLockState.setFactors(p_84336_, p_84337_, p_84338_, p_84339_);
+         }
+-        else
++        else if (p_84336_ != BLEND.srcRgb || p_84337_ != BLEND.dstRgb || p_84338_ != BLEND.srcAlpha || p_84339_ != BLEND.dstAlpha)
+         {
+-            if (p_84336_ != BLEND.srcRgb || p_84337_ != BLEND.dstRgb || p_84338_ != BLEND.srcAlpha || p_84339_ != BLEND.dstAlpha)
+-            {
+-                BLEND.srcRgb = p_84336_;
+-                BLEND.dstRgb = p_84337_;
+-                BLEND.srcAlpha = p_84338_;
+-                BLEND.dstAlpha = p_84339_;
++            BLEND.srcRgb = p_84336_;
++            BLEND.dstRgb = p_84337_;
++            BLEND.srcAlpha = p_84338_;
++            BLEND.dstAlpha = p_84339_;
+ 
+-                if (Config.isShaders())
+-                {
+-                    Shaders.uniform_blendFunc.setValue(p_84336_, p_84337_, p_84338_, p_84339_);
+-                }
 -
-+    
+-                glBlendFuncSeparate(p_84336_, p_84337_, p_84338_, p_84339_);
++            if (Config.isShaders())
++            {
++                Shaders.uniform_blendFunc.setValue(p_84336_, p_84337_, p_84338_, p_84339_);
+             }
++
++            glBlendFuncSeparate(p_84336_, p_84337_, p_84338_, p_84339_);
+         }
+     }
+ 
+@@ -781,6 +777,16 @@
+     {
+         RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
+ 
++        if (p_84503_ == framebufferDraw)
++        {
++            framebufferDraw = 0;
++        }
++
++        if (p_84503_ == framebufferRead)
++        {
++            framebufferRead = 0;
++        }
++
+         switch (fboMode)
+         {
+             case BASE:
+@@ -1063,6 +1069,12 @@
+         _multMatrix(MATRIX_BUFFER);
+     }
+ 
 +    public static void mulTextureByModelView()
 +    {
-+        getMatrix(2982, MATRIX_BUFFER);
-+        multMatrix(MATRIX_BUFFER);
++        _getMatrix(2982, MATRIX_BUFFER);
++        _multMatrix(MATRIX_BUFFER);
 +    }
-+    
++
      @Deprecated
-     public static void enableFog()
+     public static void _enableFog()
      {
-@@ -1556,7 +1568,18 @@
-         RenderSystem.assertThread(RenderSystem::isOnRenderThread);
-         GL11.glGetFloatv(pname, params);
+@@ -1597,6 +1609,16 @@
+         GL11.glGetFloatv(p_84475_, p_84476_);
      }
--
-+    
-+    //temp
+ 
 +    public static Matrix4f getMatrix4f(int p_getMatrix4f_0_)
 +    {
 +        GL11.glGetFloatv(p_getMatrix4f_0_, MATRIX_BUFFER);
-+        MATRIX_BUFFER.rewind();
++        ((Buffer)MATRIX_BUFFER).rewind();
 +        Matrix4f matrix4f = new Matrix4f();
 +        matrix4f.read(MATRIX_BUFFER);
-+        MATRIX_BUFFER.rewind();
++        ((Buffer)MATRIX_BUFFER).rewind();
 +        return matrix4f;
 +    }
-+    
++
      @Deprecated
-     public static void ortho(double left, double right, double bottom, double top, double zNear, double zFar)
+     public static void _ortho(double p_84128_, double p_84129_, double p_84130_, double p_84131_, double p_84132_, double p_84133_)
      {
-@@ -2070,7 +2093,7 @@
+@@ -1839,32 +1861,29 @@
+             int k = getActiveTextureUnit();
+             int l = getBoundTexture();
+ 
+-            if (l > 0)
++            if (l > 0 && (i != k || j != l))
+             {
+-                if (i != k || j != l)
+-                {
+-                    Config.dbg("checkTexture: act: " + k + ", glAct: " + i + ", tex: " + l + ", glTex: " + j);
+-                }
++                Config.dbg("checkTexture: act: " + k + ", glAct: " + i + ", tex: " + l + ", glTex: " + j);
+             }
+         }
+     }
+ 
+-    public static void genTextures(IntBuffer buf)
++    public static void genTextures(IntBuffer p_genTextures_0_)
+     {
+-        GL11.glGenTextures(buf);
++        GL11.glGenTextures(p_genTextures_0_);
+     }
+ 
+-    public static void deleteTextures(IntBuffer buf)
++    public static void deleteTextures(IntBuffer p_deleteTextures_0_)
+     {
+-        ((Buffer)buf).rewind();
++        ((Buffer)p_deleteTextures_0_).rewind();
+ 
+-        while (buf.position() < buf.limit())
++        while (p_deleteTextures_0_.position() < p_deleteTextures_0_.limit())
+         {
+-            int i = buf.get();
++            int i = p_deleteTextures_0_.get();
+             _deleteTexture(i);
+         }
+ 
+-        ((Buffer)buf).rewind();
++        ((Buffer)p_deleteTextures_0_).rewind();
+     }
+ 
+     public static boolean isFogEnabled()
+@@ -1872,17 +1891,17 @@
+         return FOG.enable.enabled;
+     }
+ 
+-    public static void setFogEnabled(boolean state)
++    public static void setFogEnabled(boolean p_setFogEnabled_0_)
+     {
+-        FOG.enable.setEnabled(state);
++        FOG.enable.setEnabled(p_setFogEnabled_0_);
+     }
+ 
+-    public static void lockAlpha(GlAlphaState stateNew)
++    public static void lockAlpha(GlAlphaState p_lockAlpha_0_)
+     {
+         if (!alphaLock.isLocked())
+         {
+             getAlphaState(alphaLockState);
+-            setAlphaState(stateNew);
++            setAlphaState(p_lockAlpha_0_);
+             alphaLock.lock();
+         }
+     }
+@@ -1895,37 +1914,37 @@
+         }
+     }
+ 
+-    public static void getAlphaState(GlAlphaState state)
++    public static void getAlphaState(GlAlphaState p_getAlphaState_0_)
+     {
+         if (alphaLock.isLocked())
+         {
+-            state.setState(alphaLockState);
++            p_getAlphaState_0_.setState(alphaLockState);
+         }
+         else
+         {
+-            state.setState(ALPHA_TEST.mode.enabled, ALPHA_TEST.func, ALPHA_TEST.reference);
++            p_getAlphaState_0_.setState(ALPHA_TEST.mode.enabled, ALPHA_TEST.func, ALPHA_TEST.reference);
+         }
+     }
+ 
+-    public static void setAlphaState(GlAlphaState state)
++    public static void setAlphaState(GlAlphaState p_setAlphaState_0_)
+     {
+         if (alphaLock.isLocked())
+         {
+-            alphaLockState.setState(state);
++            alphaLockState.setState(p_setAlphaState_0_);
+         }
+         else
+         {
+-            ALPHA_TEST.mode.setEnabled(state.isEnabled());
+-            _alphaFunc(state.getFunc(), state.getRef());
++            ALPHA_TEST.mode.setEnabled(p_setAlphaState_0_.isEnabled());
++            _alphaFunc(p_setAlphaState_0_.getFunc(), p_setAlphaState_0_.getRef());
+         }
+     }
+ 
+-    public static void lockBlend(GlBlendState stateNew)
++    public static void lockBlend(GlBlendState p_lockBlend_0_)
+     {
+         if (!blendLock.isLocked())
+         {
+             getBlendState(blendLockState);
+-            setBlendState(stateNew);
++            setBlendState(p_lockBlend_0_);
+             blendLock.lock();
+         }
+     }
+@@ -1938,45 +1957,45 @@
+         }
+     }
+ 
+-    public static void getBlendState(GlBlendState gbs)
++    public static void getBlendState(GlBlendState p_getBlendState_0_)
+     {
+         if (blendLock.isLocked())
+         {
+-            gbs.setState(blendLockState);
++            p_getBlendState_0_.setState(blendLockState);
+         }
+         else
+         {
+-            gbs.setState(BLEND.mode.enabled, BLEND.srcRgb, BLEND.dstRgb, BLEND.srcAlpha, BLEND.dstAlpha);
++            p_getBlendState_0_.setState(BLEND.mode.enabled, BLEND.srcRgb, BLEND.dstRgb, BLEND.srcAlpha, BLEND.dstAlpha);
+         }
+     }
+ 
+-    public static void setBlendState(GlBlendState gbs)
++    public static void setBlendState(GlBlendState p_setBlendState_0_)
+     {
+         if (blendLock.isLocked())
+         {
+-            blendLockState.setState(gbs);
++            blendLockState.setState(p_setBlendState_0_);
+         }
+         else
+         {
+-            BLEND.mode.setEnabled(gbs.isEnabled());
++            BLEND.mode.setEnabled(p_setBlendState_0_.isEnabled());
+ 
+-            if (!gbs.isSeparate())
++            if (!p_setBlendState_0_.isSeparate())
+             {
+-                _blendFunc(gbs.getSrcFactor(), gbs.getDstFactor());
++                _blendFunc(p_setBlendState_0_.getSrcFactor(), p_setBlendState_0_.getDstFactor());
+             }
+             else
+             {
+-                _blendFuncSeparate(gbs.getSrcFactor(), gbs.getDstFactor(), gbs.getSrcFactorAlpha(), gbs.getDstFactorAlpha());
++                _blendFuncSeparate(p_setBlendState_0_.getSrcFactor(), p_setBlendState_0_.getDstFactor(), p_setBlendState_0_.getSrcFactorAlpha(), p_setBlendState_0_.getDstFactorAlpha());
+             }
+         }
+     }
+ 
+-    public static void lockCull(GlCullState stateNew)
++    public static void lockCull(GlCullState p_lockCull_0_)
+     {
+         if (!cullLock.isLocked())
+         {
+             getCullState(cullLockState);
+-            setCullState(stateNew);
++            setCullState(p_lockCull_0_);
+             cullLock.lock();
+         }
+     }
+@@ -1989,34 +2008,34 @@
+         }
+     }
+ 
+-    public static void getCullState(GlCullState state)
++    public static void getCullState(GlCullState p_getCullState_0_)
+     {
+         if (cullLock.isLocked())
+         {
+-            state.setState(cullLockState);
++            p_getCullState_0_.setState(cullLockState);
+         }
+         else
+         {
+-            state.setState(CULL.enable.enabled, CULL.mode);
++            p_getCullState_0_.setState(CULL.enable.enabled, CULL.mode);
+         }
+     }
+ 
+-    public static void setCullState(GlCullState state)
++    public static void setCullState(GlCullState p_setCullState_0_)
+     {
+         if (cullLock.isLocked())
+         {
+-            cullLockState.setState(state);
++            cullLockState.setState(p_setCullState_0_);
+         }
+         else
+         {
+-            CULL.enable.setEnabled(state.isEnabled());
+-            CULL.mode = state.getMode();
++            CULL.enable.setEnabled(p_setCullState_0_.isEnabled());
++            CULL.mode = p_setCullState_0_.getMode();
+         }
+     }
+ 
+-    public static void glMultiDrawArrays(int mode, IntBuffer bFirst, IntBuffer bCount)
++    public static void glMultiDrawArrays(int p_glMultiDrawArrays_0_, IntBuffer p_glMultiDrawArrays_1_, IntBuffer p_glMultiDrawArrays_2_)
+     {
+-        GL14.glMultiDrawArrays(mode, bFirst, bCount);
++        GL14.glMultiDrawArrays(p_glMultiDrawArrays_0_, p_glMultiDrawArrays_1_, p_glMultiDrawArrays_2_);
+ 
+         if (Config.isShaders() && !creatingDisplayList)
+         {
+@@ -2027,7 +2046,7 @@
+                 for (int j = 1; j < i; ++j)
+                 {
+                     Shaders.uniform_instanceId.setValue(j);
+-                    GL14.glMultiDrawArrays(mode, bFirst, bCount);
++                    GL14.glMultiDrawArrays(p_glMultiDrawArrays_0_, p_glMultiDrawArrays_1_, p_glMultiDrawArrays_2_);
+                 }
+ 
+                 Shaders.uniform_instanceId.setValue(0);
+@@ -2035,14 +2054,14 @@
+         }
+     }
+ 
+-    public static void clear(int mask)
++    public static void clear(int p_clear_0_)
+     {
+-        _clear(mask, false);
++        _clear(p_clear_0_, false);
+     }
+ 
+-    public static void callLists(IntBuffer lists)
++    public static void callLists(IntBuffer p_callLists_0_)
+     {
+-        GL11.glCallLists(lists);
++        GL11.glCallLists(p_callLists_0_);
+ 
+         if (Config.isShaders() && !creatingDisplayList)
+         {
+@@ -2053,7 +2072,7 @@
+                 for (int j = 1; j < i; ++j)
+                 {
+                     Shaders.uniform_instanceId.setValue(j);
+-                    GL11.glCallLists(lists);
++                    GL11.glCallLists(p_callLists_0_);
+                 }
+ 
+                 Shaders.uniform_instanceId.setValue(0);
+@@ -2061,25 +2080,25 @@
+         }
+     }
+ 
+-    public static void bufferData(int target, long size, int usage)
++    public static void bufferData(int p_bufferData_0_, long p_bufferData_1_, int p_bufferData_3_)
+     {
+-        GL15.glBufferData(target, size, usage);
++        GL15.glBufferData(p_bufferData_0_, p_bufferData_1_, p_bufferData_3_);
+     }
+ 
+-    public static void bufferSubData(int target, long offset, ByteBuffer data)
++    public static void bufferSubData(int p_bufferSubData_0_, long p_bufferSubData_1_, ByteBuffer p_bufferSubData_3_)
+     {
+-        GL15.glBufferSubData(target, offset, data);
++        GL15.glBufferSubData(p_bufferSubData_0_, p_bufferSubData_1_, p_bufferSubData_3_);
+     }
+ 
+-    public static void copyBufferSubData(int readTarget, int writeTarget, long readOffset, long writeOffset, long size)
++    public static void copyBufferSubData(int p_copyBufferSubData_0_, int p_copyBufferSubData_1_, long p_copyBufferSubData_2_, long p_copyBufferSubData_4_, long p_copyBufferSubData_6_)
+     {
+         if (openGL31)
+         {
+-            GL31.glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
++            GL31.glCopyBufferSubData(p_copyBufferSubData_0_, p_copyBufferSubData_1_, p_copyBufferSubData_2_, p_copyBufferSubData_4_, p_copyBufferSubData_6_);
+         }
+         else
+         {
+-            ARBCopyBuffer.glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
++            ARBCopyBuffer.glCopyBufferSubData(p_copyBufferSubData_0_, p_copyBufferSubData_1_, p_copyBufferSubData_2_, p_copyBufferSubData_4_, p_copyBufferSubData_6_);
+         }
+     }
+ 
+@@ -2088,9 +2107,9 @@
+         return fogAllowed;
+     }
+ 
+-    public static void setFogAllowed(boolean fogAllowed)
++    public static void setFogAllowed(boolean p_setFogAllowed_0_)
+     {
+-        GlStateManager.fogAllowed = fogAllowed;
++        fogAllowed = p_setFogAllowed_0_;
+     }
+ 
+     public static void lockClientState()
+@@ -2103,9 +2122,9 @@
+         clientStateLocked = false;
+     }
+ 
+-    public static void readPixels(int x, int y, int width, int height, int format, int type, long pixels)
++    public static void readPixels(int p_readPixels_0_, int p_readPixels_1_, int p_readPixels_2_, int p_readPixels_3_, int p_readPixels_4_, int p_readPixels_5_, long p_readPixels_6_)
+     {
+-        GL11.glReadPixels(x, y, width, height, format, type, pixels);
++        GL11.glReadPixels(p_readPixels_0_, p_readPixels_1_, p_readPixels_2_, p_readPixels_3_, p_readPixels_4_, p_readPixels_5_, p_readPixels_6_);
+     }
+ 
+     public static int getFramebufferRead()
+@@ -2132,13 +2151,13 @@
+         GL14.glBlendFuncSeparate(BLEND.srcRgb, BLEND.dstRgb, BLEND.srcAlpha, BLEND.dstAlpha);
+     }
+ 
+-    public static void setBlendsIndexed(GlBlendState[] blends)
++    public static void setBlendsIndexed(GlBlendState[] p_setBlendsIndexed_0_)
+     {
+-        if (blends != null)
++        if (p_setBlendsIndexed_0_ != null)
+         {
+-            for (int i = 0; i < blends.length; ++i)
++            for (int i = 0; i < p_setBlendsIndexed_0_.length; ++i)
+             {
+-                GlBlendState glblendstate = blends[i];
++                GlBlendState glblendstate = p_setBlendsIndexed_0_[i];
+ 
+                 if (glblendstate != null)
+                 {
+@@ -2157,19 +2176,19 @@
+         }
+     }
+ 
+-    public static void bindImageTexture(int unit, int texture, int level, boolean layered, int layer, int access, int format)
++    public static void bindImageTexture(int p_bindImageTexture_0_, int p_bindImageTexture_1_, int p_bindImageTexture_2_, boolean p_bindImageTexture_3_, int p_bindImageTexture_4_, int p_bindImageTexture_5_, int p_bindImageTexture_6_)
+     {
+-        if (unit >= 0 && unit < IMAGE_TEXTURES.length)
++        if (p_bindImageTexture_0_ >= 0 && p_bindImageTexture_0_ < IMAGE_TEXTURES.length)
+         {
+-            if (IMAGE_TEXTURES[unit] == texture)
++            if (IMAGE_TEXTURES[p_bindImageTexture_0_] == p_bindImageTexture_1_)
+             {
+                 return;
+             }
+ 
+-            IMAGE_TEXTURES[unit] = texture;
++            IMAGE_TEXTURES[p_bindImageTexture_0_] = p_bindImageTexture_1_;
+         }
+ 
+-        GL42.glBindImageTexture(unit, texture, level, layered, layer, access, format);
++        GL42.glBindImageTexture(p_bindImageTexture_0_, p_bindImageTexture_1_, p_bindImageTexture_2_, p_bindImageTexture_3_, p_bindImageTexture_4_, p_bindImageTexture_5_, p_bindImageTexture_6_);
+     }
+ 
+     @Deprecated
+@@ -2184,7 +2203,7 @@
          }
      }
  
 -    static class BlendState
 +    public static class BlendState
      {
-         public final GlStateManager.BooleanState blend = new GlStateManager.BooleanState(3042);
-         public int srcFactorRgb = 1;
-@@ -2124,6 +2147,7 @@
+         public final GlStateManager.BooleanState mode = new GlStateManager.BooleanState(3042);
+         public int srcRgb = 1;
+@@ -2238,7 +2257,7 @@
      }
  
      @Deprecated
-+	public
-     static class Color
+-    static class Color
++    public static class Color
      {
-         public float red = 1.0F;
+         public float r = 1.0F;
+         public float g = 1.0F;

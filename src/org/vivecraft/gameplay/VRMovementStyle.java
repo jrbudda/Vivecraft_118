@@ -1,9 +1,8 @@
 package org.vivecraft.gameplay;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
-// VIVE
 public class VRMovementStyle
 {
     public String name;
@@ -28,130 +27,131 @@ public class VRMovementStyle
     public float endTeleportingSoundVolume;
     public boolean teleportOnRelease;
     public boolean arcAiming;
-
     private static final ResourceLocation beamPng = new ResourceLocation("textures/entity/endercrystal/endercrystal_beam.png");
 
     public VRMovementStyle()
     {
-        setStyle( "Arc" );
+        this.setStyle("Arc");
     }
 
-    public void setStyle( String requestedStyle ) {
-        boolean changedStyle = true;
-        if (requestedStyle == "Minimal" )
+    public void setStyle(String requestedStyle)
+    {
+        boolean flag = true;
+
+        if (requestedStyle == "Minimal")
         {
-            name = requestedStyle;
-            cameraSlide = false;
-            airSparkles = true;
-            destinationSparkles = true;
-            showBeam = false;
-            startTeleportingSound = null;
-            endTeleportingSoundVolume = 0.8f;
-            endTeleportingSound = "mob.endermen.portal";
-            teleportOnRelease = false;
-            arcAiming = false;
+            this.name = requestedStyle;
+            this.cameraSlide = false;
+            this.airSparkles = true;
+            this.destinationSparkles = true;
+            this.showBeam = false;
+            this.startTeleportingSound = null;
+            this.endTeleportingSoundVolume = 0.8F;
+            this.endTeleportingSound = "mob.endermen.portal";
+            this.teleportOnRelease = false;
+            this.arcAiming = false;
         }
-        else if (requestedStyle == "Beam" )
+        else if (requestedStyle == "Beam")
         {
-            name = requestedStyle;
-            cameraSlide = false;
-            airSparkles = true;
-            destinationSparkles = true;
-            showBeam = true;
-            beamWave = false;
-            beamArc = false;
-            beamSpiral = false;
-            beamGrow = true;
-            beamHalfWidth = 0.1f;
-            beamSegmentLength = 0.1f;
-            beamVStrips = 16;
-            renderVerticalStrip = true;
-            textureScrollSpeed = 3.0f;
-            texture = beamPng;
-            startTeleportingSound = null;
-            endTeleportingSoundVolume = 0.8f;
-            endTeleportingSound = "mob.endermen.portal";
-            teleportOnRelease = false;
-            arcAiming = false;
+            this.name = requestedStyle;
+            this.cameraSlide = false;
+            this.airSparkles = true;
+            this.destinationSparkles = true;
+            this.showBeam = true;
+            this.beamWave = false;
+            this.beamArc = false;
+            this.beamSpiral = false;
+            this.beamGrow = true;
+            this.beamHalfWidth = 0.1F;
+            this.beamSegmentLength = 0.1F;
+            this.beamVStrips = 16;
+            this.renderVerticalStrip = true;
+            this.textureScrollSpeed = 3.0F;
+            this.texture = beamPng;
+            this.startTeleportingSound = null;
+            this.endTeleportingSoundVolume = 0.8F;
+            this.endTeleportingSound = "mob.endermen.portal";
+            this.teleportOnRelease = false;
+            this.arcAiming = false;
         }
-        else if (requestedStyle == "Tunnel" )
+        else if (requestedStyle == "Tunnel")
         {
-            name = requestedStyle;
-            cameraSlide = false;
-            airSparkles = true;
-            destinationSparkles = true;
-            showBeam = true;
-            beamWave = false;
-            beamArc = false;
-            beamSpiral = true;
-            beamGrow = true;
-            beamHalfWidth = 0.1f;
-            beamSpiralRadius = 1.6f;
-            renderVerticalStrip = true;
-            beamVStrips = 16;
-            textureScrollSpeed = 3.0f;
-            texture = beamPng;
-            startTeleportingSound = null;
-            endTeleportingSoundVolume = 0.8f;
-            endTeleportingSound = "mob.endermen.portal";
-            teleportOnRelease = false;
-            arcAiming = false;
+            this.name = requestedStyle;
+            this.cameraSlide = false;
+            this.airSparkles = true;
+            this.destinationSparkles = true;
+            this.showBeam = true;
+            this.beamWave = false;
+            this.beamArc = false;
+            this.beamSpiral = true;
+            this.beamGrow = true;
+            this.beamHalfWidth = 0.1F;
+            this.beamSpiralRadius = 1.6F;
+            this.renderVerticalStrip = true;
+            this.beamVStrips = 16;
+            this.textureScrollSpeed = 3.0F;
+            this.texture = beamPng;
+            this.startTeleportingSound = null;
+            this.endTeleportingSoundVolume = 0.8F;
+            this.endTeleportingSound = "mob.endermen.portal";
+            this.teleportOnRelease = false;
+            this.arcAiming = false;
         }
-        else if (requestedStyle == "Grapple" )
+        else if (requestedStyle == "Grapple")
         {
-            name = requestedStyle;
-            cameraSlide = true;
-            airSparkles = false;
-            destinationSparkles = true;
-            showBeam = true;
-            beamWave = true;
-            beamArc = false;
-            beamSpiral = false;
-            beamGrow = true;
-            beamHalfWidth = 0.05f;
-            beamSegmentLength = 0.05f;
-            renderVerticalStrip = false;
-            beamVStrips = 2;
-            textureScrollSpeed = 7.0f;
-            texture = beamPng;
-            startTeleportingSoundVolume = 0.5f;
-            endTeleportingSoundVolume = 0.5f;
-            startTeleportingSound = null;
-            endTeleportingSound = "mob.endermen.portal";
-            teleportOnRelease = false;
-            arcAiming = false;
+            this.name = requestedStyle;
+            this.cameraSlide = true;
+            this.airSparkles = false;
+            this.destinationSparkles = true;
+            this.showBeam = true;
+            this.beamWave = true;
+            this.beamArc = false;
+            this.beamSpiral = false;
+            this.beamGrow = true;
+            this.beamHalfWidth = 0.05F;
+            this.beamSegmentLength = 0.05F;
+            this.renderVerticalStrip = false;
+            this.beamVStrips = 2;
+            this.textureScrollSpeed = 7.0F;
+            this.texture = beamPng;
+            this.startTeleportingSoundVolume = 0.5F;
+            this.endTeleportingSoundVolume = 0.5F;
+            this.startTeleportingSound = null;
+            this.endTeleportingSound = "mob.endermen.portal";
+            this.teleportOnRelease = false;
+            this.arcAiming = false;
         }
         else if (requestedStyle == "Arc")
         {
-            name = requestedStyle;
-            cameraSlide = false;
-            airSparkles = false;
-            destinationSparkles = false;
-            showBeam = true;
-            beamWave = false;
-            beamArc = false;
-            beamSpiral = false;
-            beamGrow = false;
-            beamHalfWidth = 0.1f;
-            beamVStrips = 1;
-            renderVerticalStrip = true;
-            textureScrollSpeed = 3.0f;
-            texture = beamPng;
-            startTeleportingSound = null;
-            endTeleportingSoundVolume = 0.7f;
-            endTeleportingSound = null;
-            teleportOnRelease = true;
-            arcAiming = true;
+            this.name = requestedStyle;
+            this.cameraSlide = false;
+            this.airSparkles = false;
+            this.destinationSparkles = false;
+            this.showBeam = true;
+            this.beamWave = false;
+            this.beamArc = false;
+            this.beamSpiral = false;
+            this.beamGrow = false;
+            this.beamHalfWidth = 0.1F;
+            this.beamVStrips = 1;
+            this.renderVerticalStrip = true;
+            this.textureScrollSpeed = 3.0F;
+            this.texture = beamPng;
+            this.startTeleportingSound = null;
+            this.endTeleportingSoundVolume = 0.7F;
+            this.endTeleportingSound = null;
+            this.teleportOnRelease = true;
+            this.arcAiming = true;
         }
         else
         {
-            changedStyle = false;
+            flag = false;
             Minecraft.getInstance().printChatMessage("Unknown teleport style requested: " + requestedStyle);
         }
 
-        if (changedStyle && Minecraft.getInstance()!=null)
+        if (flag && Minecraft.getInstance() != null)
         {
-				    Minecraft.getInstance().printChatMessage("Teleport style (RCTRL-M): " + name);
+            Minecraft.getInstance().printChatMessage("Teleport style (RCTRL-M): " + this.name);
         }
     }
 }

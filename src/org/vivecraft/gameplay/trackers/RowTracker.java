@@ -1,145 +1,167 @@
 package org.vivecraft.gameplay.trackers;
 
-import org.vivecraft.gameplay.OpenVRPlayer;
-import org.vivecraft.provider.MCOpenVR;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.phys.Vec3;
+import org.vivecraft.gameplay.VRPlayer;
 import org.vivecraft.settings.VRSettings;
 import org.vivecraft.utils.math.Quaternion;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.entity.item.BoatEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+public class RowTracker extends Tracker
+{
+    Vec3[] lastUWPs = new Vec3[2];
+    public double[] forces = new double[] {0.0D, 0.0D};
+    double transmissionEfficiency = 0.9D;
+    public float LOar;
+    public float ROar;
+    public float Foar;
 
-public class RowTracker extends Tracker{
+    public RowTracker(Minecraft mc)
+    {
+        super(mc);
+    }
 
-	public RowTracker(Minecraft mc) {
-		super(mc);
-	}
+    public boolean isActive(LocalPlayer p)
+    {
+        if (Minecraft.getInstance().vrSettings.seated)
+        {
+            return false;
+        }
+        else if (!Minecraft.getInstance().vrSettings.realisticRowEnabled)
+        {
+            return false;
+        }
+        else if (p != null && p.isAlive())
+        {
+            if (this.mc.gameMode == null)
+            {
+                return false;
+            }
+            else if (Minecraft.getInstance().options.keyUp.isDown())
+            {
+                return false;
+            }
+            else if (!(p.getVehicle() instanceof Boat))
+            {
+                return false;
+            }
+            else
+            {
+                return !Minecraft.getInstance().bowTracker.isNotched();
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
 
-	public boolean isActive(ClientPlayerEntity p){
-		if(Minecraft.getInstance().vrSettings.seated)
-			return false;
-		if(!Minecraft.getInstance().vrSettings.realisticRowEnabled)
-			return false;
-		if(p==null || !p.isAlive())
-			return false;
-		if(mc.playerController == null) return false;
-		if(Minecraft.getInstance().gameSettings.keyBindForward.isKeyDown()) //important
-			return false;
-		if(!(p.getRidingEntity() instanceof BoatEntity))
-			return false;
-		if(Minecraft.getInstance().bowTracker.isNotched())
-			return false;
-		return true;
-	}
+    public boolean isRowing()
+    {
+        return this.ROar + this.LOar + this.Foar > 0.0F;
+    }
 
+    public void reset(LocalPlayer player)
+    {
+        this.LOar = 0.0F;
+        this.ROar = 0.0F;
+        this.Foar = 0.0F;
+    }
 
-	Vector3d[] lastUWPs=new Vector3d[2];
-	public double[] forces= new double[]{0,0};
+    public void doProcess(LocalPlayer player)
+    {
+        double d0 = this.mc.vr.controllerHistory[0].averageSpeed(0.5D);
+        double d1 = this.mc.vr.controllerHistory[1].averageSpeed(0.5D);
+        float f = 0.5F;
+        float f1 = 2.0F;
+        this.ROar = (float)Math.max(d0 - (double)f, 0.0D);
+        this.LOar = (float)Math.max(d1 - (double)f, 0.0D);
+        this.Foar = this.ROar > 0.0F && this.LOar > 0.0F ? (this.ROar + this.LOar) / 2.0F : 0.0F;
 
-	double transmissionEfficiency=0.9;
-	
-	public boolean isRowing(){
-		return ROar + LOar + Foar > 0;
-	}
-	
-	public float LOar, ROar, Foar;
-	
-	@Override
-	public void reset(ClientPlayerEntity player) {
-		LOar = 0;
-		ROar = 0;
-		Foar = 0;
-	}
-	
-	@Override
-	public void doProcess (ClientPlayerEntity player){
-		double c0move = MCOpenVR.controllerHistory[0].averageSpeed(0.5);
-		double c1move = MCOpenVR.controllerHistory[1].averageSpeed(0.5);
+        if (this.Foar > f1)
+        {
+            this.Foar = f1;
+        }
 
-		float minspeed = 0.5f;
-		float maxspeed = 2;
+        if (this.ROar > f1)
+        {
+            this.ROar = f1;
+        }
 
-		ROar = (float) Math.max(c0move - minspeed,0);
-		LOar = (float) Math.max(c1move - minspeed,0);
-		Foar = ROar > 0 && LOar > 0 ? (ROar + LOar) / 2 : 0;
-		if(Foar > maxspeed) Foar = maxspeed;
-		if(ROar > maxspeed) ROar = maxspeed;
-		if(LOar > maxspeed) LOar = maxspeed;
+        if (this.LOar > f1)
+        {
+            this.LOar = f1;
+        }
+    }
 
-		//TODO: Backwards paddlin'	
-	}
+    public void doProcessFinaltransmithastofixthis(LocalPlayer player)
+    {
+        Boat boat = (Boat)player.getVehicle();
+        Quaternion quaternion = (new Quaternion(boat.xRot, -(boat.yRot % 360.0F), 0.0F)).normalized();
 
+        for (int i = 0; i <= 1; ++i)
+        {
+            if (!this.isPaddleUnderWater(i, boat))
+            {
+                this.forces[i] = 0.0D;
+                this.lastUWPs[i] = null;
+            }
+            else
+            {
+                Vec3 vec3 = this.getArmToPaddleVector(i, boat);
+                Vec3 vec31 = this.getAttachmentPoint(i, boat);
+                Vec3 vec32 = vec31.add(vec3.normalize()).subtract(boat.position());
 
-	public void doProcessFinaltransmithastofixthis(ClientPlayerEntity player){
+                if (this.lastUWPs[i] != null)
+                {
+                    Vec3 vec33 = this.lastUWPs[i].subtract(vec32);
+                    vec33 = vec33.subtract(boat.getDeltaMovement());
+                    Vec3 vec34 = quaternion.multiply(new Vec3(0.0D, 0.0D, 1.0D));
+                    double d0 = vec33.dot(vec34) * this.transmissionEfficiency / 5.0D;
 
-		BoatEntity boat=(BoatEntity) player.getRidingEntity();
-		Quaternion boatRot = new Quaternion(boat.rotationPitch, -(boat.rotationYaw % 360f), 0).normalized();
+                    if ((!(d0 < 0.0D) || !(this.forces[i] > 0.0D)) && (!(d0 > 0.0D) || !(this.forces[i] < 0.0D)))
+                    {
+                        this.forces[i] = Math.min(Math.max(d0, -0.1D), 0.1D);
+                    }
+                    else
+                    {
+                        this.forces[i] = 0.0D;
+                    }
+                }
 
+                this.lastUWPs[i] = vec32;
+            }
+        }
+    }
 
-		for (int paddle = 0; paddle <= 1 ; paddle++) {
-			if(isPaddleUnderWater(paddle,boat)){
-				Vector3d arm2Pad=getArmToPaddleVector(paddle,boat);
-				Vector3d attach=getAttachmentPoint(paddle,boat);
+    Vec3 getArmToPaddleVector(int paddle, Boat boat)
+    {
+        Vec3 vec3 = this.getAttachmentPoint(paddle, boat);
+        Vec3 vec31 = this.getAbsArmPos(paddle == 0 ? 1 : 0);
+        return vec3.subtract(vec31);
+    }
 
-				Vector3d underWaterPoint=attach.add(arm2Pad.normalize()).subtract(boat.getPositionVec());
+    Vec3 getAttachmentPoint(int paddle, Boat boat)
+    {
+        Vec3 vec3 = new Vec3((double)((paddle == 0 ? 9.0F : -9.0F) / 16.0F), 0.625D, 0.1875D);
+        Quaternion quaternion = (new Quaternion(boat.xRot, -(boat.yRot % 360.0F), 0.0F)).normalized();
+        return boat.position().add(quaternion.multiply(vec3));
+    }
 
+    Vec3 getAbsArmPos(int side)
+    {
+        Vec3 vec3 = this.mc.vr.controllerHistory[side].averagePosition(0.1D);
+        Quaternion quaternion = new Quaternion(0.0F, VRSettings.inst.vrWorldRotation, 0.0F);
+        return VRPlayer.get().roomOrigin.add(quaternion.multiply(vec3));
+    }
 
-				if(lastUWPs[paddle]!=null){
-					Vector3d forceVector=lastUWPs[paddle].subtract(underWaterPoint); //intentionally reverse
-					forceVector=forceVector.subtract(boat.getMotion());
-					Vector3d forward= boatRot.multiply(new Vector3d(0,0,1));
-
-					//scalar projection onto forward vector
-					double force=forceVector.dotProduct(forward)*transmissionEfficiency/5;
-
-					if ((force<0 && forces[paddle]>0) || (force>0 && forces[paddle]<0)){
-						forces[paddle]=0;
-					}else {
-						forces[paddle] = Math.min(Math.max(force,-0.1),0.1);
-					}
-				}
-				lastUWPs[paddle]=underWaterPoint;
-			}else{
-				forces[paddle]=0;
-				lastUWPs[paddle]=null;
-			}
-		}
-		
-	}
-
-	Vector3d getArmToPaddleVector(int paddle, BoatEntity boat){
-
-		Vector3d attachAbs=getAttachmentPoint(paddle,boat);
-		Vector3d armAbs = getAbsArmPos(paddle==0? 1 : 0);
-
-		return attachAbs.subtract(armAbs);
-	}
-
-
-	Vector3d getAttachmentPoint(int paddle, BoatEntity boat){
-		Vector3d attachmentPoint = new Vector3d((paddle==0? 9f: -9f) / 16f, (-5 + 15) / 16f, 3 / 16f); //values from ModelBoat
-		Quaternion boatRot = new Quaternion(boat.rotationPitch, -(boat.rotationYaw % 360f), 0).normalized();
-
-		return boat.getPositionVec().add(boatRot.multiply(attachmentPoint));
-	}
-
-	Vector3d getAbsArmPos(int side){
-		Vector3d arm = MCOpenVR.controllerHistory[side].averagePosition(0.1);
-		Quaternion worldRot = new Quaternion(0, VRSettings.inst.vrWorldRotation, 0);
-
-		return OpenVRPlayer.get().roomOrigin.add(worldRot.multiply(arm));
-	}
-
-	boolean isPaddleUnderWater(int paddle, BoatEntity boat){
-
-		Vector3d attachAbs=getAttachmentPoint(paddle,boat);
-		Vector3d armToPaddle = getArmToPaddleVector(paddle,boat).normalize();
-
-		BlockPos blockPos=new BlockPos(attachAbs.add(armToPaddle));
-
-		return boat.world.getBlockState(blockPos).getMaterial().isLiquid();
-	}
-
+    boolean isPaddleUnderWater(int paddle, Boat boat)
+    {
+        Vec3 vec3 = this.getAttachmentPoint(paddle, boat);
+        Vec3 vec31 = this.getArmToPaddleVector(paddle, boat).normalize();
+        BlockPos blockpos = new BlockPos(vec3.add(vec31));
+        return boat.level.getBlockState(blockpos).getMaterial().isLiquid();
+    }
 }

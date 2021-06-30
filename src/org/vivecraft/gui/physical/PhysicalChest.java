@@ -1,301 +1,281 @@
 package org.vivecraft.gui.physical;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.gui.physical.interactables.Interactable;
 import org.vivecraft.gui.physical.interactables.PhysicalItemSlot;
 import org.vivecraft.utils.math.Quaternion;
 import org.vivecraft.utils.math.Vector3;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.util.HandSide;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+public class PhysicalChest extends PhysicalItemSlotGui
+{
+    boolean wasOpen = false;
+    boolean loadedDouble;
+    double lidAngle = 0.0D;
+    double lastLidAngle = 0.0D;
+    int handOnLid = -1;
+    int layer = 2;
 
-public class PhysicalChest extends PhysicalItemSlotGui {
-	boolean wasOpen=false;
-	boolean loadedDouble;
+    public PhysicalChest(BlockPos pos)
+    {
+        super(pos);
+        this.openDistance = 0.0D;
+    }
 
-	public PhysicalChest(BlockPos pos) {
-		super(pos);
-		openDistance = 0;
-	}
+    public boolean isDouble()
+    {
+        Vec3 vec3 = this.getAnchorPos(0.0D);
+        Vec3 vec31 = new Vec3(-1.0D, 0.0D, 0.0D);
+        Quaternion quaternion = this.getAnchorRotation();
+        BlockPos blockpos = new BlockPos(vec3.add(quaternion.multiply(vec31)));
+        BlockState blockstate = this.mc.level.getBlockState(blockpos);
+        return blockstate.getBlock().equals(Blocks.CHEST) && this.blockState.getBlock().equals(Blocks.CHEST) || blockstate.getBlock().equals(Blocks.TRAPPED_CHEST) && this.blockState.getBlock().equals(Blocks.TRAPPED_CHEST);
+    }
 
-	public boolean isDouble() {
-		Vector3d posVec = getAnchorPos(0);
-		Vector3d right = new Vector3d(-1, 0, 0);
-		Quaternion rot = getAnchorRotation();
-		BlockPos neighborPos = new BlockPos(posVec.add(rot.multiply(right)));
+    public double getLidHoldAngle(BlockPos pos, double partialTicks)
+    {
+        BlockState blockstate = this.mc.level.getBlockState(pos);
+        boolean flag = false;
 
-		BlockState neighborBlock = mc.world.getBlockState(neighborPos);
-		if ((neighborBlock.getBlock().equals(Blocks.CHEST) && blockState.getBlock().equals(Blocks.CHEST)) ||
-				(neighborBlock.getBlock().equals(Blocks.TRAPPED_CHEST) && blockState.getBlock().equals(Blocks.TRAPPED_CHEST))) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+        if ((!this.blockState.getBlock().equals(Blocks.CHEST) || !blockstate.getBlock().equals(Blocks.CHEST)) && this.blockState.getBlock().equals(Blocks.TRAPPED_CHEST) && blockstate.getBlock().equals(Blocks.TRAPPED_CHEST))
+        {
+        }
 
-	double lidAngle = 0;
-	double lastLidAngle = 0;
-	int handOnLid = -1;
-	int layer = 2;
+        return !this.isFullyClosed() && (pos.equals(this.blockPos) || flag) ? this.lastLidAngle + (this.lidAngle - this.lastLidAngle) * partialTicks : -1.0D;
+    }
 
-	public double getLidHoldAngle(BlockPos pos, double partialTicks) {
-		BlockState block = mc.world.getBlockState(pos);
+    public boolean isAlive()
+    {
+        if (!this.mc.level.getBlockState(this.blockPos).getBlock().equals(this.blockState.getBlock()))
+        {
+            return false;
+        }
+        else
+        {
+            return this.loadedDouble == this.isDouble();
+        }
+    }
 
-		boolean isNeighbor = false;
-		if (this.blockState.getBlock().equals(Blocks.CHEST) && block.getBlock().equals(Blocks.CHEST) ||
-				this.blockState.getBlock().equals(Blocks.TRAPPED_CHEST) && block.getBlock().equals(Blocks.TRAPPED_CHEST)) {
-//			Vector3d offset = new Vector3d(pos).subtract(new Vector3d(this.blockPos));
-//			int x = Math.abs((int) Math.round(getAnchorRotation(partialTicks).inverse().multiply(offset).x));
-//			isNeighbor = (x == 1);
-		}
+    public void onUpdate()
+    {
+        super.onUpdate();
+        double[] adouble = new double[2];
+        Vec3 vec3 = this.getAnchorPos();
+        Quaternion quaternion = this.getAnchorRotation().multiply(new Quaternion(0.0F, 180.0F, 0.0F));
+        vec3 = vec3.add(quaternion.multiply(new Vec3(0.0D, 0.1D, -0.4D)));
 
-		if (isFullyClosed() || (!pos.equals(this.blockPos) && !isNeighbor))
-			return -1;
-		return lastLidAngle + (lidAngle - lastLidAngle) * partialTicks;
-	}
+        if (this.isDouble())
+        {
+            vec3 = vec3.add(quaternion.multiply(new Vec3(0.5D, 0.0D, 0.0D)));
+        }
 
-	@Override
-	public boolean isAlive() {
-		if(!mc.world.getBlockState(blockPos).getBlock().equals(blockState.getBlock()))
-			return false;
-		if(loadedDouble != isDouble())
-			return false;
-		return true;
-	}
+        Quaternion quaternion1 = new Quaternion((float)(-this.lidAngle), 0.0F, 0.0F);
+        Vec3 vec31 = vec3.add(quaternion.multiply(quaternion1.multiply(new Vec3(0.0D, 0.0D, 0.4D))));
 
-	@Override
-	public void onUpdate() {
-		super.onUpdate();
-		//reloadSlots();
+        for (int i = 0; i < 2; ++i)
+        {
+            Vec3 vec32 = this.mc.vrPlayer.vrdata_world_pre.getController(i).getPosition();
+            Vec3 vec33 = quaternion1.inverse().multiply(quaternion.inverse().multiply(vec32.subtract(vec31)));
+            double d0 = this.isDouble() ? 1.0D : 0.5D;
+            double d2 = 0.5D;
 
-		double[] lidDist = new double[2];
-		
-		Vector3d basePos = getAnchorPos();
-		Quaternion rot = getAnchorRotation().multiply(new Quaternion(0, 180, 0)); // rotation facing you
+            if (!(Math.abs(vec33.x) < d0) || !(Math.abs(vec33.z) < d2) || !(Math.abs(vec33.y - 0.05D) < 0.1D) && (this.handOnLid != i || !(Math.abs(vec33.y) < 0.4D)))
+            {
+                adouble[i] = Double.MAX_VALUE;
+            }
+            else
+            {
+                adouble[i] = -vec33.y;
+            }
+        }
 
-		basePos = basePos.add(rot.multiply(new Vector3d(0, 0.1, -0.4)));
-		
+        int k = adouble[0] < adouble[1] ? 0 : 1;
 
-		if (isDouble()) {
-			basePos = basePos.add(rot.multiply(new Vector3d(0.5, 0, 0)));
-		}
-		
+        if (adouble[k] < 0.5D)
+        {
+            if (!this.isOpen && !this.mc.physicalGuiManager.isIntercepting())
+            {
+                this.tryOpenWindow();
+            }
 
-		Quaternion lidRot = new Quaternion((float) (-lidAngle), 0, 0);
+            this.handOnLid = k;
+            Vec3 vec34 = this.mc.vrPlayer.vrdata_world_pre.getController(k).getPosition();
+            Vec3 vec35 = vec34.subtract(vec3).normalize();
+            vec35 = quaternion.inverse().multiply(vec35);
+            vec35 = new Vec3(0.0D, vec35.y, vec35.z);
+            double d4 = (double)Quaternion.createFromToVector(new Vector3(0.0F, 0.0F, -1.0F), new Vector3(vec35)).toEuler().getPitch();
+            d4 = Math.max(Math.min(d4, 90.0D), 0.0D);
+            this.lastLidAngle = this.lidAngle;
+            this.lidAngle = d4;
+        }
+        else
+        {
+            this.handOnLid = -1;
+            double d3 = this.lidAngle - this.lastLidAngle;
+            double d5 = 1.0D * Math.abs((this.lidAngle - 45.0D) / 45.0D) + 0.5D;
 
-		Vector3d lidMiddle = basePos.add(rot.multiply(lidRot.multiply(new Vector3d(0, 0, 0.4))));
+            if (this.isOpen && this.lidAngle > 45.0D)
+            {
+                d3 = d3 + d5;
+            }
+            else
+            {
+                d3 = d3 - d5;
+            }
 
-		for (int i = 0; i < 2; i++) {
-			Vector3d handPos = mc.vrPlayer.vrdata_world_pre.getController(i).getPosition();
+            this.lastLidAngle = this.lidAngle;
+            this.lidAngle = Math.min(Math.max(0.0D, this.lidAngle + d3), 90.0D);
 
-			//get the position relative to the lid
-			Vector3d offsetLid = lidRot.inverse().multiply(rot.inverse().multiply(handPos.subtract(lidMiddle)));
+            if (this.isOpen && this.lidAngle == 0.0D)
+            {
+                this.close();
+            }
+        }
 
-			double xRange = isDouble() ? 1.0 : 0.5;
-			double zRange = 0.5;
+        if (this.isOpen)
+        {
+            if (this.isInRange())
+            {
+                int l = this.mc.options.mainHand == HumanoidArm.RIGHT ? 0 : 1;
+                Vec3 vec36 = this.mc.vrPlayer.vrdata_world_pre.getController(l).getPosition();
+                Vec3 vec37 = this.getAnchorRotation().inverse().multiply(vec36.subtract(this.getAnchorPos()));
+                double d1 = vec37.y + 0.3D;
+                int j = (int)(d1 / (double)0.4F * 2.0D);
+                j = Math.min(Math.max(0, j), 2);
+                this.switchLayer(j);
+            }
+            else
+            {
+                this.switchLayer(2);
+            }
+        }
+    }
 
-			if (Math.abs(offsetLid.x) < xRange && Math.abs(offsetLid.z) < zRange
-					&& (Math.abs(offsetLid.y - 0.05) < 0.1 || (handOnLid==i && Math.abs(offsetLid.y) < 0.4))) {
-				lidDist[i] = -offsetLid.y;
-			} else {
-				lidDist[i] = Double.MAX_VALUE;
-			}
-		}
+    boolean isInRange()
+    {
+        for (int i = 0; i < 2; ++i)
+        {
+            Vec3 vec3 = this.mc.vrPlayer.vrdata_world_pre.getController(i).getPosition();
+            Vec3 vec31 = this.getAnchorRotation().inverse().multiply(vec3.subtract(this.getAnchorPos()));
 
-		int handOnLid = lidDist[0] < lidDist[1] ? 0 : 1;
+            if (this.isDouble())
+            {
+                vec31 = vec31.add(new Vec3(0.5D, 0.0D, 0.0D));
+            }
 
-		if (lidDist[handOnLid] < 0.5) {
-			
-			
-			if (!isOpen && !mc.physicalGuiManager.isIntercepting())
-				tryOpenWindow();
-			this.handOnLid=handOnLid;
-			Vector3d handPos = mc.vrPlayer.vrdata_world_pre.getController(handOnLid).getPosition();
-			Vector3d dir = handPos.subtract(basePos).normalize();
-			
-			dir = rot.inverse().multiply(dir);
-			dir = new Vector3d(0, dir.y, dir.z);
-			
-			
-			
-			double newAngle = Quaternion.createFromToVector(new Vector3(0, 0, -1), new Vector3(dir)).toEuler().getPitch();
+            double d0 = this.isDouble() ? 1.0D : 0.5D;
+            double d1 = 0.5D;
 
-			newAngle = Math.max(Math.min(newAngle, 90), 0);
-			lastLidAngle = lidAngle;
-			lidAngle = newAngle;
-		} else {
-			this.handOnLid = -1;
-			double velocity = lidAngle - lastLidAngle;
-			double force = 1.0*Math.abs((lidAngle-45)/45.0)+0.5;
+            if (Math.abs(vec31.x) < d0 && Math.abs(vec31.z) < d1)
+            {
+                return true;
+            }
+        }
 
-			if (isOpen && lidAngle > 45) {
-				velocity += force;
-			} else {
-				velocity -= force;
-			}
-			lastLidAngle = lidAngle;
-			lidAngle = Math.min(Math.max(0, lidAngle + velocity), 90);
+        return false;
+    }
 
-			if(isOpen && lidAngle==0){
-				close();
-			}
-		}
+    int getSlotCount()
+    {
+        if (this.container == null)
+        {
+            return this.isDouble() ? 54 : 27;
+        }
+        else
+        {
+            return (this.container.slots.get(0)).container.getContainerSize();
+        }
+    }
 
+    public void render(double partialTicks)
+    {
+        getBlockOrientation(this.blockPos);
+        super.render(partialTicks);
+    }
 
-		if (isOpen) {
-			if(isInRange()) {
-				int mainhand=(mc.gameSettings.mainHand==HandSide.RIGHT)? 0 : 1;
-				Vector3d handPos = mc.vrPlayer.vrdata_world_pre.getController(mainhand).getPosition();
-				Vector3d offset = getAnchorRotation().inverse().multiply(handPos.subtract(getAnchorPos()));
-				double height = offset.y + 0.3;
-				int layer = (int) (height / 0.4f * 2);
-				layer = Math.min(Math.max(0, layer), 2);
-				switchLayer(layer);
-			} else {
-				switchLayer(2);
-			}
-		}
-	}
+    void loadSlots()
+    {
+        this.loadedDouble = this.isDouble();
+        boolean flag = this.container == null;
+        int i = this.getSlotCount();
+        int j = i / 9;
+        this.interactables.clear();
+        Vec3 vec3 = new Vec3(0.2D, -0.375D, 0.2D);
+        double d0 = this.isDouble() ? 0.8D : 0.6D;
+        double d1 = 0.6D;
+        double d2 = 0.6D;
 
-	@Override
-	boolean isInRange() {
-		for (int i = 0; i < 2; i++) {
-			Vector3d handPos = mc.vrPlayer.vrdata_world_pre.getController(i).getPosition();
-			Vector3d offset = getAnchorRotation().inverse().multiply(handPos.subtract(getAnchorPos()));
-			if (isDouble()) {
-				offset = offset.add(new Vector3d(0.5, 0, 0));
-			}
+        for (int k = 0; k < j; ++k)
+        {
+            int l = k / (j / 3);
+            int i1 = k % (j / 3);
 
-			double rangeX = isDouble() ? 1 : 0.5;
-			double rangeZ = 0.5;
+            for (int j1 = 0; j1 < 3; ++j1)
+            {
+                for (int k1 = 0; k1 < 3; ++k1)
+                {
+                    double d3 = d0 / 3.0D;
+                    double d4 = d1 / 3.0D;
+                    double d5 = d2 / 3.0D;
+                    int l1 = k * 9 + j1 * 3 + k1;
+                    PhysicalItemSlot physicalitemslot = new PhysicalItemSlot(this, l1);
 
-			if (Math.abs(offset.x) < rangeX && Math.abs(offset.z) < rangeZ) {
-				return true;
-			}
-		}
-		return false;
+                    if (!flag)
+                    {
+                        physicalitemslot.slot = this.container.slots.get(l1);
+                    }
 
-	}
+                    physicalitemslot.position = vec3.add(new Vec3(-d3 * (double)k1, d4 * (double)l, -d5 * (double)j1)).add(new Vec3((double)(-i1) * (d0 + 0.07D), 0.0D, 0.0D));
+                    physicalitemslot.rotation = new Quaternion(90.0F, 0.0F, 0.0F);
+                    physicalitemslot.fullBlockScaleMult = 1.9D;
+                    physicalitemslot.scale = 0.19D;
+                    physicalitemslot.opacity = 1.0D;
+                    this.interactables.add(physicalitemslot);
+                }
+            }
+        }
+    }
 
-	int getSlotCount() {
-		if (container == null)
-			if (isDouble())
-				return 54;
-			else
-				return 27;
-		else
-			return container.inventorySlots.get(0).inventory.getSizeInventory();
-	}
+    void switchLayer(int layer)
+    {
+        this.layer = layer;
+        int i = this.getSlotCount();
 
+        for (Interactable interactable : this.interactables)
+        {
+            if (interactable instanceof PhysicalItemSlot)
+            {
+                PhysicalItemSlot physicalitemslot = (PhysicalItemSlot)interactable;
+                int j = physicalitemslot.slotId / 9 / (i / 9 / 3);
 
-	@Override
-	public void render(double partialTicks) {
-		getBlockOrientation(blockPos);
-		super.render(partialTicks);
-	}
+                if (j > layer)
+                {
+                    physicalitemslot.opacity = 0.1D;
+                }
+                else
+                {
+                    physicalitemslot.opacity = 1.0D;
+                }
+            }
+        }
+    }
 
-	@Override
-	void loadSlots() {
-		loadedDouble=isDouble();
-		boolean dummy = container == null;
-		int slotCount = getSlotCount();
+    public boolean isFullyClosed()
+    {
+        return super.isFullyClosed();
+    }
 
-		int rows = slotCount / 9;
-
-		this.interactables.clear();
-		
-
-		Vector3d anchor = new Vector3d(0.2, -0.375, 0.2);
-		double spanX = isDouble() ? 0.8 : 0.6;
-		double spanY = 0.6;
-		double spanZ = 0.6;
-
-		for (int row = 0; row < rows; row++) {
-			int level = row / (rows / 3);
-			int pack = row % (rows / 3);
-			for (int y = 0; y < 3; y++) {
-				for (int x = 0; x < 3; x++) {
-					double spacingX = spanX / 3;
-					double spacingY = spanY / 3;
-					double spacingZ = spanZ / 3;
-
-					int slotId = row * 9 + y * 3 + x;
-					PhysicalItemSlot slot = new PhysicalItemSlot(this,slotId);
-					if (!dummy)
-						slot.slot = container.inventorySlots.get(slotId);
-
-					slot.position = anchor.add(new Vector3d(-spacingX * x, spacingY * level, -spacingZ * y))
-							.add(new Vector3d(-pack * (spanX + 0.07), 0, 0));
-					slot.rotation = new Quaternion(90, 0, 0);
-					slot.fullBlockScaleMult = 1.9;
-					slot.scale = 0.19;
-					slot.opacity = 1;
-					interactables.add(slot);
-				}
-			}
-		}
-	}
-
-	void switchLayer(int layer) {
-		this.layer = layer;
-
-		int slotCount = getSlotCount();
-
-		for (Interactable inter : interactables) {
-			if(inter instanceof PhysicalItemSlot) {
-				PhysicalItemSlot slot = (PhysicalItemSlot) inter;
-				int j = slot.slotId / 9 / (slotCount / 9 / 3);
-				if (j > layer) {
-					slot.opacity = 0.1;
-				} else {
-					slot.opacity = 1;
-				}
-			}
-		}
-	}
-
-	@Override
-	public boolean isFullyClosed() {
-//		if(isOpen)
-//			return false;
-//
-//		if(!wasOpen)
-//			return true;
-//
-//		if(!(lidAngle==0 && lastLidAngle==0))
-//			return false;
-//
-//		TileEntity te=mc.world.getTileEntity(blockPos);
-//		if(te!=null && te instanceof ChestTileEntity){
-//			ChestTileEntity teChest=(ChestTileEntity) te;
-//			if(teChest.prevLidAngle == 0 && teChest.lidAngle == 0){
-//				wasOpen=false;
-//				return true;
-//			}else
-//				return false;
-//		}
-//		if(te!=null && te instanceof EnderChestTileEntity){
-//			EnderChestTileEntity teChest=(EnderChestTileEntity) te;
-//			if( teChest.prevLidAngle==0 && teChest.lidAngle==0){
-//				wasOpen=false;
-//				return true;
-//			}else
-//				return false;
-//		}
-		return super.isFullyClosed();
-	}
-
-	@Override
-	public void open(Object payload) {
-		if (payload instanceof IInventory) {
-			IInventory inventory = (IInventory) payload;
-//			container = new ChestContainer(mc.player.inventory, inventory, mc.player);		
-			wasOpen = true;
-			super.open(null);
-		}
-
-	}
+    public void open(Object payload)
+    {
+        if (payload instanceof Container)
+        {
+            Container container = (Container)payload;
+            this.wasOpen = true;
+            super.open((Object)null);
+        }
+    }
 }

@@ -1,51 +1,59 @@
 --- a/net/optifine/player/PlayerItemsLayer.java
 +++ b/net/optifine/player/PlayerItemsLayer.java
-@@ -3,8 +3,12 @@
- import com.mojang.blaze3d.matrix.MatrixStack;
- import java.util.Map;
- import java.util.Set;
-+
+@@ -6,17 +6,19 @@
+ import net.minecraft.client.model.HumanoidModel;
+ import net.minecraft.client.player.AbstractClientPlayer;
+ import net.minecraft.client.renderer.MultiBufferSource;
++import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+ import net.minecraft.client.renderer.entity.layers.RenderLayer;
+ import net.minecraft.client.renderer.entity.player.PlayerRenderer;
+ import net.minecraft.client.renderer.texture.OverlayTexture;
+ import net.minecraft.world.entity.Entity;
+ import net.optifine.Config;
 +import org.vivecraft.render.VRPlayerRenderer;
-+
- import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
- import net.minecraft.client.renderer.IRenderTypeBuffer;
-+import net.minecraft.client.renderer.entity.LivingRenderer;
- import net.minecraft.client.renderer.entity.PlayerRenderer;
- import net.minecraft.client.renderer.entity.layers.LayerRenderer;
- import net.minecraft.client.renderer.entity.model.BipedModel;
-@@ -14,9 +18,9 @@
  
- public class PlayerItemsLayer extends LayerRenderer
+ public class PlayerItemsLayer extends RenderLayer
  {
 -    private PlayerRenderer renderPlayer = null;
-+    private LivingRenderer renderPlayer = null;
++    private LivingEntityRenderer renderPlayer = null;
  
 -    public PlayerItemsLayer(PlayerRenderer renderPlayer)
-+    public PlayerItemsLayer(LivingRenderer renderPlayer)
++    public PlayerItemsLayer(LivingEntityRenderer renderPlayer)
      {
          super(renderPlayer);
          this.renderPlayer = renderPlayer;
-@@ -36,7 +40,7 @@
-                 if (entityLiving instanceof AbstractClientPlayerEntity)
-                 {
-                     AbstractClientPlayerEntity abstractclientplayerentity = (AbstractClientPlayerEntity)entityLiving;
--                    BipedModel bipedmodel = this.renderPlayer.getEntityModel();
-+                    BipedModel bipedmodel = (BipedModel) this.renderPlayer.getEntityModel();
-                     PlayerConfigurations.renderPlayerItems(bipedmodel, abstractclientplayerentity, matrixStackIn, bufferIn, packedLightIn, packedOverlayIn);
-                 }
-             }
-@@ -58,6 +62,14 @@
+@@ -29,17 +31,11 @@
+ 
+     protected void renderEquippedItems(Entity entityLiving, PoseStack matrixStackIn, MultiBufferSource bufferIn, int packedLightIn, int packedOverlayIn)
+     {
+-        if (Config.isShowCapes())
++        if (Config.isShowCapes() && !entityLiving.isInvisible() && entityLiving instanceof AbstractClientPlayer)
+         {
+-            if (!entityLiving.isInvisible())
+-            {
+-                if (entityLiving instanceof AbstractClientPlayer)
+-                {
+-                    AbstractClientPlayer abstractclientplayer = (AbstractClientPlayer)entityLiving;
+-                    HumanoidModel humanoidmodel = this.renderPlayer.getModel();
+-                    PlayerConfigurations.renderPlayerItems(humanoidmodel, abstractclientplayer, matrixStackIn, bufferIn, packedLightIn, packedOverlayIn);
+-                }
+-            }
++            AbstractClientPlayer abstractclientplayer = (AbstractClientPlayer)entityLiving;
++            HumanoidModel humanoidmodel = (HumanoidModel)this.renderPlayer.getModel();
++            PlayerConfigurations.renderPlayerItems(humanoidmodel, abstractclientplayer, matrixStackIn, bufferIn, packedLightIn, packedOverlayIn);
+         }
+     }
+ 
+@@ -58,6 +54,12 @@
                  playerrenderer.addLayer(new PlayerItemsLayer(playerrenderer));
                  flag = true;
              }
-+            //Vivecraft
 +            else if (object1 instanceof VRPlayerRenderer)
 +            {
-+            	VRPlayerRenderer playerrenderer = (VRPlayerRenderer)object1;
-+                playerrenderer.addLayer(new PlayerItemsLayer(playerrenderer));
++                VRPlayerRenderer vrplayerrenderer = (VRPlayerRenderer)object1;
++                vrplayerrenderer.addLayer(new PlayerItemsLayer(vrplayerrenderer));
 +                flag = true;
 +            }
-+            //
          }
  
          if (!flag)

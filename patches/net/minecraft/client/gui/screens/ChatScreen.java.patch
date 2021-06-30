@@ -1,0 +1,20 @@
+--- a/net/minecraft/client/gui/screens/ChatScreen.java
++++ b/net/minecraft/client/gui/screens/ChatScreen.java
+@@ -123,7 +123,16 @@
+                 this.sendMessage(s);
+             }
+ 
+-            this.minecraft.setScreen((Screen)null);
++            if (this.minecraft.vrSettings.seated)
++            {
++                this.minecraft.setScreen((Screen)null);
++            }
++            else
++            {
++                this.input.setValue(this.initial);
++                this.historyPos = this.minecraft.gui.getChat().getRecentChat().size();
++            }
++
+             return true;
+         }
+     }

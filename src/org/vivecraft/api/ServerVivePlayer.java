@@ -1,234 +1,244 @@
 package org.vivecraft.api;
 
+import io.netty.buffer.Unpooled;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-
-import org.vivecraft.settings.AutoCalibration;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.utils.math.Quaternion;
 import org.vivecraft.utils.math.Vector3;
 
-import io.netty.buffer.Unpooled;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.vector.Vector3d;
+public class ServerVivePlayer
+{
+    public byte[] hmdData;
+    public byte[] controller0data;
+    public byte[] controller1data;
+    public byte[] draw;
+    public float worldScale = 1.0F;
+    public float heightscale = 1.0F;
+    public byte activeHand = 0;
+    public boolean crawling;
+    boolean isTeleportMode;
+    boolean isReverseHands;
+    boolean isVR = true;
+    public Vec3 offset = new Vec3(0.0D, 0.0D, 0.0D);
+    public ServerPlayer player;
+    final Vector3 forward = new Vector3(0.0F, 0.0F, -1.0F);
 
-public class ServerVivePlayer {
+    public ServerVivePlayer(ServerPlayer player)
+    {
+        this.player = player;
+    }
 
-	public byte[] hmdData;
-	public byte[] controller0data;
-	public byte[] controller1data;
-	public byte[] draw;
-	public float worldScale = 1.0f;
-	public float heightscale = 1.0f;
-	public byte activeHand = 0;
-	public boolean crawling;
+    public float getDraw()
+    {
+        try
+        {
+            if (this.draw != null)
+            {
+                ByteArrayInputStream bytearrayinputstream = new ByteArrayInputStream(this.draw);
+                DataInputStream datainputstream = new DataInputStream(bytearrayinputstream);
+                float f = datainputstream.readFloat();
+                datainputstream.close();
+                return f;
+            }
+        }
+        catch (IOException ioexception)
+        {
+        }
 
-	boolean isTeleportMode;
-	boolean isReverseHands;
-	boolean isVR = true;
+        return 0.0F;
+    }
 
-	public Vector3d offset = new Vector3d(0, 0, 0);
-	public ServerPlayerEntity player;
+    public Vec3 getControllerVectorCustom(int controller, Vector3 direction)
+    {
+        byte[] abyte = this.controller0data;
 
-	public ServerVivePlayer(ServerPlayerEntity player) {
-		this.player = player;	
-	}
+        if (controller == 1)
+        {
+            abyte = this.controller1data;
+        }
 
-	public float getDraw(){
-		try {
-			if(draw != null){
-				ByteArrayInputStream byin = new ByteArrayInputStream(draw);
-				DataInputStream da = new DataInputStream(byin);
-		
-				float draw= da.readFloat();
-				
-				da.close(); //needed?
-				return draw;	
-			}else{
-			}
-		} catch (IOException e) {
+        if (this.isSeated())
+        {
+            controller = 0;
+        }
 
-		}
-	 
-		return 0;
-	}
+        if (abyte != null)
+        {
+            ByteArrayInputStream bytearrayinputstream = new ByteArrayInputStream(abyte);
+            DataInputStream datainputstream = new DataInputStream(bytearrayinputstream);
 
-	final Vector3 forward = new Vector3(0,0,-1);
-	
-	public Vector3d getControllerVectorCustom(int controller, Vector3 direction){
-		byte[] data = controller0data;
-		if(controller == 1) data = controller1data;
-		if(this.isSeated()) controller = 0;
-		if(data != null){
+            try
+            {
+                boolean flag = datainputstream.readBoolean();
+                float f = datainputstream.readFloat();
+                float f1 = datainputstream.readFloat();
+                float f2 = datainputstream.readFloat();
+                float f3 = datainputstream.readFloat();
+                float f4 = datainputstream.readFloat();
+                float f5 = datainputstream.readFloat();
+                float f6 = datainputstream.readFloat();
+                Quaternion quaternion = new Quaternion(f3, f4, f5, f6);
+                Vector3 vector3 = quaternion.multiply(direction);
+                datainputstream.close();
+                return new Vec3((double)vector3.getX(), (double)vector3.getY(), (double)vector3.getZ());
+            }
+            catch (IOException ioexception)
+            {
+                return this.player.getLookAngle();
+            }
+        }
+        else
+        {
+            return this.player.getLookAngle();
+        }
+    }
 
-			ByteArrayInputStream byin = new ByteArrayInputStream(data);
-			DataInputStream da = new DataInputStream(byin);
+    public Vec3 getControllerDir(int controller)
+    {
+        return this.getControllerVectorCustom(controller, this.forward);
+    }
 
-			try {
+    public Vec3 getHMDDir()
+    {
+        try
+        {
+            if (this.hmdData != null)
+            {
+                ByteArrayInputStream bytearrayinputstream = new ByteArrayInputStream(this.hmdData);
+                DataInputStream datainputstream = new DataInputStream(bytearrayinputstream);
+                boolean flag = datainputstream.readBoolean();
+                float f = datainputstream.readFloat();
+                float f1 = datainputstream.readFloat();
+                float f2 = datainputstream.readFloat();
+                float f3 = datainputstream.readFloat();
+                float f4 = datainputstream.readFloat();
+                float f5 = datainputstream.readFloat();
+                float f6 = datainputstream.readFloat();
+                Quaternion quaternion = new Quaternion(f3, f4, f5, f6);
+                Vector3 vector3 = quaternion.multiply(this.forward);
+                datainputstream.close();
+                return new Vec3((double)vector3.getX(), (double)vector3.getY(), (double)vector3.getZ());
+            }
+        }
+        catch (IOException ioexception)
+        {
+        }
 
-				boolean reverse = da.readBoolean();
+        return this.player.getLookAngle();
+    }
 
-				float lx = da.readFloat();
-				float ly = da.readFloat();
-				float lz = da.readFloat();
+    public Vec3 getHMDPos(Player player)
+    {
+        try
+        {
+            if (this.hmdData != null)
+            {
+                ByteArrayInputStream bytearrayinputstream = new ByteArrayInputStream(this.hmdData);
+                DataInputStream datainputstream = new DataInputStream(bytearrayinputstream);
+                boolean flag = datainputstream.readBoolean();
+                float f = datainputstream.readFloat();
+                float f1 = datainputstream.readFloat();
+                float f2 = datainputstream.readFloat();
+                datainputstream.close();
+                return (new Vec3((double)f, (double)f1, (double)f2)).add(player.position()).add(this.offset);
+            }
+        }
+        catch (IOException ioexception)
+        {
+        }
 
-				float w = da.readFloat();
-				float x = da.readFloat();
-				float y = da.readFloat();
-				float z = da.readFloat();
-				Quaternion q = new Quaternion(w, x, y, z);
-				Vector3 out = q.multiply(direction);
+        return player.position().add(0.0D, 1.62D, 0.0D);
+    }
 
-				da.close(); //needed?
-				return new Vector3d(out.getX(), out.getY(), out.getZ());
-			} catch (IOException e) {
-				return player.getLookVec();
-			}
-		}else{
-		}
-		return player.getLookVec();
-	}
-	
-	public Vector3d getControllerDir(int controller){
-		return getControllerVectorCustom(controller, forward);
-	}
-	
-	public Vector3d getHMDDir(){
-		try {
-			if(hmdData != null){
+    public Vec3 getControllerPos(int c, Player player)
+    {
+        try
+        {
+            if (this.controller0data != null && this.controller0data != null)
+            {
+                ByteArrayInputStream bytearrayinputstream = new ByteArrayInputStream(c == 0 ? this.controller0data : this.controller1data);
+                DataInputStream datainputstream = new DataInputStream(bytearrayinputstream);
+                boolean flag = datainputstream.readBoolean();
+                float f = datainputstream.readFloat();
+                float f1 = datainputstream.readFloat();
+                float f2 = datainputstream.readFloat();
+                datainputstream.close();
 
-				ByteArrayInputStream byin = new ByteArrayInputStream(hmdData);
-				DataInputStream da = new DataInputStream(byin);
+                if (this.isSeated())
+                {
+                    Vec3 vec3 = this.getHMDDir();
+                    vec3 = vec3.yRot((float)Math.toRadians(c == 0 ? -35.0D : 35.0D));
+                    vec3 = new Vec3(vec3.x, 0.0D, vec3.z);
+                    vec3 = vec3.normalize();
+                    Vec3 vec31 = this.getHMDPos(player).add(vec3.x * 0.3D * (double)this.worldScale, -0.4D * (double)this.worldScale, vec3.z * 0.3D * (double)this.worldScale);
+                    f = (float)vec31.x;
+                    f1 = (float)vec31.y;
+                    f2 = (float)vec31.z;
+                    return new Vec3((double)f, (double)f1, (double)f2);
+                }
 
-				boolean isSeated = da.readBoolean();
-				float lx = da.readFloat();
-				float ly = da.readFloat();
-				float lz = da.readFloat();
+                return (new Vec3((double)f, (double)f1, (double)f2)).add(player.position()).add(this.offset);
+            }
+        }
+        catch (IOException ioexception)
+        {
+        }
 
-				float w = da.readFloat();
-				float x = da.readFloat();
-				float y = da.readFloat();
-				float z = da.readFloat();
-				Quaternion q = new Quaternion(w, x, y, z);
-				Vector3 out = q.multiply(forward);
+        return player.position().add(0.0D, 1.62D, 0.0D);
+    }
 
+    public boolean isVR()
+    {
+        return this.isVR;
+    }
 
-				//System.out.println("("+out.getX()+","+out.getY()+","+out.getZ()+")" + " : W:" + w + " X: "+x + " Y:" + y+ " Z:" + z);
-				da.close(); //needed?
-				return new Vector3d(out.getX(), out.getY(), out.getZ());
-			}else{
-			}
-		} catch (IOException e) {
+    public void setVR(boolean vr)
+    {
+        this.isVR = vr;
+    }
 
-		}
+    public boolean isSeated()
+    {
+        try
+        {
+            if (this.hmdData == null)
+            {
+                return false;
+            }
+            else if (this.hmdData.length < 29)
+            {
+                return false;
+            }
+            else
+            {
+                ByteArrayInputStream bytearrayinputstream = new ByteArrayInputStream(this.hmdData);
+                DataInputStream datainputstream = new DataInputStream(bytearrayinputstream);
+                boolean flag = datainputstream.readBoolean();
+                datainputstream.close();
+                return flag;
+            }
+        }
+        catch (IOException ioexception)
+        {
+            return false;
+        }
+    }
 
-		return player.getLookVec();
-	}
-	
-	public Vector3d getHMDPos(PlayerEntity player) {
-		try {
-			if(hmdData!=null){
-				
-				ByteArrayInputStream byin = new ByteArrayInputStream(hmdData);
-				DataInputStream da = new DataInputStream(byin);
-		
-				boolean isSeated = da.readBoolean();
-				float x = da.readFloat();
-				float y = da.readFloat();
-				float z = da.readFloat();
-				
-				da.close(); 
-								
-				return new Vector3d(x, y, z).add(player.getPositionVec()).add(offset);
-			}else{
-			}
-		} catch (IOException e) {
-
-		}
-	 
-		return player.getPositionVec().add(0, 1.62, 0); //why
-
-	}
-	
-	
-	public Vector3d getControllerPos(int c, PlayerEntity player) {
-		try {
-			if(controller0data != null && controller0data != null){
-				
-				ByteArrayInputStream byin = new ByteArrayInputStream(c==0?controller0data:controller1data);
-				DataInputStream da = new DataInputStream(byin);
-		
-				boolean rev = da.readBoolean();
-				float x = da.readFloat();
-				float y = da.readFloat();
-				float z = da.readFloat();
-				
-				da.close(); //needed?
-				
-				if (this.isSeated()){
-					Vector3d dir = this.getHMDDir();
-					dir = dir.rotateYaw((float) Math.toRadians(c==0?-35:35));
-					dir = new Vector3d(dir.x, 0, dir.z);
-					dir = dir.normalize();
-					Vector3d out = this.getHMDPos(player).add(dir.x * 0.3 * worldScale, -0.4* worldScale ,dir.z*0.3* worldScale);
-					x = (float) out.x;
-					y = (float) out.y;
-					z = (float) out.z;
-					return new Vector3d(x, y, z);
-				}
-				
-				return new Vector3d(x, y, z).add(player.getPositionVec()).add(offset);
-			}else{
-			}
-		} catch (IOException e) {
-
-		}
-	 
-		return player.getPositionVec().add(0, 1.62, 0); //why
-
-	}
-
-	public boolean isVR(){
-		return this.isVR;
-	}
-	
-	public void setVR(boolean vr){
-		this.isVR = vr;
-	}
-	
-	public boolean isSeated(){
-		try {
-			if(hmdData == null) return false;
-			if(hmdData.length <29) return false;//old client.
-			
-			ByteArrayInputStream byin = new ByteArrayInputStream(hmdData);
-			DataInputStream da = new DataInputStream(byin);
-	
-			boolean seated= da.readBoolean();
-			
-			da.close(); //needed?
-			return seated;
-				
-		} catch (IOException e) {
-
-		}
-	 
-		return false;
-	}
-
-	public byte[] getUberPacket() {
-		PacketBuffer pb = new PacketBuffer(Unpooled.buffer());
-		pb.writeLong(player.getUniqueID().getMostSignificantBits());
-		pb.writeLong(player.getUniqueID().getLeastSignificantBits());
-		pb.writeBytes(hmdData);
-		pb.writeBytes(controller0data);
-		pb.writeBytes(controller1data);
-		pb.writeFloat(worldScale);
-		pb.writeFloat(heightscale);
-
-		return pb.array();
-	}
-
+    public byte[] getUberPacket()
+    {
+        FriendlyByteBuf friendlybytebuf = new FriendlyByteBuf(Unpooled.buffer());
+        friendlybytebuf.writeLong(this.player.getUUID().getMostSignificantBits());
+        friendlybytebuf.writeLong(this.player.getUUID().getLeastSignificantBits());
+        friendlybytebuf.writeBytes(this.hmdData);
+        friendlybytebuf.writeBytes(this.controller0data);
+        friendlybytebuf.writeBytes(this.controller1data);
+        friendlybytebuf.writeFloat(this.worldScale);
+        friendlybytebuf.writeFloat(this.heightscale);
+        return friendlybytebuf.array();
+    }
 }

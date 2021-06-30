@@ -53,7 +53,7 @@
      }
  
      private static String[] getDefaultCtmPaths()
-@@ -2430,7 +2430,7 @@
+@@ -2431,7 +2431,7 @@
              addDefaultLocation(list, "textures/block/" + s + "_stained_glass.png", s1 + "_glass_" + s + "/glass_pane_" + s + ".properties");
          }
  

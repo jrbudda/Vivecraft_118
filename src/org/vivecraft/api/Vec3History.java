@@ -2,128 +2,159 @@ package org.vivecraft.api;
 
 import java.util.LinkedList;
 import java.util.ListIterator;
+import net.minecraft.Util;
+import net.minecraft.world.phys.Vec3;
 
-import net.minecraft.util.Util;
-import net.minecraft.util.math.vector.Vector3d;
+public class Vec3History
+{
+    private int _capacity = 450;
+    private LinkedList<Vec3History.entry> _data = new LinkedList<>();
 
-public class Vec3History {
+    public void add(Vec3 in)
+    {
+        this._data.add(new Vec3History.entry(in));
 
-	private class entry{
-		public long ts;
-		public Vector3d data;
-		public entry(Vector3d in){
-			this.ts = Util.milliTime();
-			this.data = in;
-		}
-	}
-	
-	private int _capacity = 90*5;
-	private LinkedList<entry> _data = new LinkedList<entry>();
-	
-	
-	public void add(Vector3d in){
-		_data.add(new entry(in));
-		if (_data.size() > _capacity) _data.removeFirst();
-	}
-	
-	public void clear(){
-		_data.clear();
-	}
-	
-	public Vector3d latest(){
-		return _data.getLast().data;
-	}
-	
+        if (this._data.size() > this._capacity)
+        {
+            this._data.removeFirst();
+        }
+    }
 
-	/**
-	 * Get the total integrated device translation for the specified time period. Return value is in meters.
-	 */
-	public double totalMovement(double seconds){
-		long now = Util.milliTime();
-		ListIterator<entry> it = _data.listIterator(_data.size());
-		entry last = null;
-		double sum = 0;
-		int count = 0;
-		while (it.hasPrevious()){
-			entry i = it.previous();
-			count++;
-			if(now - i.ts > seconds *1000)
-				break;
-			if (last == null){
-				last = i;
-				continue;
-			}
-			sum += (last.data.distanceTo(i.data));
-		}
-		return sum;
-	}
-	
-	/**
-	 * Get the vector representing the difference in position from now to @seconds ago.
-	 */
-	public Vector3d netMovement(double seconds){
-		long now = Util.milliTime();
-		ListIterator<entry> it = _data.listIterator(_data.size());
-		entry last = null;
-		entry thing = null;
-		double sum = 0;
-		
-		while (it.hasPrevious()){
-			entry i = it.previous();
-			if(now - i.ts > seconds *1000) break;
-			if (last == null){
-				last = i;
-				continue;
-			}
-			thing = i;
-		}
-		if(last == null || thing == null) return new Vector3d(0, 0, 0);
-		return last.data.subtract(thing.data);	
-	}
-	
-	/**
-	 * Get the average scalar speed of the device over the specified length of time. Returns m/s.
-	 */
-	public double averageSpeed(double seconds){
-		long now = Util.milliTime();
-		ListIterator<entry> it = _data.listIterator(_data.size());
-		double out = 0;
-		entry last = null;
-		int j = 0;
-		while (it.hasPrevious()){
-			entry i = it.previous();
-			if(now - i.ts > seconds *1000) break;
-			if (last == null){
-				last = i;
-				continue;
-			}
-			j++;
-			double tdelta = (.001*(last.ts - i.ts));
-			double ddelta = (last.data.subtract(i.data).length());
-			out = out + ddelta/tdelta;
-		}
-		if(j == 0) return out;
-		
-		return out/j;
-	}
+    public void clear()
+    {
+        this._data.clear();
+    }
 
-	/**
-	 * Get the average room position for the last @seconds.
-	 */
-	public Vector3d averagePosition(double seconds){
-		long now = Util.milliTime();
-		ListIterator<entry> it = _data.listIterator(_data.size());
-		Vector3d out = new Vector3d(0,0,0);
-		int j = 0;
-		while (it.hasPrevious()){
-			entry i = it.previous();
-			if(now - i.ts > seconds *1000) break;
-			j++;
-			out=out.add(i.data);
-		}
-		if(j==0) return out;
-		return out.scale(1.0/j);
-	}
-	
-	
+    public Vec3 latest()
+    {
+        return (this._data.getLast()).data;
+    }
+
+    public double totalMovement(double seconds)
+    {
+        long i = Util.getMillis();
+        ListIterator<Vec3History.entry> listiterator = this._data.listIterator(this._data.size());
+        Vec3History.entry vec3history$entry = null;
+        double d0 = 0.0D;
+        int j = 0;
+
+        while (listiterator.hasPrevious())
+        {
+            Vec3History.entry vec3history$entry1 = listiterator.previous();
+            ++j;
+
+            if ((double)(i - vec3history$entry1.ts) > seconds * 1000.0D)
+            {
+                break;
+            }
+
+            if (vec3history$entry == null)
+            {
+                vec3history$entry = vec3history$entry1;
+            }
+            else
+            {
+                d0 += vec3history$entry.data.distanceTo(vec3history$entry1.data);
+            }
+        }
+
+        return d0;
+    }
+
+    public Vec3 netMovement(double seconds)
+    {
+        long i = Util.getMillis();
+        ListIterator<Vec3History.entry> listiterator = this._data.listIterator(this._data.size());
+        Vec3History.entry vec3history$entry = null;
+        Vec3History.entry vec3history$entry1 = null;
+        double d0 = 0.0D;
+
+        while (listiterator.hasPrevious())
+        {
+            Vec3History.entry vec3history$entry2 = listiterator.previous();
+
+            if ((double)(i - vec3history$entry2.ts) > seconds * 1000.0D)
+            {
+                break;
+            }
+
+            if (vec3history$entry == null)
+            {
+                vec3history$entry = vec3history$entry2;
+            }
+            else
+            {
+                vec3history$entry1 = vec3history$entry2;
+            }
+        }
+
+        return vec3history$entry != null && vec3history$entry1 != null ? vec3history$entry.data.subtract(vec3history$entry1.data) : new Vec3(0.0D, 0.0D, 0.0D);
+    }
+
+    public double averageSpeed(double seconds)
+    {
+        long i = Util.getMillis();
+        ListIterator<Vec3History.entry> listiterator = this._data.listIterator(this._data.size());
+        double d0 = 0.0D;
+        Vec3History.entry vec3history$entry = null;
+        int j = 0;
+
+        while (listiterator.hasPrevious())
+        {
+            Vec3History.entry vec3history$entry1 = listiterator.previous();
+
+            if ((double)(i - vec3history$entry1.ts) > seconds * 1000.0D)
+            {
+                break;
+            }
+
+            if (vec3history$entry == null)
+            {
+                vec3history$entry = vec3history$entry1;
+            }
+            else
+            {
+                ++j;
+                double d1 = 0.001D * (double)(vec3history$entry.ts - vec3history$entry1.ts);
+                double d2 = vec3history$entry.data.subtract(vec3history$entry1.data).length();
+                d0 += d2 / d1;
+            }
+        }
+
+        return j == 0 ? d0 : d0 / (double)j;
+    }
+
+    public Vec3 averagePosition(double seconds)
+    {
+        long i = Util.getMillis();
+        ListIterator<Vec3History.entry> listiterator = this._data.listIterator(this._data.size());
+        Vec3 vec3 = new Vec3(0.0D, 0.0D, 0.0D);
+        int j;
+        Vec3History.entry vec3history$entry;
+
+        for (j = 0; listiterator.hasPrevious(); vec3 = vec3.add(vec3history$entry.data))
+        {
+            vec3history$entry = listiterator.previous();
+
+            if ((double)(i - vec3history$entry.ts) > seconds * 1000.0D)
+            {
+                break;
+            }
+
+            ++j;
+        }
+
+        return j == 0 ? vec3 : vec3.scale(1.0D / (double)j);
+    }
+
+    private class entry
+    {
+        public long ts = Util.getMillis();
+        public Vec3 data;
+
+        public entry(Vec3 in)
+        {
+            this.data = in;
+        }
+    }
 }

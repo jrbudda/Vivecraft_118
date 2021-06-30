@@ -1,20 +1,19 @@
 package org.vivecraft.render;
 
+import com.mojang.blaze3d.platform.GLX;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.MemoryTracker;
+import com.mojang.math.Matrix4f;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-import com.mojang.blaze3d.platform.GLX;
-import com.mojang.blaze3d.platform.GlStateManager;
-
-import net.minecraft.client.renderer.GLAllocation;
-import net.minecraft.util.math.vector.Matrix4f;
-
-public class GLUtils {
-    private static FloatBuffer matrixBuffer = GLAllocation.createDirectFloatBuffer(16);
+public class GLUtils
+{
+    private static FloatBuffer matrixBuffer = MemoryTracker.createFloatBuffer(16);
 
     public static synchronized ByteBuffer createByteBuffer(int size)
     {
@@ -26,26 +25,23 @@ public class GLUtils {
         return createByteBuffer(size << 2).asFloatBuffer();
     }
 
-    public static Matrix4f getViewModelMatrix() {
-        matrixBuffer.rewind();
-        GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, matrixBuffer);
-
-        matrixBuffer.rewind();
-        Matrix4f out = new Matrix4f();
-        out.read(matrixBuffer);
-
-        return out;
+    public static Matrix4f getViewModelMatrix()
+    {
+        ((Buffer)matrixBuffer).rewind();
+        GL11.glGetFloatv(2982, matrixBuffer);
+        ((Buffer)matrixBuffer).rewind();
+        Matrix4f matrix4f = new Matrix4f();
+        matrix4f.read(matrixBuffer);
+        return matrix4f;
     }
 
-    // Temporary measure because I am lazy
-    // TODO: Use VBO for cloud renderer
     public static synchronized int generateDisplayLists(int range)
     {
         int i = GL12.glGenLists(range);
 
         if (i == 0)
         {
-            int j = GlStateManager.getError();
+            int j = GlStateManager._getError();
             String s = "No error code reported";
 
             if (j != 0)

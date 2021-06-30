@@ -1,63 +1,49 @@
 package org.vivecraft.render;
 
-import org.vivecraft.api.VRData.VRDevicePose;
-
+import com.mojang.math.Vector3f;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ActiveRenderInfo;
-import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.client.shader.Shader;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.phys.Vec3;
 import net.optifine.shaders.Shaders;
+import org.vivecraft.api.VRData;
 
-public class VRActiveRenderInfo extends ActiveRenderInfo {
+public class VRActiveRenderInfo extends Camera
+{
+    public void setup(BlockGetter p_90576_, Entity p_90577_, boolean p_90578_, boolean p_90579_, float p_90580_)
+    {
+        this.initialized = true;
+        this.level = p_90576_;
+        this.entity = p_90577_;
+        Minecraft minecraft = Minecraft.getInstance();
+        RenderPass renderpass = minecraft.currentPass;
 
-	@Override
-	public void update(IBlockReader worldIn, Entity renderViewEntity, boolean thirdPersonIn,
-			boolean thirdPersonReverseIn, float partialTicks) {
-		this.valid = true;
-		this.world = worldIn;
-		this.renderViewEntity = renderViewEntity;
-		Minecraft mc = Minecraft.getInstance();
-		
-		RenderPass p = mc.currentPass;
-		
-		if (Shaders.isShadowPass && p != RenderPass.THIRD && p != RenderPass.CAMERA)
-			p = RenderPass.CENTER;
-		
-		VRDevicePose src = mc.vrPlayer.vrdata_world_render.getEye(p);	
-		this.setPosition(src.getPosition());
-			
-		// this.setDirection(mc.vrPlayer.vrdata_world_render.hmd.getYaw(),mc.vrPlayer.vrdata_world_render.hmd.getPitch());
-		this.pitch = -src.getPitch(); //No, I do not know why this is negative.
-		this.yaw = src.getYaw();
-	
-		//These are used for the soundsystem.
-		this.look.set((float)src.getDirection().x,(float)src.getDirection().y, (float)src.getDirection().z);
-		Vector3d up = src.getCustomVector(new Vector3d(0, 1, 0));
-		this.up.set((float)up.x,(float) up.y,(float) up.z);
-		//
-		
-		//what even are you
-		Vector3d left = src.getCustomVector(new Vector3d(1, 0, 0));
-		this.left.set((float)up.x,(float) up.y,(float) up.z);
+        if (Shaders.isShadowPass && renderpass != RenderPass.THIRD && renderpass != RenderPass.CAMERA)
+        {
+            renderpass = RenderPass.CENTER;
+        }
 
-		//This is used for rendering sprites normal to the camera dir, which is terrible and needs to change.
+        VRData.VRDevicePose vrdata$vrdevicepose = minecraft.vrPlayer.vrdata_world_render.getEye(renderpass);
+        this.setPosition(vrdata$vrdevicepose.getPosition());
+        this.xRot = -vrdata$vrdevicepose.getPitch();
+        this.yRot = vrdata$vrdevicepose.getYaw();
+        this.forwards.set((float)vrdata$vrdevicepose.getDirection().x, (float)vrdata$vrdevicepose.getDirection().y, (float)vrdata$vrdevicepose.getDirection().z);
+        Vec3 vec3 = vrdata$vrdevicepose.getCustomVector(new Vec3(0.0D, 1.0D, 0.0D));
+        this.up.set((float)vec3.x, (float)vec3.y, (float)vec3.z);
+        vrdata$vrdevicepose.getCustomVector(new Vec3(1.0D, 0.0D, 0.0D));
+        this.left.set((float)vec3.x, (float)vec3.y, (float)vec3.z);
         this.rotation.set(0.0F, 0.0F, 0.0F, 1.0F);
-        this.rotation.multiply(Vector3f.YP.rotationDegrees(-yaw));
-        this.rotation.multiply(Vector3f.XP.rotationDegrees(pitch));
-	}
+        this.rotation.mul(Vector3f.YP.rotationDegrees(-this.yRot));
+        this.rotation.mul(Vector3f.XP.rotationDegrees(this.xRot));
+    }
 
-	@Override
-	public void interpolateHeight() {
-		// noop
-	}
+    public void tick()
+    {
+    }
 
-	@Override
-	public boolean isThirdPerson() {
-		return false;
-		// ehhhh  return Minecraft.getInstance().currentPass == RenderPass.THIRD;
-	}
-
+    public boolean isDetached()
+    {
+        return false;
+    }
 }

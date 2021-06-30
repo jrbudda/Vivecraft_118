@@ -1,91 +1,103 @@
 package org.vivecraft.gui.framework;
 
-import org.vivecraft.control.ControllerType;
-import org.vivecraft.provider.MCOpenVR;
-
-import com.mojang.blaze3d.matrix.MatrixStack;
-
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.util.text.StringTextComponent;
-
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.TextComponent;
+import org.vivecraft.provider.ControllerType;
+import org.vivecraft.provider.MCVR;
 
 public abstract class TwoHandedScreen extends Screen
 {
-	protected TwoHandedScreen( ) {
-		super(new StringTextComponent(""));
-	}
+    public float cursorX1;
+    public float cursorY1;
+    public float cursorX2;
+    public float cursorY2;
+    private AbstractWidget lastHoveredButtonId1 = null;
+    private AbstractWidget lastHoveredButtonId2 = null;
+    protected boolean reinit;
 
-	public float cursorX1, cursorY1;
-	public float cursorX2, cursorY2;
-	private Widget lastHoveredButtonId1 = null, lastHoveredButtonId2 = null;
-	protected boolean reinit;
-	
-	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) 
-	{
-		if(super.mouseClicked(mouseX, mouseY, mouseButton))
-		{	
-			double d0 = Math.min(Math.max((int)cursorX2, 0), minecraft.getMainWindow().getWidth())
-					 * (double)minecraft.getMainWindow().getScaledWidth() / (double)minecraft.getMainWindow().getWidth();
-			return true;
-		}
-		return false;
-	}
-	
-	@Override
-	public void render(MatrixStack matrixstack, int mouseX, int mouseY, float partialTicks) {
-		
-        if (reinit)
+    protected TwoHandedScreen()
+    {
+        super(new TextComponent(""));
+    }
+
+    public boolean mouseClicked(double p_94737_, double p_94738_, int p_94739_)
+    {
+        if (super.mouseClicked(p_94737_, p_94738_, p_94739_))
         {
-            init();
-            reinit = false;
+            double d0 = (double)Math.min(Math.max((int)this.cursorX2, 0), this.minecraft.getWindow().getScreenWidth()) * (double)this.minecraft.getWindow().getGuiScaledWidth() / (double)this.minecraft.getWindow().getScreenWidth();
+            return true;
         }
-		       
-        double mX1 = (cursorX1 * this.width / this.minecraft.getMainWindow().getScaledWidth())
-        		 * (double)minecraft.getMainWindow().getScaledWidth() / (double)minecraft.getMainWindow().getWidth();
-        double mY1 = (cursorY1 * this.height / this.minecraft.getMainWindow().getScaledHeight())
-        		 * (double)minecraft.getMainWindow().getScaledWidth() / (double)minecraft.getMainWindow().getWidth();
-        double mX2 = (cursorX2 * this.width / this.minecraft.getMainWindow().getScaledWidth())
-        		 * (double)minecraft.getMainWindow().getScaledWidth() / (double)minecraft.getMainWindow().getWidth();
-        double mY2 = (cursorY2 * this.height / this.minecraft.getMainWindow().getScaledHeight())
-        		 * (double)minecraft.getMainWindow().getScaledWidth() / (double)minecraft.getMainWindow().getWidth();
+        else
+        {
+            return false;
+        }
+    }
 
-        Widget hoveredButtonId1 = null, hoveredButtonId2 = null;
+    public void render(PoseStack p_96562_, int p_96563_, int p_96564_, float p_96565_)
+    {
+        if (this.reinit)
+        {
+            this.init();
+            this.reinit = false;
+        }
+
+        double d0 = (double)(this.cursorX1 * (float)this.width / (float)this.minecraft.getWindow().getGuiScaledWidth()) * (double)this.minecraft.getWindow().getGuiScaledWidth() / (double)this.minecraft.getWindow().getScreenWidth();
+        double d1 = (double)(this.cursorY1 * (float)this.height / (float)this.minecraft.getWindow().getGuiScaledHeight()) * (double)this.minecraft.getWindow().getGuiScaledWidth() / (double)this.minecraft.getWindow().getScreenWidth();
+        double d2 = (double)(this.cursorX2 * (float)this.width / (float)this.minecraft.getWindow().getGuiScaledWidth()) * (double)this.minecraft.getWindow().getGuiScaledWidth() / (double)this.minecraft.getWindow().getScreenWidth();
+        double d3 = (double)(this.cursorY2 * (float)this.height / (float)this.minecraft.getWindow().getGuiScaledHeight()) * (double)this.minecraft.getWindow().getGuiScaledWidth() / (double)this.minecraft.getWindow().getScreenWidth();
+        AbstractWidget abstractwidget = null;
+        AbstractWidget abstractwidget1 = null;
+
         for (int i = 0; i < this.buttons.size(); ++i)
         {
-        	Widget butt = (Widget)this.buttons.get(i);
-        	boolean buttonhovered1 = mX1 >= butt.x && mY1 >= butt.y && mX1 < butt.x + butt.getWidth() && mY1 < butt.y + 20;
-        	boolean buttonhovered2 = mX2 >= butt.x && mY2 >= butt.y && mX2 < butt.x + butt.getWidth() && mY2 < butt.y + 20;
-        
-        	if(buttonhovered1)
-        		butt.render(matrixstack, (int)mX1, (int)mY1, partialTicks);
-        	else
-        		butt.render(matrixstack, (int)mX2, (int)mY2, partialTicks);
-        	
-        	if (buttonhovered1)
-        		hoveredButtonId1 = butt;
-        	if (buttonhovered2)
-        		hoveredButtonId2 = butt;
+            AbstractWidget abstractwidget2 = this.buttons.get(i);
+            boolean flag = d0 >= (double)abstractwidget2.x && d1 >= (double)abstractwidget2.y && d0 < (double)(abstractwidget2.x + abstractwidget2.getWidth()) && d1 < (double)(abstractwidget2.y + 20);
+            boolean flag1 = d2 >= (double)abstractwidget2.x && d3 >= (double)abstractwidget2.y && d2 < (double)(abstractwidget2.x + abstractwidget2.getWidth()) && d3 < (double)(abstractwidget2.y + 20);
+
+            if (flag)
+            {
+                abstractwidget2.render(p_96562_, (int)d0, (int)d1, p_96565_);
+            }
+            else
+            {
+                abstractwidget2.render(p_96562_, (int)d2, (int)d3, p_96565_);
+            }
+
+            if (flag)
+            {
+                abstractwidget = abstractwidget2;
+            }
+
+            if (flag1)
+            {
+                abstractwidget1 = abstractwidget2;
+            }
         }
 
-        if (hoveredButtonId1 == null) {
-        	lastHoveredButtonId1 = null;
-        } else if (hoveredButtonId1 instanceof Button && lastHoveredButtonId1 != hoveredButtonId1) {
-			MCOpenVR.triggerHapticPulse(ControllerType.LEFT, 300);
-    		lastHoveredButtonId1 = hoveredButtonId1;
-    	}
-        
-        if (hoveredButtonId2 == null) {
-        	lastHoveredButtonId2 = null;
-        } else if (hoveredButtonId2 instanceof Button && lastHoveredButtonId2 != hoveredButtonId2) {
-			MCOpenVR.triggerHapticPulse(ControllerType.RIGHT, 300);
-    		lastHoveredButtonId2 = hoveredButtonId2;
-    	}
-        
-    	this.minecraft.ingameGUI.drawMouseMenuQuad((int)mX1, (int)mY1);
-    	this.minecraft.ingameGUI.drawMouseMenuQuad((int)mX2, (int)mY2);
+        if (abstractwidget == null)
+        {
+            this.lastHoveredButtonId1 = null;
+        }
+        else if (abstractwidget instanceof Button && this.lastHoveredButtonId1 != abstractwidget)
+        {
+            MCVR.get().triggerHapticPulse(ControllerType.LEFT, 300);
+            this.lastHoveredButtonId1 = abstractwidget;
+        }
 
-	}
+        if (abstractwidget1 == null)
+        {
+            this.lastHoveredButtonId2 = null;
+        }
+        else if (abstractwidget1 instanceof Button && this.lastHoveredButtonId2 != abstractwidget1)
+        {
+            MCVR.get().triggerHapticPulse(ControllerType.RIGHT, 300);
+            this.lastHoveredButtonId2 = abstractwidget1;
+        }
+
+        this.minecraft.gui.drawMouseMenuQuad((int)d0, (int)d1);
+        this.minecraft.gui.drawMouseMenuQuad((int)d2, (int)d3);
+    }
 }

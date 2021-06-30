@@ -1,0 +1,11 @@
+--- a/net/minecraft/world/level/entity/EntitySectionStorage.java
++++ b/net/minecraft/world/level/entity/EntitySectionStorage.java
+@@ -127,7 +127,7 @@
+     public LongSet getAllChunksWithExistingSections()
+     {
+         LongSet longset = new LongOpenHashSet();
+-        this.sections.keySet().forEach((p_175643_1_) ->
++        this.sections.keySet().forEach((long p_175643_1_) ->
+         {
+             longset.add(getChunkKeyFromSectionKey(p_175643_1_));
+         });

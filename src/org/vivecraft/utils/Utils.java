@@ -1,5 +1,11 @@
 package org.vivecraft.utils;
 
+import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
+import com.google.common.io.Files;
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.platform.GlStateManager;
+import io.github.classgraph.ClassGraph;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -28,32 +34,25 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
 import javax.annotation.Nullable;
-
-import com.google.common.collect.Lists;
-import io.github.classgraph.ClassGraph;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.shader.Framebuffer;
-import net.minecraft.resources.IResource;
-import net.minecraft.util.IReorderingProcessor;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.ScreenShotHelper;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextProperties;
-import net.minecraft.util.text.LanguageMap;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TextPropertiesManager;
-import net.minecraft.world.IBlockDisplayReader;
-import optifine.OptiFineTransformer;
-
+import jopenvr.HmdMatrix44_t;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.ComponentCollector;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.Screenshot;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.phys.Vec3;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.vivecraft.render.VRShaders;
-import org.vivecraft.tweaker.MinecriftClassTransformer;
 import org.vivecraft.utils.lwjgl.Matrix3f;
 import org.vivecraft.utils.lwjgl.Matrix4f;
 import org.vivecraft.utils.lwjgl.Vector2f;
@@ -64,779 +63,1102 @@ import org.vivecraft.utils.math.Quaternion;
 import org.vivecraft.utils.math.Vector2;
 import org.vivecraft.utils.math.Vector3;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
-import com.mojang.blaze3d.platform.GlStateManager;
-
-import jopenvr.HmdMatrix34_t;
-import net.minecraft.client.Minecraft;
-import net.minecraft.particles.IParticleData;
-import net.minecraft.util.math.vector.Vector3d;
-
 public class Utils
 {
-	// Magic list from a C# snippet, don't question it
-	private static final char[] illegalChars = {34, 60, 62, 124, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 58, 42, 63, 92, 47};
-	private static final int CONNECT_TIMEOUT = 5000;
-	private static final int READ_TIMEOUT = 20000;
+    private static final char[] illegalChars = new char[] {'"', '<', '>', '|', '\u0000', '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007', '\b', '\t', '\n', '\u000b', '\f', '\r', '\u000e', '\u000f', '\u0010', '\u0011', '\u0012', '\u0013', '\u0014', '\u0015', '\u0016', '\u0017', '\u0018', '\u0019', '\u001a', '\u001b', '\u001c', '\u001d', '\u001e', '\u001f', ':', '*', '?', '\\', '/'};
+    private static final int CONNECT_TIMEOUT = 5000;
+    private static final int READ_TIMEOUT = 20000;
+    private static URI vivecraftZipURI;
+    private static final Random avRandomizer = new Random();
 
-	private static URI vivecraftZipURI;
+    public static String sanitizeFileName(String fileName)
+    {
+        StringBuilder stringbuilder = new StringBuilder();
 
-	static {
-		// Needs to be sorted for binary search
-		Arrays.sort(illegalChars);
-	}
+        for (int i = 0; i < fileName.length(); ++i)
+        {
+            char c0 = fileName.charAt(i);
 
-	public static String sanitizeFileName(String fileName) {
-		StringBuilder sanitized = new StringBuilder();
-		for (int i = 0; i < fileName.length(); i++) {
-			char ch = fileName.charAt(i);
-			if (Arrays.binarySearch(illegalChars, ch) < 0)
-				sanitized.append(ch);
-			else
-				sanitized.append('_');
-		}
-		return sanitized.toString();
-	}
+            if (Arrays.binarySearch(illegalChars, c0) < 0)
+            {
+                stringbuilder.append(c0);
+            }
+            else
+            {
+                stringbuilder.append('_');
+            }
+        }
 
-	public static org.vivecraft.utils.math.Vector3 convertToOVRVector(Vector3f vector) {
-		return new Vector3(vector.x, vector.y, vector.z);
-	}
+        return stringbuilder.toString();
+    }
 
-	public static org.vivecraft.utils.math.Vector3 convertToOVRVector(Vector3d vector) {
-		return new Vector3((float)vector.x, (float)vector.y, (float)vector.z);
-	}
-	
-	public static Matrix4f convertOVRMatrix(org.vivecraft.utils.math.Matrix4f matrix) {
-		Matrix4f mat = new Matrix4f();
-		mat.m00 = matrix.M[0][0];
-		mat.m01 = matrix.M[0][1];
-		mat.m02 = matrix.M[0][2];
-		mat.m03 = matrix.M[0][3];
-		mat.m10 = matrix.M[1][0];
-		mat.m11 = matrix.M[1][1];
-		mat.m12 = matrix.M[1][2];
-		mat.m13 = matrix.M[1][3];
-		mat.m20 = matrix.M[2][0];
-		mat.m21 = matrix.M[2][1];
-		mat.m22 = matrix.M[2][2];
-		mat.m23 = matrix.M[2][3];
-		mat.m30 = matrix.M[3][0];
-		mat.m31 = matrix.M[3][1];
-		mat.m32 = matrix.M[3][2];
-		mat.m33 = matrix.M[3][3];
-		mat.transpose(mat);
-		return mat;
-	}
-	
-	public static org.vivecraft.utils.math.Matrix4f convertToOVRMatrix(Matrix4f matrixIn) {
-		Matrix4f matrix = new Matrix4f();
-		matrixIn.transpose(matrix);
-		org.vivecraft.utils.math.Matrix4f mat = new org.vivecraft.utils.math.Matrix4f();
-		mat.M[0][0] = matrix.m00;
-		mat.M[0][1] = matrix.m01;
-		mat.M[0][2] = matrix.m02;
-		mat.M[0][3] = matrix.m03;
-		mat.M[1][0] = matrix.m10;
-		mat.M[1][1] = matrix.m11;
-		mat.M[1][2] = matrix.m12;
-		mat.M[1][3] = matrix.m13;
-		mat.M[2][0] = matrix.m20;
-		mat.M[2][1] = matrix.m21;
-		mat.M[2][2] = matrix.m22;
-		mat.M[2][3] = matrix.m23;
-		mat.M[3][0] = matrix.m30;
-		mat.M[3][1] = matrix.m31;
-		mat.M[3][2] = matrix.m32;
-		mat.M[3][3] = matrix.m33;
-		return mat;
-	}
-	
-	public static HmdMatrix34_t convertToMatrix34(Matrix4f matrix) {
-		HmdMatrix34_t mat = new HmdMatrix34_t();
-		mat.m[0 + 0 * 4] = matrix.m00;
-		mat.m[1 + 0 * 4] = matrix.m10;
-		mat.m[2 + 0 * 4] = matrix.m20;
-		mat.m[3 + 0 * 4] = matrix.m30;
-		mat.m[0 + 1 * 4] = matrix.m01;
-		mat.m[1 + 1 * 4] = matrix.m11;
-		mat.m[2 + 1 * 4] = matrix.m21;
-		mat.m[3 + 1 * 4] = matrix.m31;
-		mat.m[0 + 2 * 4] = matrix.m02;
-		mat.m[1 + 2 * 4] = matrix.m12;
-		mat.m[2 + 2 * 4] = matrix.m22;
-		mat.m[3 + 2 * 4] = matrix.m32;
-		return mat;
-	}
+    public static Vector3 convertToOVRVector(Vector3f vector)
+    {
+        return new Vector3(vector.x, vector.y, vector.z);
+    }
 
-	public static double lerp(double from, double to, double percent){
-		return from+(to-from)*percent;
-	}
+    public static Vector3 convertToOVRVector(Vec3 vector)
+    {
+        return new Vector3((float)vector.x, (float)vector.y, (float)vector.z);
+    }
 
-	public static double lerpMod(double from, double to, double percent, double mod){
-		if(Math.abs(to-from) < mod/2){
-			return from+(to-from)*percent;
-		}else{
-			return from+(to-from -Math.signum(to-from)*mod)*percent;
-		}
-	}
+    public static Matrix4f convertOVRMatrix(org.vivecraft.utils.math.Matrix4f matrix)
+    {
+        Matrix4f matrix4f = new Matrix4f();
+        matrix4f.m00 = matrix.M[0][0];
+        matrix4f.m01 = matrix.M[0][1];
+        matrix4f.m02 = matrix.M[0][2];
+        matrix4f.m03 = matrix.M[0][3];
+        matrix4f.m10 = matrix.M[1][0];
+        matrix4f.m11 = matrix.M[1][1];
+        matrix4f.m12 = matrix.M[1][2];
+        matrix4f.m13 = matrix.M[1][3];
+        matrix4f.m20 = matrix.M[2][0];
+        matrix4f.m21 = matrix.M[2][1];
+        matrix4f.m22 = matrix.M[2][2];
+        matrix4f.m23 = matrix.M[2][3];
+        matrix4f.m30 = matrix.M[3][0];
+        matrix4f.m31 = matrix.M[3][1];
+        matrix4f.m32 = matrix.M[3][2];
+        matrix4f.m33 = matrix.M[3][3];
+        matrix4f.transpose(matrix4f);
+        return matrix4f;
+    }
 
-	public static double absLerp(double value, double target, double stepSize){
-		double step=Math.abs(stepSize);
-		if (target-value>step){
-			return value+step;
-		}
-		else if (target-value<-step){
-			return value-step;
-		}else {
-			return target;
-		}
-	}
-	
-	public static void glRotate(Quaternion quaternion){
-		GlStateManager.multMatrix(Convert.matrix(quaternion.inverse()).toMCMatrix4f());
-	}
-	
-	public static Vector3f directionFromMatrix(Matrix4f matrix, float x, float y, float z) {
-		Vector4f vec = new Vector4f(x, y, z, 0);
-		Matrix4f.transform(matrix, vec, vec);
-		vec.normalise(vec);
-		return new Vector3f(vec.x, vec.y, vec.z);
-	}
-	
-	/* With thanks to http://ramblingsrobert.wordpress.com/2011/04/13/java-word-wrap-algorithm/ */
+    public static org.vivecraft.utils.math.Matrix4f convertToOVRMatrix(Matrix4f matrixIn)
+    {
+        Matrix4f matrix4f = new Matrix4f();
+        matrixIn.transpose(matrix4f);
+        org.vivecraft.utils.math.Matrix4f matrix4f1 = new org.vivecraft.utils.math.Matrix4f();
+        matrix4f1.M[0][0] = matrix4f.m00;
+        matrix4f1.M[0][1] = matrix4f.m01;
+        matrix4f1.M[0][2] = matrix4f.m02;
+        matrix4f1.M[0][3] = matrix4f.m03;
+        matrix4f1.M[1][0] = matrix4f.m10;
+        matrix4f1.M[1][1] = matrix4f.m11;
+        matrix4f1.M[1][2] = matrix4f.m12;
+        matrix4f1.M[1][3] = matrix4f.m13;
+        matrix4f1.M[2][0] = matrix4f.m20;
+        matrix4f1.M[2][1] = matrix4f.m21;
+        matrix4f1.M[2][2] = matrix4f.m22;
+        matrix4f1.M[2][3] = matrix4f.m23;
+        matrix4f1.M[3][0] = matrix4f.m30;
+        matrix4f1.M[3][1] = matrix4f.m31;
+        matrix4f1.M[3][2] = matrix4f.m32;
+        matrix4f1.M[3][3] = matrix4f.m33;
+        return matrix4f1;
+    }
+
+    public static double lerp(double from, double to, double percent)
+    {
+        return from + (to - from) * percent;
+    }
+
+    public static double lerpMod(double from, double to, double percent, double mod)
+    {
+        return Math.abs(to - from) < mod / 2.0D ? from + (to - from) * percent : from + (to - from - Math.signum(to - from) * mod) * percent;
+    }
+
+    public static double absLerp(double value, double target, double stepSize)
+    {
+        double d0 = Math.abs(stepSize);
+
+        if (target - value > d0)
+        {
+            return value + d0;
+        }
+        else
+        {
+            return target - value < -d0 ? value - d0 : target;
+        }
+    }
+
+    public static float angleDiff(float a, float b)
+    {
+        float f = Math.abs(a - b) % 360.0F;
+        float f1 = f > 180.0F ? 360.0F - f : f;
+        int i = (!(a - b >= 0.0F) || !(a - b <= 180.0F)) && (!(a - b <= -180.0F) || !(a - b >= -360.0F)) ? -1 : 1;
+        return f1 * (float)i;
+    }
+
+    public static float angleNormalize(float angle)
+    {
+        angle = angle % 360.0F;
+
+        if (angle < 0.0F)
+        {
+            angle += 360.0F;
+        }
+
+        return angle;
+    }
+
+    public static void glRotate(Quaternion quaternion)
+    {
+        GlStateManager._multMatrix(Convert.matrix(quaternion.inverse()).toMCMatrix4f());
+    }
+
+    public static Vector3f directionFromMatrix(Matrix4f matrix, float x, float y, float z)
+    {
+        Vector4f vector4f = new Vector4f(x, y, z, 0.0F);
+        Matrix4f.transform(matrix, vector4f, vector4f);
+        vector4f.normalise(vector4f);
+        return new Vector3f(vector4f.x, vector4f.y, vector4f.z);
+    }
+
     public static void wordWrap(String in, int length, ArrayList<String> wrapped)
     {
-        String newLine = "\n";
-        String wrappedLine;
-        boolean quickExit = false;
-
-        // Remove carriage return
+        String s = "\n";
+        boolean flag = false;
         in = in.replace("\r", "");
 
-        if(in.length() < length)
+        if (in.length() < length)
         {
-            quickExit = true;
+            flag = true;
             length = in.length();
         }
 
-        // Split on a newline if present
-        if(in.substring(0, length).contains(newLine))
+        if (in.substring(0, length).contains(s))
         {
-            wrappedLine = in.substring(0, in.indexOf(newLine)).trim();
-            wrapped.add(wrappedLine);
-            wordWrap(in.substring(in.indexOf(newLine) + 1), length, wrapped);
-            return;
+            String s2 = in.substring(0, in.indexOf(s)).trim();
+            wrapped.add(s2);
+            wordWrap(in.substring(in.indexOf(s) + 1), length, wrapped);
         }
-        else if (quickExit)
+        else if (flag)
         {
             wrapped.add(in);
-            return;
+        }
+        else
+        {
+            int i = Math.max(Math.max(in.lastIndexOf(" ", length), in.lastIndexOf("\t", length)), in.lastIndexOf("-", length));
+
+            if (i == -1)
+            {
+                i = length;
+            }
+
+            String s1 = in.substring(0, i).trim();
+            wrapped.add(s1);
+            wordWrap(in.substring(i), length, wrapped);
+        }
+    }
+
+    public static Vector2f convertVector(Vector2 vector)
+    {
+        return new Vector2f(vector.getX(), vector.getY());
+    }
+
+    public static Vector2 convertVector(Vector2f vector)
+    {
+        return new Vector2(vector.getX(), vector.getY());
+    }
+
+    public static Vector3f convertVector(Vector3 vector)
+    {
+        return new Vector3f(vector.getX(), vector.getY(), vector.getZ());
+    }
+
+    public static Vector3 convertVector(Vector3f vector)
+    {
+        return new Vector3(vector.getX(), vector.getY(), vector.getZ());
+    }
+
+    public static Vector3 convertVector(Vec3 vector)
+    {
+        return new Vector3((float)vector.x, (float)vector.y, (float)vector.z);
+    }
+
+    public static Vector3f convertToVector3f(Vec3 vector)
+    {
+        return new Vector3f((float)vector.x, (float)vector.y, (float)vector.z);
+    }
+
+    public static Vec3 convertToVector3d(Vector3 vector)
+    {
+        return new Vec3((double)vector.getX(), (double)vector.getY(), (double)vector.getZ());
+    }
+
+    public static Vec3 convertToVector3d(Vector3f vector)
+    {
+        return new Vec3((double)vector.x, (double)vector.y, (double)vector.z);
+    }
+
+    public static Vector3f transformVector(Matrix4f matrix, Vector3f vector, boolean point)
+    {
+        Vector4f vector4f = Matrix4f.transform(matrix, new Vector4f(vector.x, vector.y, vector.z, point ? 1.0F : 0.0F), (Vector4f)null);
+        return new Vector3f(vector4f.x, vector4f.y, vector4f.z);
+    }
+
+    public static Quaternion quatLerp(Quaternion start, Quaternion end, float fraction)
+    {
+        Quaternion quaternion = new Quaternion();
+        quaternion.w = start.w + (end.w - start.w) * fraction;
+        quaternion.x = start.x + (end.x - start.x) * fraction;
+        quaternion.y = start.y + (end.y - start.y) * fraction;
+        quaternion.z = start.z + (end.z - start.z) * fraction;
+        return quaternion;
+    }
+
+    public static Matrix4f matrix3to4(Matrix3f matrix)
+    {
+        Matrix4f matrix4f = new Matrix4f();
+        matrix4f.m00 = matrix.m00;
+        matrix4f.m01 = matrix.m01;
+        matrix4f.m02 = matrix.m02;
+        matrix4f.m10 = matrix.m10;
+        matrix4f.m11 = matrix.m11;
+        matrix4f.m12 = matrix.m12;
+        matrix4f.m20 = matrix.m20;
+        matrix4f.m21 = matrix.m21;
+        matrix4f.m22 = matrix.m22;
+        return matrix4f;
+    }
+
+    public static GlStateManager.Color colorFromHSB(float hue, float saturation, float brightness)
+    {
+        GlStateManager.Color glstatemanager$color = new GlStateManager.Color();
+
+        if (saturation == 0.0F)
+        {
+            glstatemanager$color.r = glstatemanager$color.g = glstatemanager$color.b = brightness;
+        }
+        else
+        {
+            float f = (hue - (float)Math.floor((double)hue)) * 6.0F;
+            float f1 = f - (float)Math.floor((double)f);
+            float f2 = brightness * (1.0F - saturation);
+            float f3 = brightness * (1.0F - saturation * f1);
+            float f4 = brightness * (1.0F - saturation * (1.0F - f1));
+
+            switch ((int)f)
+            {
+                case 0:
+                    glstatemanager$color.r = brightness;
+                    glstatemanager$color.g = f4;
+                    glstatemanager$color.b = f2;
+                    break;
+
+                case 1:
+                    glstatemanager$color.r = f3;
+                    glstatemanager$color.g = brightness;
+                    glstatemanager$color.b = f2;
+                    break;
+
+                case 2:
+                    glstatemanager$color.r = f2;
+                    glstatemanager$color.g = brightness;
+                    glstatemanager$color.b = f4;
+                    break;
+
+                case 3:
+                    glstatemanager$color.r = f2;
+                    glstatemanager$color.g = f3;
+                    glstatemanager$color.b = brightness;
+                    break;
+
+                case 4:
+                    glstatemanager$color.r = f4;
+                    glstatemanager$color.g = f2;
+                    glstatemanager$color.b = brightness;
+                    break;
+
+                case 5:
+                    glstatemanager$color.r = brightness;
+                    glstatemanager$color.g = f2;
+                    glstatemanager$color.b = f3;
+            }
         }
 
-        // Otherwise, split along the nearest previous space / tab / dash
-        int spaceIndex = Math.max(Math.max( in.lastIndexOf(" ", length),
-                in.lastIndexOf("\t", length)),
-                in.lastIndexOf("-", length));
-
-        // If no nearest space, split at length
-        if(spaceIndex == -1)
-            spaceIndex = length;
-
-        // Split!
-        wrappedLine = in.substring(0, spaceIndex).trim();
-        wrapped.add(wrappedLine);
-        wordWrap(in.substring(spaceIndex), length, wrapped);
+        return glstatemanager$color;
     }
-    
-	public static Vector2f convertVector(Vector2 vector) {
-		return new Vector2f(vector.getX(), vector.getY());
-	}
 
-	public static Vector2 convertVector(Vector2f vector) {
-		return new Vector2(vector.getX(), vector.getY());
-	}
+    public static InputStream getAssetAsStream(String name, boolean required)
+    {
+        InputStream inputstream = null;
 
-	public static Vector3f convertVector(Vector3 vector) {
-		return new Vector3f(vector.getX(), vector.getY(), vector.getZ());
-	}
+        try
+        {
+            try
+            {
+                Resource resource = Minecraft.getInstance().getResourceManager().getResource(new ResourceLocation("vivecraft", name));
+                inputstream = resource.getInputStream();
+            }
+            catch (NullPointerException | FileNotFoundException filenotfoundexception)
+            {
+                inputstream = VRShaders.class.getResourceAsStream("/assets/vivecraft/" + name);
+            }
 
-	public static Vector3 convertVector(Vector3f vector) {
-		return new Vector3(vector.getX(), vector.getY(), vector.getZ());
-	}
+            if (inputstream == null)
+            {
+                Path path1 = Paths.get(System.getProperty("user.dir"));
 
-	public static Vector3 convertVector(Vector3d vector) {
-		return new Vector3((float)vector.x, (float)vector.y, (float)vector.z);
-	}
+                if (path1.getParent() != null)
+                {
+                    Path path = path1.getParent().resolve("src/resources/assets/vivecraft/" + name);
 
-	public static Vector3f convertToVector3f(Vector3d vector) {
-		return new Vector3f((float)vector.x, (float)vector.y, (float)vector.z);
-	}
+                    if (!path.toFile().exists() && path1.getParent().getParent() != null)
+                    {
+                        path = path1.getParent().getParent().resolve("resources/assets/vivecraft/" + name);
+                    }
 
-	public static Vector3d convertToVector3d(Vector3 vector) {
-		return new Vector3d(vector.getX(), vector.getY(), vector.getZ());
-	}
+                    if (path.toFile().exists())
+                    {
+                        inputstream = new FileInputStream(path.toFile());
+                    }
+                }
+            }
+        }
+        catch (Exception exception)
+        {
+            handleAssetException(exception, name, required);
+            return null;
+        }
 
-	public static Vector3d convertToVector3d(Vector3f vector) {
-		return new Vector3d(vector.x, vector.y, vector.z);
-	}
+        if (inputstream == null)
+        {
+            handleAssetException(new FileNotFoundException(name), name, required);
+        }
 
-	public static Vector3f transformVector(Matrix4f matrix, Vector3f vector, boolean point) {
-    	Vector4f vec = Matrix4f.transform(matrix, new Vector4f(vector.x, vector.y, vector.z, point ? 1 : 0), null);
-    	return new Vector3f(vec.x, vec.y, vec.z);
-	}
+        return inputstream;
+    }
 
-	public static Quaternion quatLerp(Quaternion start, Quaternion end, float fraction) {
-		Quaternion quat = new Quaternion();
-		quat.w = start.w + (end.w - start.w) * fraction;
-		quat.x = start.x + (end.x - start.x) * fraction;
-		quat.y = start.y + (end.y - start.y) * fraction;
-		quat.z = start.z + (end.z - start.z) * fraction;
-		return quat;
-	}
+    public static byte[] loadAsset(String name, boolean required)
+    {
+        InputStream inputstream = getAssetAsStream(name, required);
 
-	public static Matrix4f matrix3to4(Matrix3f matrix) {
-		Matrix4f mat = new Matrix4f();
-		mat.m00 = matrix.m00;
-		mat.m01 = matrix.m01;
-		mat.m02 = matrix.m02;
-		mat.m10 = matrix.m10;
-		mat.m11 = matrix.m11;
-		mat.m12 = matrix.m12;
-		mat.m20 = matrix.m20;
-		mat.m21 = matrix.m21;
-		mat.m22 = matrix.m22;
-		return mat;
-	}
+        if (inputstream == null)
+        {
+            return null;
+        }
+        else
+        {
+            try
+            {
+                byte[] abyte = IOUtils.toByteArray(inputstream);
+                inputstream.close();
+                return abyte;
+            }
+            catch (Exception exception)
+            {
+                handleAssetException(exception, name, required);
+                return null;
+            }
+        }
+    }
 
-	/**
-	 * HSB to RGB conversion, pinched from java.awt.Color.
-	 * @param hue (0..1.0f)
-	 * @param saturation (0..1.0f)
-	 * @param brightness (0..1.0f)
-	 */
-	public static GlStateManager.Color colorFromHSB(float hue, float saturation, float brightness) {
-		GlStateManager.Color color = new GlStateManager.Color();
-		if (saturation == 0.0F) {
-			color.red = color.green = color.blue = brightness;
-		} else {
-			float f3 = (hue - (float) Math.floor(hue)) * 6F;
-			float f4 = f3 - (float) Math.floor(f3);
-			float f5 = brightness * (1.0F - saturation);
-			float f6 = brightness * (1.0F - saturation * f4);
-			float f7 = brightness * (1.0F - saturation * (1.0F - f4));
-			switch ((int) f3) {
-				case 0 :
-					color.red = brightness;
-					color.green = f7;
-					color.blue = f5;
-					break;
-				case 1 :
-					color.red = f6;
-					color.green = brightness;
-					color.blue = f5;
-					break;
-				case 2 :
-					color.red = f5;
-					color.green = brightness;
-					color.blue = f7;
-					break;
-				case 3 :
-					color.red = f5;
-					color.green = f6;
-					color.blue = brightness;
-					break;
-				case 4 :
-					color.red = f7;
-					color.green = f5;
-					color.blue = brightness;
-					break;
-				case 5 :
-					color.red = brightness;
-					color.green = f5;
-					color.blue = f6;
-					break;
-			}
-		}
-		return color;
-	}
+    public static String loadAssetAsString(String name, boolean required)
+    {
+        byte[] abyte = loadAsset(name, required);
+        return abyte == null ? null : new String(abyte, Charsets.UTF_8);
+    }
 
-	public static InputStream getAssetAsStream(String name, boolean required) {
-		InputStream is = null;
-		try {
-			try {
-				IResource resource = Minecraft.getInstance().getResourceManager().getResource(new ResourceLocation("vivecraft", name));
-				is = resource.getInputStream();
-			} catch (FileNotFoundException | NullPointerException e) { // might be called super early
-				is = VRShaders.class.getResourceAsStream("/assets/vivecraft/" + name);
-			}
+    public static void loadAssetToFile(String name, File file, boolean required)
+    {
+        InputStream inputstream = getAssetAsStream(name, required);
 
-			if (is == null) {
-				//uhh debugging?
-				Path dir = Paths.get(System.getProperty("user.dir")); // ../mcpxxx/jars/
-				if (dir.getParent() != null) {
-					Path p5 = dir.getParent().resolve("src/resources/assets/vivecraft/" + name);
-					if (!p5.toFile().exists() && dir.getParent().getParent() != null)
-						p5 = dir.getParent().getParent().resolve("resources/assets/vivecraft/" + name);
-					if (p5.toFile().exists())
-						is = new FileInputStream(p5.toFile());
-				}
-			}
-		} catch (Exception e) {
-			handleAssetException(e, name, required);
-			return null;
-		}
+        if (inputstream != null)
+        {
+            try
+            {
+                writeStreamToFile(inputstream, file);
+                inputstream.close();
+            }
+            catch (Exception exception)
+            {
+                handleAssetException(exception, name, required);
+            }
+        }
+    }
 
-		if (is == null)
-			handleAssetException(new FileNotFoundException(name), name, required);
+    private static void handleAssetException(Throwable e, String name, boolean required)
+    {
+        if (required)
+        {
+            throw new RuntimeException("Failed to load asset: " + name, e);
+        }
+        else
+        {
+            System.out.println("Failed to load asset: " + name);
+            e.printStackTrace();
+        }
+    }
 
-		return is;
-	}
+    public static void unpackNatives(String directory)
+    {
+        try
+        {
+            (new File("openvr/" + directory)).mkdirs();
 
-	public static byte[] loadAsset(String name, boolean required) {
-		InputStream is = getAssetAsStream(name, required);
-		if (is == null)
-			return null;
+            try
+            {
+                Path path = Paths.get(System.getProperty("user.dir"));
+                Path path1 = path.getParent().resolve("src/resources/natives/" + directory);
 
-		try {
-			byte[] out = IOUtils.toByteArray(is);
-			is.close();
-			return out;
-		} catch (Exception e) {
-			handleAssetException(e, name, required);
-		}
+                if (!path1.toFile().exists())
+                {
+                    path1 = path.getParent().getParent().resolve("resources/natives/" + directory);
+                }
 
-		return null;
-	}
-	
-	public static String loadAssetAsString(String name, boolean required) {
-		byte[] bytes = loadAsset(name, required);
-		if (bytes == null)
-			return null;
+                if (path1.toFile().exists())
+                {
+                    System.out.println("Copying " + directory + " natives...");
 
-		return new String(bytes, Charsets.UTF_8);
-	}
+                    for (File file1 : path1.toFile().listFiles())
+                    {
+                        System.out.println(file1.getName());
+                        Files.copy(file1, new File("openvr/" + directory + "/" + file1.getName()));
+                    }
 
-	public static void loadAssetToFile(String name, File file, boolean required) {
-		InputStream is = getAssetAsStream(name, required);
-		if (is == null)
-			return;
+                    return;
+                }
+            }
+            catch (Exception exception)
+            {
+            }
 
-		try {
-			writeStreamToFile(is, file);
-			is.close();
-		} catch (Exception e) {
-			handleAssetException(e, name, required);
-		}
-	}
+            System.out.println("Unpacking " + directory + " natives...");
+            ZipFile zipfile = getVivecraftZip();
+            Enumeration <? extends ZipEntry > enumeration = zipfile.entries();
 
-	private static void handleAssetException(Throwable e, String name, boolean required) {
-			if (required) {
-				throw new RuntimeException("Failed to load asset: " + name, e);
-			} else {
-				System.out.println("Failed to load asset: " + name);
-				e.printStackTrace();
-			}
-		}
-	
-	public static void unpackNatives(String directory) {
-		try {
-			new File("openvr/" + directory).mkdirs();
-			// TODO: Uncomment this when OpenComposite supports SteamVR Input
-			//if (new File("openvr/" + directory + "/opencomposite.ini").exists())
-			//	return;
-				
-			// dev environment
-			try {
-				Path dir = Paths.get(System.getProperty("user.dir")); // ..\mcpxxx\jars\
-				Path path = dir.getParent().resolve("src/resources/natives/" + directory);
-				if (!path.toFile().exists()) {
-					path = dir.getParent().getParent().resolve("resources/natives/" + directory);
-				}
-				if (path.toFile().exists()) { 
-					System.out.println("Copying " + directory + " natives...");
-					for (File file : path.toFile().listFiles()) {
-						System.out.println(file.getName());
-						Files.copy(file, new File("openvr/" + directory + "/" + file.getName()));
-					}
-					return;
-				}
-	
-			} catch (Exception e) {
-			}
-			//
-			
-			//Live
-			System.out.println("Unpacking " + directory + " natives...");
-			ZipFile zip = getVivecraftZip();
-			Enumeration<? extends ZipEntry> entries = zip.entries();
-			while (entries.hasMoreElements()) {
-				ZipEntry entry = entries.nextElement();
-				if (entry.getName().startsWith("natives/" + directory)) {
-					String name = Paths.get(entry.getName()).getFileName().toString();
-					System.out.println(name);
-					writeStreamToFile(zip.getInputStream(entry), new File("openvr/" + directory + "/" + name));
-				}
-			}
-			zip.close();
-			//
-		} catch (Exception e) {
-			System.out.println("Failed to unpack natives");
-			e.printStackTrace();
-		}
-	}
+            while (enumeration.hasMoreElements())
+            {
+                ZipEntry zipentry = enumeration.nextElement();
 
-	public static URI getVivecraftZipLocation() {
-		if (vivecraftZipURI != null)
-			return vivecraftZipURI;
+                if (zipentry.getName().startsWith("natives/" + directory))
+                {
+                    String s = Paths.get(zipentry.getName()).getFileName().toString();
+                    System.out.println(s);
+                    writeStreamToFile(zipfile.getInputStream(zipentry), new File("openvr/" + directory + "/" + s));
+                }
+            }
 
-		List<URI> uris = new ClassGraph().getClasspathURIs();
-		for (URI uri : uris) {
-			try (ZipFile zipFile = new ZipFile(new File(uri))) {
-				if (zipFile.getEntry("org/vivecraft/provider/MCOpenVR.class") != null) {
-					System.out.println("Found Vivecraft zip: " + uri.toString());
-					vivecraftZipURI = uri;
-					break;
-				}
-			} catch (IOException e) {
-			}
-		}
+            zipfile.close();
+        }
+        catch (Exception exception1)
+        {
+            System.out.println("Failed to unpack natives");
+            exception1.printStackTrace();
+        }
+    }
 
-		if (vivecraftZipURI == null)
-			throw new RuntimeException("Could not find Vivecraft zip");
-		return vivecraftZipURI;
-	}
+    public static URI getVivecraftZipLocation()
+    {
+        if (vivecraftZipURI != null)
+        {
+            return vivecraftZipURI;
+        }
+        else
+        {
+            for (URI uri : (new ClassGraph()).getClasspathURIs())
+            {
+                try (ZipFile zipfile = new ZipFile(new File(uri)))
+                {
+                    if (zipfile.getEntry("org/vivecraft/provider/MCVR.class") != null)
+                    {
+                        System.out.println("Found Vivecraft zip: " + uri.toString());
+                        vivecraftZipURI = uri;
+                        break;
+                    }
+                }
+                catch (IOException ioexception)
+                {
+                }
+            }
 
-	public static ZipFile getVivecraftZip() {
-		URI uri = getVivecraftZipLocation();
+            if (vivecraftZipURI == null)
+            {
+                throw new RuntimeException("Could not find Vivecraft zip");
+            }
+            else
+            {
+                return vivecraftZipURI;
+            }
+        }
+    }
 
-		try {
-			File f = new File(uri);
-			return new ZipFile(f);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
-	public static void writeStreamToFile(InputStream is, File file) throws IOException {
-		FileOutputStream fos = new FileOutputStream(file);
-		byte[] buffer = new byte[4096];
-		int count;
-		while ((count = is.read(buffer, 0, buffer.length)) != -1) {
-			fos.write(buffer, 0, count);
-		}
-		fos.flush();
-		fos.close();
-		is.close();
-	}
+    public static ZipFile getVivecraftZip()
+    {
+        URI uri = getVivecraftZipLocation();
 
-	public static String httpReadLine(String url) throws IOException {
-		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-		conn.setConnectTimeout(CONNECT_TIMEOUT);
-		conn.setReadTimeout(READ_TIMEOUT);
-		conn.setUseCaches(false);
-		conn.setDoInput(true);
-		BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-		String line = br.readLine();
-		br.close();
-		conn.disconnect();
-		return line;
-	}
+        try
+        {
+            File file1 = new File(uri);
+            return new ZipFile(file1);
+        }
+        catch (IOException ioexception)
+        {
+            throw new RuntimeException(ioexception);
+        }
+    }
 
-	public static List<String> httpReadAllLines(String url) throws IOException {
-		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-		conn.setConnectTimeout(CONNECT_TIMEOUT);
-		conn.setReadTimeout(READ_TIMEOUT);
-		conn.setUseCaches(false);
-		conn.setDoInput(true);
-		BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-		ArrayList<String> list = new ArrayList<>();
-		String line;
-		while ((line = br.readLine()) != null) {
-			list.add(line);
-		}
-		br.close();
-		conn.disconnect();
-		return list;
-	}
+    public static void writeStreamToFile(InputStream is, File file) throws IOException
+    {
+        FileOutputStream fileoutputstream = new FileOutputStream(file);
+        byte[] abyte = new byte[4096];
+        int i;
 
-	public static byte[] httpReadAll(String url) throws IOException {
-		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-		conn.setConnectTimeout(CONNECT_TIMEOUT);
-		conn.setReadTimeout(READ_TIMEOUT);
-		conn.setUseCaches(false);
-		conn.setDoInput(true);
-		InputStream is = conn.getInputStream();
-		ByteArrayOutputStream bout = new ByteArrayOutputStream(conn.getContentLength());
-		byte[] bytes = new byte[4096];
-		int count;
-		while ((count = is.read(bytes, 0, bytes.length)) != -1) {
-			bout.write(bytes, 0, count);
-		}
-		is.close();
-		conn.disconnect();
-		return bout.toByteArray();
-	}
+        while ((i = is.read(abyte, 0, abyte.length)) != -1)
+        {
+            fileoutputstream.write(abyte, 0, i);
+        }
 
-	public static String httpReadAllString(String url) throws IOException {
-		return new String(httpReadAll(url), StandardCharsets.UTF_8);
-	}
+        fileoutputstream.flush();
+        fileoutputstream.close();
+        is.close();
+    }
 
-	public static void httpReadToFile(String url, File file, boolean writeWhenComplete) throws MalformedURLException, IOException {
-		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-		conn.setConnectTimeout(CONNECT_TIMEOUT);
-		conn.setReadTimeout(READ_TIMEOUT);
-		conn.setUseCaches(false);
-		conn.setDoInput(true);
-		InputStream is = conn.getInputStream();
-		if (writeWhenComplete) {
-			ByteArrayOutputStream bout = new ByteArrayOutputStream(conn.getContentLength());
-			byte[] bytes = new byte[4096];
-			int count;
-			while ((count = is.read(bytes, 0, bytes.length)) != -1) {
-				bout.write(bytes, 0, count);
-			}
-			OutputStream out = new FileOutputStream(file);
-			out.write(bout.toByteArray());
-			out.flush();
-			out.close();
-		} else {
-			OutputStream out = new FileOutputStream(file);
-			byte[] bytes = new byte[4096];
-			int count;
-			while ((count = is.read(bytes, 0, bytes.length)) != -1) {
-				out.write(bytes, 0, count);
-			}
-			out.flush();
-			out.close();
-		}
-		is.close();
-		conn.disconnect();
-	}
-	
-    public static void httpReadToFile(String url, File file) throws IOException {
+    public static String httpReadLine(String url) throws IOException
+    {
+        HttpURLConnection httpurlconnection = (HttpURLConnection)(new URL(url)).openConnection();
+        httpurlconnection.setConnectTimeout(5000);
+        httpurlconnection.setReadTimeout(20000);
+        httpurlconnection.setUseCaches(false);
+        httpurlconnection.setDoInput(true);
+        BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(httpurlconnection.getInputStream()));
+        String s = bufferedreader.readLine();
+        bufferedreader.close();
+        httpurlconnection.disconnect();
+        return s;
+    }
+
+    public static List<String> httpReadAllLines(String url) throws IOException
+    {
+        HttpURLConnection httpurlconnection = (HttpURLConnection)(new URL(url)).openConnection();
+        httpurlconnection.setConnectTimeout(5000);
+        httpurlconnection.setReadTimeout(20000);
+        httpurlconnection.setUseCaches(false);
+        httpurlconnection.setDoInput(true);
+        BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(httpurlconnection.getInputStream()));
+        ArrayList<String> arraylist = new ArrayList<>();
+        String s;
+
+        while ((s = bufferedreader.readLine()) != null)
+        {
+            arraylist.add(s);
+        }
+
+        bufferedreader.close();
+        httpurlconnection.disconnect();
+        return arraylist;
+    }
+
+    public static byte[] httpReadAll(String url) throws IOException
+    {
+        HttpURLConnection httpurlconnection = (HttpURLConnection)(new URL(url)).openConnection();
+        httpurlconnection.setConnectTimeout(5000);
+        httpurlconnection.setReadTimeout(20000);
+        httpurlconnection.setUseCaches(false);
+        httpurlconnection.setDoInput(true);
+        InputStream inputstream = httpurlconnection.getInputStream();
+        ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream(httpurlconnection.getContentLength());
+        byte[] abyte = new byte[4096];
+        int i;
+
+        while ((i = inputstream.read(abyte, 0, abyte.length)) != -1)
+        {
+            bytearrayoutputstream.write(abyte, 0, i);
+        }
+
+        inputstream.close();
+        httpurlconnection.disconnect();
+        return bytearrayoutputstream.toByteArray();
+    }
+
+    public static String httpReadAllString(String url) throws IOException
+    {
+        return new String(httpReadAll(url), StandardCharsets.UTF_8);
+    }
+
+    public static void httpReadToFile(String url, File file, boolean writeWhenComplete) throws MalformedURLException, IOException
+    {
+        HttpURLConnection httpurlconnection = (HttpURLConnection)(new URL(url)).openConnection();
+        httpurlconnection.setConnectTimeout(5000);
+        httpurlconnection.setReadTimeout(20000);
+        httpurlconnection.setUseCaches(false);
+        httpurlconnection.setDoInput(true);
+        InputStream inputstream = httpurlconnection.getInputStream();
+
+        if (writeWhenComplete)
+        {
+            ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream(httpurlconnection.getContentLength());
+            byte[] abyte = new byte[4096];
+            int i;
+
+            while ((i = inputstream.read(abyte, 0, abyte.length)) != -1)
+            {
+                bytearrayoutputstream.write(abyte, 0, i);
+            }
+
+            OutputStream outputstream = new FileOutputStream(file);
+            outputstream.write(bytearrayoutputstream.toByteArray());
+            outputstream.flush();
+            outputstream.close();
+        }
+        else
+        {
+            OutputStream outputstream1 = new FileOutputStream(file);
+            byte[] abyte1 = new byte[4096];
+            int j;
+
+            while ((j = inputstream.read(abyte1, 0, abyte1.length)) != -1)
+            {
+                outputstream1.write(abyte1, 0, j);
+            }
+
+            outputstream1.flush();
+            outputstream1.close();
+        }
+
+        inputstream.close();
+        httpurlconnection.disconnect();
+    }
+
+    public static void httpReadToFile(String url, File file) throws IOException
+    {
         httpReadToFile(url, file, false);
     }
 
-	public static List<String> httpReadList(String url) throws IOException {
-		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-		conn.setConnectTimeout(CONNECT_TIMEOUT);
-		conn.setReadTimeout(READ_TIMEOUT);
-		conn.setUseCaches(false);
-		conn.setDoInput(true);
-		BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-		List<String> list = new ArrayList<String>();
-		String line;
-		while ((line = br.readLine()) != null) {
-			list.add(line);
-		}
-		br.close();
-		conn.disconnect();
-		return list;
-	}
+    public static List<String> httpReadList(String url) throws IOException
+    {
+        HttpURLConnection httpurlconnection = (HttpURLConnection)(new URL(url)).openConnection();
+        httpurlconnection.setConnectTimeout(5000);
+        httpurlconnection.setReadTimeout(20000);
+        httpurlconnection.setUseCaches(false);
+        httpurlconnection.setDoInput(true);
+        BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(httpurlconnection.getInputStream()));
+        List<String> list = new ArrayList<>();
+        String s;
 
-	public static String getFileChecksum(File file, String algorithm) throws FileNotFoundException, IOException, NoSuchAlgorithmException {
-		InputStream is = new FileInputStream(file);
-		byte[] bytes = new byte[(int)file.length()];
-		is.read(bytes);
-		is.close();
-		MessageDigest md = MessageDigest.getInstance(algorithm);
-		md.update(bytes);
-		Formatter fmt = new Formatter();
-		for (byte b : md.digest()) {
-			fmt.format("%02x", b);
-		}
-		String str = fmt.toString();
-		fmt.close();
-		return str;
-	}
+        while ((s = bufferedreader.readLine()) != null)
+        {
+            list.add(s);
+        }
 
-	public static byte[] readFile(File file) throws FileNotFoundException, IOException {
-		FileInputStream is = new FileInputStream(file);
-		return readFully(is);
-	}
+        bufferedreader.close();
+        httpurlconnection.disconnect();
+        return list;
+    }
 
-	public static String readFileString(File file) throws FileNotFoundException, IOException {
-		return new String(readFile(file), "UTF-8");
-	}
-	
-	public static byte[] readFully(InputStream in) throws IOException {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		byte[] bytes = new byte[4096];
-		int count;
-		while ((count = in.read(bytes, 0, bytes.length)) != -1) {
-			out.write(bytes, 0, count);
-		}
-		in.close();
-		return out.toByteArray();
-	}
+    public static String getFileChecksum(File file, String algorithm) throws FileNotFoundException, IOException, NoSuchAlgorithmException
+    {
+        InputStream inputstream = new FileInputStream(file);
+        byte[] abyte = new byte[(int)file.length()];
+        inputstream.read(abyte);
+        inputstream.close();
+        MessageDigest messagedigest = MessageDigest.getInstance(algorithm);
+        messagedigest.update(abyte);
+        Formatter formatter = new Formatter();
 
-	public static Quaternion slerp(Quaternion start, Quaternion end, float alpha) {
-		final float d = start.x * end.x + start.y * end.y + start.z * end.z + start.w * end.w;
-		float absDot = d < 0.f ? -d : d;
+        for (byte b0 : messagedigest.digest())
+        {
+            formatter.format("%02x", b0);
+        }
 
-		// Set the first and second scale for the interpolation
-		float scale0 = 1f - alpha;
-		float scale1 = alpha;
+        String s = formatter.toString();
+        formatter.close();
+        return s;
+    }
 
-		// Check if the angle between the 2 quaternions was big enough to
-		// warrant such calculations
-		if ((1 - absDot) > 0.1) {// Get the angle between the 2 quaternions,
-			// and then store the sin() of that angle
-			final float angle = (float)Math.acos(absDot);		
-			final float invSinTheta = 1f / (float)Math.sin(angle);
+    public static byte[] readFile(File file) throws FileNotFoundException, IOException
+    {
+        FileInputStream fileinputstream = new FileInputStream(file);
+        return readFully(fileinputstream);
+    }
 
-			// Calculate the scale for q1 and q2, according to the angle and
-			// it's sine value
-			scale0 = ((float)Math.sin((1f - alpha) * angle) * invSinTheta);
-			scale1 = ((float)Math.sin((alpha * angle)) * invSinTheta);
-		}
+    public static String readFileString(File file) throws FileNotFoundException, IOException
+    {
+        return new String(readFile(file), "UTF-8");
+    }
 
-		if (d < 0.f) scale1 = -scale1;
-	
-		// Calculate the x, y, z and w values for the quaternion by using a
-		// special form of linear interpolation for quaternions.
-		float x = (scale0 * start.x) + (scale1 * end.x);
-		float y = (scale0 * start.y) + (scale1 * end.y);
-		float z = (scale0 * start.z) + (scale1 * end.z);
-		float w = (scale0 * start.w) + (scale1 * end.w);
+    public static byte[] readFully(InputStream in) throws IOException
+    {
+        ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
+        byte[] abyte = new byte[4096];
+        int i;
 
-		// Return the interpolated quaternion
-		return new Quaternion(w, x, y, z);
-	}
-	public static Vector3d vecLerp(Vector3d start, Vector3d end, double fraction) {
-		double x = start.x + (end.x - start.x) * fraction;
-		double y = start.y + (end.y - start.y) * fraction;
-		double z = start.z + (end.z - start.z) * fraction;
-		return new Vector3d(x, y, z);
-	}
+        while ((i = in.read(abyte, 0, abyte.length)) != -1)
+        {
+            bytearrayoutputstream.write(abyte, 0, i);
+        }
 
-	public static float applyDeadzone(float axis, float deadzone) {
-		final float scalar = 1 / (1 - deadzone);
-		float newAxis = 0;
-		if (Math.abs(axis) > deadzone)
-			newAxis = (Math.abs(axis) - deadzone) * scalar * Math.signum(axis);
-		return newAxis;
-	}
-	
-	private static final Random avRandomizer = new Random();
-	public static void spawnParticles(IParticleData type, int count, Vector3d position, Vector3d size, double speed ){
-		Minecraft mc=Minecraft.getInstance();
-		for (int k = 0; k < count; ++k)
-		{
-			double d1 = avRandomizer.nextGaussian() * size.x;
-			double d3 = avRandomizer.nextGaussian() * size.y;
-			double d5 = avRandomizer.nextGaussian() * size.z;
-			double d6 = avRandomizer.nextGaussian() * speed;
-			double d7 = avRandomizer.nextGaussian() * speed;
-			double d8 = avRandomizer.nextGaussian() * speed;
-			
-			try
-			{
-				mc.world.addParticle(type,  position.x + d1, position.y + d3, position.z + d5, d6, d7, d8);
-			}
-			catch (Throwable var16)
-			{
-				LogManager.getLogger().warn("Could not spawn particle effect {}", (Object)type);
-				return;
-			}
-		}
-	}
+        in.close();
+        return bytearrayoutputstream.toByteArray();
+    }
 
-	public static int getCombinedLightWithMin(IBlockDisplayReader lightReader, BlockPos pos, int minLight) {
-		int light = WorldRenderer.getCombinedLight(lightReader, pos);
-		int blockLight = (light >> 4) & 0xF;
-		if (blockLight < minLight) {
-			light &= 0xFFFFFF00;
-			light |= minLight << 4;
-		}
-		return light;
-	}
+    public static Quaternion slerp(Quaternion start, Quaternion end, float alpha)
+    {
+        float f = start.x * end.x + start.y * end.y + start.z * end.z + start.w * end.w;
+        float f1 = f < 0.0F ? -f : f;
+        float f2 = 1.0F - alpha;
+        float f3 = alpha;
 
-	public static void takeScreenshot(Framebuffer fb) {
-		Minecraft mc = Minecraft.getInstance();
-		ScreenShotHelper.saveScreenshot(mc.gameDir, fb.framebufferWidth, fb.framebufferHeight, fb, text -> {
-			mc.execute(() -> mc.ingameGUI.getChatGUI().printChatMessage(text));
-		});
-	}
+        if ((double)(1.0F - f1) > 0.1D)
+        {
+            float f4 = (float)Math.acos((double)f1);
+            float f5 = 1.0F / (float)Math.sin((double)f4);
+            f2 = (float)Math.sin((double)((1.0F - alpha) * f4)) * f5;
+            f3 = (float)Math.sin((double)(alpha * f4)) * f5;
+        }
 
-	public static List<ITextProperties> wrapText(ITextProperties text, int width, FontRenderer fontRenderer, @Nullable ITextProperties linePrefix)
-	{
-		TextPropertiesManager manager = new TextPropertiesManager();
-		text.getComponentWithStyle((style, str) -> {
-			manager.func_238155_a_(ITextProperties.func_240653_a_(str, style));
-			return Optional.empty();
-		}, Style.EMPTY);
-		//List<IReorderingProcessor> list = Lists.newArrayList();
-		//IReorderingProcessor prefixer = IReorderingProcessor.func_242239_a(linePrefix, Style.EMPTY);
-		//fontRenderer.func_238420_b_().func_243242_a(manager.func_238156_b_(), width, Style.EMPTY, (p_243256_1_, p_243256_2_) ->
-		//{
-		//	IReorderingProcessor ireorderingprocessor = LanguageMap.getInstance().func_241870_a(p_243256_1_);
-		//	list.add(p_243256_2_ ? IReorderingProcessor.func_242234_a(prefixer, ireorderingprocessor) : ireorderingprocessor);
-		//});
-		//return list.isEmpty() ? Lists.newArrayList(IReorderingProcessor.field_242232_a) : list;
-		List<ITextProperties> list = Lists.newArrayList();
-		fontRenderer.getCharacterManager().func_243242_a(manager.func_238156_b_(), width, Style.EMPTY, (lineText, sameLine) ->
-		{
-			list.add(sameLine && linePrefix != null ? ITextProperties.func_240655_a_(linePrefix, lineText) : lineText);
-		});
-		return list.isEmpty() ? Lists.newArrayList(ITextProperties.field_240651_c_) : list;
-	}
+        if (f < 0.0F)
+        {
+            f3 = -f3;
+        }
 
-	public static List<TextFormatting> styleToFormats(Style style) {
-		if (style.isEmpty())
-			return new ArrayList<>();
+        float f8 = f2 * start.x + f3 * end.x;
+        float f9 = f2 * start.y + f3 * end.y;
+        float f6 = f2 * start.z + f3 * end.z;
+        float f7 = f2 * start.w + f3 * end.w;
+        return new Quaternion(f7, f8, f9, f6);
+    }
 
-		ArrayList<TextFormatting> list = new ArrayList<>();
-		if (style.getColor() != null)
-			list.add(TextFormatting.getValueByName(style.getColor().getName()));
-		if (style.getBold())
-			list.add(TextFormatting.BOLD);
-		if (style.getItalic())
-			list.add(TextFormatting.ITALIC);
-		if (style.getStrikethrough())
-			list.add(TextFormatting.STRIKETHROUGH);
-		if (style.getUnderlined())
-			list.add(TextFormatting.UNDERLINE);
-		if (style.getObfuscated())
-			list.add(TextFormatting.OBFUSCATED);
+    public static Vec3 vecLerp(Vec3 start, Vec3 end, double fraction)
+    {
+        double d0 = start.x + (end.x - start.x) * fraction;
+        double d1 = start.y + (end.y - start.y) * fraction;
+        double d2 = start.z + (end.z - start.z) * fraction;
+        return new Vec3(d0, d1, d2);
+    }
 
-		return list;
-	}
+    public static float applyDeadzone(float axis, float deadzone)
+    {
+        float f = 1.0F / (1.0F - deadzone);
+        float f1 = 0.0F;
 
-	public static String formatsToString(List<TextFormatting> formats) {
-		if (formats.size() == 0)
-			return "";
+        if (Math.abs(axis) > deadzone)
+        {
+            f1 = (Math.abs(axis) - deadzone) * f * Math.signum(axis);
+        }
 
-		StringBuilder sb = new StringBuilder();
-		formats.forEach(sb::append);
-		return sb.toString();
-	}
+        return f1;
+    }
 
-	public static String styleToFormatString(Style style) {
-		return formatsToString(styleToFormats(style));
-	}
+    public static void spawnParticles(ParticleOptions type, int count, Vec3 position, Vec3 size, double speed)
+    {
+        Minecraft minecraft = Minecraft.getInstance();
 
-	public static long microTime() {
-		return System.nanoTime() / 1000L;
-	}
+        for (int i = 0; i < count; ++i)
+        {
+            double d0 = avRandomizer.nextGaussian() * size.x;
+            double d1 = avRandomizer.nextGaussian() * size.y;
+            double d2 = avRandomizer.nextGaussian() * size.z;
+            double d3 = avRandomizer.nextGaussian() * speed;
+            double d4 = avRandomizer.nextGaussian() * speed;
+            double d5 = avRandomizer.nextGaussian() * speed;
 
-	public static long milliTime() {
-		return System.nanoTime() / 1000000L;
-	}
+            try
+            {
+                minecraft.level.addParticle(type, position.x + d0, position.y + d1, position.z + d2, d3, d4, d5);
+            }
+            catch (Throwable throwable)
+            {
+                LogManager.getLogger().warn("Could not spawn particle effect {}", (Object)type);
+                return;
+            }
+        }
+    }
 
-	public static void printStackIfContainsClass(String className) {
-		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-		boolean print = false;
-		for (StackTraceElement stackEl : stack) {
-			if (stackEl.getClassName().equals(className)) {
-				print = true;
-				break;
-			}
-		}
+    public static int getCombinedLightWithMin(BlockAndTintGetter lightReader, BlockPos pos, int minLight)
+    {
+        int i = LevelRenderer.getLightColor(lightReader, pos);
+        int j = i >> 4 & 15;
 
-		if (print)
-			Thread.dumpStack();
-	}
+        if (j < minLight)
+        {
+            i = i & -256;
+            i = i | minLight << 4;
+        }
 
+        return i;
+    }
+
+    public static void takeScreenshot(RenderTarget fb)
+    {
+        Minecraft minecraft = Minecraft.getInstance();
+        Screenshot.grab(minecraft.gameDirectory, fb.viewWidth, fb.viewHeight, fb, (text) ->
+        {
+            minecraft.execute(() -> {
+                minecraft.gui.getChat().addMessage(text);
+            });
+        });
+    }
+
+    public static List<FormattedText> wrapText(FormattedText text, int width, Font fontRenderer, @Nullable FormattedText linePrefix)
+    {
+        ComponentCollector componentcollector = new ComponentCollector();
+        text.visit((style, str) ->
+        {
+            componentcollector.append(FormattedText.of(str, style));
+            return Optional.empty();
+        }, Style.EMPTY);
+        List<FormattedText> list = Lists.newArrayList();
+        fontRenderer.getSplitter().splitLines(componentcollector.getResultOrEmpty(), width, Style.EMPTY, (lineText, sameLine) ->
+        {
+            list.add(sameLine && linePrefix != null ? FormattedText.m_130773_(linePrefix, lineText) : lineText);
+        });
+        return (List<FormattedText>)(list.isEmpty() ? Lists.newArrayList(FormattedText.EMPTY) : list);
+    }
+
+    public static List<ChatFormatting> styleToFormats(Style style)
+    {
+        if (style.isEmpty())
+        {
+            return new ArrayList<>();
+        }
+        else
+        {
+            ArrayList<ChatFormatting> arraylist = new ArrayList<>();
+
+            if (style.getColor() != null)
+            {
+                arraylist.add(ChatFormatting.getByName(style.getColor().serialize()));
+            }
+
+            if (style.isBold())
+            {
+                arraylist.add(ChatFormatting.BOLD);
+            }
+
+            if (style.isItalic())
+            {
+                arraylist.add(ChatFormatting.ITALIC);
+            }
+
+            if (style.isStrikethrough())
+            {
+                arraylist.add(ChatFormatting.STRIKETHROUGH);
+            }
+
+            if (style.isUnderlined())
+            {
+                arraylist.add(ChatFormatting.UNDERLINE);
+            }
+
+            if (style.isObfuscated())
+            {
+                arraylist.add(ChatFormatting.OBFUSCATED);
+            }
+
+            return arraylist;
+        }
+    }
+
+    public static String formatsToString(List<ChatFormatting> formats)
+    {
+        if (formats.size() == 0)
+        {
+            return "";
+        }
+        else
+        {
+            StringBuilder stringbuilder = new StringBuilder();
+            formats.forEach(stringbuilder::append);
+            return stringbuilder.toString();
+        }
+    }
+
+    public static String styleToFormatString(Style style)
+    {
+        return formatsToString(styleToFormats(style));
+    }
+
+    public static long microTime()
+    {
+        return System.nanoTime() / 1000L;
+    }
+
+    public static long milliTime()
+    {
+        return System.nanoTime() / 1000000L;
+    }
+
+    public static void printStackIfContainsClass(String className)
+    {
+        StackTraceElement[] astacktraceelement = Thread.currentThread().getStackTrace();
+        boolean flag = false;
+
+        for (StackTraceElement stacktraceelement : astacktraceelement)
+        {
+            if (stacktraceelement.getClassName().equals(className))
+            {
+                flag = true;
+                break;
+            }
+        }
+
+        if (flag)
+        {
+            Thread.dumpStack();
+        }
+    }
+
+    public static com.mojang.math.Matrix4f Matrix4fFromOpenVR(HmdMatrix44_t in)
+    {
+        com.mojang.math.Matrix4f matrix4f = new com.mojang.math.Matrix4f();
+        matrix4f.m00 = in.m[0];
+        matrix4f.m01 = in.m[1];
+        matrix4f.m02 = in.m[2];
+        matrix4f.m03 = in.m[3];
+        matrix4f.m10 = in.m[4];
+        matrix4f.m11 = in.m[5];
+        matrix4f.m12 = in.m[6];
+        matrix4f.m13 = in.m[7];
+        matrix4f.m20 = in.m[8];
+        matrix4f.m21 = in.m[9];
+        matrix4f.m22 = in.m[10];
+        matrix4f.m23 = in.m[11];
+        matrix4f.m30 = in.m[12];
+        matrix4f.m31 = in.m[13];
+        matrix4f.m32 = in.m[14];
+        matrix4f.m33 = in.m[15];
+        return matrix4f;
+    }
+
+    public static Quaternion convertMatrix4ftoRotationQuat(float m00, float m01, float m02, float m10, float m11, float m12, float m20, float m21, float m22)
+    {
+        double d0 = (double)(m00 * m00 + m10 * m10 + m20 * m20);
+
+        if (d0 != 1.0D && d0 != 0.0D)
+        {
+            d0 = 1.0D / Math.sqrt(d0);
+            m00 = (float)((double)m00 * d0);
+            m10 = (float)((double)m10 * d0);
+            m20 = (float)((double)m20 * d0);
+        }
+
+        d0 = (double)(m01 * m01 + m11 * m11 + m21 * m21);
+
+        if (d0 != 1.0D && d0 != 0.0D)
+        {
+            d0 = 1.0D / Math.sqrt(d0);
+            m01 = (float)((double)m01 * d0);
+            m11 = (float)((double)m11 * d0);
+            m21 = (float)((double)m21 * d0);
+        }
+
+        d0 = (double)(m02 * m02 + m12 * m12 + m22 * m22);
+
+        if (d0 != 1.0D && d0 != 0.0D)
+        {
+            d0 = 1.0D / Math.sqrt(d0);
+            m02 = (float)((double)m02 * d0);
+            m12 = (float)((double)m12 * d0);
+            m22 = (float)((double)m22 * d0);
+        }
+
+        float f = m00 + m11 + m22;
+        Quaternion quaternion = new Quaternion();
+
+        if (f >= 0.0F)
+        {
+            double d1 = Math.sqrt((double)(f + 1.0F));
+            quaternion.w = (float)(0.5D * d1);
+            d1 = 0.5D / d1;
+            quaternion.x = (float)((double)(m21 - m12) * d1);
+            quaternion.y = (float)((double)(m02 - m20) * d1);
+            quaternion.z = (float)((double)(m10 - m01) * d1);
+        }
+        else if (m00 > m11 && m00 > m22)
+        {
+            double d4 = Math.sqrt(1.0D + (double)m00 - (double)m11 - (double)m22);
+            quaternion.x = (float)(d4 * 0.5D);
+            d4 = 0.5D / d4;
+            quaternion.y = (float)((double)(m10 + m01) * d4);
+            quaternion.z = (float)((double)(m02 + m20) * d4);
+            quaternion.w = (float)((double)(m21 - m12) * d4);
+        }
+        else if (m11 > m22)
+        {
+            double d2 = Math.sqrt(1.0D + (double)m11 - (double)m00 - (double)m22);
+            quaternion.y = (float)(d2 * 0.5D);
+            d2 = 0.5D / d2;
+            quaternion.x = (float)((double)(m10 + m01) * d2);
+            quaternion.z = (float)((double)(m21 + m12) * d2);
+            quaternion.w = (float)((double)(m02 - m20) * d2);
+        }
+        else
+        {
+            double d3 = Math.sqrt(1.0D + (double)m22 - (double)m00 - (double)m11);
+            quaternion.z = (float)(d3 * 0.5D);
+            d3 = 0.5D / d3;
+            quaternion.x = (float)((double)(m02 + m20) * d3);
+            quaternion.y = (float)((double)(m21 + m12) * d3);
+            quaternion.w = (float)((double)(m10 - m01) * d3);
+        }
+
+        return quaternion;
+    }
+
+    public static org.vivecraft.utils.math.Matrix4f rotationXMatrix(float angle)
+    {
+        float f = (float)Math.sin((double)angle);
+        float f1 = (float)Math.cos((double)angle);
+        return new org.vivecraft.utils.math.Matrix4f(1.0F, 0.0F, 0.0F, 0.0F, f1, -f, 0.0F, f, f1);
+    }
+
+    public static org.vivecraft.utils.math.Matrix4f rotationZMatrix(float angle)
+    {
+        float f = (float)Math.sin((double)angle);
+        float f1 = (float)Math.cos((double)angle);
+        return new org.vivecraft.utils.math.Matrix4f(f1, -f, 0.0F, f, f1, 0.0F, 0.0F, 0.0F, 1.0F);
+    }
+
+    public static Vector3 convertMatrix4ftoTranslationVector(org.vivecraft.utils.math.Matrix4f mat)
+    {
+        return new Vector3(mat.M[0][3], mat.M[1][3], mat.M[2][3]);
+    }
+
+    public static void Matrix4fSet(org.vivecraft.utils.math.Matrix4f mat, float m11, float m12, float m13, float m14, float m21, float m22, float m23, float m24, float m31, float m32, float m33, float m34, float m41, float m42, float m43, float m44)
+    {
+        mat.M[0][0] = m11;
+        mat.M[0][1] = m12;
+        mat.M[0][2] = m13;
+        mat.M[0][3] = m14;
+        mat.M[1][0] = m21;
+        mat.M[1][1] = m22;
+        mat.M[1][2] = m23;
+        mat.M[1][3] = m24;
+        mat.M[2][0] = m31;
+        mat.M[2][1] = m32;
+        mat.M[2][2] = m33;
+        mat.M[2][3] = m34;
+        mat.M[3][0] = m41;
+        mat.M[3][1] = m42;
+        mat.M[3][2] = m43;
+        mat.M[3][3] = m44;
+    }
+
+    public static void Matrix4fCopy(org.vivecraft.utils.math.Matrix4f source, org.vivecraft.utils.math.Matrix4f dest)
+    {
+        dest.M[0][0] = source.M[0][0];
+        dest.M[0][1] = source.M[0][1];
+        dest.M[0][2] = source.M[0][2];
+        dest.M[0][3] = source.M[0][3];
+        dest.M[1][0] = source.M[1][0];
+        dest.M[1][1] = source.M[1][1];
+        dest.M[1][2] = source.M[1][2];
+        dest.M[1][3] = source.M[1][3];
+        dest.M[2][0] = source.M[2][0];
+        dest.M[2][1] = source.M[2][1];
+        dest.M[2][2] = source.M[2][2];
+        dest.M[2][3] = source.M[2][3];
+        dest.M[3][0] = source.M[3][0];
+        dest.M[3][1] = source.M[3][1];
+        dest.M[3][2] = source.M[3][2];
+        dest.M[3][3] = source.M[3][3];
+    }
+
+    public static org.vivecraft.utils.math.Matrix4f Matrix4fSetIdentity(org.vivecraft.utils.math.Matrix4f mat)
+    {
+        mat.M[0][0] = mat.M[1][1] = mat.M[2][2] = mat.M[3][3] = 1.0F;
+        mat.M[0][1] = mat.M[1][0] = mat.M[2][3] = mat.M[3][1] = 0.0F;
+        mat.M[0][2] = mat.M[1][2] = mat.M[2][0] = mat.M[3][2] = 0.0F;
+        mat.M[0][3] = mat.M[1][3] = mat.M[2][1] = mat.M[3][0] = 0.0F;
+        return mat;
+    }
+
+    static
+    {
+        Arrays.sort(illegalChars);
+    }
 }

@@ -1,0 +1,151 @@
+--- a/net/minecraft/client/renderer/item/ItemProperties.java
++++ b/net/minecraft/client/renderer/item/ItemProperties.java
+@@ -33,13 +33,13 @@
+     private static final Map<ResourceLocation, ItemPropertyFunction> GENERIC_PROPERTIES = Maps.newHashMap();
+     private static final ResourceLocation DAMAGED = new ResourceLocation("damaged");
+     private static final ResourceLocation DAMAGE = new ResourceLocation("damage");
+-    private static final ItemPropertyFunction PROPERTY_DAMAGED = (p_117896_, p_117897_, p_117898_) ->
++    private static final ItemPropertyFunction PROPERTY_DAMAGED = (p_239434_0_, p_239434_1_, p_239434_2_) ->
+     {
+-        return p_117896_.isDamaged() ? 1.0F : 0.0F;
++        return p_239434_0_.isDamaged() ? 1.0F : 0.0F;
+     };
+-    private static final ItemPropertyFunction PROPERTY_DAMAGE = (p_117892_, p_117893_, p_117894_) ->
++    private static final ItemPropertyFunction PROPERTY_DAMAGE = (p_239433_0_, p_239433_1_, p_239433_2_) ->
+     {
+-        return Mth.clamp((float)p_117892_.getDamageValue() / (float)p_117892_.getMaxDamage(), 0.0F, 1.0F);
++        return Mth.clamp((float)p_239433_0_.getDamageValue() / (float)p_239433_0_.getMaxDamage(), 0.0F, 1.0F);
+     };
+     private static final Map<Item, Map<ResourceLocation, ItemPropertyFunction>> PROPERTIES = Maps.newHashMap();
+ 
+@@ -51,7 +51,7 @@
+ 
+     private static void register(Item p_117833_, ResourceLocation p_117834_, ItemPropertyFunction p_117835_)
+     {
+-        PROPERTIES.computeIfAbsent(p_117833_, (p_117828_) ->
++        PROPERTIES.computeIfAbsent(p_117833_, (p_239416_0_) ->
+         {
+             return Maps.newHashMap();
+         }).put(p_117834_, p_117835_);
+@@ -88,31 +88,31 @@
+ 
+     static
+     {
+-        registerGeneric(new ResourceLocation("lefthanded"), (p_117888_, p_117889_, p_117890_) ->
++        registerGeneric(new ResourceLocation("lefthanded"), (p_239432_0_, p_239432_1_, p_239432_2_) ->
+         {
+-            return p_117890_ != null && p_117890_.getMainArm() != HumanoidArm.RIGHT ? 1.0F : 0.0F;
++            return p_239432_2_ != null && p_239432_2_.getMainArm() != HumanoidArm.RIGHT ? 1.0F : 0.0F;
+         });
+-        registerGeneric(new ResourceLocation("cooldown"), (p_117884_, p_117885_, p_117886_) ->
++        registerGeneric(new ResourceLocation("cooldown"), (p_239431_0_, p_239431_1_, p_239431_2_) ->
+         {
+-            return p_117886_ instanceof Player ? ((Player)p_117886_).getCooldowns().getCooldownPercent(p_117884_.getItem(), 0.0F) : 0.0F;
++            return p_239431_2_ instanceof Player ? ((Player)p_239431_2_).getCooldowns().getCooldownPercent(p_239431_0_.getItem(), 0.0F) : 0.0F;
+         });
+-        registerGeneric(new ResourceLocation("custom_model_data"), (p_117880_, p_117881_, p_117882_) ->
++        registerGeneric(new ResourceLocation("custom_model_data"), (p_239430_0_, p_239430_1_, p_239430_2_) ->
+         {
+-            return p_117880_.hasTag() ? (float)p_117880_.getTag().getInt("CustomModelData") : 0.0F;
++            return p_239430_0_.hasTag() ? (float)p_239430_0_.getTag().getInt("CustomModelData") : 0.0F;
+         });
+-        register(Items.BOW, new ResourceLocation("pull"), (p_117876_, p_117877_, p_117878_) ->
++        register(Items.BOW, new ResourceLocation("pull"), (p_239429_0_, p_239429_1_, p_239429_2_) ->
+         {
+-            if (p_117878_ == null)
++            if (p_239429_2_ == null)
+             {
+                 return 0.0F;
+             }
+             else {
+-                return p_117878_.getUseItem() != p_117876_ ? 0.0F : (float)(p_117876_.getUseDuration() - p_117878_.getUseItemRemainingTicks()) / 20.0F;
++                return p_239429_2_.getUseItem() != p_239429_0_ ? 0.0F : (float)(p_239429_0_.getUseDuration() - p_239429_2_.getUseItemRemainingTicks()) / 20.0F;
+             }
+         });
+-        register(Items.BOW, new ResourceLocation("pulling"), (p_117872_, p_117873_, p_117874_) ->
++        register(Items.BOW, new ResourceLocation("pulling"), (p_239428_0_, p_239428_1_, p_239428_2_) ->
+         {
+-            return p_117874_ != null && p_117874_.isUsingItem() && p_117874_.getUseItem() == p_117872_ ? 1.0F : 0.0F;
++            return p_239428_2_ != null && p_239428_2_.isUsingItem() && p_239428_2_.getUseItem() == p_239428_0_ ? 1.0F : 0.0F;
+         });
+         register(Items.CLOCK, new ResourceLocation("time"), new ItemPropertyFunction()
+         {
+@@ -281,57 +281,57 @@
+                 return Math.atan2(p_117919_.z() - p_117920_.getZ(), p_117919_.x() - p_117920_.getX());
+             }
+         });
+-        register(Items.CROSSBOW, new ResourceLocation("pull"), (p_117868_, p_117869_, p_117870_) ->
++        register(Items.CROSSBOW, new ResourceLocation("pull"), (p_239427_0_, p_239427_1_, p_239427_2_) ->
+         {
+-            if (p_117870_ == null)
++            if (p_239427_2_ == null)
+             {
+                 return 0.0F;
+             }
+             else {
+-                return CrossbowItem.isCharged(p_117868_) ? 0.0F : (float)(p_117868_.getUseDuration() - p_117870_.getUseItemRemainingTicks()) / (float)CrossbowItem.getChargeDuration(p_117868_);
++                return CrossbowItem.isCharged(p_239427_0_) ? 0.0F : (float)(p_239427_0_.getUseDuration() - p_239427_2_.getUseItemRemainingTicks()) / (float)CrossbowItem.getChargeDuration(p_239427_0_);
+             }
+         });
+-        register(Items.CROSSBOW, new ResourceLocation("pulling"), (p_117864_, p_117865_, p_117866_) ->
++        register(Items.CROSSBOW, new ResourceLocation("pulling"), (p_239426_0_, p_239426_1_, p_239426_2_) ->
+         {
+-            return p_117866_ != null && p_117866_.isUsingItem() && p_117866_.getUseItem() == p_117864_ && !CrossbowItem.isCharged(p_117864_) ? 1.0F : 0.0F;
++            return p_239426_2_ != null && p_239426_2_.isUsingItem() && p_239426_2_.getUseItem() == p_239426_0_ && !CrossbowItem.isCharged(p_239426_0_) ? 1.0F : 0.0F;
+         });
+-        register(Items.CROSSBOW, new ResourceLocation("charged"), (p_117860_, p_117861_, p_117862_) ->
++        register(Items.CROSSBOW, new ResourceLocation("charged"), (p_239425_0_, p_239425_1_, p_239425_2_) ->
+         {
+-            return p_117862_ != null && CrossbowItem.isCharged(p_117860_) ? 1.0F : 0.0F;
++            return p_239425_2_ == null || (!p_239425_2_.isUsingItem() || (double)CrossbowItem.getPowerForTime(p_239425_0_.getUseDuration() - p_239425_2_.getUseItemRemainingTicks(), p_239425_0_) != 1.0D) && !CrossbowItem.isCharged(p_239425_0_) ? 0.0F : 1.0F;
+         });
+-        register(Items.CROSSBOW, new ResourceLocation("firework"), (p_117856_, p_117857_, p_117858_) ->
++        register(Items.CROSSBOW, new ResourceLocation("firework"), (p_239424_0_, p_239424_1_, p_239424_2_) ->
+         {
+-            return p_117858_ != null && CrossbowItem.isCharged(p_117856_) && CrossbowItem.containsChargedProjectile(p_117856_, Items.FIREWORK_ROCKET) ? 1.0F : 0.0F;
++            return p_239424_2_ != null && CrossbowItem.isCharged(p_239424_0_) && CrossbowItem.containsChargedProjectile(p_239424_0_, Items.FIREWORK_ROCKET) ? 1.0F : 0.0F;
+         });
+-        register(Items.ELYTRA, new ResourceLocation("broken"), (p_117852_, p_117853_, p_117854_) ->
++        register(Items.ELYTRA, new ResourceLocation("broken"), (p_239423_0_, p_239423_1_, p_239423_2_) ->
+         {
+-            return ElytraItem.isFlyEnabled(p_117852_) ? 0.0F : 1.0F;
++            return ElytraItem.isFlyEnabled(p_239423_0_) ? 0.0F : 1.0F;
+         });
+-        register(Items.FISHING_ROD, new ResourceLocation("cast"), (p_117848_, p_117849_, p_117850_) ->
++        register(Items.FISHING_ROD, new ResourceLocation("cast"), (p_239422_0_, p_239422_1_, p_239422_2_) ->
+         {
+-            if (p_117850_ == null)
++            if (p_239422_2_ == null)
+             {
+                 return 0.0F;
+             }
+             else {
+-                boolean flag = p_117850_.getMainHandItem() == p_117848_;
+-                boolean flag1 = p_117850_.getOffhandItem() == p_117848_;
++                boolean flag = p_239422_2_.getMainHandItem() == p_239422_0_;
++                boolean flag1 = p_239422_2_.getOffhandItem() == p_239422_0_;
+ 
+-                if (p_117850_.getMainHandItem().getItem() instanceof FishingRodItem)
++                if (p_239422_2_.getMainHandItem().getItem() instanceof FishingRodItem)
+                 {
+                     flag1 = false;
+                 }
+ 
+-                return (flag || flag1) && p_117850_ instanceof Player && ((Player)p_117850_).fishing != null ? 1.0F : 0.0F;
++                return (flag || flag1) && p_239422_2_ instanceof Player && ((Player)p_239422_2_).fishing != null ? 1.0F : 0.0F;
+             }
+         });
+-        register(Items.SHIELD, new ResourceLocation("blocking"), (p_117844_, p_117845_, p_117846_) ->
++        register(Items.SHIELD, new ResourceLocation("blocking"), (p_239421_0_, p_239421_1_, p_239421_2_) ->
+         {
+-            return p_117846_ != null && p_117846_.isUsingItem() && p_117846_.getUseItem() == p_117844_ ? 1.0F : 0.0F;
++            return p_239421_2_ != null && p_239421_2_.isUsingItem() && p_239421_2_.getUseItem() == p_239421_0_ ? 1.0F : 0.0F;
+         });
+-        register(Items.TRIDENT, new ResourceLocation("throwing"), (p_117837_, p_117838_, p_117839_) ->
++        register(Items.TRIDENT, new ResourceLocation("throwing"), (p_239419_0_, p_239419_1_, p_239419_2_) ->
+         {
+-            return p_117839_ != null && p_117839_.isUsingItem() && p_117839_.getUseItem() == p_117837_ ? 1.0F : 0.0F;
++            return p_239419_2_ != null && p_239419_2_.isUsingItem() && p_239419_2_.getUseItem() == p_239419_0_ ? 1.0F : 0.0F;
+         });
+     }
+ 

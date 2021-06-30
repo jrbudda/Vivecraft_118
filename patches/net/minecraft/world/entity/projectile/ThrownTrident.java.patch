@@ -1,0 +1,39 @@
+--- a/net/minecraft/world/entity/projectile/ThrownTrident.java
++++ b/net/minecraft/world/entity/projectile/ThrownTrident.java
+@@ -22,6 +22,8 @@
+ import net.minecraft.world.level.Level;
+ import net.minecraft.world.phys.EntityHitResult;
+ import net.minecraft.world.phys.Vec3;
++import org.vivecraft.api.NetworkHelper;
++import org.vivecraft.api.ServerVivePlayer;
+ 
+ public class ThrownTrident extends AbstractArrow
+ {
+@@ -81,8 +83,16 @@
+             else if (i > 0)
+             {
+                 this.setNoPhysics(true);
+-                Vec3 vec3 = new Vec3(entity.getX() - this.getX(), entity.getEyeY() - this.getY(), entity.getZ() - this.getZ());
+-                this.setPosRaw(this.getX(), this.getY() + vec3.y * 0.015D * (double)i, this.getZ());
++                Vec3 vec3 = new Vec3(entity.getX(), entity.getEyeY(), entity.getZ());
++                ServerVivePlayer serverviveplayer = NetworkHelper.vivePlayers.get(entity.getUUID());
++
++                if (serverviveplayer != null && serverviveplayer.isVR())
++                {
++                    vec3 = serverviveplayer.getControllerPos(0, (Player)entity);
++                }
++
++                Vec3 vec31 = new Vec3(vec3.x - this.getX(), vec3.y - this.getY(), vec3.z - this.getZ());
++                this.setPosRaw(this.getX(), this.getY() + vec31.y * 0.015D * (double)i, this.getZ());
+ 
+                 if (this.level.isClientSide)
+                 {
+@@ -90,7 +100,7 @@
+                 }
+ 
+                 double d0 = 0.05D * (double)i;
+-                this.setDeltaMovement(this.getDeltaMovement().scale(0.95D).add(vec3.normalize().scale(d0)));
++                this.setDeltaMovement(this.getDeltaMovement().scale(0.95D).add(vec31.normalize().scale(d0)));
+ 
+                 if (this.clientSideReturnTridentTickCount == 0)
+                 {

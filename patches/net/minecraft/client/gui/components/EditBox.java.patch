@@ -1,0 +1,79 @@
+--- a/net/minecraft/client/gui/components/EditBox.java
++++ b/net/minecraft/client/gui/components/EditBox.java
+@@ -17,6 +17,7 @@
+ import net.minecraft.client.gui.Font;
+ import net.minecraft.client.gui.GuiComponent;
+ import net.minecraft.client.gui.components.events.GuiEventListener;
++import net.minecraft.client.gui.screens.InBedChatScreen;
+ import net.minecraft.client.gui.screens.Screen;
+ import net.minecraft.network.chat.Component;
+ import net.minecraft.network.chat.MutableComponent;
+@@ -24,6 +25,7 @@
+ import net.minecraft.network.chat.TranslatableComponent;
+ import net.minecraft.util.FormattedCharSequence;
+ import net.minecraft.util.Mth;
++import org.vivecraft.gameplay.screenhandlers.KeyboardHandler;
+ 
+ public class EditBox extends AbstractWidget implements Widget, GuiEventListener
+ {
+@@ -43,9 +45,9 @@
+     private String suggestion;
+     private Consumer<String> responder;
+     private Predicate<String> filter = Objects::nonNull;
+-    private BiFunction<String, Integer, FormattedCharSequence> formatter = (p_94147_, p_94148_) ->
++    private BiFunction<String, Integer, FormattedCharSequence> formatter = (p_195610_0_, p_195610_1_) ->
+     {
+-        return FormattedCharSequence.forward(p_94147_, Style.EMPTY);
++        return FormattedCharSequence.forward(p_195610_0_, Style.EMPTY);
+     };
+ 
+     public EditBox(Font p_94114_, int p_94115_, int p_94116_, int p_94117_, int p_94118_, Component p_94119_)
+@@ -450,6 +452,11 @@
+                 this.setFocus(flag);
+             }
+ 
++            if (flag)
++            {
++                KeyboardHandler.setOverlayShowing(true);
++            }
++
+             if (this.isFocused() && flag && p_94127_ == 0)
+             {
+                 int i = Mth.floor(p_94125_) - this.x;
+@@ -506,6 +513,10 @@
+                 String s1 = flag ? s.substring(0, j) : s;
+                 j1 = this.font.drawShadow(p_94160_, this.formatter.apply(s1, this.displayPos), (float)l, (float)i1, i2);
+             }
++            else if (!Minecraft.getInstance().vrSettings.seated && !KeyboardHandler.Showing)
++            {
++                this.font.drawShadow(p_94160_, "Click to open keyboard", (float)l, (float)i1, this.textColorUneditable);
++            }
+ 
+             boolean flag2 = this.cursorPos < this.value.length() || this.value.length() >= this.getMaxLength();
+             int k1 = j1;
+@@ -648,6 +659,16 @@
+         if (p_94170_)
+         {
+             this.frame = 0;
++
++            if (Minecraft.getInstance().screen instanceof InBedChatScreen)
++            {
++                return;
++            }
++
++            if (Minecraft.getInstance().vrSettings.autoOpenKeyboard)
++            {
++                KeyboardHandler.setOverlayShowing(true);
++            }
+         }
+     }
+ 
+@@ -702,7 +723,7 @@
+ 
+     public void setCanLoseFocus(boolean p_94191_)
+     {
+-        this.canLoseFocus = p_94191_;
++        this.canLoseFocus = false;
+     }
+ 
+     public boolean isVisible()

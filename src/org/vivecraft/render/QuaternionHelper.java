@@ -1,31 +1,14 @@
 package org.vivecraft.render;
 
+import java.nio.Buffer;
 import java.nio.FloatBuffer;
-
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.utils.lwjgl.Matrix4f;
 import org.vivecraft.utils.lwjgl.Quaternion;
 
-import net.minecraft.util.math.vector.Vector3d;
-
-/**
- * With thanks to 'Exemplos de LWJGL', by fabcam...@hotmail.com
- *  modified from  fcampos/rawengine3D/MathUtil/Quaternion.java
- */
 public class QuaternionHelper
 {
-    public static final Quaternion IDENTITY_QUATERNION = new Quaternion().setIdentity();
-
-//    public static String toEulerDegString(String name, Quaternion q1, Axis rot1, Axis rot2, Axis rot3, HandedSystem hand, RotateDirection rotDir)
-//    {
-//        Quatf quat = new Quatf(q1.x, q1.y, q1.z, q1.w);
-//        return toEulerDegString(name, quat, rot1, rot2, rot3, hand, rotDir);
-//    }
-//
-//    public static String toEulerDegString(String name, Quatf q1, Axis rot1, Axis rot2, Axis rot3, HandedSystem hand, RotateDirection rotDir)
-//    {
-//        EulerOrient euler = OculusRift.getEulerAnglesDeg(q1, 1.0f, rot1, rot2, rot3, hand, rotDir);
-//        return String.format("%s: Yaw: %.3f, Pitch: %.3f, Roll: %.3f", new Object[] {name, Float.valueOf(euler.yaw), Float.valueOf(euler.pitch), Float.valueOf(euler.roll)});
-//    }
+    public static final Quaternion IDENTITY_QUATERNION = (new Quaternion()).setIdentity();
 
     public static Quaternion clone(Quaternion q1)
     {
@@ -34,36 +17,32 @@ public class QuaternionHelper
 
     public static Quaternion pow(Quaternion q1, float power)
     {
-        Quaternion input = QuaternionHelper.clone(q1);
-        float inputMagnitude = QuaternionHelper.magnitude(input);
-        Vector3d nHat = new Vector3d(input.x, input.y, input.z).normalize();
-        Quaternion vectorBit = QuaternionHelper.exp(QuaternionHelper.scalarMultiply(new Quaternion((float)nHat.x, (float)nHat.y, (float)nHat.z, 0), (float)(power * Math.acos(input.w / inputMagnitude))));
-        return QuaternionHelper.scalarMultiply(vectorBit, (float)Math.pow(inputMagnitude, power));
+        Quaternion quaternion = clone(q1);
+        float f = magnitude(quaternion);
+        Vec3 vec3 = (new Vec3((double)quaternion.x, (double)quaternion.y, (double)quaternion.z)).normalize();
+        Quaternion quaternion1 = exp(scalarMultiply(new Quaternion((float)vec3.x, (float)vec3.y, (float)vec3.z, 0.0F), (float)((double)power * Math.acos((double)(quaternion.w / f)))));
+        return scalarMultiply(quaternion1, (float)Math.pow((double)f, (double)power));
     }
 
     public static Quaternion mul(Quaternion left, Quaternion right)
     {
-        Quaternion result = IDENTITY_QUATERNION;
-        Quaternion.mul(left, right, result);
-        return result;
+        Quaternion quaternion = IDENTITY_QUATERNION;
+        Quaternion.mul(left, right, quaternion);
+        return quaternion;
     }
 
     public static Quaternion exp(Quaternion input)
     {
-        float inputA = input.w;
-        Vector3d inputV = new Vector3d(input.x, input.y, input.z);
-        float outputA = (float)(Math.exp(inputA) * Math.cos(inputV.length()));
-        Vector3d outputV = new Vector3d(
-        Math.exp(inputA) * (inputV.normalize().x * (float)Math.sin(inputV.length())),
-        Math.exp(inputA) * (inputV.normalize().y * (float)Math.sin(inputV.length())),
-        Math.exp(inputA) * (inputV.normalize().z * (float)Math.sin(inputV.length())));
-
-        return new Quaternion((float)outputV.x, (float)outputV.y, (float)outputV.z, outputA);
+        float f = input.w;
+        Vec3 vec3 = new Vec3((double)input.x, (double)input.y, (double)input.z);
+        float f1 = (float)(Math.exp((double)f) * Math.cos(vec3.length()));
+        Vec3 vec31 = new Vec3(Math.exp((double)f) * vec3.normalize().x * (double)((float)Math.sin(vec3.length())), Math.exp((double)f) * vec3.normalize().y * (double)((float)Math.sin(vec3.length())), Math.exp((double)f) * vec3.normalize().z * (double)((float)Math.sin(vec3.length())));
+        return new Quaternion((float)vec31.x, (float)vec31.y, (float)vec31.z, f1);
     }
 
     public static float magnitude(Quaternion input)
     {
-        return (float)Math.sqrt(input.x * input.x + input.y * input.y + input.z * input.z + input.w * input.w);
+        return (float)Math.sqrt((double)(input.x * input.x + input.y * input.y + input.z * input.z + input.w * input.w));
     }
 
     public static Quaternion scalarMultiply(Quaternion input, float scalar)
@@ -73,46 +52,40 @@ public class QuaternionHelper
 
     public static Quaternion slerp(Quaternion q1, Quaternion q2, float t)
     {
-        Quaternion qInterpolated = new Quaternion();
+        Quaternion quaternion = new Quaternion();
 
-        if(QuaternionHelper.isEqual(q1, q2))
+        if (isEqual(q1, q2))
         {
             return q1;
         }
-
-        // Temporary array to hold second quaternion.
-
-        float cosTheta = q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
-
-        if(cosTheta < 0.0f)
+        else
         {
-            // Flip sign if so.
-            q2 = QuaternionHelper.conjugate(q2);
-            cosTheta = -cosTheta;
+            float f = q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
+
+            if (f < 0.0F)
+            {
+                q2 = conjugate(q2);
+                f = -f;
+            }
+
+            float f1 = 1.0F - t;
+            float f2 = 1.0F - t;
+            float f3 = t;
+
+            if (1.0F - f > 0.1F)
+            {
+                float f4 = (float)Math.acos((double)f);
+                float f5 = (float)Math.sin((double)f4);
+                f2 = (float)Math.sin((double)(f4 * f1)) / f5;
+                f3 = (float)Math.sin((double)(f4 * t)) / f5;
+            }
+
+            quaternion.x = f2 * q1.x + f3 * q2.x;
+            quaternion.y = f2 * q1.y + f3 * q2.y;
+            quaternion.z = f2 * q1.z + f3 * q2.z;
+            quaternion.w = f2 * q1.w + f3 * q2.w;
+            return quaternion;
         }
-
-        float beta = 1.0f - t;
-
-        // Set the first and second scale for the interpolation
-        float scale0 = 1.0f - t;
-        float scale1 = t;
-
-        if(1.0f - cosTheta > 0.1f)
-        {
-            // We are using spherical interpolation.
-            float theta = (float)Math.acos(cosTheta);
-            float sinTheta = (float)Math.sin(theta);
-            scale0 = (float)Math.sin(theta * beta) / sinTheta;
-            scale1 = (float)Math.sin(theta * t) / sinTheta;
-        }
-
-        // Interpolation.
-        qInterpolated.x = scale0 * q1.x + scale1 * q2.x;
-        qInterpolated.y = scale0 * q1.y + scale1 * q2.y;
-        qInterpolated.z = scale0 * q1.z + scale1 * q2.z;
-        qInterpolated.w = scale0 * q1.w + scale1 * q2.w;
-
-        return qInterpolated;
     }
 
     public static Quaternion conjugate(Quaternion q1)
@@ -122,229 +95,114 @@ public class QuaternionHelper
 
     public static boolean isEqual(Quaternion q1, Quaternion q2)
     {
-        if(q1.x == q2.x && q1.y == q2.y && q1.z == q2.z && q1.w == q2.w)
+        return q1.x == q2.x && q1.y == q2.y && q1.z == q2.z && q1.w == q2.w;
+    }
+
+    public static Quaternion slerp2(Quaternion a, Quaternion b, float t)
+    {
+        Quaternion quaternion = new Quaternion();
+        float f = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+        float f1 = 1.0F - t;
+
+        if (f >= 0.95F)
         {
-            return true;
-        }else{
-            return false;
+            quaternion.x = a.x * f1 + b.x * t;
+            quaternion.y = a.y * f1 + b.y * t;
+            quaternion.z = a.z * f1 + b.z * t;
+            quaternion.w = a.w * f1 + b.w * t;
+            return quaternion;
         }
-
+        else if (f <= -0.99F)
+        {
+            quaternion.x = 0.5F * (a.x + b.x);
+            quaternion.y = 0.5F * (a.y + b.y);
+            quaternion.z = 0.5F * (a.z + b.z);
+            quaternion.w = 0.5F * (a.w + b.w);
+            return quaternion;
+        }
+        else
+        {
+            float f2 = (float)Math.sqrt((double)(1.0F - f * f));
+            float f3 = (float)Math.acos((double)f);
+            float f4 = (float)Math.sin((double)(f1 * f3)) / f2;
+            float f5 = (float)Math.sin((double)(t * f3)) / f2;
+            quaternion.x = a.x * f4 + b.x * f5;
+            quaternion.y = a.y * f4 + b.y * f5;
+            quaternion.z = a.z * f4 + b.z * f5;
+            quaternion.w = a.w * f4 + b.w * f5;
+            return quaternion;
+        }
     }
 
-    public static Quaternion slerp2(Quaternion a, Quaternion b, float t) {
-
-        Quaternion result = new Quaternion();
-        float cosom = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
-        float t1 = 1.0f - t;
-
-        // if the two quaternions are close, just use linear interpolation
-        if (cosom >= 0.95f) {
-            result.x = a.x * t1 + b.x * t;
-            result.y = a.y * t1 + b.y * t;
-            result.z = a.z * t1 + b.z * t;
-            result.w = a.w * t1 + b.w * t;
-            return result;
-        }
-
-        // the quaternions are nearly opposite, we can pick any axis normal to a,b
-        // to do the rotation
-        if (cosom <= -0.99f) {
-            result.x = 0.5f * (a.x + b.x);
-            result.y = 0.5f * (a.y + b.y);
-            result.z = 0.5f * (a.z + b.z);
-            result.w = 0.5f * (a.w + b.w);
-            return result;
-        }
-
-        // cosom is now withion range of acos, do a SLERP
-        float sinom = (float)Math.sqrt(1.0f - cosom * cosom);
-        float omega = (float)Math.acos(cosom);
-
-        float scla = (float)Math.sin(t1 * omega) / sinom;
-        float sclb = (float)Math.sin( t * omega) / sinom;
-
-        result.x = a.x * scla + b.x * sclb;
-        result.y = a.y * scla + b.y * sclb;
-        result.z = a.z * scla + b.z * sclb;
-        result.w = a.w * scla + b.w * sclb;
-        return result;
-    }
-
-    /**
-     * <code>slerp</code> sets this quaternion's value as an interpolation
-     * between two other quaternions.
-     *
-     * @param q1
-     *            the first quaternion.
-     * @param q2
-     *            the second quaternion.
-     * @param t1
-     *            the amount to interpolate between the two quaternions.
-     */
     public static Quaternion slerp1(Quaternion q1, Quaternion q2, float t1)
     {
-        Quaternion result = new Quaternion();
+        Quaternion quaternion = new Quaternion();
 
-        // Create a local quaternion to store the interpolated quaternion
-        if (q1.x == q2.x && q1.y == q2.y && q1.z == q2.z && q1.w == q2.w) {
-            result.set(q1);
-            return result;
+        if (q1.x == q2.x && q1.y == q2.y && q1.z == q2.z && q1.w == q2.w)
+        {
+            quaternion.set(q1);
+            return quaternion;
         }
+        else
+        {
+            float f = q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
 
-        float result1 = (q1.x * q2.x) + (q1.y * q2.y) + (q1.z * q2.z)
-                + (q1.w * q2.w);
+            if (f < 0.0F)
+            {
+                q2.x = -q2.x;
+                q2.y = -q2.y;
+                q2.z = -q2.z;
+                q2.w = -q2.w;
+                f = -f;
+            }
 
-        if (result1 < 0.0f) {
-            // Negate the second quaternion and the result of the dot product
-            q2.x = -q2.x;
-            q2.y = -q2.y;
-            q2.z = -q2.z;
-            q2.w = -q2.w;
-            result1 = -result1;
+            float f1 = 1.0F - t1;
+            float f2 = t1;
+
+            if (1.0F - f > 0.1F)
+            {
+                float f3 = (float)Math.acos((double)f);
+                float f4 = 1.0F / (float)Math.sin((double)f3);
+                f1 = (float)Math.sin((double)((1.0F - t1) * f3)) * f4;
+                f2 = (float)Math.sin((double)(t1 * f3)) * f4;
+            }
+
+            quaternion.x = f1 * q1.x + f2 * q2.x;
+            quaternion.y = f1 * q1.y + f2 * q2.y;
+            quaternion.z = f1 * q1.z + f2 * q2.z;
+            quaternion.w = f1 * q1.w + f2 * q2.w;
+            return quaternion;
         }
-
-        // Set the first and second scale for the interpolation
-        float scale0 = 1 - t1;
-        float scale1 = t1;
-
-        // Check if the angle between the 2 quaternions was big enough to
-        // warrant such calculations
-        if ((1 - result1) > 0.1f) {// Get the angle between the 2 quaternions,
-            // and then store the sin() of that angle
-            float theta = (float)Math.acos(result1);
-            float invSinTheta = 1f / (float)Math.sin(theta);
-
-            // Calculate the scale for q1 and q2, according to the angle and
-            // it's sine value
-            scale0 = (float)Math.sin((1 - t1) * theta) * invSinTheta;
-            scale1 = (float)Math.sin((t1 * theta)) * invSinTheta;
-        }
-
-        // Calculate the x, y, z and w values for the quaternion by using a
-        // special
-        // form of linear interpolation for quaternions.
-        result.x = (scale0 * q1.x) + (scale1 * q2.x);
-        result.y = (scale0 * q1.y) + (scale1 * q2.y);
-        result.z = (scale0 * q1.z) + (scale1 * q2.z);
-        result.w = (scale0 * q1.w) + (scale1 * q2.w);
-
-        // Return the interpolated quaternion
-        return result;
     }
-
-//    public static Quaternion shortMix(Quaternion x, Quaternion y, float a)
-//    {
-//        if(a <= typename detail::tquat<T>::value_type(0)) return x;
-//        if(a >= typename detail::tquat<T>::value_type(1)) return y;
-//
-//        T fCos = dot(x, y);
-//        detail::tquat<T> y2(y); //BUG!!! tquat<T> y2;
-//        if(fCos < T(0))
-//        {
-//            y2 = -y;
-//            fCos = -fCos;
-//        }
-//
-//        //if(fCos > 1.0f) // problem
-//        T k0, k1;
-//        if(fCos > T(0.9999))
-//        {
-//            k0 = T(1) - a;
-//            k1 = T(0) + a; //BUG!!! 1.0f + a;
-//        }
-//        else
-//        {
-//            T fSin = sqrt(T(1) - fCos * fCos);
-//            T fAngle = atan(fSin, fCos);
-//            T fOneOverSin = T(1) / fSin;
-//            k0 = sin((T(1) - a) * fAngle) * fOneOverSin;
-//            k1 = sin((T(0) + a) * fAngle) * fOneOverSin;
-//        }
-//
-//        return detail::tquat<T>(
-//                k0 * x.w + k1 * y2.w,
-//        k0 * x.x + k1 * y2.x,
-//                k0 * x.y + k1 * y2.y,
-//                k0 * x.z + k1 * y2.z);
-//    }
-
-//    template <typename T>
-//    GLM_FUNC_QUALIFIER detail::tquat<T> mix
-//        (
-//                detail::tquat<T> const & x,
-//                detail::tquat<T> const & y,
-//                typename detail::tquat<T>::value_type const & a
-//        )
-//{
-//    if(a <= typename detail::tquat<T>::value_type(0)) return x;
-//    if(a >= typename detail::tquat<T>::value_type(1)) return y;
-//
-//    float fCos = dot(x, y);
-//    detail::tquat<T> y2(y); //BUG!!! tquat<T> y2;
-//    if(fCos < typename detail::tquat<T>::value_type(0))
-//    {
-//        y2 = -y;
-//        fCos = -fCos;
-//    }
-//
-//    //if(fCos > 1.0f) // problem
-//    float k0, k1;
-//    if(fCos > typename detail::tquat<T>::value_type(0.9999))
-//    {
-//        k0 = typename detail::tquat<T>::value_type(1) - a;
-//        k1 = typename detail::tquat<T>::value_type(0) + a; //BUG!!! 1.0f + a;
-//    }
-//    else
-//    {
-//        typename detail::tquat<T>::value_type fSin = sqrt(T(1) - fCos * fCos);
-//        typename detail::tquat<T>::value_type fAngle = atan(fSin, fCos);
-//        typename detail::tquat<T>::value_type fOneOverSin = T(1) / fSin;
-//        k0 = sin((typename detail::tquat<T>::value_type(1) - a) * fAngle) * fOneOverSin;
-//        k1 = sin((typename detail::tquat<T>::value_type(0) + a) * fAngle) * fOneOverSin;
-//    }
-//
-//    return detail::tquat<T>(
-//            k0 * x.w + k1 * y2.w,
-//    k0 * x.x + k1 * y2.x,
-//            k0 * x.y + k1 * y2.y,
-//            k0 * x.z + k1 * y2.z);
-//}
 
     public static Matrix4f quatToMatrix4f(Quaternion q)
     {
-        Matrix4f matrix = new Matrix4f();
-        matrix.m00 = 1.0f - 2.0f * ( q.getY() * q.getY() + q.getZ() * q.getZ() );
-        matrix.m01 = 2.0f * (q.getX() * q.getY() + q.getZ() * q.getW());
-        matrix.m02 = 2.0f * (q.getX() * q.getZ() - q.getY() * q.getW());
-        matrix.m03 = 0.0f;
-
-        // Second row
-        matrix.m10 = 2.0f * ( q.getX() * q.getY() - q.getZ() * q.getW() );
-        matrix.m11 = 1.0f - 2.0f * ( q.getX() * q.getX() + q.getZ() * q.getZ() );
-        matrix.m12 = 2.0f * (q.getZ() * q.getY() + q.getX() * q.getW() );
-        matrix.m13 = 0.0f;
-
-        // Third row
-        matrix.m20 = 2.0f * ( q.getX() * q.getZ() + q.getY() * q.getW() );
-        matrix.m21 = 2.0f * ( q.getY() * q.getZ() - q.getX() * q.getW() );
-        matrix.m22 = 1.0f - 2.0f * ( q.getX() * q.getX() + q.getY() * q.getY() );
-        matrix.m23 = 0.0f;
-
-        // Fourth row
-        matrix.m30 = 0;
-        matrix.m31 = 0;
-        matrix.m32 = 0;
-        matrix.m33 = 1.0f;
-
-        return matrix;
+        Matrix4f matrix4f = new Matrix4f();
+        matrix4f.m00 = 1.0F - 2.0F * (q.getY() * q.getY() + q.getZ() * q.getZ());
+        matrix4f.m01 = 2.0F * (q.getX() * q.getY() + q.getZ() * q.getW());
+        matrix4f.m02 = 2.0F * (q.getX() * q.getZ() - q.getY() * q.getW());
+        matrix4f.m03 = 0.0F;
+        matrix4f.m10 = 2.0F * (q.getX() * q.getY() - q.getZ() * q.getW());
+        matrix4f.m11 = 1.0F - 2.0F * (q.getX() * q.getX() + q.getZ() * q.getZ());
+        matrix4f.m12 = 2.0F * (q.getZ() * q.getY() + q.getX() * q.getW());
+        matrix4f.m13 = 0.0F;
+        matrix4f.m20 = 2.0F * (q.getX() * q.getZ() + q.getY() * q.getW());
+        matrix4f.m21 = 2.0F * (q.getY() * q.getZ() - q.getX() * q.getW());
+        matrix4f.m22 = 1.0F - 2.0F * (q.getX() * q.getX() + q.getY() * q.getY());
+        matrix4f.m23 = 0.0F;
+        matrix4f.m30 = 0.0F;
+        matrix4f.m31 = 0.0F;
+        matrix4f.m32 = 0.0F;
+        matrix4f.m33 = 1.0F;
+        return matrix4f;
     }
 
     public static FloatBuffer quatToMatrix4fFloatBuf(Quaternion q)
     {
-        FloatBuffer fb = GLUtils.createFloatBuffer(4*4);
-        Matrix4f mat4f = quatToMatrix4f(q);
-        mat4f.store(fb);
-        fb.flip();
-        return fb;
+        FloatBuffer floatbuffer = GLUtils.createFloatBuffer(16);
+        Matrix4f matrix4f = quatToMatrix4f(q);
+        matrix4f.store(floatbuffer);
+        ((Buffer)floatbuffer).flip();
+        return floatbuffer;
     }
 }

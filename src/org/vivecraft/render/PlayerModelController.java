@@ -9,314 +9,369 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-
+import java.util.Map.Entry;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.particle.Particle;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.api.VRData;
 import org.vivecraft.utils.Utils;
 import org.vivecraft.utils.math.Quaternion;
 import org.vivecraft.utils.math.Vector3;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.particle.Particle;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
+public class PlayerModelController
+{
+    private final Minecraft mc;
+    private Map<UUID, PlayerModelController.RotInfo> vivePlayers = new HashMap<>();
+    private Map<UUID, PlayerModelController.RotInfo> vivePlayersLast = new HashMap<>();
+    private Map<UUID, PlayerModelController.RotInfo> vivePlayersReceived = Collections.synchronizedMap(new HashMap<>());
+    private Map<UUID, Integer> donors = new HashMap<>();
+    static PlayerModelController instance;
+    private Random rand = new Random();
+    public boolean debug = false;
 
-/**
- * Created by Hendrik on 07-Aug-16.
- */
-public class PlayerModelController {
-	private final Minecraft mc;
-	private Map<UUID, RotInfo> vivePlayers = new HashMap<UUID, RotInfo>();
-	private Map<UUID, RotInfo> vivePlayersLast = new HashMap<UUID, RotInfo>();
-	private Map<UUID, RotInfo> vivePlayersReceived = Collections.synchronizedMap(new HashMap<UUID, RotInfo>());
-	private Map<UUID, Integer> donors = new HashMap<UUID, Integer>();
-	
+    public static PlayerModelController getInstance()
+    {
+        if (instance == null)
+        {
+            instance = new PlayerModelController();
+        }
 
-	static PlayerModelController instance;
-	public static PlayerModelController getInstance(){
-		if(instance==null)
-			instance=new PlayerModelController();
-		return instance;
-	}
-	
-	private PlayerModelController() {
-		this.mc = Minecraft.getInstance();
-	}
+        return instance;
+    }
 
-	public static class RotInfo{ 
-		public RotInfo(){
-			
-		}
-		public boolean seated, reverse;
-		public int hmd = 0;
-		public Quaternion leftArmQuat, rightArmQuat, headQuat; 
-		public Vector3d leftArmRot, rightArmRot, headRot; 
-		public Vector3d leftArmPos, rightArmPos, Headpos;
-		public float worldScale;
-		public float heightScale;
-		
-		public double getBodyYawRadians() {
-			Vector3d diff = leftArmPos.subtract(rightArmPos).rotateYaw((float)-Math.PI/2);
-    		if(reverse) diff = diff.scale(-1);
-    		if(seated) diff = rightArmRot;    		
-    		Vector3d avg = Utils.vecLerp(diff, headRot, 0.5); 		
-    		double ltor = Math.atan2(-avg.x, avg.z);
-    		return ltor;
-		}
-	}
-	
-	private Random rand = new Random();
+    private PlayerModelController()
+    {
+        this.mc = Minecraft.getInstance();
+    }
 
-	public void Update(UUID uuid, byte[] hmddata, byte[] c0data, byte[] c1data, float worldscale, float heightscale, boolean localPlayer) {
-		if (!localPlayer && mc.player.getUniqueID().equals(uuid))
-			return; // Don't update local player from server packet
-	
-		Vector3d hmdpos = null, c0pos = null, c1pos = null;
-		Quaternion hmdq = null, c0q = null, c1q = null;
-		boolean seated=false, reverse = false;
-		for (int i = 0; i <= 2; i++) {
-			try {
-				byte[]arr = null;
-				switch(i){
-				case 0:	arr = hmddata;
-				break;
-				case 1: arr = c0data;
-				break;
-				case 2: arr = c1data;
-				break;
-				}
+    public void Update(UUID uuid, byte[] hmddata, byte[] c0data, byte[] c1data, float worldscale, float heightscale, boolean localPlayer)
+    {
+        if (localPlayer || !this.mc.player.getUUID().equals(uuid))
+        {
+            Vec3 vec3 = null;
+            Vec3 vec31 = null;
+            Vec3 vec32 = null;
+            Quaternion quaternion = null;
+            Quaternion quaternion1 = null;
+            Quaternion quaternion2 = null;
+            boolean flag = false;
+            boolean flag1 = false;
 
-				ByteArrayInputStream by = new ByteArrayInputStream(arr);
-				DataInputStream da = new DataInputStream(by);
+            for (int i = 0; i <= 2; ++i)
+            {
+                try
+                {
+                    byte[] abyte = null;
 
-				boolean bool = false;
-				if(arr.length >=29)
-					bool = da.readBoolean();		
+                    switch (i)
+                    {
+                        case 0:
+                            abyte = hmddata;
+                            break;
 
-				float posx = da.readFloat();
-				float posy = da.readFloat();
-				float posz = da.readFloat();
-				float rotw = da.readFloat();
-				float rotx = da.readFloat();
-				float roty = da.readFloat();
-				float rotz = da.readFloat();
+                        case 1:
+                            abyte = c0data;
+                            break;
 
-				da.close();
-				
-				switch(i){
-				case 0:	
-					if(bool){ //seated
-						seated = true;
-					}
-					hmdpos = new Vector3d(posx, posy, posz);
-					hmdq = new Quaternion(rotw, rotx, roty, rotz);
-					break;
-				case 1: 
-					if(bool){ //reverse
-						reverse = true;
-					}
-					c0pos = new Vector3d(posx, posy, posz);
-					c0q = new Quaternion(rotw, rotx, roty, rotz);
-					break;
-				case 2: 
-					if(bool){ //reverse
-						reverse = true;
-					}
-					c1pos = new Vector3d(posx, posy, posz);
-					c1q = new Quaternion(rotw, rotx, roty, rotz);
-					break;
-				}
-				
-			} catch (IOException e) {
+                        case 2:
+                            abyte = c1data;
+                    }
 
-			}
-		}
-	
-		Vector3 shoulderR=new Vector3(0,-0.0f,0);
-		Vector3 forward = new Vector3(0,0,-1);
-		Vector3 dir = hmdq.multiply(forward);
-		Vector3 dir2 = c0q.multiply(forward);
-		Vector3 dir3 = c1q.multiply(forward);
-		
-		RotInfo out = new RotInfo();
-		out.reverse =reverse;
-		out.seated = seated;
-		if(donors.containsKey(uuid))out.hmd = donors.get(uuid);
-		out.leftArmRot=new Vector3d(dir3.getX(), dir3.getY(), dir3.getZ());
-		out.rightArmRot=new Vector3d(dir2.getX(), dir2.getY(), dir2.getZ());
-		out.headRot = new Vector3d(dir.getX(), dir.getY(), dir.getZ());
-		out.Headpos = hmdpos;
-		out.leftArmPos = c1pos;
-		out.rightArmPos = c0pos;
-		out.leftArmQuat = c1q;
-		out.rightArmQuat = c0q;
-		out.headQuat = hmdq;	
-		out.worldScale = worldscale;
-		
-		if(heightscale < 0.5f)
-			heightscale = 0.5f;
-		if(heightscale > 1.5f)
-			heightscale = 1.5f;
-		
-		out.heightScale =heightscale;
-		
-		if(out.seated)
-			out.heightScale = 1;
-		
-		vivePlayersReceived.put(uuid, out);
+                    ByteArrayInputStream bytearrayinputstream = new ByteArrayInputStream(abyte);
+                    DataInputStream datainputstream = new DataInputStream(bytearrayinputstream);
+                    boolean flag2 = false;
 
-	}
-	
-	public void Update(UUID uuid, byte[] hmddata, byte[] c0data, byte[] c1data, float worldscale, float heightscale) {
-		Update(uuid, hmddata, c0data, c1data,worldscale, heightscale, false);
-	}
-	
-	public void tick() {
-		for (Map.Entry<UUID, RotInfo> entry : vivePlayers.entrySet()) {
-			vivePlayersLast.put(entry.getKey(), entry.getValue());
-		}
-		for (Map.Entry<UUID, RotInfo> entry : vivePlayersReceived.entrySet()) {
-			vivePlayers.put(entry.getKey(), entry.getValue());
-		}
+                    if (abyte.length >= 29)
+                    {
+                        flag2 = datainputstream.readBoolean();
+                    }
 
-		World world = Minecraft.getInstance().world;
-		if (world != null) {
-			for (Iterator<UUID> it = vivePlayers.keySet().iterator(); it.hasNext(); ) {
-				UUID uuid = it.next();
-				if (world.getPlayerByUuid(uuid) == null) {
-					it.remove();
-					vivePlayersLast.remove(uuid);
-					vivePlayersReceived.remove(uuid);
-				}
-			}
+                    float f = datainputstream.readFloat();
+                    float f1 = datainputstream.readFloat();
+                    float f2 = datainputstream.readFloat();
+                    float f3 = datainputstream.readFloat();
+                    float f4 = datainputstream.readFloat();
+                    float f5 = datainputstream.readFloat();
+                    float f6 = datainputstream.readFloat();
+                    datainputstream.close();
 
-			if (!mc.isGamePaused()) {
-				for (PlayerEntity player : world.getPlayers()) {
-					if (donors.getOrDefault(player.getUniqueID(), 0) > 3) {		
-						if (rand.nextInt(10) < 4) {
-							RotInfo rotInfo = vivePlayers.get(player.getUniqueID());
-							Vector3d derp = player.getLookVec();
-							if (rotInfo != null) {
-								derp = rotInfo.leftArmPos.subtract(rotInfo.rightArmPos).rotateYaw((float)-Math.PI / 2);
-								if (rotInfo.reverse)
-									derp = derp.scale(-1);
-								else if (rotInfo.seated)
-									derp = rotInfo.rightArmRot;
+                    switch (i)
+                    {
+                        case 0:
+                            if (flag2)
+                            {
+                                flag = true;
+                            }
 
-								// Hands are at origin or something
-								if (derp.length() < 0.0001f)
-									derp = rotInfo.headRot;
-							}
-							derp = derp.scale(0.1f);
+                            vec3 = new Vec3((double)f, (double)f1, (double)f2);
+                            quaternion = new Quaternion(f3, f4, f5, f6);
+                            break;
 
-							// Use hmd pos for self so we don't have butt sparkles in face
-							Vector3d pos = rotInfo != null && player == mc.player ? rotInfo.Headpos : player.getEyePosition(1);
-							Particle particle = mc.particles.addParticle(ParticleTypes.FIREWORK,
-									pos.x + (player.isSneaking() ? -derp.x * 3 : 0) + ((double) this.rand.nextFloat() - 0.5D) * .02f,
-									pos.y - (player.isSneaking() ? 1.0f : 0.8f) + ((double) this.rand.nextFloat() - 0.5D) * .02f,
-									pos.z + (player.isSneaking() ? -derp.z * 3 : 0) + ((double) this.rand.nextFloat() - 0.5D) * .02f,
-									-derp.x + ((double) this.rand.nextFloat() - 0.5D) * .01f, ((double) this.rand.nextFloat() - .05f) * .05f, -derp.z + ((double) this.rand.nextFloat() - 0.5D) * .01f
-									);
-							if (particle != null)
-								particle.setColor(0.5F + rand.nextFloat() / 2, 0.5F + rand.nextFloat() / 2, 0.5F + rand.nextFloat() / 2);
-						}
-					}
-				}
-			}
-		}
-	}
+                        case 1:
+                            if (flag2)
+                            {
+                                flag1 = true;
+                            }
 
-	public void setHMD(UUID uuid, int level){
-		donors.put(uuid, level);
-	}
-	
-	public boolean HMDCHecked(UUID uuid){
-		return donors.containsKey(uuid);
-	}
-	
-	public RotInfo getRotationsForPlayer(UUID uuid){
-		if (debug) uuid = mc.player.getUniqueID();
-		RotInfo rot = vivePlayers.get(uuid);
-		if (rot != null && vivePlayersLast.containsKey(uuid)) {
-			RotInfo rotLast = vivePlayersLast.get(uuid);
-			RotInfo rotLerp = new RotInfo();
-			float pt = Minecraft.getInstance().getRenderPartialTicks();
-			rotLerp.reverse = rot.reverse;
-			rotLerp.seated = rot.seated;
-			rotLerp.hmd = rot.hmd;
-			rotLerp.leftArmPos = Utils.vecLerp(rotLast.leftArmPos, rot.leftArmPos, pt);
-			rotLerp.rightArmPos = Utils.vecLerp(rotLast.rightArmPos, rot.rightArmPos, pt);
-			rotLerp.Headpos = Utils.vecLerp(rotLast.Headpos, rot.Headpos, pt);
-			rotLerp.leftArmQuat = rot.leftArmQuat;//Utils.slerp(rotLast.leftArmQuat, rot.leftArmQuat, pt);
-			rotLerp.rightArmQuat =rot.rightArmQuat;//Utils.slerp(rotLast.rightArmQuat, rot.rightArmQuat, pt);
-			rotLerp.headQuat = rot.headQuat;//Utils.slerp(rotLast.headQuat, rot.headQuat, pt);
-			Vector3 forward = new Vector3(0,0,-1);
-			rotLerp.leftArmRot = Utils.vecLerp(rotLast.leftArmRot,Utils.convertToVector3d(rotLerp.leftArmQuat.multiply(forward)), pt);
-			rotLerp.rightArmRot = Utils.vecLerp(rotLast.rightArmRot, Utils.convertToVector3d(rotLerp.rightArmQuat.multiply(forward)), pt);
-			rotLerp.headRot = Utils.vecLerp(rotLast.headRot,Utils.convertToVector3d(rotLerp.headQuat.multiply(forward)), pt);
-			rotLerp.heightScale = rot.heightScale;
-			rotLerp.worldScale = rot.worldScale;
-			return rotLerp;
-		}
-		return rot;
-	}
+                            vec31 = new Vec3((double)f, (double)f1, (double)f2);
+                            quaternion1 = new Quaternion(f3, f4, f5, f6);
+                            break;
 
-//	/**
-//	 * gets the {@link RotInfo} for both SinglePlayer and Multiplayer {@link PlayerEntity}s
-//	 * */
-//	public RotInfo getRotationFromEntity(PlayerEntity player){
-//		UUID playerId = player.getUniqueID();
-//		if (mc.player.getUniqueID().equals(playerId)) {
-//			VRData data=Minecraft.getInstance().vrPlayer.vrdata_world_render;
-//			return getMainPlayerRotInfo(data);		
-//		} else {
-//			return PlayerModelController.getInstance().getRotationsForPlayer(playerId);
-//		}
-//	}
-	
-	public static RotInfo getMainPlayerRotInfo(VRData data){
-			RotInfo rotInfo=new RotInfo();
+                        case 2:
+                            if (flag2)
+                            {
+                                flag1 = true;
+                            }
 
-			Quaternion quatLeft=new Quaternion(data.getController(1).getMatrix());
-			Quaternion quatRight=new Quaternion(data.getController(0).getMatrix());
-			Quaternion quatHmd=new Quaternion(data.hmd.getMatrix());
+                            vec32 = new Vec3((double)f, (double)f1, (double)f2);
+                            quaternion2 = new Quaternion(f3, f4, f5, f6);
+                    }
+                }
+                catch (IOException ioexception)
+                {
+                }
+            }
 
-			rotInfo.headQuat=quatHmd;
-			rotInfo.leftArmQuat=quatLeft;
-			rotInfo.rightArmQuat=quatRight;
-			rotInfo.seated=Minecraft.getInstance().vrSettings.seated;
+            new Vector3(0.0F, -0.0F, 0.0F);
+            Vector3 vector3 = new Vector3(0.0F, 0.0F, -1.0F);
+            Vector3 vector31 = quaternion.multiply(vector3);
+            Vector3 vector32 = quaternion1.multiply(vector3);
+            Vector3 vector33 = quaternion2.multiply(vector3);
+            PlayerModelController.RotInfo playermodelcontroller$rotinfo = new PlayerModelController.RotInfo();
+            playermodelcontroller$rotinfo.reverse = flag1;
+            playermodelcontroller$rotinfo.seated = flag;
 
-			rotInfo.leftArmPos = data.getController(1).getPosition();
-			rotInfo.rightArmPos = data.getController(0).getPosition();
-			rotInfo.Headpos = data.hmd.getPosition(); 
+            if (this.donors.containsKey(uuid))
+            {
+                playermodelcontroller$rotinfo.hmd = this.donors.get(uuid);
+            }
 
-			return rotInfo;
-	}
+            playermodelcontroller$rotinfo.leftArmRot = new Vec3((double)vector33.getX(), (double)vector33.getY(), (double)vector33.getZ());
+            playermodelcontroller$rotinfo.rightArmRot = new Vec3((double)vector32.getX(), (double)vector32.getY(), (double)vector32.getZ());
+            playermodelcontroller$rotinfo.headRot = new Vec3((double)vector31.getX(), (double)vector31.getY(), (double)vector31.getZ());
+            playermodelcontroller$rotinfo.Headpos = vec3;
+            playermodelcontroller$rotinfo.leftArmPos = vec32;
+            playermodelcontroller$rotinfo.rightArmPos = vec31;
+            playermodelcontroller$rotinfo.leftArmQuat = quaternion2;
+            playermodelcontroller$rotinfo.rightArmQuat = quaternion1;
+            playermodelcontroller$rotinfo.headQuat = quaternion;
+            playermodelcontroller$rotinfo.worldScale = worldscale;
 
-	public boolean debug = false;
+            if (heightscale < 0.5F)
+            {
+                heightscale = 0.5F;
+            }
 
-	public boolean isTracked(UUID uuid){
-		debug = false;
-		if(debug) return true;
-		return vivePlayers.containsKey(uuid);
-	}
-	
-	
-	/**
-	 * @return the yaw of the direction the head is oriented in, no matter their pitch
-	 * Is not the same as the hmd yaw. Creates better results at extreme pitches
-	 * Simplified: Takes hmd-forward when looking at horizon, takes hmd-up when looking at ground.
-	 * */
-	public static float getFacingYaw(RotInfo rotInfo){
-		Vector3d facingVec=getOrientVec(rotInfo.headQuat);
-		float yaw=(float)Math.toDegrees( Math.atan2(facingVec.x,facingVec.z));
-		return yaw;
-	}
-	
-	public static Vector3d getOrientVec(Quaternion quat){
-		Vector3d facingPlaneNormal=quat.multiply(new Vector3d(0,0,-1))
-				.crossProduct(quat.multiply(new Vector3d(0,1,0))).normalize();
-		return new Vector3d(0,1,0).crossProduct(facingPlaneNormal).normalize();
-	}	
+            if (heightscale > 1.5F)
+            {
+                heightscale = 1.5F;
+            }
+
+            playermodelcontroller$rotinfo.heightScale = heightscale;
+
+            if (playermodelcontroller$rotinfo.seated)
+            {
+                playermodelcontroller$rotinfo.heightScale = 1.0F;
+            }
+
+            this.vivePlayersReceived.put(uuid, playermodelcontroller$rotinfo);
+        }
+    }
+
+    public void Update(UUID uuid, byte[] hmddata, byte[] c0data, byte[] c1data, float worldscale, float heightscale)
+    {
+        this.Update(uuid, hmddata, c0data, c1data, worldscale, heightscale, false);
+    }
+
+    public void tick()
+    {
+        for (Entry<UUID, PlayerModelController.RotInfo> entry : this.vivePlayers.entrySet())
+        {
+            this.vivePlayersLast.put(entry.getKey(), entry.getValue());
+        }
+
+        for (Entry<UUID, PlayerModelController.RotInfo> entry1 : this.vivePlayersReceived.entrySet())
+        {
+            this.vivePlayers.put(entry1.getKey(), entry1.getValue());
+        }
+
+        Level level = Minecraft.getInstance().level;
+
+        if (level != null)
+        {
+            Iterator<UUID> iterator = this.vivePlayers.keySet().iterator();
+
+            while (iterator.hasNext())
+            {
+                UUID uuid = iterator.next();
+
+                if (level.getPlayerByUUID(uuid) == null)
+                {
+                    iterator.remove();
+                    this.vivePlayersLast.remove(uuid);
+                    this.vivePlayersReceived.remove(uuid);
+                }
+            }
+
+            if (!this.mc.isPaused())
+            {
+                for (Player player : level.players())
+                {
+                    if (this.donors.getOrDefault(player.getUUID(), 0) > 3 && this.rand.nextInt(10) < 4)
+                    {
+                        PlayerModelController.RotInfo playermodelcontroller$rotinfo = this.vivePlayers.get(player.getUUID());
+                        Vec3 vec3 = player.getLookAngle();
+
+                        if (playermodelcontroller$rotinfo != null)
+                        {
+                            vec3 = playermodelcontroller$rotinfo.leftArmPos.subtract(playermodelcontroller$rotinfo.rightArmPos).yRot((-(float)Math.PI / 2F));
+
+                            if (playermodelcontroller$rotinfo.reverse)
+                            {
+                                vec3 = vec3.scale(-1.0D);
+                            }
+                            else if (playermodelcontroller$rotinfo.seated)
+                            {
+                                vec3 = playermodelcontroller$rotinfo.rightArmRot;
+                            }
+
+                            if (vec3.length() < (double)1.0E-4F)
+                            {
+                                vec3 = playermodelcontroller$rotinfo.headRot;
+                            }
+                        }
+
+                        vec3 = vec3.scale((double)0.1F);
+                        Vec3 vec31 = playermodelcontroller$rotinfo != null && player == this.mc.player ? playermodelcontroller$rotinfo.Headpos : player.getEyePosition(1.0F);
+                        Particle particle = this.mc.particleEngine.createParticle(ParticleTypes.FIREWORK, vec31.x + (player.isShiftKeyDown() ? -vec3.x * 3.0D : 0.0D) + ((double)this.rand.nextFloat() - 0.5D) * (double)0.02F, vec31.y - (double)(player.isShiftKeyDown() ? 1.0F : 0.8F) + ((double)this.rand.nextFloat() - 0.5D) * (double)0.02F, vec31.z + (player.isShiftKeyDown() ? -vec3.z * 3.0D : 0.0D) + ((double)this.rand.nextFloat() - 0.5D) * (double)0.02F, -vec3.x + ((double)this.rand.nextFloat() - 0.5D) * (double)0.01F, ((double)this.rand.nextFloat() - (double)0.05F) * (double)0.05F, -vec3.z + ((double)this.rand.nextFloat() - 0.5D) * (double)0.01F);
+
+                        if (particle != null)
+                        {
+                            particle.setColor(0.5F + this.rand.nextFloat() / 2.0F, 0.5F + this.rand.nextFloat() / 2.0F, 0.5F + this.rand.nextFloat() / 2.0F);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void setHMD(UUID uuid, int level)
+    {
+        this.donors.put(uuid, level);
+    }
+
+    public boolean HMDCHecked(UUID uuid)
+    {
+        return this.donors.containsKey(uuid);
+    }
+
+    public PlayerModelController.RotInfo getRotationsForPlayer(UUID uuid)
+    {
+        if (this.debug)
+        {
+            uuid = this.mc.player.getUUID();
+        }
+
+        PlayerModelController.RotInfo playermodelcontroller$rotinfo = this.vivePlayers.get(uuid);
+
+        if (playermodelcontroller$rotinfo != null && this.vivePlayersLast.containsKey(uuid))
+        {
+            PlayerModelController.RotInfo playermodelcontroller$rotinfo1 = this.vivePlayersLast.get(uuid);
+            PlayerModelController.RotInfo playermodelcontroller$rotinfo2 = new PlayerModelController.RotInfo();
+            float f = Minecraft.getInstance().getFrameTime();
+            playermodelcontroller$rotinfo2.reverse = playermodelcontroller$rotinfo.reverse;
+            playermodelcontroller$rotinfo2.seated = playermodelcontroller$rotinfo.seated;
+            playermodelcontroller$rotinfo2.hmd = playermodelcontroller$rotinfo.hmd;
+            playermodelcontroller$rotinfo2.leftArmPos = Utils.vecLerp(playermodelcontroller$rotinfo1.leftArmPos, playermodelcontroller$rotinfo.leftArmPos, (double)f);
+            playermodelcontroller$rotinfo2.rightArmPos = Utils.vecLerp(playermodelcontroller$rotinfo1.rightArmPos, playermodelcontroller$rotinfo.rightArmPos, (double)f);
+            playermodelcontroller$rotinfo2.Headpos = Utils.vecLerp(playermodelcontroller$rotinfo1.Headpos, playermodelcontroller$rotinfo.Headpos, (double)f);
+            playermodelcontroller$rotinfo2.leftArmQuat = playermodelcontroller$rotinfo.leftArmQuat;
+            playermodelcontroller$rotinfo2.rightArmQuat = playermodelcontroller$rotinfo.rightArmQuat;
+            playermodelcontroller$rotinfo2.headQuat = playermodelcontroller$rotinfo.headQuat;
+            Vector3 vector3 = new Vector3(0.0F, 0.0F, -1.0F);
+            playermodelcontroller$rotinfo2.leftArmRot = Utils.vecLerp(playermodelcontroller$rotinfo1.leftArmRot, Utils.convertToVector3d(playermodelcontroller$rotinfo2.leftArmQuat.multiply(vector3)), (double)f);
+            playermodelcontroller$rotinfo2.rightArmRot = Utils.vecLerp(playermodelcontroller$rotinfo1.rightArmRot, Utils.convertToVector3d(playermodelcontroller$rotinfo2.rightArmQuat.multiply(vector3)), (double)f);
+            playermodelcontroller$rotinfo2.headRot = Utils.vecLerp(playermodelcontroller$rotinfo1.headRot, Utils.convertToVector3d(playermodelcontroller$rotinfo2.headQuat.multiply(vector3)), (double)f);
+            playermodelcontroller$rotinfo2.heightScale = playermodelcontroller$rotinfo.heightScale;
+            playermodelcontroller$rotinfo2.worldScale = playermodelcontroller$rotinfo.worldScale;
+            return playermodelcontroller$rotinfo2;
+        }
+        else
+        {
+            return playermodelcontroller$rotinfo;
+        }
+    }
+
+    public static PlayerModelController.RotInfo getMainPlayerRotInfo(VRData data)
+    {
+        PlayerModelController.RotInfo playermodelcontroller$rotinfo = new PlayerModelController.RotInfo();
+        Quaternion quaternion = new Quaternion(data.getController(1).getMatrix());
+        Quaternion quaternion1 = new Quaternion(data.getController(0).getMatrix());
+        Quaternion quaternion2 = new Quaternion(data.hmd.getMatrix());
+        playermodelcontroller$rotinfo.headQuat = quaternion2;
+        playermodelcontroller$rotinfo.leftArmQuat = quaternion;
+        playermodelcontroller$rotinfo.rightArmQuat = quaternion1;
+        playermodelcontroller$rotinfo.seated = Minecraft.getInstance().vrSettings.seated;
+        playermodelcontroller$rotinfo.leftArmPos = data.getController(1).getPosition();
+        playermodelcontroller$rotinfo.rightArmPos = data.getController(0).getPosition();
+        playermodelcontroller$rotinfo.Headpos = data.hmd.getPosition();
+        return playermodelcontroller$rotinfo;
+    }
+
+    public boolean isTracked(UUID uuid)
+    {
+        this.debug = false;
+        return this.debug ? true : this.vivePlayers.containsKey(uuid);
+    }
+
+    public static float getFacingYaw(PlayerModelController.RotInfo rotInfo)
+    {
+        Vec3 vec3 = getOrientVec(rotInfo.headQuat);
+        return (float)Math.toDegrees(Math.atan2(vec3.x, vec3.z));
+    }
+
+    public static Vec3 getOrientVec(Quaternion quat)
+    {
+        Vec3 vec3 = quat.multiply(new Vec3(0.0D, 0.0D, -1.0D)).cross(quat.multiply(new Vec3(0.0D, 1.0D, 0.0D))).normalize();
+        return (new Vec3(0.0D, 1.0D, 0.0D)).cross(vec3).normalize();
+    }
+
+    public static class RotInfo
+    {
+        public boolean seated;
+        public boolean reverse;
+        public int hmd = 0;
+        public Quaternion leftArmQuat;
+        public Quaternion rightArmQuat;
+        public Quaternion headQuat;
+        public Vec3 leftArmRot;
+        public Vec3 rightArmRot;
+        public Vec3 headRot;
+        public Vec3 leftArmPos;
+        public Vec3 rightArmPos;
+        public Vec3 Headpos;
+        public float worldScale;
+        public float heightScale;
+
+        public double getBodyYawRadians()
+        {
+            Vec3 vec3 = this.leftArmPos.subtract(this.rightArmPos).yRot((-(float)Math.PI / 2F));
+
+            if (this.reverse)
+            {
+                vec3 = vec3.scale(-1.0D);
+            }
+
+            if (this.seated)
+            {
+                vec3 = this.rightArmRot;
+            }
+
+            Vec3 vec31 = Utils.vecLerp(vec3, this.headRot, 0.5D);
+            return Math.atan2(-vec31.x, vec31.z);
+        }
+    }
 }

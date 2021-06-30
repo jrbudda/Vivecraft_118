@@ -1,0 +1,11 @@
+--- a/com/mojang/blaze3d/vertex/DefaultVertexFormat.java
++++ b/com/mojang/blaze3d/vertex/DefaultVertexFormat.java
+@@ -41,6 +41,8 @@
+ 
+     @Deprecated
+     public static final VertexFormat POSITION_TEX_COLOR_NORMAL = new VertexFormat(ImmutableList.<VertexFormatElement>builder().add(ELEMENT_POSITION).add(ELEMENT_UV0).add(ELEMENT_COLOR).add(ELEMENT_NORMAL).add(ELEMENT_PADDING).build());
++    public static final VertexFormat POSITION_TEX_LMAP_COLOR_NORMAL = new VertexFormat(ImmutableList.<VertexFormatElement>builder().add(ELEMENT_POSITION).add(ELEMENT_UV0).add(ELEMENT_UV2).add(ELEMENT_COLOR).add(ELEMENT_NORMAL).add(ELEMENT_PADDING).build());
++    public static final VertexFormat POSITION_COLOR_NORMAL = new VertexFormat(ImmutableList.<VertexFormatElement>builder().add(ELEMENT_POSITION).add(ELEMENT_COLOR).add(ELEMENT_NORMAL).add(ELEMENT_PADDING).build());
+ 
+     public static void updateVertexFormats()
+     {

@@ -1,119 +1,83 @@
 package org.vivecraft.gameplay.trackers;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.phys.Vec3;
 
-/**
- * Created by Hendrik on 02-Aug-16.
- */
-public class SwimTracker extends Tracker {
+public class SwimTracker extends Tracker
+{
+    Vec3 motion = Vec3.ZERO;
+    double friction = (double)0.9F;
+    double lastDist;
+    final double riseSpeed = (double)0.005F;
+    double swimspeed = (double)1.3F;
 
-	Vector3d motion=Vector3d.ZERO;
-	double friction=0.9f;
+    public SwimTracker(Minecraft mc)
+    {
+        super(mc);
+    }
 
-	double lastDist;
+    public boolean isActive(LocalPlayer p)
+    {
+        if (this.mc.vrSettings.seated)
+        {
+            return false;
+        }
+        else if (!this.mc.vrSettings.realisticSwimEnabled)
+        {
+            return false;
+        }
+        else if (this.mc.screen != null)
+        {
+            return false;
+        }
+        else if (p != null && p.isAlive())
+        {
+            if (this.mc.gameMode == null)
+            {
+                return false;
+            }
+            else if (!p.isInWater() && !p.isInLava())
+            {
+                return false;
+            }
+            else if (p.zza > 0.0F)
+            {
+                return false;
+            }
+            else
+            {
+                return !(p.xxa > 0.0F);
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
 
-	final double riseSpeed=0.005f;
-	double swimspeed=1.3f;
+    public void doProcess(LocalPlayer player)
+    {
+        Vec3 vec3 = this.mc.vrPlayer.vrdata_world_pre.getController(0).getPosition();
+        Vec3 vec31 = this.mc.vrPlayer.vrdata_world_pre.getController(1).getPosition();
+        Vec3 vec32 = vec31.subtract(vec3).scale(0.5D).add(vec3);
+        Vec3 vec33 = this.mc.vrPlayer.vrdata_world_pre.getHeadPivot().subtract(0.0D, 0.3D, 0.0D);
+        Vec3 vec34 = vec32.subtract(vec33).normalize().add(this.mc.vrPlayer.vrdata_world_pre.hmd.getDirection()).scale(0.5D);
+        Vec3 vec35 = this.mc.vrPlayer.vrdata_world_pre.getController(0).getCustomVector(new Vec3(0.0D, 0.0D, -1.0D)).add(this.mc.vrPlayer.vrdata_world_pre.getController(1).getCustomVector(new Vec3(0.0D, 0.0D, -1.0D))).scale(0.5D);
+        double d0 = vec35.add(vec34).length() / 2.0D;
+        double d1 = vec33.distanceTo(vec32);
+        double d2 = this.lastDist - d1;
 
-	public SwimTracker(Minecraft mc) {
-		super(mc);
-	}
+        if (d2 > 0.0D)
+        {
+            Vec3 vec36 = vec34.scale(d2 * this.swimspeed * d0);
+            this.motion = this.motion.add(vec36.scale(0.15D));
+        }
 
-	public boolean isActive(ClientPlayerEntity p){
-		if(mc.vrSettings.seated)
-			return false;
-		if(!mc.vrSettings.realisticSwimEnabled)
-			return false;
-		if(mc.currentScreen != null)
-			return false;
-		if(p==null || !p.isAlive())
-			return false;
-		if(mc.playerController == null) return false;
-		if(!p.isInWater() && !p.isInLava())
-			return false;
-		if(p.moveForward > 0)
-			return false;
-		if(p.moveStrafing > 0)
-			return false;
-		return true;
-	}
-
-	public void doProcess(ClientPlayerEntity player){
-
-//		{//float
-//			//remove bouyancy for now.
-//			Vector3d face = mc.vrPlayer.vrdata_world_pre.hmd.getPosition();
-//			float height = (float) (mc.vrPlayer.vrdata_room_pre.hmd.getPosition().y * 0.9);
-//			if(height > 1.6)height = 1.6f;
-//			Vector3d feets = face.subtract(0,height, 0);
-//			double waterLine=256;
-//
-//			BlockPos bp = new BlockPos(feets);
-//			for (int i = 0; i < 4; i++) {
-//				Material mat=player.world.getBlockState(bp).getMaterial();
-//				if(!mat.isLiquid())
-//				{
-//					waterLine=bp.getY();
-//					break;
-//				}
-//				bp = bp.up();
-//			}
-//
-//			double percent = (waterLine - feets.y) / (face.y - feets.y);
-//
-//			if(percent < 0){
-//				//how did u get here, drybones?
-//				return;
-//			}
-//
-//			if(percent < 0.5 && player.onGround){
-//				return;
-//				//no diving in the kiddie pool.
-//			}
-//
-//			player.addVelocity(0, 0.018D , 0); //counteract most gravity.
-//
-//			double neutal = player.collidedHorizontally? 0.5 : 1;
-//
-//			if(percent > neutal && percent < 2){ //between halfway submerged and 1 body length under.
-//				//rise!
-//				double buoyancy = 2 - percent;
-//				if(player.collidedHorizontally)  player.addVelocity(0, 00.03f, 0);	
-//				player.addVelocity(0, 0.0015 + buoyancy/100 , 0);		
-//			}
-
-//		}
-		{//swim
-
-			Vector3d controllerR= mc.vrPlayer.vrdata_world_pre.getController(0).getPosition();
-			Vector3d controllerL= mc.vrPlayer.vrdata_world_pre.getController(1).getPosition();
-			
-			Vector3d middle= controllerL.subtract(controllerR).scale(0.5).add(controllerR);
-
-			Vector3d hmdPos=mc.vrPlayer.vrdata_world_pre.getHeadPivot().subtract(0,0.3,0);
-
-			Vector3d movedir=middle.subtract(hmdPos).normalize().add(
-					mc.vrPlayer.vrdata_world_pre.hmd.getDirection()).scale(0.5);
-
-			Vector3d contollerDir= mc.vrPlayer.vrdata_world_pre.getController(0).getCustomVector(new Vector3d(0,0,-1)).add(
-					mc.vrPlayer.vrdata_world_pre.getController(1).getCustomVector(new Vector3d(0,0,-1))).scale(0.5);
-			double dirfactor=contollerDir.add(movedir).length()/2;
-
-			double distance= hmdPos.distanceTo(middle);
-			double distDelta=lastDist-distance;
-
-			if(distDelta>0){
-				Vector3d velo=movedir.scale(distDelta*swimspeed*dirfactor);
-				motion=motion.add(velo.scale(0.15));
-			}
-
-			lastDist=distance;
-			player.setSwimming(motion.length() > 0.3f);
-			player.setSprinting(motion.length() > 1.0f);
-			player.addVelocity(motion.x,motion.y,motion.z);
-			motion=motion.scale(friction);
-		}
-	}
+        this.lastDist = d1;
+        player.setSwimming(this.motion.length() > (double)0.3F);
+        player.setSprinting(this.motion.length() > 1.0D);
+        player.push(this.motion.x, this.motion.y, this.motion.z);
+        this.motion = this.motion.scale(this.friction);
+    }
 }

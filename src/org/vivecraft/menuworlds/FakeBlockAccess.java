@@ -3,318 +3,358 @@ package org.vivecraft.menuworlds;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.world.DimensionRenderInfo;
-import net.minecraft.entity.Entity;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.CubeCoordinateIterator;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.registry.DynamicRegistries;
-import net.minecraft.world.DimensionType;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.LightType;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeManager;
-import net.minecraft.world.border.WorldBorder;
-import net.minecraft.world.chunk.ChunkStatus;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.client.renderer.DimensionSpecialEffects;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Cursor3D;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ColorResolver;
-import net.minecraft.world.lighting.WorldLightManager;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.border.WorldBorder;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.lighting.LevelLightEngine;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class FakeBlockAccess implements IWorldReader {
-	private int version;
-	private long seed;
-	private DimensionType dimensionType;
-	private boolean isFlat;
-	private BlockState[] blocks;
-	private byte[] skylightmap;
-	private byte[] blocklightmap;
-	private Biome[] biomemap;
-	private int xSize;
-	private int ySize;
-	private int zSize;
-	private int ground;
+public class FakeBlockAccess implements LevelReader
+{
+    private int version;
+    private long seed;
+    private DimensionType dimensionType;
+    private boolean isFlat;
+    private BlockState[] blocks;
+    private byte[] skylightmap;
+    private byte[] blocklightmap;
+    private Biome[] biomemap;
+    private int xSize;
+    private int ySize;
+    private int zSize;
+    private int ground;
+    private BiomeManager biomeManager;
+    private DimensionSpecialEffects dimensionInfo;
 
-	private BiomeManager biomeManager;
-	private DimensionRenderInfo dimensionInfo;
-	
-	public FakeBlockAccess(int version, long seed, BlockState[] blocks, byte[] skylightmap, byte[] blocklightmap, Biome[] biomemap, int xSize, int ySize, int zSize, int ground, DimensionType dimensionType, boolean isFlat) {
-		this.version = version;
-		this.seed = seed;
-		this.blocks = blocks;
-		this.skylightmap = skylightmap;
-		this.blocklightmap = blocklightmap;
-		this.biomemap = biomemap;
-		this.xSize = xSize;
-		this.ySize = ySize;
-		this.zSize = zSize;
-		this.ground = ground;
-		this.dimensionType = dimensionType;
-		this.isFlat = isFlat;
+    public FakeBlockAccess(int version, long seed, BlockState[] blocks, byte[] skylightmap, byte[] blocklightmap, Biome[] biomemap, int xSize, int ySize, int zSize, int ground, DimensionType dimensionType, boolean isFlat)
+    {
+        this.version = version;
+        this.seed = seed;
+        this.blocks = blocks;
+        this.skylightmap = skylightmap;
+        this.blocklightmap = blocklightmap;
+        this.biomemap = biomemap;
+        this.xSize = xSize;
+        this.ySize = ySize;
+        this.zSize = zSize;
+        this.ground = ground;
+        this.dimensionType = dimensionType;
+        this.isFlat = isFlat;
+        this.biomeManager = new BiomeManager(this, BiomeManager.obfuscateSeed(seed), dimensionType.getBiomeZoomer());
+        this.dimensionInfo = DimensionSpecialEffects.forType(dimensionType);
+    }
 
-		this.biomeManager = new BiomeManager(this, BiomeManager.getHashedSeed(seed), dimensionType.getMagnifier());
-		this.dimensionInfo = DimensionRenderInfo.func_243495_a(dimensionType);
-	}
-	
-	private int encodeCoords(int x, int z) {
-		return z * xSize + x;
-	}
-	
-	private int encodeCoords(int x, int y, int z) {
-		return (y * zSize + z) * xSize + x;
-	}
+    private int encodeCoords(int x, int z)
+    {
+        return z * this.xSize + x;
+    }
 
-	private int encodeCoords(BlockPos pos) {
-		return encodeCoords(pos.getX(), pos.getY(), pos.getZ());
-	}
-	
-	private boolean checkCoords(int x, int y, int z) {
-		return x >= 0 && y >= 0 && z >= 0 && x < xSize && y < ySize && z < xSize;
-	}
+    private int encodeCoords(int x, int y, int z)
+    {
+        return (y * this.zSize + z) * this.xSize + x;
+    }
 
-	private boolean checkCoords(BlockPos pos) {
-		return checkCoords(pos.getX(), pos.getY(), pos.getZ());
-	}
-	
-	public int getGround() {
-		return ground;
-	}
-	
-	public int getXSize() {
-		return xSize;
-	}
+    private int encodeCoords(BlockPos pos)
+    {
+        return this.encodeCoords(pos.getX(), pos.getY(), pos.getZ());
+    }
 
-	public int getYSize() {
-		return ySize;
-	}
+    private boolean checkCoords(int x, int y, int z)
+    {
+        return x >= 0 && y >= 0 && z >= 0 && x < this.xSize && y < this.ySize && z < this.xSize;
+    }
 
-	public int getZSize() {
-		return zSize;
-	}
+    private boolean checkCoords(BlockPos pos)
+    {
+        return this.checkCoords(pos.getX(), pos.getY(), pos.getZ());
+    }
 
-	public long getSeed() {
-		return seed;
-	}
+    public int getGround()
+    {
+        return this.ground;
+    }
 
-	@Override
-	public DimensionType getDimensionType() {
-		return dimensionType;
-	}
+    public int getXSize()
+    {
+        return this.xSize;
+    }
 
-	public DimensionRenderInfo getDimensionReaderInfo() {
-		return dimensionInfo;
-	}
+    public int getYSize()
+    {
+        return this.ySize;
+    }
 
-	public double getVoidFogYFactor() {
-		return isFlat ? 1.0D : 0.03125D;
-	}
+    public int getZSize()
+    {
+        return this.zSize;
+    }
 
-	public double getHorizon() {
-		return isFlat ? 0.0D : 63.0D;
-	}
+    public long getSeed()
+    {
+        return this.seed;
+    }
 
-	@Override
-	public BlockState getBlockState(BlockPos pos) {
-		if (!checkCoords(pos))
-			return Blocks.BEDROCK.getDefaultState();
+    public DimensionType dimensionType()
+    {
+        return this.dimensionType;
+    }
 
-		BlockState state = blocks[encodeCoords(pos)];
-		return state != null ? state : Blocks.AIR.getDefaultState();
-	}
+    public DimensionSpecialEffects getDimensionReaderInfo()
+    {
+        return this.dimensionInfo;
+    }
 
-	@Override
-	public FluidState getFluidState(BlockPos pos) {
-		return getBlockState(pos).getFluidState();
-	}
+    public double getVoidFogYFactor()
+    {
+        return this.isFlat ? 1.0D : 0.03125D;
+    }
 
-	@Override
-	public TileEntity getTileEntity(BlockPos pos) {
-		return null; // You're a funny guy, I kill you last
-	}
+    public double getHorizon()
+    {
+        return this.isFlat ? 0.0D : 63.0D;
+    }
 
-	@Override
-	public int getBlockColor(BlockPos blockPosIn, ColorResolver colorResolverIn) {
-		int i = Minecraft.getInstance().gameSettings.biomeBlendRadius;
+    public BlockState getBlockState(BlockPos p_45571_)
+    {
+        if (!this.checkCoords(p_45571_))
+        {
+            return Blocks.BEDROCK.defaultBlockState();
+        }
+        else
+        {
+            BlockState blockstate = this.blocks[this.encodeCoords(p_45571_)];
+            return blockstate != null ? blockstate : Blocks.AIR.defaultBlockState();
+        }
+    }
 
-		if (i == 0)
-		{
-			return colorResolverIn.getColor(this.getBiome(blockPosIn), (double)blockPosIn.getX(), (double)blockPosIn.getZ());
-		}
-		else
-		{
-			int j = (i * 2 + 1) * (i * 2 + 1);
-			int k = 0;
-			int l = 0;
-			int i1 = 0;
-			CubeCoordinateIterator cubecoordinateiterator = new CubeCoordinateIterator(blockPosIn.getX() - i, blockPosIn.getY(), blockPosIn.getZ() - i, blockPosIn.getX() + i, blockPosIn.getY(), blockPosIn.getZ() + i);
-			int j1;
+    public FluidState getFluidState(BlockPos p_45569_)
+    {
+        return this.getBlockState(p_45569_).getFluidState();
+    }
 
-			for (BlockPos.Mutable blockpos$mutable = new BlockPos.Mutable(); cubecoordinateiterator.hasNext(); i1 += j1 & 255)
-			{
-				blockpos$mutable.setPos(cubecoordinateiterator.getX(), cubecoordinateiterator.getY(), cubecoordinateiterator.getZ());
-				j1 = colorResolverIn.getColor(this.getBiome(blockpos$mutable), (double)blockpos$mutable.getX(), (double)blockpos$mutable.getZ());
-				k += (j1 & 16711680) >> 16;
-				l += (j1 & 65280) >> 8;
-			}
+    public BlockEntity getBlockEntity(BlockPos p_45570_)
+    {
+        return null;
+    }
 
-			return (k / j & 255) << 16 | (l / j & 255) << 8 | i1 / j & 255;
-		}
-	}
+    public int getBlockTint(BlockPos p_45520_, ColorResolver p_45521_)
+    {
+        int i = Minecraft.getInstance().options.biomeBlendRadius;
 
-	@Override
-	public int getLightFor(LightType type, BlockPos pos) {
-		if (!checkCoords(pos))
-			return (type != LightType.SKY || !this.dimensionType.hasSkyLight()) && type != LightType.BLOCK ? 0 : type.defaultLightValue;
+        if (i == 0)
+        {
+            return p_45521_.getColor(this.getBiome(p_45520_), (double)p_45520_.getX(), (double)p_45520_.getZ());
+        }
+        else
+        {
+            int j = (i * 2 + 1) * (i * 2 + 1);
+            int k = 0;
+            int l = 0;
+            int i1 = 0;
+            Cursor3D cursor3d = new Cursor3D(p_45520_.getX() - i, p_45520_.getY(), p_45520_.getZ() - i, p_45520_.getX() + i, p_45520_.getY(), p_45520_.getZ() + i);
+            int j1;
 
-		if (type == LightType.SKY)
-			return this.dimensionType.hasSkyLight() ? skylightmap[encodeCoords(pos)] : 0;
-		else
-			return type == LightType.BLOCK ? blocklightmap[encodeCoords(pos)] : type.defaultLightValue;
-	}
+            for (BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(); cursor3d.advance(); i1 += j1 & 255)
+            {
+                blockpos$mutableblockpos.set(cursor3d.nextX(), cursor3d.nextY(), cursor3d.nextZ());
+                j1 = p_45521_.getColor(this.getBiome(blockpos$mutableblockpos), (double)blockpos$mutableblockpos.getX(), (double)blockpos$mutableblockpos.getZ());
+                k += (j1 & 16711680) >> 16;
+                l += (j1 & 65280) >> 8;
+            }
 
-	@Override
-	public int getLightSubtracted(BlockPos pos, int amount) {
-		if (!checkCoords(pos.getX(), 0, pos.getZ()))
-			return 0;
+            return (k / j & 255) << 16 | (l / j & 255) << 8 | i1 / j & 255;
+        }
+    }
 
-		if (pos.getY() < 0) {
-			return 0;
-		} else if (pos.getY() >= 256) {
-			int light = 15 - amount;
-			if (light < 0)
-				light = 0;
-			return light;
-		} else {
-			int light = (this.dimensionType.hasSkyLight() ? skylightmap[encodeCoords(pos)] : 0) - amount;
-			int blockLight = blocklightmap[encodeCoords(pos)];
+    public int getBrightness(LightLayer p_45518_, BlockPos p_45519_)
+    {
+        if (this.checkCoords(p_45519_))
+        {
+            if (p_45518_ == LightLayer.SKY)
+            {
+                return this.dimensionType.hasSkyLight() ? this.skylightmap[this.encodeCoords(p_45519_)] : 0;
+            }
+            else
+            {
+                return p_45518_ == LightLayer.BLOCK ? this.blocklightmap[this.encodeCoords(p_45519_)] : p_45518_.surrounding;
+            }
+        }
+        else
+        {
+            return (p_45518_ != LightLayer.SKY || !this.dimensionType.hasSkyLight()) && p_45518_ != LightLayer.BLOCK ? 0 : p_45518_.surrounding;
+        }
+    }
 
-			if (blockLight > light)
-				light = blockLight;
-			return light;
-		}
-	}
+    public int getRawBrightness(BlockPos p_45525_, int p_45526_)
+    {
+        if (!this.checkCoords(p_45525_.getX(), 0, p_45525_.getZ()))
+        {
+            return 0;
+        }
+        else if (p_45525_.getY() < 0)
+        {
+            return 0;
+        }
+        else if (p_45525_.getY() >= 256)
+        {
+            int k = 15 - p_45526_;
 
-	@Override
-	public float func_230487_a_(Direction face, boolean shade) {
-		boolean flag = this.dimensionInfo.func_239217_c_(); // isNether?? yeah mate nice hard-coding
+            if (k < 0)
+            {
+                k = 0;
+            }
 
-		if (!shade) {
-			return flag ? 0.9F : 1.0F;
-		}
-		else {
-			switch (face) {
-				case DOWN:
-					return flag ? 0.9F : 0.5F;
+            return k;
+        }
+        else
+        {
+            int i = (this.dimensionType.hasSkyLight() ? this.skylightmap[this.encodeCoords(p_45525_)] : 0) - p_45526_;
+            int j = this.blocklightmap[this.encodeCoords(p_45525_)];
 
-				case UP:
-					return flag ? 0.9F : 1.0F;
+            if (j > i)
+            {
+                i = j;
+            }
 
-				case NORTH:
-				case SOUTH:
-					return 0.8F;
+            return i;
+        }
+    }
 
-				case WEST:
-				case EAST:
-					return 0.6F;
+    public float getShade(Direction p_45522_, boolean p_45523_)
+    {
+        boolean flag = this.dimensionInfo.constantAmbientLight();
 
-				default:
-					return 1.0F;
-			}
-		}
-	}
+        if (!p_45523_)
+        {
+            return flag ? 0.9F : 1.0F;
+        }
+        else
+        {
+            switch (p_45522_)
+            {
+                case DOWN:
+                    return flag ? 0.9F : 0.5F;
 
-	@Override
-	public boolean chunkExists(int x, int z) {
-		return checkCoords(x * 16, 0, z * 16); // :thonk:
-	}
+                case UP:
+                    return flag ? 0.9F : 1.0F;
 
-	@Override
-	public IChunk getChunk(int x, int z, ChunkStatus requiredStatus, boolean nonnull) {
-		return null; // �\_(?)_/�
-	}
+                case NORTH:
+                case SOUTH:
+                    return 0.8F;
 
-	@Override
-	public int getHeight(Heightmap.Type heightmapType, int x, int z) {
-		return 0; // �\_(?)_/�
-	}
+                case WEST:
+                case EAST:
+                    return 0.6F;
 
-	@Override
-	public BlockPos getHeight(Heightmap.Type heightmapType, BlockPos pos) {
-		return BlockPos.ZERO; // �\_(?)_/�
-	}
+                default:
+                    return 1.0F;
+            }
+        }
+    }
 
-	@Override
-	public int getSkylightSubtracted() {
-		return 0; // idk this is just what RenderChunkCache does
-	}
+    public boolean hasChunk(int p_46838_, int p_46839_)
+    {
+        return this.checkCoords(p_46838_ * 16, 0, p_46839_ * 16);
+    }
 
-	@Override
-	public WorldBorder getWorldBorder() {
-		return new WorldBorder();
-	}
+    public ChunkAccess getChunk(int p_46823_, int p_46824_, ChunkStatus p_46825_, boolean p_46826_)
+    {
+        return null;
+    }
 
-	@Override
-	public boolean checkNoEntityCollision(Entity entityIn, VoxelShape shape) {
-		return false; // ???
-	}
+    public int getHeight(Heightmap.Types p_46827_, int p_46828_, int p_46829_)
+    {
+        return 0;
+    }
 
-	@Override
-	public Stream<VoxelShape> func_230318_c_(@Nullable Entity p_230318_1_, AxisAlignedBB p_230318_2_, Predicate<Entity> p_230318_3_) {
-		return null; // nani
-	}
+    public BlockPos getHeightmapPos(Heightmap.Types p_46830_, BlockPos p_46831_)
+    {
+        return BlockPos.ZERO;
+    }
 
-	@Override
-	public boolean isAirBlock(BlockPos pos) {
-		return this.getBlockState(pos).isAir();
-	}
+    public int getSkyDarken()
+    {
+        return 0;
+    }
 
-	@Override
-	public Biome getNoiseBiome(int x, int y, int z) {
-		if (!checkCoords(x * 4, y * 4, z * 4)) {
-			x = MathHelper.clamp(x, 0, xSize / 4 - 1);
-			y = MathHelper.clamp(y, 0, ySize / 4 - 1);
-			z = MathHelper.clamp(z, 0, zSize / 4 - 1);
-		}
+    public WorldBorder getWorldBorder()
+    {
+        return new WorldBorder();
+    }
 
-		return biomemap[(y * (zSize / 4) + z) * (xSize / 4) + x];
-	}
+    public boolean isUnobstructed(Entity p_45750_, VoxelShape p_45751_)
+    {
+        return false;
+    }
 
-	@Override
-	public int getStrongPower(BlockPos pos, Direction direction) {
-		return 0;
-	}
+    public Stream<VoxelShape> getEntityCollisions(@Nullable Entity p_45776_, AABB p_45777_, Predicate<Entity> p_45778_)
+    {
+        return null;
+    }
 
-	@Override
-	public boolean isRemote() {
-		return false;
-	}
+    public boolean isEmptyBlock(BlockPos p_46860_)
+    {
+        return this.getBlockState(p_46860_).isAir();
+    }
 
-	@Override
-	public int getSeaLevel() {
-		return 63; // magic number
-	}
+    public Biome getNoiseBiome(int p_46841_, int p_46842_, int p_46843_)
+    {
+        if (!this.checkCoords(p_46841_ * 4, p_46842_ * 4, p_46843_ * 4))
+        {
+            p_46841_ = Mth.clamp(p_46841_, 0, this.xSize / 4 - 1);
+            p_46842_ = Mth.clamp(p_46842_, 0, this.ySize / 4 - 1);
+            p_46843_ = Mth.clamp(p_46843_, 0, this.zSize / 4 - 1);
+        }
 
-	@Override
-	public WorldLightManager getLightManager() {
-		return null; // uh?
-	}
+        return this.biomemap[(p_46842_ * (this.zSize / 4) + p_46843_) * (this.xSize / 4) + p_46841_];
+    }
 
-	@Override
-	public BiomeManager getBiomeManager() {
-		return biomeManager;
-	}
+    public int getDirectSignal(BlockPos p_46853_, Direction p_46854_)
+    {
+        return 0;
+    }
 
-	@Override
-	public Biome getNoiseBiomeRaw(int x, int y, int z) {
-		return null; // don't need this
-	}
+    public boolean isClientSide()
+    {
+        return false;
+    }
+
+    public int getSeaLevel()
+    {
+        return 63;
+    }
+
+    public LevelLightEngine getLightEngine()
+    {
+        return null;
+    }
+
+    public BiomeManager getBiomeManager()
+    {
+        return this.biomeManager;
+    }
+
+    public Biome getUncachedNoiseBiome(int p_46809_, int p_46810_, int p_46811_)
+    {
+        return null;
+    }
 }

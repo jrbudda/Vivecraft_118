@@ -5,230 +5,244 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
+import net.minecraft.client.sounds.SoundEngine;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.game.ServerboundCustomPayloadPacket;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.block.state.StateHolder;
 import org.vivecraft.asm.ObfNames;
 
-import net.minecraft.client.audio.SoundEngine;
-import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
-import net.minecraft.client.multiplayer.PlayerController;
-import net.minecraft.client.renderer.entity.PlayerRenderer;
-import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.client.CCustomPayloadPacket;
-import net.minecraft.state.StateHolder;
-import net.minecraft.world.biome.BiomeManager;
+public class MCReflection
+{
+    public static final MCReflection.ReflectionField SoundHandler_sndManager = new MCReflection.ReflectionField(SoundManager.class, "field_147694_f");
+    public static final MCReflection.ReflectionMethod SoundEngine_reload = new MCReflection.ReflectionMethod(SoundEngine.class, "func_148596_a");
+    public static final String BlockState_OnBlockActivated = "func_225533_a_";
+    public static final MCReflection.ReflectionField PlayerController_blockHitDelay = new MCReflection.ReflectionField(MultiPlayerGameMode.class, "field_78781_i");
+    public static final MCReflection.ReflectionField PlayerController_isHittingBlock = new MCReflection.ReflectionField(MultiPlayerGameMode.class, "field_78778_j");
+    public static final MCReflection.ReflectionField PlayerController_blocknoise = new MCReflection.ReflectionField(MultiPlayerGameMode.class, "field_78780_h");
+    public static final MCReflection.ReflectionField KeyBinding_pressed = new MCReflection.ReflectionField(KeyMapping.class, "field_74513_e");
+    public static final MCReflection.ReflectionField KeyBinding_pressTime = new MCReflection.ReflectionField(KeyMapping.class, "field_151474_i");
+    public static final MCReflection.ReflectionMethod KeyBinding_unpressKey = new MCReflection.ReflectionMethod(KeyMapping.class, "func_74505_d");
+    public static final MCReflection.ReflectionField KeyBinding_keyCode = new MCReflection.ReflectionField(KeyMapping.class, "field_74512_d");
+    public static final MCReflection.ReflectionField KeyBinding_CATEGORY_ORDER = new MCReflection.ReflectionField(KeyMapping.class, "field_193627_d");
+    public static final MCReflection.ReflectionField Entity_eyeHeight = new MCReflection.ReflectionField(Entity.class, "field_213326_aJ");
+    public static final MCReflection.ReflectionMethod RenderPlayer_setModelVisibilities = new MCReflection.ReflectionMethod(PlayerRenderer.class, "func_177137_d", AbstractClientPlayer.class);
+    public static final MCReflection.ReflectionField CCustomPayloadPacket_channel = new MCReflection.ReflectionField(ServerboundCustomPayloadPacket.class, "field_149562_a");
+    public static final MCReflection.ReflectionField CCustomPayloadPacket_data = new MCReflection.ReflectionField(ServerboundCustomPayloadPacket.class, "field_149561_c");
+    public static final MCReflection.ReflectionField StateHolder_mapCodec = new MCReflection.ReflectionField(StateHolder.class, "field_235893_d_");
+    public static final MCReflection.ReflectionField ClientWorldInfo_isFlat = new MCReflection.ReflectionField(ClientLevel.ClientLevelData.class, "field_239146_c_");
+    public static final MCReflection.ReflectionField BiomeManager_seed = new MCReflection.ReflectionField(BiomeManager.class, "field_226833_b_");
+    public static final MCReflection.ReflectionField NetworkManager_channel = new MCReflection.ReflectionField(Connection.class, "field_150746_k");
 
-public class MCReflection {
+    public static class ReflectionConstructor
+    {
+        private final Class<?> clazz;
+        private final Class<?>[] params;
+        private Constructor constructor;
 
-	public static final ReflectionField SoundHandler_sndManager = new ReflectionField(SoundHandler.class, "field_147694_f");
-	public static final ReflectionMethod SoundEngine_reload = new ReflectionMethod(SoundEngine.class, "func_148596_a");
+        public ReflectionConstructor(Class<?> clazz, Class<?>... params)
+        {
+            this.clazz = clazz;
+            this.params = params;
+            this.reflect();
+        }
 
-	//TODO: Verify srg of commented fields
-	public static final String BlockState_OnBlockActivated = "func_225533_a_";
-//	public static final ReflectionMethod Dimension_generateLightBrightnessTable = new ReflectionMethod(Dimension.class, "func_76556_a");
-//	public static final ReflectionMethod Dimension_hasSkyLight = new ReflectionMethod(Dimension.class, "func_191066_m");
+        public Object newInstance(Object... args)
+        {
+            try
+            {
+                return this.constructor.newInstance(args);
+            }
+            catch (ReflectiveOperationException reflectiveoperationexception)
+            {
+                throw new RuntimeException(reflectiveoperationexception);
+            }
+        }
 
-	public static final ReflectionField PlayerController_blockHitDelay = new ReflectionField(PlayerController.class, "field_78781_i");
-	public static final ReflectionField PlayerController_isHittingBlock = new ReflectionField(PlayerController.class, "field_78778_j");
-	public static final ReflectionField PlayerController_blocknoise = new ReflectionField(PlayerController.class, "field_78780_h");
-	//	public static final ReflectionField GuiChat_inputField = new ReflectionField(GuiChat.class, "field_146415_a");
+        private void reflect()
+        {
+            try
+            {
+                this.constructor = this.clazz.getDeclaredConstructor(this.params);
+            }
+            catch (NoSuchMethodException nosuchmethodexception)
+            {
+                StringBuilder stringbuilder = new StringBuilder();
 
-	public static final ReflectionField KeyBinding_pressed = new ReflectionField(KeyBinding.class, "field_74513_e");
-	public static final ReflectionField KeyBinding_pressTime = new ReflectionField(KeyBinding.class, "field_151474_i");
-	public static final ReflectionMethod KeyBinding_unpressKey = new ReflectionMethod(KeyBinding.class, "func_74505_d");
-	public static final ReflectionField KeyBinding_keyCode = new ReflectionField(KeyBinding.class, "field_74512_d");
-	public static final ReflectionField KeyBinding_CATEGORY_ORDER = new ReflectionField(KeyBinding.class, "field_193627_d");
+                if (this.params.length > 0)
+                {
+                    stringbuilder.append(" with params ");
+                    stringbuilder.append(Arrays.stream(this.params).map(Class::getName).collect(Collectors.joining(",")));
+                }
 
-	public static final ReflectionField Entity_eyeHeight = new ReflectionField(Entity.class, "field_213326_aJ");
+                throw new RuntimeException("reflecting constructor " + stringbuilder.toString() + " in " + this.clazz.toString(), nosuchmethodexception);
+            }
 
-	
-	public static final ReflectionMethod RenderPlayer_setModelVisibilities = new ReflectionMethod(PlayerRenderer.class, "func_177137_d", AbstractClientPlayerEntity.class);
-//	public static final ReflectionField TileEntityRendererDispatcher_fontRenderer = new ReflectionField(TileEntityRendererDispatcher.class, "field_147557_n");
-//	public static final ReflectionField TextureMap_listAnimatedSprites = new ReflectionField(TextureMap.class, "field_94258_i");
-//	public static final ReflectionField PlayerEntity_spawnChunk = new ReflectionField(PlayerEntity.class, "field_71077_c");
-//	public static final ReflectionField PlayerEntity_spawnForced = new ReflectionField(PlayerEntity.class, "field_82248_d");
-//	public static final ReflectionMethod RenderGlobal_renderSky = new ReflectionMethod(RenderGlobal.class, "func_174968_a", BufferBuilder.class, float.class, boolean.class);
-//	public static final ReflectionMethod RenderGlobal_renderStars = new ReflectionMethod(RenderGlobal.class, "func_180444_a", BufferBuilder.class);
-//	public static final ReflectionField ModelManager_texmap = new ReflectionField(ModelManager.class, "field_174956_b");
-//	public static final ReflectionField ModelManager_modelRegistry = new ReflectionField(ModelManager.class, "field_174958_a");
-//	public static final ReflectionField ModelManager_defaultModel = new ReflectionField(ModelManager.class, "field_174955_d");
-	public static final ReflectionField CCustomPayloadPacket_channel = new ReflectionField(CCustomPayloadPacket.class, "field_149562_a");
-	public static final ReflectionField CCustomPayloadPacket_data = new ReflectionField(CCustomPayloadPacket.class, "field_149561_c");
-	//public static final ReflectionField PlayerEntity_spawnPos = new ReflectionField(PlayerEntity.class, "field_71077_c");
-	//public static final ReflectionField PlayerEntity_spawnForced = new ReflectionField(PlayerEntity.class, "field_82248_d");
+            this.constructor.setAccessible(true);
+        }
+    }
 
-	public static final ReflectionField StateHolder_mapCodec = new ReflectionField(StateHolder.class, "field_235893_d_");
+    public static class ReflectionField
+    {
+        private final Class<?> clazz;
+        private final String srgName;
+        private Field field;
 
-	public static final ReflectionField ClientWorldInfo_isFlat = new ReflectionField(ClientWorld.ClientWorldInfo.class, "field_239146_c_");
+        public ReflectionField(Class<?> clazz, String srgName)
+        {
+            this.clazz = clazz;
+            this.srgName = srgName;
+            this.reflect();
+        }
 
-	public static final ReflectionField BiomeManager_seed = new ReflectionField(BiomeManager.class, "field_226833_b_");
+        public Object get(Object obj)
+        {
+            try
+            {
+                return this.field.get(obj);
+            }
+            catch (ReflectiveOperationException reflectiveoperationexception)
+            {
+                throw new RuntimeException(reflectiveoperationexception);
+            }
+        }
 
-	public static final ReflectionField NetworkManager_channel = new ReflectionField(NetworkManager.class, "field_150746_k");
+        public void set(Object obj, Object value)
+        {
+            try
+            {
+                this.field.set(obj, value);
+            }
+            catch (ReflectiveOperationException reflectiveoperationexception)
+            {
+                throw new RuntimeException(reflectiveoperationexception);
+            }
+        }
 
-	
-	public static class ReflectionField {
-		private final Class<?> clazz;
-		private final String srgName;
-		private Field field;
+        private void reflect()
+        {
+            try
+            {
+                this.field = this.clazz.getDeclaredField(this.srgName);
+            }
+            catch (NoSuchFieldException nosuchfieldexception2)
+            {
+                try
+                {
+                    this.field = this.clazz.getDeclaredField(ObfNames.resolveField(this.srgName, true));
+                }
+                catch (NoSuchFieldException nosuchfieldexception1)
+                {
+                    try
+                    {
+                        this.field = this.clazz.getDeclaredField(ObfNames.getDevMapping(this.srgName));
+                    }
+                    catch (NoSuchFieldException nosuchfieldexception)
+                    {
+                        StringBuilder stringbuilder = new StringBuilder(this.srgName);
 
-		public ReflectionField(Class<?> clazz, String srgName) {
-			this.clazz = clazz;
-			this.srgName = srgName;
-			reflect();
-		}
-		
-		public Object get(Object obj) {
-			try {
-				return field.get(obj);
-			} catch (ReflectiveOperationException e) {
-				throw new RuntimeException(e);
-			}
-		}
+                        if (!this.srgName.equals(ObfNames.resolveField(this.srgName, true)))
+                        {
+                            stringbuilder.append(',').append(ObfNames.resolveField(this.srgName, true));
+                        }
 
-		public void set(Object obj, Object value) {
-			try {
-				field.set(obj, value);
-			} catch (ReflectiveOperationException e) {
-				throw new RuntimeException(e);
-			}
-		}
+                        if (!this.srgName.equals(ObfNames.getDevMapping(this.srgName)))
+                        {
+                            stringbuilder.append(',').append(ObfNames.getDevMapping(this.srgName));
+                        }
 
-		private void reflect() {
-			try
-			{
-				field = clazz.getDeclaredField(srgName);
-			}
-			catch (NoSuchFieldException e)
-			{
-				try
-				{
-					field = clazz.getDeclaredField(ObfNames.resolveField(srgName, true));
-				}
-				catch (NoSuchFieldException e1)
-				{
-					try
-					{
-						field = clazz.getDeclaredField(ObfNames.getDevMapping(srgName));
-					}
-					catch (NoSuchFieldException e2)
-					{
-						StringBuilder sb = new StringBuilder(srgName);
-						if (!srgName.equals(ObfNames.resolveField(srgName, true)))
-							sb.append(',').append(ObfNames.resolveField(srgName, true));
-						if (!srgName.equals(ObfNames.getDevMapping(srgName)))
-							sb.append(',').append(ObfNames.getDevMapping(srgName));
-						throw new RuntimeException("reflecting field " + sb.toString() + " in " + clazz.toString(), e);
-					}
-				}
-			}
+                        throw new RuntimeException("reflecting field " + stringbuilder.toString() + " in " + this.clazz.toString(), nosuchfieldexception2);
+                    }
+                }
+            }
 
-			field.setAccessible(true); //lets be honest this is why we have this method.
-		}
-	}
+            this.field.setAccessible(true);
+        }
+    }
 
-	public static class ReflectionMethod {
-		private final Class<?> clazz;
-		private final String srgName;
-		private final Class<?>[] params;
-		private Method method;
+    public static class ReflectionMethod
+    {
+        private final Class<?> clazz;
+        private final String srgName;
+        private final Class<?>[] params;
+        private Method method;
 
-		public ReflectionMethod(Class<?> clazz, String srgName, Class<?>... params) {
-			this.clazz = clazz;
-			this.srgName = srgName;
-			this.params = params;
-			reflect();
-		}
+        public ReflectionMethod(Class<?> clazz, String srgName, Class<?>... params)
+        {
+            this.clazz = clazz;
+            this.srgName = srgName;
+            this.params = params;
+            this.reflect();
+        }
 
-		public Method getMethod() {
-			return method;
-		}
-		
-		public Object invoke(Object obj, Object... args) {
-			try {
-				return method.invoke(obj, args);
-			} catch (ReflectiveOperationException e) {
-				throw new RuntimeException(e);
-			}
-		}
+        public Method getMethod()
+        {
+            return this.method;
+        }
 
-		private void reflect() {
-			try
-			{
-				method = clazz.getDeclaredMethod(srgName, params);
-			}
-			catch (NoSuchMethodException e)
-			{
-				try
-				{
-					method = clazz.getDeclaredMethod(ObfNames.resolveMethod(srgName, true), params);
-				}
-				catch (NoSuchMethodException e1)
-				{
-					try
-					{
-						method = clazz.getDeclaredMethod(ObfNames.getDevMapping(srgName), params);
-					}
-					catch (NoSuchMethodException e2)
-					{
-						StringBuilder sb = new StringBuilder(srgName);
-						if (!srgName.equals(ObfNames.resolveMethod(srgName, true)))
-							sb.append(',').append(ObfNames.resolveMethod(srgName, true));
-						if (!srgName.equals(ObfNames.getDevMapping(srgName)))
-							sb.append(',').append(ObfNames.getDevMapping(srgName));
-						if (params.length > 0) {
-							sb.append(" with params ");
-							sb.append(Arrays.stream(params).map(Class::getName).collect(Collectors.joining(",")));
-						}
-						throw new RuntimeException("reflecting method " + sb.toString() + " in " + clazz.toString(), e);
-					}
-				}
-			}
+        public Object invoke(Object obj, Object... args)
+        {
+            try
+            {
+                return this.method.invoke(obj, args);
+            }
+            catch (ReflectiveOperationException reflectiveoperationexception)
+            {
+                throw new RuntimeException(reflectiveoperationexception);
+            }
+        }
 
-			method.setAccessible(true);
-		}
-	}
+        private void reflect()
+        {
+            try
+            {
+                this.method = this.clazz.getDeclaredMethod(this.srgName, this.params);
+            }
+            catch (NoSuchMethodException nosuchmethodexception2)
+            {
+                try
+                {
+                    this.method = this.clazz.getDeclaredMethod(ObfNames.resolveMethod(this.srgName, true), this.params);
+                }
+                catch (NoSuchMethodException nosuchmethodexception1)
+                {
+                    try
+                    {
+                        this.method = this.clazz.getDeclaredMethod(ObfNames.getDevMapping(this.srgName), this.params);
+                    }
+                    catch (NoSuchMethodException nosuchmethodexception)
+                    {
+                        StringBuilder stringbuilder = new StringBuilder(this.srgName);
 
-	public static class ReflectionConstructor {
-		private final Class<?> clazz;
-		private final Class<?>[] params;
-		private Constructor constructor;
+                        if (!this.srgName.equals(ObfNames.resolveMethod(this.srgName, true)))
+                        {
+                            stringbuilder.append(',').append(ObfNames.resolveMethod(this.srgName, true));
+                        }
 
-		public ReflectionConstructor(Class<?> clazz, Class<?>... params) {
-			this.clazz = clazz;
-			this.params = params;
-			reflect();
-		}
+                        if (!this.srgName.equals(ObfNames.getDevMapping(this.srgName)))
+                        {
+                            stringbuilder.append(',').append(ObfNames.getDevMapping(this.srgName));
+                        }
 
-		public Object newInstance(Object... args) {
-			try {
-				return constructor.newInstance(args);
-			} catch (ReflectiveOperationException e) {
-				throw new RuntimeException(e);
-			}
-		}
+                        if (this.params.length > 0)
+                        {
+                            stringbuilder.append(" with params ");
+                            stringbuilder.append(Arrays.stream(this.params).map(Class::getName).collect(Collectors.joining(",")));
+                        }
 
-		private void reflect() {
-			try
-			{
-				constructor = clazz.getDeclaredConstructor(params);
-			}
-			catch (NoSuchMethodException e)
-			{
-				StringBuilder sb = new StringBuilder();
-				if (params.length > 0) {
-					sb.append(" with params ");
-					sb.append(Arrays.stream(params).map(Class::getName).collect(Collectors.joining(",")));
-				}
-				throw new RuntimeException("reflecting constructor " + sb.toString() + " in " + clazz.toString(), e);
-			}
+                        throw new RuntimeException("reflecting method " + stringbuilder.toString() + " in " + this.clazz.toString(), nosuchmethodexception2);
+                    }
+                }
+            }
 
-			constructor.setAccessible(true);
-		}
-	}
-
-
+            this.method.setAccessible(true);
+        }
+    }
 }

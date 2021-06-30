@@ -1,95 +1,97 @@
 package org.vivecraft.gui.settings;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import java.util.Arrays;
-
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.resources.language.I18n;
 import org.apache.commons.lang3.ArrayUtils;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.widget.list.ExtendedList;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.util.text.TextFormatting;
-
-public class GuiRadialItemsList extends ExtendedList
+public class GuiRadialItemsList extends ObjectSelectionList
 {
     private final GuiRadialConfiguration parent;
     private final Minecraft mc;
-    private ExtendedList.AbstractListEntry[] listEntries;
+    private ObjectSelectionList.Entry[] listEntries;
     private int maxListLabelWidth = 0;
-    
+
     public GuiRadialItemsList(GuiRadialConfiguration parent, Minecraft mc)
     {
         super(mc, parent.width, parent.height, 63, parent.height - 32, 20);
         this.parent = parent;
         this.mc = mc;
         this.maxListLabelWidth = 90;
-        buildList();
+        this.buildList();
     }
-    
-    public void buildList() {
-        KeyBinding[] bindings = ArrayUtils.clone(mc.gameSettings.keyBindings);
-        Arrays.sort(bindings);
-        
-        String cat = null;
-        int var7 = bindings.length;
-        for (int i = 0; i < var7; i++)
-        {
-        	KeyBinding kb = bindings[i];       	
-        	String s = kb != null ? kb.getKeyCategory() : null;
-        	if (s == null) continue;
-        	if (s != null && !s.equals(cat)) {
-                cat = s;
-                this.addEntry(new GuiRadialItemsList.CategoryEntry(cat));
-            }
-        	this.addEntry(new GuiRadialItemsList.MappingEntry(kb, this.parent));
-        }
-        
-    }
-    
 
-    public class CategoryEntry extends ExtendedList.AbstractListEntry
+    public void buildList()
+    {
+        KeyMapping[] akeymapping = ArrayUtils.clone(this.mc.options.keyMappings);
+        Arrays.sort((Object[])akeymapping);
+        String s = null;
+
+        for (KeyMapping keymapping : akeymapping)
+        {
+            String s1 = keymapping != null ? keymapping.getCategory() : null;
+
+            if (s1 != null)
+            {
+                if (s1 != null && !s1.equals(s))
+                {
+                    s = s1;
+                    this.addEntry(new GuiRadialItemsList.CategoryEntry(s1));
+                }
+
+                this.addEntry(new GuiRadialItemsList.MappingEntry(keymapping, this.parent));
+            }
+        }
+    }
+
+    public class CategoryEntry extends ObjectSelectionList.Entry
     {
         private final String labelText;
         private final int labelWidth;
 
         public CategoryEntry(String name)
         {
-            this.labelText = I18n.format(name, new Object[0]);
-            this.labelWidth = GuiRadialItemsList.this.mc.fontRenderer.getStringWidth(this.labelText);
+            this.labelText = I18n.m_118938_(name);
+            this.labelWidth = GuiRadialItemsList.this.mc.font.width(this.labelText);
         }
 
-		@Override
-		public void render(MatrixStack matrixstack, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean p_194999_5_,float partialTicks)
+        public void render(PoseStack p_93523_, int p_93524_, int p_93525_, int p_93526_, int p_93527_, int p_93528_, int p_93529_, int p_93530_, boolean p_93531_, float p_93532_)
         {
-            mc.fontRenderer.drawString(matrixstack, this.labelText, GuiRadialItemsList.this.mc.currentScreen.width / 2 - this.labelWidth / 2, y + height  - GuiRadialItemsList.this.minecraft.fontRenderer.FONT_HEIGHT - 1, 6777215);
+            GuiRadialItemsList.this.mc.font.draw(p_93523_, this.labelText, (float)(GuiRadialItemsList.this.mc.screen.width / 2 - this.labelWidth / 2), (float)(p_93525_ + p_93528_ - 9 - 1), 6777215);
         }
     }
 
-    public class MappingEntry extends ExtendedList.AbstractListEntry
+    public class MappingEntry extends ObjectSelectionList.Entry
     {
-        private final KeyBinding myKey;
+        private final KeyMapping myKey;
         private GuiRadialConfiguration parentScreen;
-        
-        private MappingEntry(KeyBinding key, GuiRadialConfiguration parent)
+
+        private MappingEntry(KeyMapping key, GuiRadialConfiguration parent)
         {
             this.myKey = key;
             this.parentScreen = parent;
-        }      
-        
-		@Override
-		public void render(MatrixStack matrixstack, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean p_194999_5_,float partialTicks)
-        {
-            TextFormatting formatting = TextFormatting.WHITE;
-            if(p_194999_5_) formatting = TextFormatting.GREEN;
-			mc.fontRenderer.drawString(matrixstack, formatting + I18n.format(this.myKey.getKeyDescription()), mc.currentScreen.width / 2 - maxListLabelWidth / 2, y+ height / 2 - GuiRadialItemsList.this.minecraft.fontRenderer.FONT_HEIGHT / 2, 16777215);
         }
-		
-		@Override
-		public boolean mouseClicked(double mouseX, double mouseY, int button) {
-	     	parentScreen.setKey(myKey);
-        	return true;
-		}
+
+        public void render(PoseStack p_93523_, int p_93524_, int p_93525_, int p_93526_, int p_93527_, int p_93528_, int p_93529_, int p_93530_, boolean p_93531_, float p_93532_)
+        {
+            ChatFormatting chatformatting = ChatFormatting.WHITE;
+
+            if (p_93531_)
+            {
+                chatformatting = ChatFormatting.GREEN;
+            }
+
+            GuiRadialItemsList.this.mc.font.draw(p_93523_, chatformatting + I18n.m_118938_(this.myKey.getName()), (float)(GuiRadialItemsList.this.mc.screen.width / 2 - GuiRadialItemsList.this.maxListLabelWidth / 2), (float)(p_93525_ + p_93528_ / 2 - 9 / 2), 16777215);
+        }
+
+        public boolean mouseClicked(double p_94737_, double p_94738_, int p_94739_)
+        {
+            this.parentScreen.setKey(this.myKey);
+            return true;
+        }
     }
 }

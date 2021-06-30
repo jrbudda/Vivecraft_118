@@ -1,6 +1,6 @@
 --- a/net/optifine/player/PlayerItemParser.java
 +++ b/net/optifine/player/PlayerItemParser.java
-@@ -128,7 +128,7 @@
+@@ -129,7 +129,7 @@
                  }
              }
  

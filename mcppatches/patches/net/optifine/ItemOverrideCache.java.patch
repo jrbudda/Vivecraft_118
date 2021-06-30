@@ -1,0 +1,11 @@
+--- a/net/optifine/ItemOverrideCache.java
++++ b/net/optifine/ItemOverrideCache.java
+@@ -78,7 +78,7 @@
+ 
+             for (ItemOverride itemoverride : overrides)
+             {
+-                for (ItemOverride.Predicate itemoverride$predicate : (List)Reflector.getFieldValue(itemoverride, Reflector.ItemOverride_listResourceValues))
++                for (ItemOverride.Predicate itemoverride$predicate : (List<ItemOverride.Predicate>)Reflector.getFieldValue(itemoverride, Reflector.ItemOverride_listResourceValues))
+                 {
+                     ResourceLocation resourcelocation = itemoverride$predicate.getProperty();
+                     float f = itemoverride$predicate.getValue();

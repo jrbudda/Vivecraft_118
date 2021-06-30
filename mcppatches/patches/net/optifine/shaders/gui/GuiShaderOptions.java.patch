@@ -1,11 +1,19 @@
 --- a/net/optifine/shaders/gui/GuiShaderOptions.java
 +++ b/net/optifine/shaders/gui/GuiShaderOptions.java
-@@ -226,7 +226,7 @@
+@@ -1,5 +1,7 @@
+ package net.optifine.shaders.gui;
+ 
++import java.util.List;
++
+ import com.mojang.blaze3d.vertex.PoseStack;
+ import net.minecraft.client.Options;
+ import net.minecraft.client.gui.Font;
+@@ -226,7 +228,7 @@
  
      private void updateAllButtons()
      {
--        for (Button button : this.buttonList)
-+        for (Widget button : this.buttonList)
+-        for (Button button : this.getButtonList())
++        for (Button button : (List<Button>)(List<?>)this.getButtonList())
          {
              if (button instanceof GuiButtonShaderOption)
              {

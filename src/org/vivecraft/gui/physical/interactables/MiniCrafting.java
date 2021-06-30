@@ -1,214 +1,222 @@
 package org.vivecraft.gui.physical.interactables;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import java.util.ArrayList;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.vivecraft.gui.physical.PhysicalInventory;
 import org.vivecraft.gui.physical.WindowCoordinator;
 import org.vivecraft.utils.math.Quaternion;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+public class MiniCrafting implements Interactable
+{
+    Minecraft mc;
+    ModelResourceLocation craftingLoc;
+    boolean extended;
+    PhysicalInventory inventory;
+    ArrayList<PhysicalItemSlot> craftingSlots = new ArrayList<>();
+    public Vec3 position = Vec3.ZERO;
+    public Quaternion rotation = new Quaternion();
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.model.ModelResourceLocation;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.vector.Vector3d;
+    public MiniCrafting(PhysicalInventory inventory)
+    {
+        this.inventory = inventory;
+        this.craftingLoc = new ModelResourceLocation("vivecraft:mini_crafting");
+        this.mc = Minecraft.getInstance();
+    }
 
-public class MiniCrafting implements Interactable {
-	Minecraft mc;
-	ModelResourceLocation craftingLoc;
-	boolean extended;
-	PhysicalInventory inventory;
-	ArrayList<PhysicalItemSlot> craftingSlots=new ArrayList<>();
+    public void render(double partialTicks, int renderLayer)
+    {
+        if (renderLayer == 0)
+        {
+            GlStateManager._pushMatrix();
+            GlStateManager._translated(-0.44D, 0.0D, -0.22D);
+            PhysicalInventory.renderCustomModel(this.craftingLoc);
+            GlStateManager._popMatrix();
+        }
+    }
 
-	public MiniCrafting(PhysicalInventory inventory){
-		this.inventory=inventory;
-		craftingLoc=new ModelResourceLocation("vivecraft:mini_crafting");
-		mc=Minecraft.getInstance();
-	}
-	@Override
-	public void render(double partialTicks, int renderLayer) {
-		if(renderLayer==0) {
-			GlStateManager.pushMatrix();
-			GlStateManager.translated(-0.22 - 0.22, 0, -0.22);
-			PhysicalInventory.renderCustomModel(craftingLoc);
-			GlStateManager.popMatrix();
-		}
-	}
+    public void loadSlots()
+    {
+        this.craftingSlots.clear();
 
-	public void loadSlots(){
-		craftingSlots.clear();
-		if (!inventory.metaData.hasExtra)
-			return;
-		for (int x = 0; x < 2; x++) {
-			for (int y = 0; y < 2; y++) {
-				int slotId=y*2+x+inventory.metaData.craftingOffset +1;
-				PhysicalItemSlot slot=new PhysicalItemSlot(inventory,slotId){
-					@Override
-					public Vector3d getAnchorPos(double partialTicks) {
-						Vector3d pos= MiniCrafting.this.getAnchorPos(partialTicks);
-						pos=pos.add(MiniCrafting.this.getAnchorRotation(partialTicks).multiply(
-								MiniCrafting.this.getPosition(partialTicks)
-						));
-						return pos;
-					}
+        if (this.inventory.metaData.hasExtra)
+        {
+            for (int i = 0; i < 2; ++i)
+            {
+                for (int j = 0; j < 2; ++j)
+                {
+                    int k = j * 2 + i + this.inventory.metaData.craftingOffset + 1;
+                    PhysicalItemSlot physicalitemslot = new PhysicalItemSlot(this.inventory, k)
+                    {
+                        public Vec3 getAnchorPos(double partialTicks)
+                        {
+                            Vec3 vec31 = MiniCrafting.this.getAnchorPos(partialTicks);
+                            return vec31.add(MiniCrafting.this.getAnchorRotation(partialTicks).multiply(MiniCrafting.this.getPosition(partialTicks)));
+                        }
+                        public Quaternion getAnchorRotation(double partialTicks)
+                        {
+                            return MiniCrafting.this.getAnchorRotation(partialTicks).multiply(MiniCrafting.this.getRotation(partialTicks));
+                        }
+                        public boolean isTouchable()
+                        {
+                            return !this.mc.physicalGuiManager.getVirtualHeldItem().isEmpty() || !this.slot.getItem().isEmpty();
+                        }
+                    };
+                    physicalitemslot.slot = this.inventory.container.slots.get(k);
+                    physicalitemslot.enabled = false;
+                    Vec3 vec3 = new Vec3(-0.15D, 0.12D, 0.07D);
+                    double d0 = 0.15D;
+                    physicalitemslot.position = vec3.add(new Vec3((double)(-i) * d0, 0.0D, (double)(-j) * d0));
+                    physicalitemslot.rotation = new Quaternion(90.0F, 0.0F, 0.0F);
+                    physicalitemslot.scale = 0.15D;
+                    this.craftingSlots.add(physicalitemslot);
+                }
+            }
 
-					@Override
-					public Quaternion getAnchorRotation(double partialTicks) {
-						return MiniCrafting.this.getAnchorRotation(partialTicks).multiply(
-								MiniCrafting.this.getRotation(partialTicks));
-					}
+            PhysicalItemSlot physicalitemslot1 = new PhysicalItemSlot(this.inventory, this.inventory.metaData.craftingOffset)
+            {
+                public Vec3 getAnchorPos(double partialTicks)
+                {
+                    Vec3 vec31 = MiniCrafting.this.getAnchorPos(partialTicks);
+                    return vec31.add(MiniCrafting.this.getAnchorRotation(partialTicks).multiply(MiniCrafting.this.getPosition(partialTicks)));
+                }
+                public Quaternion getAnchorRotation(double partialTicks)
+                {
+                    return MiniCrafting.this.getAnchorRotation(partialTicks).multiply(MiniCrafting.this.getRotation(partialTicks));
+                }
+                public boolean isTouchable()
+                {
+                    return !this.slot.getItem().isEmpty();
+                }
+            };
+            physicalitemslot1.slot = this.inventory.container.slots.get(physicalitemslot1.slotId);
+            physicalitemslot1.enabled = false;
+            physicalitemslot1.position = new Vec3(-0.2D, 0.4D, 0.0D);
+            physicalitemslot1.fullBlockRotation = new Quaternion();
+            physicalitemslot1.scale = 0.15D;
+            physicalitemslot1.preview = false;
+            this.craftingSlots.add(physicalitemslot1);
+        }
+    }
 
-					@Override
-					public boolean isTouchable() {
-						return (!mc.physicalGuiManager.getVirtualHeldItem().isEmpty()
-						|| !slot.getStack().isEmpty());
-					}
-				};
-				slot.slot=inventory.container.inventorySlots.get(slotId);
-				slot.enabled=false;
-				Vector3d anchor=new Vector3d(-0.15,0.12,0.07);
-				double spacing=0.15;
-				slot.position=anchor.add(new Vector3d(-x*spacing,0,-y*spacing));
-				slot.rotation=new Quaternion(90,0,0);
-				slot.scale=0.15;
-				craftingSlots.add(slot);
-			}
-		}
+    public Vec3 getPosition(double partialTicks)
+    {
+        return this.position;
+    }
 
-		PhysicalItemSlot result=new PhysicalItemSlot(inventory,inventory.metaData.craftingOffset){
-			@Override
-			public Vector3d getAnchorPos(double partialTicks) {
-				Vector3d pos= MiniCrafting.this.getAnchorPos(partialTicks);
-				pos=pos.add(MiniCrafting.this.getAnchorRotation(partialTicks).multiply(
-						MiniCrafting.this.getPosition(partialTicks)
-				));
-				return pos;
-			}
+    public Quaternion getRotation(double partialTicks)
+    {
+        return this.extended ? this.rotation : this.rotation.multiply(new Quaternion(0.0F, 0.0F, 90.0F));
+    }
 
-			@Override
-			public Quaternion getAnchorRotation(double partialTicks) {
-				return MiniCrafting.this.getAnchorRotation(partialTicks).multiply(
-						MiniCrafting.this.getRotation(partialTicks));
-			}
+    public Vec3 getAnchorPos(double partialTicks)
+    {
+        return this.inventory.getAnchorPos(partialTicks);
+    }
 
-			@Override
-			public boolean isTouchable() {
-				return (!slot.getStack().isEmpty());
-			}
-		};
-		result.slot=inventory.container.inventorySlots.get(result.slotId);
-		result.enabled=false;
-		result.position=new Vector3d(-0.2,0.4,0);
-		result.fullBlockRotation = new Quaternion();
-		result.scale=0.15;
-		result.preview=false;
-		craftingSlots.add(result);
-	}
+    public Quaternion getAnchorRotation(double partialTicks)
+    {
+        return this.inventory.getAnchorRotation(partialTicks);
+    }
 
-	public Vector3d position=Vector3d.ZERO;
-	@Override
-	public Vector3d getPosition(double partialTicks) {
-		return position;
-	}
+    public boolean isEnabled()
+    {
+        return true;
+    }
 
-	public Quaternion rotation=new Quaternion();
-	@Override
-	public Quaternion getRotation(double partialTicks) {
-		if(extended)
-			return rotation;
-		else{
-			return rotation.multiply(new Quaternion(0,0,90));
-		}
-	}
+    public void touch()
+    {
+    }
 
-	@Override
-	public Vector3d getAnchorPos(double partialTicks) {
-		return inventory.getAnchorPos(partialTicks);
-	}
+    public void untouch()
+    {
+    }
 
-	@Override
-	public Quaternion getAnchorRotation(double partialTicks) {
-		return inventory.getAnchorRotation(partialTicks);
-	}
+    public ArrayList<PhysicalItemSlot> getCraftingSlots()
+    {
+        return this.craftingSlots;
+    }
 
-	@Override
-	public boolean isEnabled() {
-		return true;
-	}
+    public void click(int button)
+    {
+        this.setExtended(!this.extended);
+    }
 
-	@Override
-	public void touch() {
-	}
+    public void setExtended(boolean extended)
+    {
+        if (extended)
+        {
+            this.inventory.requestFatInventory();
+        }
+        else
+        {
+            this.returnItems();
+        }
 
-	@Override
-	public void untouch() {
+        this.extended = extended;
 
-	}
+        for (PhysicalItemSlot physicalitemslot : this.craftingSlots)
+        {
+            physicalitemslot.enabled = extended;
+        }
+    }
 
-	public ArrayList<PhysicalItemSlot> getCraftingSlots() {
-		return craftingSlots;
-	}
+    void returnItems()
+    {
+        ArrayList<PhysicalItemSlot> arraylist = new ArrayList<>();
 
-	@Override
-	public void click(int button) {
-		setExtended(!extended);
-	}
+        for (PhysicalItemSlot physicalitemslot : this.craftingSlots)
+        {
+            if (!physicalitemslot.slot.getItem().isEmpty())
+            {
+                arraylist.add(physicalitemslot);
+            }
+        }
 
-	public void setExtended(boolean extended){
-		if(extended){
-			inventory.requestFatInventory();
-		}else{
-			returnItems();
-		}
-		this.extended=extended;
-		for (PhysicalItemSlot slot : craftingSlots) {
-			slot.enabled=extended;
-		}
-	}
+        int[] aint = WindowCoordinator.getFreeSlotsInInventory(arraylist.size());
 
-	void returnItems(){
-		ArrayList<PhysicalItemSlot> nonEmpty=new ArrayList<>();
-		for (PhysicalItemSlot slot : craftingSlots) {
-			if (!slot.slot.getStack().isEmpty()){
-				nonEmpty.add(slot);
-			}
-		}
+        for (int i = 0; i < aint.length; ++i)
+        {
+            if (aint[i] == -1)
+            {
+                aint[i] = -999;
+            }
 
-		int[] freeSlots= WindowCoordinator.getFreeSlotsInInventory(nonEmpty.size());
-		for (int i = 0; i < freeSlots.length; i++) {
-			if(freeSlots[i]==-1){
-				//drop the item
-				freeSlots[i]=-999;
-			}
-			mc.physicalGuiManager.windowCoordinator.enqueueOperation(new WindowCoordinator.ClickOperation(
-					mc.physicalGuiManager,nonEmpty.get(i).slotId,0
-			));
-			mc.physicalGuiManager.windowCoordinator.enqueueOperation(new WindowCoordinator.ClickOperation(
-					mc.physicalGuiManager,freeSlots[i],0
-			));
-		}
-	}
+            this.mc.physicalGuiManager.windowCoordinator.enqueueOperation(new WindowCoordinator.ClickOperation(this.mc.physicalGuiManager, (arraylist.get(i)).slotId, 0));
+            this.mc.physicalGuiManager.windowCoordinator.enqueueOperation(new WindowCoordinator.ClickOperation(this.mc.physicalGuiManager, aint[i], 0));
+        }
+    }
 
-	@Override
-	public boolean isTouchable() {
-		if(extended) {
-			if(!mc.physicalGuiManager.getVirtualHeldItem().isEmpty())
-				return false;
-			for (PhysicalItemSlot slot : craftingSlots) {
-				if (!slot.slot.getStack().isEmpty())
-					return false;
-			}
-		}
-		return isEnabled();
-	}
+    public boolean isTouchable()
+    {
+        if (this.extended)
+        {
+            if (!this.mc.physicalGuiManager.getVirtualHeldItem().isEmpty())
+            {
+                return false;
+            }
 
-	@Override
-	public void unclick(int button) {
+            for (PhysicalItemSlot physicalitemslot : this.craftingSlots)
+            {
+                if (!physicalitemslot.slot.getItem().isEmpty())
+                {
+                    return false;
+                }
+            }
+        }
 
-	}
+        return this.isEnabled();
+    }
 
-	@Override
-	public AxisAlignedBB getBoundingBox() {
-		return new AxisAlignedBB(-0.22 -0.22,0,-0.22,0.22 -0.22,0.12,0.22).grow(0.05);
-	}
+    public void unclick(int button)
+    {
+    }
+
+    public AABB getBoundingBox()
+    {
+        return (new AABB(-0.44D, 0.0D, -0.22D, 0.0D, 0.12D, 0.22D)).inflate(0.05D);
+    }
 }

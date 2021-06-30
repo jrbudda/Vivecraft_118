@@ -1,15 +1,15 @@
 --- a/net/optifine/Config.java
 +++ b/net/optifine/Config.java
-@@ -1188,7 +1188,7 @@
+@@ -1147,7 +1147,7 @@
              }
          }
  
--        IResourcePack[] airesourcepack = list.toArray(new IResourcePack[list.size()]);
-+        IResourcePack[] airesourcepack = (IResourcePack[]) list.toArray(new IResourcePack[list.size()]);
-         return airesourcepack;
+-        PackResources[] apackresources = list.toArray(new PackResources[list.size()]);
++        PackResources[] apackresources = (PackResources[]) list.toArray(new PackResources[list.size()]);
+         return apackresources;
      }
  
-@@ -1513,7 +1513,7 @@
+@@ -1518,7 +1518,7 @@
              list.add(s);
          }
  
@@ -18,7 +18,7 @@
          return astring;
      }
  
-@@ -1645,7 +1645,7 @@
+@@ -1650,7 +1650,7 @@
  
              if (s == null)
              {
@@ -27,7 +27,7 @@
              }
  
              list.add(s);
-@@ -1941,7 +1941,7 @@
+@@ -1947,7 +1947,7 @@
          {
              int i = arr.length;
              int j = i + 1;
@@ -36,7 +36,7 @@
              System.arraycopy(arr, 0, aobject, 0, i);
              aobject[i] = obj;
              return aobject;
-@@ -1952,7 +1952,7 @@
+@@ -1958,7 +1958,7 @@
      {
          List list = new ArrayList<>(Arrays.asList(arr));
          list.add(index, obj);
@@ -45,7 +45,7 @@
          return list.toArray(aobject);
      }
  
-@@ -1970,7 +1970,7 @@
+@@ -1976,7 +1976,7 @@
          {
              int i = arr.length;
              int j = i + objs.length;
@@ -54,7 +54,7 @@
              System.arraycopy(arr, 0, aobject, 0, i);
              System.arraycopy(objs, 0, aobject, i, objs.length);
              return aobject;
-@@ -2000,7 +2000,7 @@
+@@ -2006,7 +2006,7 @@
          }
          else
          {

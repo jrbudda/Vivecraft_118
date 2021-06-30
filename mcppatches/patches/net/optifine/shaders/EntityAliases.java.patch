@@ -7,7 +7,7 @@
 +import java.util.Set;
 +
  import net.minecraft.client.Minecraft;
- import net.minecraft.util.ResourceLocation;
+ import net.minecraft.resources.ResourceLocation;
  import net.optifine.Config;
 @@ -106,7 +108,7 @@
                  Config.dbg("[Shaders] Parsing entity mappings: " + path);
