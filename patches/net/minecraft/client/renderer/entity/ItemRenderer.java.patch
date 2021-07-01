@@ -1,20 +1,27 @@
 --- a/net/minecraft/client/renderer/entity/ItemRenderer.java
 +++ b/net/minecraft/client/renderer/entity/ItemRenderer.java
-@@ -63,8 +63,12 @@
- import net.optifine.EmissiveTextures;
- import net.optifine.reflect.Reflector;
- import net.optifine.reflect.ReflectorForge;
-+import net.optifine.render.GlAlphaState;
- import net.optifine.render.VertexBuilderWrapper;
- import net.optifine.shaders.Shaders;
+@@ -17,6 +17,11 @@
+ import java.util.Random;
+ import java.util.Set;
+ import javax.annotation.Nullable;
++
 +import org.vivecraft.gameplay.trackers.SwingTracker;
 +import org.vivecraft.gameplay.trackers.TelescopeTracker;
 +import org.vivecraft.render.SpecialItemRenderer;
++
+ import net.minecraft.CrashReport;
+ import net.minecraft.CrashReportCategory;
+ import net.minecraft.ReportedException;
+@@ -65,6 +70,7 @@
+ import net.optifine.CustomItems;
+ import net.optifine.EmissiveTextures;
+ import net.optifine.reflect.Reflector;
++import net.optifine.render.GlAlphaState;
+ import net.optifine.render.VertexBuilderWrapper;
+ import net.optifine.shaders.Shaders;
  
- public class ItemRenderer implements ResourceManagerReloadListener
- {
-@@ -76,6 +80,11 @@
-     private final ItemColors itemColors;
+@@ -84,6 +90,11 @@
+     private final BlockEntityWithoutLevelRenderer blockEntityRenderer;
      public ModelManager modelManager = null;
      private static boolean renderItemGui = false;
 +    public static boolean ismainhand = false;
@@ -23,9 +30,9 @@
 +    float manualFade = 1.0F;
 +    private GlAlphaState alphaState = new GlAlphaState();
  
-     public ItemRenderer(TextureManager p_115100_, ModelManager p_115101_, ItemColors p_115102_)
+     public ItemRenderer(TextureManager p_174225_, ModelManager p_174226_, ItemColors p_174227_, BlockEntityWithoutLevelRenderer p_174228_)
      {
-@@ -149,6 +158,16 @@
+@@ -166,6 +177,16 @@
              }
  
              p_115147_.translate(-0.5D, -0.5D, -0.5D);
@@ -40,9 +47,9 @@
 +                this.fade = this.manualFade;
 +            }
  
-             if (!p_115151_.isCustomRenderer() && (p_115144_.getItem() != Items.TRIDENT || flag))
+             if (!p_115151_.isCustomRenderer() && (!p_115144_.is(Items.TRIDENT) || flag))
              {
-@@ -171,6 +190,12 @@
+@@ -188,6 +209,12 @@
                  else
                  {
                      RenderType rendertype = ItemBlockRenderTypes.getRenderType(p_115144_, flag1);
@@ -54,8 +61,8 @@
 +
                      VertexConsumer vertexconsumer;
  
-                     if (p_115144_.getItem() == Items.COMPASS && p_115144_.hasFoil())
-@@ -343,6 +368,19 @@
+                     if (p_115144_.is(Items.COMPASS) && p_115144_.hasFoil())
+@@ -360,6 +387,19 @@
                  }
              }
  
@@ -75,7 +82,7 @@
              float f = (float)(k >> 16 & 255) / 255.0F;
              float f1 = (float)(k >> 8 & 255) / 255.0F;
              float f2 = (float)(k & 255) / 255.0F;
-@@ -353,7 +391,7 @@
+@@ -370,7 +410,7 @@
              }
              else
              {
@@ -84,21 +91,18 @@
              }
          }
      }
-@@ -410,10 +448,12 @@
-         this.textureManager.bind(TextureAtlas.LOCATION_BLOCKS);
-         this.textureManager.getTexture(TextureAtlas.LOCATION_BLOCKS).setFilter(false, false);
-         RenderSystem.enableRescaleNormal();
-+        GlStateManager.getAlphaState(this.alphaState);
-+        GlStateManager._enableAlphaTest();
-         RenderSystem.enableAlphaTest();
-         RenderSystem.defaultAlphaFunc();
+@@ -431,6 +471,10 @@
          RenderSystem.enableBlend();
--        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-+        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-         RenderSystem.translatef((float)p_115129_, (float)p_115130_, 100.0F + this.blitOffset);
-         RenderSystem.translatef(8.0F, 8.0F, 0.0F);
-@@ -591,4 +631,24 @@
+         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
++        //Vivecraft.. wut
++        GlStateManager.getAlphaState(this.alphaState);
++        GlStateManager.enableAlphaTest();
++        //
+         PoseStack posestack = RenderSystem.getModelViewStack();
+         posestack.pushPose();
+         posestack.translate((double)p_115129_, (double)p_115130_, (double)(100.0F + this.blitOffset));
+@@ -635,4 +679,24 @@
      {
          return VanillaResourceType.MODELS;
      }

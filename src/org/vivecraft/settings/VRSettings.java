@@ -11,6 +11,7 @@ import java.util.SortedSet;
 import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
+import net.minecraft.client.sounds.SoundEngine;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
@@ -981,7 +982,7 @@ public class VRSettings
                     case 14:
                         return s1 + Lang.get("vivecraft.options.mirror.thirdperson");
 
-                    case 15:
+                    case VRSettings.MIRROR_MIXED_REALITY:
                         return s1 + Lang.get("vivecraft.options.mirror.mixedreality");
 
                     case 16:
@@ -2094,8 +2095,8 @@ public class VRSettings
                 {
                     this.hrtfSelection = -1;
                 }
-
-                MCReflection.SoundEngine_reload.invoke(MCReflection.SoundHandler_sndManager.get(this.mc.getSoundManager()), (Object[])null);
+                SoundEngine eng = (SoundEngine) MCReflection.SoundHandler_sndManager.get(this.mc.getSoundManager());
+                eng.reload();
                 break;
 
             case RIGHT_CLICK_DELAY:

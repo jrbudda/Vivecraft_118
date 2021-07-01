@@ -90,7 +90,7 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase
         }
 
         super.addDefaultButtons();
-        this.buttons.stream().filter((w) ->
+        this.renderables.stream().filter((w) ->
         {
             return w instanceof GuiVROptionButton;
         }).forEach((w) ->

@@ -9,16 +9,3 @@
  import net.minecraft.core.NonNullList;
  import net.minecraft.core.Registry;
  import net.minecraft.network.chat.Component;
-@@ -77,6 +79,12 @@
-             }
-         }
- 
-+        if (p_42986_ instanceof LocalPlayer && p_42984_.getHoverName().getString().equals("DRINK ME"))
-+        {
-+            Minecraft.getInstance().vrPlayer.wfMode = -0.05D;
-+            Minecraft.getInstance().vrPlayer.wfCount = 400;
-+        }
-+
-         return p_42984_;
-     }
- 

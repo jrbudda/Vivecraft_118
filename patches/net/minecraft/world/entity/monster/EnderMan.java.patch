@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/entity/monster/EnderMan.java
 +++ b/net/minecraft/world/entity/monster/EnderMan.java
-@@ -55,7 +55,11 @@
+@@ -56,7 +56,11 @@
  import net.minecraft.world.level.pathfinder.BlockPathTypes;
  import net.minecraft.world.phys.AABB;
  import net.minecraft.world.phys.BlockHitResult;
@@ -12,19 +12,7 @@
  
  public class EnderMan extends Monster implements NeutralMob
  {
-@@ -64,9 +68,9 @@
-     private static final EntityDataAccessor<Optional<BlockState>> DATA_CARRY_STATE = SynchedEntityData.defineId(EnderMan.class, EntityDataSerializers.BLOCK_STATE);
-     private static final EntityDataAccessor<Boolean> DATA_CREEPY = SynchedEntityData.defineId(EnderMan.class, EntityDataSerializers.BOOLEAN);
-     private static final EntityDataAccessor<Boolean> DATA_STARED_AT = SynchedEntityData.defineId(EnderMan.class, EntityDataSerializers.BOOLEAN);
--    private static final Predicate<LivingEntity> ENDERMITE_SELECTOR = (p_32539_) ->
-+    private static final Predicate<LivingEntity> ENDERMITE_SELECTOR = (p_213626_0_) ->
-     {
--        return p_32539_ instanceof Endermite && ((Endermite)p_32539_).isPlayerSpawned();
-+        return p_213626_0_ instanceof Endermite && ((Endermite)p_213626_0_).isPlayerSpawned();
-     };
-     private int lastStareSound = Integer.MIN_VALUE;
-     private int targetChangeTime;
-@@ -124,6 +128,8 @@
+@@ -123,6 +127,8 @@
                  attributeinstance.addTransientModifier(SPEED_MODIFIER_ATTACKING);
              }
          }
@@ -33,54 +21,7 @@
      }
  
      protected void defineSynchedData()
-@@ -217,22 +223,38 @@
-     private boolean isLookingAtMe(Player p_32535_)
-     {
-         ItemStack itemstack = p_32535_.inventory.armor.get(3);
-+        boolean flag = Reflector.callBoolean(itemstack, Reflector.ForgeItemStack_isEnderMask, p_32535_, this);
- 
--        if (itemstack.getItem() == Blocks.CARVED_PUMPKIN.asItem())
--        {
--            return false;
--        }
--        else
-+        if (!flag && itemstack.getItem() != Blocks.CARVED_PUMPKIN.asItem())
-         {
-             Vec3 vec3 = p_32535_.getViewVector(1.0F).normalize();
-             Vec3 vec31 = new Vec3(this.getX() - p_32535_.getX(), this.getEyeY() - p_32535_.getEyeY(), this.getZ() - p_32535_.getZ());
--            double d0 = vec31.length();
-+            ServerVivePlayer serverviveplayer = NetworkHelper.vivePlayers.get(p_32535_.getUUID());
-+            boolean flag1 = serverviveplayer != null && serverviveplayer.isVR();
-+
-+            if (flag1)
-+            {
-+                vec3 = serverviveplayer.getHMDDir();
-+                Vec3 vec32 = serverviveplayer.getHMDPos(p_32535_);
-+                vec31 = new Vec3(this.getX() - vec32.x, this.getBoundingBox().minY + (double)this.getEyeHeight() - vec32.y, this.getZ() - vec32.z);
-+            }
-+
-+            double d1 = vec31.length();
-             vec31 = vec31.normalize();
--            double d1 = vec3.dot(vec31);
--            return d1 > 1.0D - 0.025D / d0 ? p_32535_.canSee(this) : false;
-+            double d0 = vec3.dot(vec31);
-+            return d0 > 1.0D - 0.025D / d1 ? (flag1 ? this.canSee(serverviveplayer.getHMDPos(p_32535_), this.getEyePosition(1.0F)) : p_32535_.canSee(this)) : false;
-+        }
-+        else
-+        {
-+            return false;
-         }
-     }
- 
-+    private boolean canSee(Vec3 source, Vec3 Target)
-+    {
-+        return this.level.clip(new ClipContext(source, Target, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this)).getType() == HitResult.Type.MISS;
-+    }
-+
-     protected float getStandingEyeHeight(Pose p_32517_, EntityDimensions p_32518_)
-     {
-         return 2.55F;
-@@ -320,6 +342,20 @@
+@@ -319,6 +325,20 @@
  
          if (flag && !flag1)
          {
@@ -101,7 +42,7 @@
              boolean flag2 = this.randomTeleport(p_32544_, p_32545_, p_32546_, true);
  
              if (flag2 && !this.isSilent())
-@@ -472,11 +508,18 @@
+@@ -471,11 +491,18 @@
  
          public boolean canUse()
          {
@@ -121,7 +62,7 @@
              {
                  return false;
              }
-@@ -498,8 +541,10 @@
+@@ -497,8 +524,10 @@
              BlockPos blockpos1 = blockpos.below();
              BlockState blockstate1 = level.getBlockState(blockpos1);
              BlockState blockstate2 = this.enderman.getCarriedBlock();
@@ -133,19 +74,7 @@
              {
                  blockstate2 = Block.updateFromNeighbourShapes(blockstate2, this.enderman.level, blockpos);
  
-@@ -530,9 +575,9 @@
-         {
-             super(p_32573_, Player.class, 10, false, false, p_32574_);
-             this.enderman = p_32573_;
--            this.startAggroTargetConditions = (new TargetingConditions()).range(this.getFollowDistance()).selector((p_32578_) ->
-+            this.startAggroTargetConditions = (new TargetingConditions()).range(this.getFollowDistance()).selector((p_220790_1_) ->
-             {
--                return p_32573_.isLookingAtMe((Player)p_32578_);
-+                return p_32573_.isLookingAtMe((Player)p_220790_1_);
-             });
-         }
- 
-@@ -626,11 +671,18 @@
+@@ -626,11 +655,18 @@
  
          public boolean canUse()
          {

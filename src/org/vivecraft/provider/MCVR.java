@@ -508,7 +508,7 @@ public abstract class MCVR
 
         if (this.mc.player != null)
         {
-            if (this.mc.player.inventory != null)
+            if (this.mc.player.getInventory() != null)
             {
                 if (!this.mc.climbTracker.isGrabbingLadder() || !this.mc.climbTracker.isClaws(this.mc.player.getMainHandItem()))
                 {
@@ -1036,14 +1036,14 @@ public abstract class MCVR
             {
                 for (int j = 0; j < 9; ++j)
                 {
-                    ItemStack itemstack = this.mc.player.inventory.getItem(j);
+                    ItemStack itemstack = this.mc.player.getInventory().getItem(j);
 
                     if (itemstack.getItem() instanceof BlockItem && ((BlockItem)itemstack.getItem()).getBlock() instanceof TorchBlock && this.mc.screen == null)
                     {
-                        this.quickTorchPreviousSlot = this.mc.player.inventory.selected;
-                        this.mc.player.inventory.selected = j;
+                        this.quickTorchPreviousSlot = this.mc.player.getInventory().selected;
+                        this.mc.player.getInventory().selected = j;
                         this.mc.startUseItem();
-                        this.mc.player.inventory.selected = this.quickTorchPreviousSlot;
+                        this.mc.player.getInventory().selected = this.quickTorchPreviousSlot;
                         this.quickTorchPreviousSlot = -1;
                         break;
                     }
@@ -1482,7 +1482,7 @@ public abstract class MCVR
             }
             else
             {
-                this.mc.player.inventory.swapPaint((double)dir);
+                this.mc.player.getInventory().swapPaint((double)dir);
             }
         }
     }

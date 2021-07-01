@@ -16,7 +16,7 @@
  
  public class InputConstants
  {
-@@ -60,7 +62,12 @@
+@@ -185,7 +187,12 @@
  
      public static boolean isKeyDown(long p_84831_, int p_84832_)
      {
@@ -30,12 +30,12 @@
      }
  
      public static void setupKeyboardCallbacks(long p_84845_, GLFWKeyCallbackI p_84846_, GLFWCharModsCallbackI p_84847_)
-@@ -114,14 +121,14 @@
+@@ -239,14 +246,14 @@
          {
              methodhandle = lookup.findStatic(GLFW.class, "glfwRawMouseMotionSupported", methodtype);
              MethodHandle methodhandle1 = lookup.findStaticGetter(GLFW.class, "GLFW_RAW_MOUSE_MOTION", Integer.TYPE);
 -            i = (int)methodhandle1.invokeExact();
-+            i = methodhandle1.invokeExact();
++            i = (int) methodhandle1.invokeExact();
          }
 -        catch (NoSuchFieldException | NoSuchMethodException nosuchmethodexception)
 +        catch (NoSuchMethodException | NoSuchFieldException nosuchfieldexception)
@@ -48,8 +48,8 @@
 +            throw new RuntimeException(throwable1);
          }
  
-         glfwRawMouseMotionSupported = methodhandle;
-@@ -211,16 +218,16 @@
+         GLFW_RAW_MOUSE_MOTION_SUPPORTED = methodhandle;
+@@ -336,16 +343,16 @@
  
      public static enum Type
      {
@@ -74,7 +74,7 @@
          });
  
          private final Int2ObjectMap<InputConstants.Key> map = new Int2ObjectOpenHashMap<>();
-@@ -241,17 +248,17 @@
+@@ -366,17 +373,17 @@
  
          public InputConstants.Key getOrCreate(int p_84896_)
          {

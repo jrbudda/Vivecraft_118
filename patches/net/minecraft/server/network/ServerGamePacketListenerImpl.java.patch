@@ -1,23 +1,6 @@
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-@@ -5,10 +5,16 @@
- import com.google.common.primitives.Floats;
- import com.mojang.brigadier.ParseResults;
- import com.mojang.brigadier.StringReader;
-+import io.netty.channel.Channel;
- import io.netty.util.concurrent.Future;
- import io.netty.util.concurrent.GenericFutureListener;
- import it.unimi.dsi.fastutil.ints.Int2ShortMap;
- import it.unimi.dsi.fastutil.ints.Int2ShortOpenHashMap;
-+import java.io.BufferedReader;
-+import java.io.ByteArrayInputStream;
-+import java.io.DataInputStream;
-+import java.io.IOException;
-+import java.io.InputStreamReader;
- import java.util.Collections;
- import java.util.List;
- import java.util.Optional;
-@@ -35,6 +41,7 @@
+@@ -33,6 +33,7 @@
  import net.minecraft.nbt.ListTag;
  import net.minecraft.nbt.StringTag;
  import net.minecraft.network.Connection;
@@ -25,7 +8,7 @@
  import net.minecraft.network.chat.ChatType;
  import net.minecraft.network.chat.Component;
  import net.minecraft.network.chat.TextComponent;
-@@ -111,6 +118,8 @@
+@@ -109,6 +110,8 @@
  import net.minecraft.world.entity.ExperienceOrb;
  import net.minecraft.world.entity.MoverType;
  import net.minecraft.world.entity.PlayerRideableJumping;
@@ -34,7 +17,7 @@
  import net.minecraft.world.entity.animal.horse.AbstractHorse;
  import net.minecraft.world.entity.item.ItemEntity;
  import net.minecraft.world.entity.player.ChatVisiblity;
-@@ -148,9 +157,14 @@
+@@ -147,9 +150,20 @@
  import net.minecraft.world.phys.shapes.BooleanOp;
  import net.minecraft.world.phys.shapes.Shapes;
  import net.minecraft.world.phys.shapes.VoxelShape;
@@ -46,30 +29,38 @@
 +import org.vivecraft.api.NetworkHelper;
 +import org.vivecraft.api.ServerVivePlayer;
 +import org.vivecraft.reflection.MCReflection;
++import io.netty.channel.Channel;
++import java.io.BufferedReader;
++import java.io.ByteArrayInputStream;
++import java.io.DataInputStream;
++import java.io.IOException;
++import java.io.InputStreamReader;
  
- public class ServerGamePacketListenerImpl implements ServerGamePacketListener
+ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, ServerGamePacketListener
  {
-@@ -195,6 +209,19 @@
+@@ -196,6 +210,21 @@
          p_9771_.setListener(this);
          this.player = p_9772_;
          p_9772_.connection = this;
-+
++        
++        //Vivecraft
 +        try
 +        {
-+            ((Channel)MCReflection.NetworkManager_channel.get(p_9771_)).pipeline().addBefore("packet_handler", "vr_aim_fix", new AimFixHandler(this.connection));
++        	((Channel)MCReflection.NetworkManager_channel.get(p_9771_)).pipeline().addBefore("packet_handler", "vr_aim_fix", new AimFixHandler(this.connection));
 +        }
 +        catch (Exception exception)
 +        {
-+            if (!Reflector.fml_ModLoader.exists())
-+            {
-+                LOGGER.warn("{} failed adding VR aim fix", (Object)this.player.getName().getString());
-+            }
++        	if (!Reflector.fml_ModLoader.exists())
++        	{
++        		LOGGER.warn("{} failed adding VR aim fix", (Object)this.player.getName().getString());
++        	}
 +        }
++        //
 +
-         TextFilter textfilter = p_9772_.getTextFilter();
+         p_9772_.getTextFilter().join();
+     }
  
-         if (textfilter != null)
-@@ -296,6 +323,8 @@
+@@ -292,6 +321,8 @@
          {
              this.disconnect(new TranslatableComponent("multiplayer.disconnect.idling"));
          }
@@ -78,7 +69,7 @@
      }
  
      public void resetPosition()
-@@ -320,7 +349,7 @@
+@@ -316,7 +347,7 @@
  
      public void disconnect(Component p_9943_)
      {
@@ -87,94 +78,21 @@
          {
              this.connection.disconnect(p_9943_);
          });
-@@ -331,11 +360,11 @@
-     private <T> void filterTextPacket(T p_9802_, Consumer<T> p_9803_, BiFunction<TextFilter, T, CompletableFuture<Optional<T>>> p_9804_)
-     {
-         BlockableEventLoop<?> blockableeventloop = this.player.getLevel().getServer();
--        Consumer<T> consumer = (p_9941_) ->
-+        Consumer<T> consumer = (p_244545_2_) ->
-         {
-             if (this.getConnection().isConnected())
-             {
--                p_9803_.accept(p_9941_);
-+                p_9803_.accept(p_244545_2_);
-             }
-             else {
-                 LOGGER.debug("Ignoring packet due to disconnection");
-@@ -345,9 +374,9 @@
- 
-         if (textfilter != null)
-         {
--            p_9804_.apply(textfilter, p_9802_).thenAcceptAsync((p_9823_) ->
-+            p_9804_.apply(textfilter, p_9802_).thenAcceptAsync((p_244539_1_) ->
-             {
--                p_9823_.ifPresent(consumer);
-+                p_244539_1_.ifPresent(consumer);
-             }, blockableeventloop);
-         }
-         else
-@@ -452,11 +481,13 @@
+@@ -431,11 +462,13 @@
                  }
  
                  entity.absMoveTo(d3, d4, d5, f, f1);
-+                this.player.absMoveTo(d3, d4, d5, this.player.yRot, this.player.xRot);
++                this.player.absMoveTo(d3, d4, d5, this.player.getYRot(), this.player.getXRot());
                  boolean flag2 = serverlevel.noCollision(entity, entity.getBoundingBox().deflate(0.0625D));
  
                  if (flag && (flag1 || !flag2))
                  {
                      entity.absMoveTo(d0, d1, d2, f, f1);
-+                    this.player.absMoveTo(d3, d4, d5, this.player.yRot, this.player.xRot);
++                    this.player.absMoveTo(d3, d4, d5, this.player.getYRot(), this.player.getXRot());
                      this.connection.send(new ClientboundMoveVehiclePacket(entity));
                      return;
                  }
-@@ -535,9 +566,9 @@
-         }
- 
-         ParseResults<CommandSourceStack> parseresults = this.server.getCommands().getDispatcher().parse(stringreader, this.player.createCommandSourceStack());
--        this.server.getCommands().getDispatcher().getCompletionSuggestions(parseresults).thenAccept((p_9850_) ->
-+        this.server.getCommands().getDispatcher().getCompletionSuggestions(parseresults).thenAccept((p_195519_2_) ->
-         {
--            this.connection.send(new ClientboundCommandSuggestionsPacket(p_9847_.getId(), p_9850_));
-+            this.connection.send(new ClientboundCommandSuggestionsPacket(p_9847_.getId(), p_195519_2_));
-         });
-     }
- 
-@@ -577,13 +608,13 @@
-                 switch (p_9911_.getMode())
-                 {
-                     case SEQUENCE:
--                        BlockState blockstate1 = Blocks.CHAIN_COMMAND_BLOCK.defaultBlockState();
--                        this.player.level.setBlock(blockpos, blockstate1.setValue(CommandBlock.FACING, direction).setValue(CommandBlock.CONDITIONAL, Boolean.valueOf(p_9911_.isConditional())), 2);
-+                        BlockState blockstate = Blocks.CHAIN_COMMAND_BLOCK.defaultBlockState();
-+                        this.player.level.setBlock(blockpos, blockstate.setValue(CommandBlock.FACING, direction).setValue(CommandBlock.CONDITIONAL, Boolean.valueOf(p_9911_.isConditional())), 2);
-                         break;
- 
-                     case AUTO:
--                        BlockState blockstate = Blocks.REPEATING_COMMAND_BLOCK.defaultBlockState();
--                        this.player.level.setBlock(blockpos, blockstate.setValue(CommandBlock.FACING, direction).setValue(CommandBlock.CONDITIONAL, Boolean.valueOf(p_9911_.isConditional())), 2);
-+                        BlockState blockstate1 = Blocks.REPEATING_COMMAND_BLOCK.defaultBlockState();
-+                        this.player.level.setBlock(blockpos, blockstate1.setValue(CommandBlock.FACING, direction).setValue(CommandBlock.CONDITIONAL, Boolean.valueOf(p_9911_.isConditional())), 2);
-                         break;
- 
-                     case REDSTONE:
-@@ -849,12 +880,12 @@
- 
-                 if (Inventory.isHotbarSlot(j) || j == 40)
-                 {
--                    this.filterTextPacket(list, flag ? (p_9936_) ->
-+                    this.filterTextPacket(list, flag ? (p_244543_2_) ->
-                     {
--                        this.signBook(p_9936_.get(0), p_9936_.subList(1, p_9936_.size()), j);
--                    } : (p_9789_) ->
-+                        this.signBook(p_244543_2_.get(0), p_244543_2_.subList(1, p_244543_2_.size()), j);
-+                    } : (p_244531_2_) ->
-                     {
--                        this.updateBookContents(p_9789_, j);
-+                        this.updateBookContents(p_244531_2_, j);
-                     });
-                 }
-             }
-@@ -1076,14 +1107,14 @@
+@@ -1101,14 +1134,14 @@
  
      private boolean isPlayerCollidingWithAnythingNew(LevelReader p_9796_, AABB p_9797_)
      {
@@ -192,9 +110,9 @@
          });
      }
  
-@@ -1188,7 +1219,17 @@
+@@ -1224,7 +1257,17 @@
  
-         if (blockpos.getY() < this.server.getMaxBuildHeight())
+         if (blockpos.getY() < i)
          {
 -            if (this.awaitingPositionFromClient == null && this.player.distanceToSqr((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D) < 64.0D && serverlevel.mayInteract(this.player, blockpos))
 +            double d0 = 8.0D;
@@ -211,7 +129,7 @@
              {
                  InteractionResult interactionresult = this.player.gameMode.useItemOn(this.player, serverlevel, itemstack, interactionhand, blockhitresult);
  
-@@ -1289,7 +1330,7 @@
+@@ -1331,7 +1374,7 @@
  
      public void send(Packet<?> p_9830_)
      {
@@ -220,7 +138,7 @@
      }
  
      public void send(Packet<?> p_9832_, @Nullable GenericFutureListener <? extends Future <? super Void >> p_9833_)
-@@ -1314,9 +1355,9 @@
+@@ -1340,9 +1383,9 @@
          {
              this.connection.send(p_9832_, p_9833_);
          }
@@ -232,66 +150,7 @@
              CrashReportCategory crashreportcategory = crashreport.addCategory("Packet being sent");
              crashreportcategory.setDetail("Packet class", () ->
              {
-@@ -1384,10 +1425,20 @@
-             {
-                 this.handleCommand(p_9955_);
-             }
-+            else if (Reflector.ForgeHooks_newChatWithLinks.exists())
-+            {
-+                Component component = new TranslatableComponent("chat.type.text", this.player.getDisplayName(), Reflector.call(Reflector.ForgeHooks_newChatWithLinks, p_9955_));
-+                Component component1 = (Component)Reflector.call(Reflector.ForgeHooks_onServerChatEvent, this, p_9955_, component);
-+
-+                if (component1 == null)
-+                {
-+                    return;
-+                }
-+            }
-             else
-             {
--                Component component = new TranslatableComponent("chat.type.text", this.player.getDisplayName(), p_9955_);
--                this.server.getPlayerList().broadcastMessage(component, ChatType.CHAT, this.player.getUUID());
-+                Component component2 = new TranslatableComponent("chat.type.text", this.player.getDisplayName(), p_9955_);
-+                this.server.getPlayerList().broadcastMessage(component2, ChatType.CHAT, this.player.getUUID());
-             }
- 
-             this.chatSpamTickCount += 20;
-@@ -1511,6 +1562,11 @@
-                 }
-                 else if (p_9866_.getAction() == ServerboundInteractPacket.Action.INTERACT_AT)
-                 {
-+                    if (Reflector.call(Reflector.ForgeHooks_onInteractEntityAt, this.player, entity, p_9866_.getLocation(), interactionhand) != null)
-+                    {
-+                        return;
-+                    }
-+
-                     optional = Optional.of(entity.interactAt(this.player, p_9866_.getLocation(), interactionhand));
-                 }
-                 else if (p_9866_.getAction() == ServerboundInteractPacket.Action.ATTACK)
-@@ -1638,9 +1694,9 @@
- 
-         if (!this.player.isSpectator() && this.player.containerMenu.containerId == p_9882_.getContainerId() && this.player.containerMenu.isSynched(this.player) && this.player.containerMenu instanceof RecipeBookMenu)
-         {
--            this.server.getRecipeManager().byKey(p_9882_.getRecipe()).ifPresent((p_9885_) ->
-+            this.server.getRecipeManager().byKey(p_9882_.getRecipe()).ifPresent((p_241165_2_) ->
-             {
--                ((RecipeBookMenu)this.player.containerMenu).handlePlacement(p_9882_.isShiftDown(), p_9885_, this.player);
-+                ((RecipeBookMenu)this.player.containerMenu).handlePlacement(p_9882_.isShiftDown(), p_241165_2_, this.player);
-             });
-         }
-     }
-@@ -1721,9 +1777,9 @@
-     public void handleSignUpdate(ServerboundSignUpdatePacket p_9921_)
-     {
-         List<String> list = Stream.of(p_9921_.getLines()).map(ChatFormatting::stripFormatting).collect(Collectors.toList());
--        this.filterTextPacket(list, (p_9952_) ->
-+        this.filterTextPacket(list, (p_244547_2_) ->
-         {
--            this.updateSignText(p_9921_, p_9952_);
-+            this.updateSignText(p_9921_, p_244547_2_);
-         });
-     }
- 
-@@ -1789,6 +1845,128 @@
+@@ -1805,6 +1848,128 @@
  
      public void handleCustomPayload(ServerboundCustomPayloadPacket p_9860_)
      {
@@ -388,7 +247,7 @@
 +                    float f = friendlybytebuf.readFloat();
 +                    float f1 = friendlybytebuf.readFloat();
 +                    float f2 = friendlybytebuf.readFloat();
-+                    this.player.absMoveTo((double)f, (double)f1, (double)f2, this.player.yRot, this.player.xRot);
++                    this.player.absMoveTo((double)f, (double)f1, (double)f2, this.player.getYRot(), this.player.getXRot());
 +                    break;
 +
 +                case CLIMBING:

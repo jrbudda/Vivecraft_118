@@ -4,6 +4,8 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat.Mode;
+
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -83,11 +85,11 @@ public class BezierCurve
         double d1 = player.yOld + (player.getY() - player.yOld) * (double)partialTicks;
         double d2 = player.zOld + (player.getZ() - player.zOld) * (double)partialTicks;
         GlStateManager._disableTexture();
-        GlStateManager._disableLighting();
+        //GlStateManager._disableLighting();
         GlStateManager._depthMask(false);
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
-        bufferbuilder.begin(3, DefaultVertexFormat.POSITION_COLOR);
+        bufferbuilder.begin(Mode.LINES, DefaultVertexFormat.POSITION_COLOR);
         Vec3[] avec3 = this.getLinearInterpolation(vertexCount / this.nodes.size());
 
         for (int i = 0; i < avec3.length; ++i)
@@ -96,7 +98,7 @@ public class BezierCurve
         }
 
         tesselator.end();
-        GlStateManager._enableLighting();
+        //GlStateManager._enableLighting();
         GlStateManager._enableTexture();
         GlStateManager._depthMask(true);
     }

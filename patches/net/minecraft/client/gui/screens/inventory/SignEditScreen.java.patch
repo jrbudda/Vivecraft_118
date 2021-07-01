@@ -1,55 +1,26 @@
 --- a/net/minecraft/client/gui/screens/inventory/SignEditScreen.java
 +++ b/net/minecraft/client/gui/screens/inventory/SignEditScreen.java
-@@ -27,6 +27,7 @@
- import net.minecraft.world.level.block.StandingSignBlock;
- import net.minecraft.world.level.block.entity.SignBlockEntity;
- import net.minecraft.world.level.block.state.BlockState;
+@@ -12,6 +12,9 @@
+ import com.mojang.blaze3d.vertex.VertexFormat;
+ import com.mojang.math.Matrix4f;
+ import java.util.stream.IntStream;
++
 +import org.vivecraft.gameplay.screenhandlers.KeyboardHandler;
- 
- public class SignEditScreen extends Screen
- {
-@@ -40,9 +41,9 @@
-     public SignEditScreen(SignBlockEntity p_99260_)
-     {
-         super(new TranslatableComponent("sign.edit"));
--        this.messages = IntStream.range(0, 4).mapToObj(p_99260_::getMessage).map(Component::getString).toArray((p_99265_) ->
-+        this.messages = IntStream.range(0, 4).mapToObj(p_99260_::getMessage).map(Component::getString).toArray((p_243354_0_) ->
-         {
--            return new String[p_99265_];
-+            return new String[p_243354_0_];
-         });
-         this.sign = p_99260_;
-     }
-@@ -50,21 +51,22 @@
-     protected void init()
-     {
-         this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
--        this.addButton(new Button(this.width / 2 - 100, this.height / 4 + 120, 200, 20, CommonComponents.GUI_DONE, (p_99276_) ->
-+        this.addButton(new Button(this.width / 2 - 100, this.height / 4 + 120, 200, 20, CommonComponents.GUI_DONE, (p_238847_1_) ->
-         {
++
+ import net.minecraft.client.gui.components.Button;
+ import net.minecraft.client.gui.font.TextFieldHelper;
+ import net.minecraft.client.gui.screens.Screen;
+@@ -63,6 +66,9 @@
              this.onDone();
          }));
          this.sign.setEditable(false);
++        //Vivecraft
 +        KeyboardHandler.setOverlayShowing(true);
++        //
          this.signField = new TextFieldHelper(() ->
          {
              return this.messages[this.line];
--        }, (p_99282_) ->
-+        }, (p_238850_1_) ->
-         {
--            this.messages[this.line] = p_99282_;
--            this.sign.setMessage(this.line, new TextComponent(p_99282_));
--        }, TextFieldHelper.createClipboardGetter(this.minecraft), TextFieldHelper.createClipboardSetter(this.minecraft), (p_99280_) ->
-+            this.messages[this.line] = p_238850_1_;
-+            this.sign.setMessage(this.line, new TextComponent(p_238850_1_));
-+        }, TextFieldHelper.createClipboardGetter(this.minecraft), TextFieldHelper.createClipboardSetter(this.minecraft), (p_238848_1_) ->
-         {
--            return this.minecraft.font.width(p_99280_) <= 90;
-+            return this.minecraft.font.width(p_238848_1_) <= 90;
-         });
-     }
- 
-@@ -79,6 +81,7 @@
+@@ -90,6 +96,7 @@
          }
  
          this.sign.setEditable(true);

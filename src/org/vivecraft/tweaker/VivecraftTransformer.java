@@ -115,7 +115,7 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
 
         List<MethodNode> list = new ArrayList<>();
 
-        for (MethodNode methodnode : classnode.methods)
+        for (MethodNode methodnode : (List<MethodNode>)classnode.methods)
         {
             for (ITransformer<MethodNode> itransformer1 : this.lostMethodTransformers)
             {
@@ -135,7 +135,7 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
         classnode.methods = list;
         List<FieldNode> list1 = new ArrayList<>();
 
-        for (FieldNode fieldnode : classnode.fields)
+        for (FieldNode fieldnode : (List<FieldNode>)classnode.fields)
         {
             for (ITransformer<FieldNode> itransformer2 : this.fieldTransformersOftheDamned)
             {

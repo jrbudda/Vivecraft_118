@@ -7,6 +7,8 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
+
 import org.apache.commons.lang3.ArrayUtils;
 
 public class GuiRadialItemsList extends ObjectSelectionList
@@ -63,6 +65,12 @@ public class GuiRadialItemsList extends ObjectSelectionList
         {
             GuiRadialItemsList.this.mc.font.draw(p_93523_, this.labelText, (float)(GuiRadialItemsList.this.mc.screen.width / 2 - this.labelWidth / 2), (float)(p_93525_ + p_93528_ - 9 - 1), 6777215);
         }
+
+		@Override
+		public Component getNarration() {
+			// TODO Auto-generated method stub
+			return null;
+		}
     }
 
     public class MappingEntry extends ObjectSelectionList.Entry
@@ -93,5 +101,11 @@ public class GuiRadialItemsList extends ObjectSelectionList
             this.parentScreen.setKey(this.myKey);
             return true;
         }
+
+		@Override
+		public Component getNarration() {
+			// TODO Auto-generated method stub
+			return null;
+		}
     }
 }

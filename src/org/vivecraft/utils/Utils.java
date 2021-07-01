@@ -193,11 +193,6 @@ public class Utils
         return angle;
     }
 
-    public static void glRotate(Quaternion quaternion)
-    {
-        GlStateManager._multMatrix(Convert.matrix(quaternion.inverse()).toMCMatrix4f());
-    }
-
     public static Vector3f directionFromMatrix(Matrix4f matrix, float x, float y, float z)
     {
         Vector4f vector4f = new Vector4f(x, y, z, 0.0F);
@@ -316,11 +311,11 @@ public class Utils
 
     public static GlStateManager.Color colorFromHSB(float hue, float saturation, float brightness)
     {
-        GlStateManager.Color glstatemanager$color = new GlStateManager.Color();
+        GlStateManager.Color GlStateManager$color = new GlStateManager.Color();
 
         if (saturation == 0.0F)
         {
-            glstatemanager$color.r = glstatemanager$color.g = glstatemanager$color.b = brightness;
+            GlStateManager$color.r = GlStateManager$color.g = GlStateManager$color.b = brightness;
         }
         else
         {
@@ -333,43 +328,43 @@ public class Utils
             switch ((int)f)
             {
                 case 0:
-                    glstatemanager$color.r = brightness;
-                    glstatemanager$color.g = f4;
-                    glstatemanager$color.b = f2;
+                    GlStateManager$color.r = brightness;
+                    GlStateManager$color.g = f4;
+                    GlStateManager$color.b = f2;
                     break;
 
                 case 1:
-                    glstatemanager$color.r = f3;
-                    glstatemanager$color.g = brightness;
-                    glstatemanager$color.b = f2;
+                    GlStateManager$color.r = f3;
+                    GlStateManager$color.g = brightness;
+                    GlStateManager$color.b = f2;
                     break;
 
                 case 2:
-                    glstatemanager$color.r = f2;
-                    glstatemanager$color.g = brightness;
-                    glstatemanager$color.b = f4;
+                    GlStateManager$color.r = f2;
+                    GlStateManager$color.g = brightness;
+                    GlStateManager$color.b = f4;
                     break;
 
                 case 3:
-                    glstatemanager$color.r = f2;
-                    glstatemanager$color.g = f3;
-                    glstatemanager$color.b = brightness;
+                    GlStateManager$color.r = f2;
+                    GlStateManager$color.g = f3;
+                    GlStateManager$color.b = brightness;
                     break;
 
                 case 4:
-                    glstatemanager$color.r = f4;
-                    glstatemanager$color.g = f2;
-                    glstatemanager$color.b = brightness;
+                    GlStateManager$color.r = f4;
+                    GlStateManager$color.g = f2;
+                    GlStateManager$color.b = brightness;
                     break;
 
                 case 5:
-                    glstatemanager$color.r = brightness;
-                    glstatemanager$color.g = f2;
-                    glstatemanager$color.b = f3;
+                    GlStateManager$color.r = brightness;
+                    GlStateManager$color.g = f2;
+                    GlStateManager$color.b = f3;
             }
         }
 
-        return glstatemanager$color;
+        return GlStateManager$color;
     }
 
     public static InputStream getAssetAsStream(String name, boolean required)

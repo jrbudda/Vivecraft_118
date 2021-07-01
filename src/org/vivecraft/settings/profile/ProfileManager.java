@@ -243,7 +243,7 @@ public class ProfileManager
             {
                 JSONObject jsonobject1 = jsonobject.getJSONObject(set);
 
-                for (String s : jsonobject1.keySet())
+                for (String s : (Set<String>)jsonobject1.keySet())
                 {
                     String s1 = jsonobject1.getString(s);
                     map.put(s, s1);
@@ -262,7 +262,7 @@ public class ProfileManager
         {
             JSONObject jsonobject = theProfile.getJSONObject(set);
 
-            for (String s : jsonobject.keySet())
+            for (String s : (Set<String>)jsonobject.keySet())
             {
                 String s1 = jsonobject.getString(s);
                 map.put(s, s1);

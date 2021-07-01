@@ -85,7 +85,7 @@ public class MenuWorldExporter
         }
         else
         {
-            dataoutputstream.writeBoolean(MCReflection.ClientWorldInfo_isFlat.get(world.getLevelData()));
+            dataoutputstream.writeBoolean((boolean) MCReflection.ClientWorldInfo_isFlat.get(world.getLevelData()));
         }
 
         dataoutputstream.writeBoolean(world.dimensionType().hasSkyLight());
@@ -96,7 +96,7 @@ public class MenuWorldExporter
         }
         else
         {
-            dataoutputstream.writeLong(MCReflection.BiomeManager_seed.get(world.getBiomeManager()));
+            dataoutputstream.writeLong((long) MCReflection.BiomeManager_seed.get(world.getBiomeManager()));
         }
 
         menuworldexporter$blockstatemapper.writePalette(dataoutputstream);
@@ -194,7 +194,7 @@ public class MenuWorldExporter
                 resourcelocation = new ResourceLocation(datainputstream1.readUTF());
             }
 
-            Registry<DimensionType> registry = RegistryAccess.builtin().dimensionTypes();
+            Registry<DimensionType> registry = RegistryAccess.builtin().registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY);
             ResourceKey<DimensionType> resourcekey = ResourceKey.create(Registry.DIMENSION_TYPE_REGISTRY, resourcelocation);
             DimensionType dimensiontype = registry.get(resourcekey);
 

@@ -31,7 +31,7 @@ public class GLUtils
         GL11.glGetFloatv(2982, matrixBuffer);
         ((Buffer)matrixBuffer).rewind();
         Matrix4f matrix4f = new Matrix4f();
-        matrix4f.read(matrixBuffer);
+        matrix4f.load(matrixBuffer);
         return matrix4f;
     }
 
@@ -46,7 +46,7 @@ public class GLUtils
 
             if (j != 0)
             {
-                s = GLX.getErrorString(j);
+                s = "dunno";// GLX.getErrorString(j);
             }
 
             throw new IllegalStateException("glGenLists returned an ID of 0 for a count of " + range + ", GL error (" + j + "): " + s);

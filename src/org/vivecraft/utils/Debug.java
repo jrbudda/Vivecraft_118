@@ -5,6 +5,8 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat.Mode;
+
 import java.awt.Color;
 import java.util.ArrayList;
 import net.minecraft.client.Minecraft;
@@ -187,14 +189,14 @@ public class Debug
             double d0 = player.xOld + (player.getX() - player.xOld) * (double)partialTicks;
             double d1 = player.yOld + (player.getY() - player.yOld) * (double)partialTicks;
             double d2 = player.zOld + (player.getZ() - player.zOld) * (double)partialTicks;
-            GlStateManager._lineWidth(5.0F);
+           // GlStateManager.lineWidth(5.0F);
             GlStateManager._disableTexture();
-            GlStateManager._disableLighting();
+            //GlStateManager._disableLighting();
             GlStateManager._depthMask(false);
             GlStateManager._disableDepthTest();
             Tesselator tesselator = Tesselator.getInstance();
             BufferBuilder bufferbuilder = tesselator.getBuilder();
-            bufferbuilder.begin(3, DefaultVertexFormat.POSITION_COLOR);
+            //bufferbuilder.begin(3, DefaultVertexFormat.POSITION_COLOR);
 
             for (Debug.Polygon debug$polygon : this.toDraw)
             {
@@ -207,7 +209,7 @@ public class Debug
             tesselator.end();
             GlStateManager._depthMask(true);
             GlStateManager._enableTexture();
-            GlStateManager._enableLighting();
+            //GlStateManager._enableLighting();
             GlStateManager._enableDepthTest();
 
             if (!this.manualClearing)

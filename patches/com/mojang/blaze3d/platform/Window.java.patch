@@ -8,7 +8,7 @@
  import net.minecraft.client.main.SilentInitException;
  import net.minecraftforge.fml.loading.progress.EarlyProgressVisualization;
  import net.optifine.Config;
-@@ -152,7 +153,6 @@
+@@ -164,7 +165,6 @@
          GL.createCapabilities();
          this.setMode();
          this.refreshFramebufferSize();
@@ -16,9 +16,9 @@
          GLFW.glfwSetWindowPosCallback(this.window, this::onMove);
          GLFW.glfwSetWindowSizeCallback(this.window, this::onResize);
          GLFW.glfwSetWindowFocusCallback(this.window, this::onFocus);
-@@ -235,9 +235,9 @@
-             STBImage.stbi_image_free(bytebuffer);
-             STBImage.stbi_image_free(bytebuffer1);
+@@ -295,9 +295,9 @@
+                 memorystack.close();
+             }
          }
 -        catch (IOException ioexception1)
 +        catch (IOException ioexception)
@@ -28,7 +28,7 @@
          }
      }
  
-@@ -314,7 +314,7 @@
+@@ -374,7 +374,7 @@
      {
          RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
          this.vsync = p_85410_;
@@ -37,7 +37,7 @@
      }
  
      public void close()
-@@ -337,15 +337,15 @@
+@@ -397,15 +397,15 @@
      {
          if (p_85416_ == this.window)
          {
@@ -56,7 +56,7 @@
                  {
                      this.eventHandler.resizeDisplay();
                  }
-@@ -364,20 +364,24 @@
+@@ -424,20 +424,24 @@
  
          if (this.framebufferHeight == 0 || this.framebufferWidth == 0)
          {
@@ -87,7 +87,7 @@
      }
  
      private void onFocus(long p_85393_, boolean p_85394_)
-@@ -512,13 +516,12 @@
+@@ -580,13 +584,12 @@
      {
          int i;
  
@@ -102,7 +102,7 @@
          }
  
          return i;
-@@ -527,10 +530,10 @@
+@@ -595,10 +598,10 @@
      public void setGuiScale(double p_85379_)
      {
          this.guiScale = p_85379_;
@@ -117,7 +117,7 @@
      }
  
      public void setTitle(String p_85423_)
-@@ -550,12 +553,12 @@
+@@ -618,12 +621,12 @@
  
      public int getWidth()
      {
@@ -131,8 +131,8 @@
 +        return Minecraft.getInstance().getMainRenderTarget().viewHeight;
      }
  
-     public int getScreenWidth()
-@@ -604,9 +607,9 @@
+     public void setWidth(int p_166451_)
+@@ -682,9 +685,9 @@
          InputConstants.updateRawMouseInput(this.window, p_85425_);
      }
  

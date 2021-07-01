@@ -177,7 +177,7 @@ public class BowTracker extends Tracker
             }
             else
             {
-                if (player.getMainHandItem().getItem().is(ItemTags.ARROWS))
+                if (player.getMainHandItem().is(ItemTags.ARROWS))
                 {
                     itemstack = player.getMainHandItem();
                 }
@@ -203,7 +203,7 @@ public class BowTracker extends Tracker
                 {
                     player.setItemInUseClient(itemstack1, interactionhand);
                     player.setItemInUseCountClient(i);
-                    Minecraft.getInstance().physicalGuiManager.preClickAction();
+                    //Minecraft.getInstance().physicalGuiManager.preClickAction();
                 }
             }
             else if ((float)Util.getMillis() - this.tsNotch > 500.0F)
@@ -215,7 +215,7 @@ public class BowTracker extends Tracker
             if (!this.isDrawing && this.canDraw && this.pressed && !this.lastpressed)
             {
                 this.isDrawing = true;
-                Minecraft.getInstance().physicalGuiManager.preClickAction();
+                //Minecraft.getInstance().physicalGuiManager.preClickAction();
                 this.mc.gameMode.useItem(player, player.level, interactionhand);
             }
 

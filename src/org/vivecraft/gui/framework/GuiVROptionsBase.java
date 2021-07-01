@@ -38,7 +38,7 @@ public abstract class GuiVROptionsBase extends Screen
 
     protected void addDefaultButtons()
     {
-        this.addButton(this.btnDone = new Button(this.width / 2 + 5, this.height - 30, 150, 20, new TranslatableComponent("gui.back"), (p) ->
+        this.addRenderableWidget(this.btnDone = new Button(this.width / 2 + 5, this.height - 30, 150, 20, new TranslatableComponent("gui.back"), (p) ->
         {
             if (!this.onDoneClicked())
             {
@@ -46,7 +46,7 @@ public abstract class GuiVROptionsBase extends Screen
                 this.minecraft.setScreen(this.lastScreen);
             }
         }));
-        this.addButton(this.btnDefaults = new Button(this.width / 2 - 155, this.height - 30, 150, 20, new TranslatableComponent("vivecraft.gui.loaddefaults"), (p) ->
+        this.addRenderableWidget(this.btnDefaults = new Button(this.width / 2 - 155, this.height - 30, 150, 20, new TranslatableComponent("vivecraft.gui.loaddefaults"), (p) ->
         {
             this.loadDefaults();
             this.minecraft.vrSettings.saveOptions();
@@ -63,8 +63,7 @@ public abstract class GuiVROptionsBase extends Screen
     {
         if (clear)
         {
-            this.buttons.clear();
-            this.children.clear();
+        	this.clearWidgets();
         }
 
         int i = 0;
@@ -73,7 +72,7 @@ public abstract class GuiVROptionsBase extends Screen
         {
             if (vroptionlayout.getOption() != null && vroptionlayout.getOption().getEnumFloat())
             {
-                this.addButton(new GuiVROptionSlider(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getOption(), (double)vroptionlayout.getOption().getValueMin(), (double)vroptionlayout.getOption().getValueMax())
+                this.addRenderableWidget(new GuiVROptionSlider(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getOption(), (double)vroptionlayout.getOption().getValueMin(), (double)vroptionlayout.getOption().getValueMax())
                 {
                     public void onClick(double p_93634_, double p_93635_)
                     {
@@ -86,7 +85,7 @@ public abstract class GuiVROptionsBase extends Screen
             }
             else if (vroptionlayout.getOption() != null)
             {
-                this.addButton(new GuiVROptionButton(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getOption(), vroptionlayout.getButtonText(), (p) ->
+                this.addRenderableWidget(new GuiVROptionButton(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getOption(), vroptionlayout.getButtonText(), (p) ->
                 {
                     if (vroptionlayout.getCustomHandler() == null || !vroptionlayout.getCustomHandler().apply((GuiVROptionButton)p, new Vec2(0.0F, 0.0F)))
                     {
@@ -97,7 +96,7 @@ public abstract class GuiVROptionsBase extends Screen
             }
             else if (vroptionlayout.getScreen() != null)
             {
-                this.addButton(new GuiVROptionButton(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getButtonText(), (p) ->
+                this.addRenderableWidget(new GuiVROptionButton(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getButtonText(), (p) ->
                 {
                     try {
                         if (vroptionlayout.getCustomHandler() != null && vroptionlayout.getCustomHandler().apply((GuiVROptionButton)p, new Vec2(0.0F, 0.0F)))
@@ -116,14 +115,14 @@ public abstract class GuiVROptionsBase extends Screen
             }
             else if (vroptionlayout.getCustomHandler() != null)
             {
-                this.addButton(new GuiVROptionButton(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getButtonText(), (p) ->
+                this.addRenderableWidget(new GuiVROptionButton(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getButtonText(), (p) ->
                 {
                     vroptionlayout.getCustomHandler().apply((GuiVROptionButton)p, new Vec2(0.0F, 0.0F));
                 }));
             }
             else
             {
-                this.addButton(new GuiVROptionButton(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getButtonText(), (p) ->
+                this.addRenderableWidget(new GuiVROptionButton(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getButtonText(), (p) ->
                 {
                 }));
             }
@@ -140,16 +139,15 @@ public abstract class GuiVROptionsBase extends Screen
     {
         if (clear)
         {
-            this.buttons.clear();
-            this.children.clear();
+        	this.clearWidgets();
             this.nextButtonIndex = 0;
         }
 
         ArrayList<VROptionLayout> arraylist = new ArrayList<>();
 
-        if (this.nextButtonIndex < this.buttons.size())
+        if (this.nextButtonIndex < this.children().size())
         {
-            this.nextButtonIndex = this.buttons.size();
+            this.nextButtonIndex = this.children().size();
         }
 
         int i = this.nextButtonIndex;
@@ -227,7 +225,7 @@ public abstract class GuiVROptionsBase extends Screen
         }
 
         super.render(p_96562_, p_96563_, p_96564_, p_96565_);
-        this.tooltipManager.drawTooltips(p_96562_, p_96563_, p_96564_, this.buttons);
+        this.tooltipManager.drawTooltips(p_96562_, p_96563_, p_96564_, this.getButtonList());
     }
 
     protected void actionPerformed(AbstractWidget button)
@@ -241,7 +239,7 @@ public abstract class GuiVROptionsBase extends Screen
     public boolean mouseClicked(double p_94737_, double p_94738_, int p_94739_)
     {
         boolean flag = super.mouseClicked(p_94737_, p_94738_, p_94739_);
-        AbstractWidget abstractwidget = this.getSelectedButton((int)p_94737_, (int)p_94738_, this.buttons);
+        AbstractWidget abstractwidget = getSelectedButton((int)p_94737_, (int)p_94738_, this.getButtonList());
 
         if (abstractwidget != null)
         {
@@ -285,21 +283,6 @@ public abstract class GuiVROptionsBase extends Screen
         }
 
         return super.mouseScrolled(p_94734_, p_94735_, p_94736_);
-    }
-
-    private AbstractWidget getSelectedButton(int x, int y, List<AbstractWidget> listButtons)
-    {
-        for (int i = 0; i < listButtons.size(); ++i)
-        {
-            AbstractWidget abstractwidget = listButtons.get(i);
-
-            if (abstractwidget.visible && abstractwidget.isHovered())
-            {
-                return abstractwidget;
-            }
-        }
-
-        return null;
     }
 
     public boolean keyPressed(int p_94745_, int p_94746_, int p_94747_)

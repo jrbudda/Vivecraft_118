@@ -108,7 +108,7 @@ public class VehicleTracker extends Tracker
             if (this.mc.vrSettings.vehicleRotation && this.mc.player.isPassenger() && this.rotationCooldown == 0)
             {
                 Entity entity = this.mc.player.getVehicle();
-                this.rotationTarget = (double)entity.yRot;
+                this.rotationTarget = (double)entity.getYRot();
 
                 if (entity instanceof AbstractHorse && !this.mc.horseTracker.isActive(this.mc.player))
                 {
@@ -193,7 +193,7 @@ public class VehicleTracker extends Tracker
 
                 if (this.mc.player.isPassenger())
                 {
-                    this.vehicleInitialRotation = this.mc.player.getVehicle().yRot;
+                    this.vehicleInitialRotation = this.mc.player.getVehicle().getYRot();
                 }
             }
         }
@@ -210,7 +210,7 @@ public class VehicleTracker extends Tracker
         if (minecraft.vrSettings.vehicleRotation)
         {
             float f = minecraft.vrPlayer.vrdata_world_pre.hmd.getYaw();
-            float f1 = vehicle.yRot % 360.0F;
+            float f1 = vehicle.getYRot() % 360.0F;
             this.vehicleInitialRotation = minecraft.vrSettings.vrWorldRotation;
             this.rotationCooldown = 2;
 

@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/Camera.java
 +++ b/net/minecraft/client/Camera.java
-@@ -19,17 +19,17 @@
+@@ -21,17 +21,17 @@
  
  public class Camera
  {
@@ -25,9 +25,9 @@
 +    protected float yRot;
 +    protected final Quaternion rotation = new Quaternion(0.0F, 0.0F, 0.0F, 1.0F);
      private boolean detached;
-     private boolean mirror;
      private float eyeHeight;
-@@ -191,10 +191,10 @@
+     private float eyeHeightOld;
+@@ -238,10 +238,10 @@
          return !this.initialized ? Blocks.AIR.defaultBlockState() : this.level.getBlockState(this.blockPosition);
      }
  

@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/player/LocalPlayer.java
 +++ b/net/minecraft/client/player/LocalPlayer.java
-@@ -1,6 +1,9 @@
+@@ -1,10 +1,25 @@
  package net.minecraft.client.player;
  
  import com.google.common.collect.Lists;
@@ -10,7 +10,23 @@
  import java.util.Iterator;
  import java.util.List;
  import java.util.UUID;
-@@ -15,6 +18,7 @@
++import java.util.logging.LogManager;
++
+ import javax.annotation.Nullable;
++
++import org.apache.commons.lang3.tuple.Pair;
++import org.vivecraft.api.NetworkHelper;
++import org.vivecraft.gameplay.VRPlayer;
++import org.vivecraft.physicalinventory.TransactionMutex;
++import org.vivecraft.render.VRFirstPersonArmSwing;
++import org.vivecraft.settings.VRSettings;
++import org.vivecraft.utils.external.jinfinadeck;
++import org.vivecraft.utils.external.jkatvr;
++
+ import net.minecraft.client.ClientRecipeBook;
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.gui.screens.DeathScreen;
+@@ -16,6 +31,7 @@
  import net.minecraft.client.gui.screens.inventory.MinecartCommandBlockEditScreen;
  import net.minecraft.client.gui.screens.inventory.SignEditScreen;
  import net.minecraft.client.gui.screens.inventory.StructureBlockEditScreen;
@@ -18,7 +34,7 @@
  import net.minecraft.client.multiplayer.ClientLevel;
  import net.minecraft.client.multiplayer.ClientPacketListener;
  import net.minecraft.client.resources.sounds.AmbientSoundHandler;
-@@ -27,11 +31,14 @@
+@@ -28,11 +44,14 @@
  import net.minecraft.client.resources.sounds.UnderwaterAmbientSoundInstances;
  import net.minecraft.core.BlockPos;
  import net.minecraft.core.Direction;
@@ -33,13 +49,12 @@
  import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
  import net.minecraft.network.protocol.game.ServerboundMoveVehiclePacket;
  import net.minecraft.network.protocol.game.ServerboundPlayerAbilitiesPacket;
-@@ -60,22 +67,39 @@
- import net.minecraft.world.entity.Pose;
+@@ -62,11 +81,17 @@
  import net.minecraft.world.entity.vehicle.AbstractMinecart;
  import net.minecraft.world.entity.vehicle.Boat;
+ import net.minecraft.world.inventory.ClickAction;
 +import net.minecraft.world.inventory.ClickType;
  import net.minecraft.world.item.ElytraItem;
- import net.minecraft.world.item.Item;
  import net.minecraft.world.item.ItemStack;
  import net.minecraft.world.item.Items;
 +import net.minecraft.world.item.UseAnim;
@@ -52,28 +67,15 @@
  import net.minecraft.world.level.block.entity.CommandBlockEntity;
  import net.minecraft.world.level.block.entity.JigsawBlockEntity;
  import net.minecraft.world.level.block.entity.SignBlockEntity;
- import net.minecraft.world.level.block.entity.StructureBlockEntity;
- import net.minecraft.world.level.block.state.BlockState;
- import net.minecraft.world.phys.AABB;
-+import net.minecraft.world.phys.HitResult;
- import net.minecraft.world.phys.Vec2;
+@@ -77,6 +102,7 @@
  import net.minecraft.world.phys.Vec3;
  import net.minecraft.world.phys.shapes.CollisionContext;
  import net.minecraft.world.phys.shapes.VoxelShape;
 +import net.optifine.reflect.Reflector;
-+import org.apache.commons.lang3.tuple.Pair;
-+import org.apache.logging.log4j.LogManager;
-+import org.vivecraft.api.NetworkHelper;
-+import org.vivecraft.gameplay.VRPlayer;
-+import org.vivecraft.physicalinventory.TransactionMutex;
-+import org.vivecraft.render.VRFirstPersonArmSwing;
-+import org.vivecraft.settings.VRSettings;
-+import org.vivecraft.utils.external.jinfinadeck;
-+import org.vivecraft.utils.external.jkatvr;
  
  public class LocalPlayer extends AbstractClientPlayer
  {
-@@ -99,6 +123,13 @@
+@@ -105,6 +131,13 @@
      public Input input;
      protected final Minecraft minecraft;
      protected int sprintTriggerTime;
@@ -87,7 +89,7 @@
      public int sprintTime;
      public float yBob;
      public float xBob;
-@@ -116,6 +147,10 @@
+@@ -122,6 +155,10 @@
      private boolean wasFallFlying;
      private int waterVisionTime;
      private boolean showDeathScreen = true;
@@ -98,7 +100,7 @@
  
      public LocalPlayer(Minecraft p_108621_, ClientLevel p_108622_, ClientPacketListener p_108623_, StatsCounter p_108624_, ClientRecipeBook p_108625_, boolean p_108626_, boolean p_108627_)
      {
-@@ -131,6 +166,101 @@
+@@ -137,6 +174,102 @@
          this.ambientSoundHandlers.add(new BiomeAmbientSoundsHandler(this, p_108621_.getSoundManager(), p_108622_.getBiomeManager()));
      }
  
@@ -123,57 +125,58 @@
 +        this.useItemRemaining = count;
 +    }
 +
-+    public boolean windowClickSynced(final int windowId, int slotId, int mouseButton, ClickType type, final long timeout)
-+    {
-+        final short short1 = this.containerMenu.backup(this.inventory);
-+        ItemStack itemstack = this.containerMenu.clicked(slotId, mouseButton, type, this);
-+        final TransactionMutex transactionmutex = new TransactionMutex();
-+        Thread thread = new Thread(this.minecraft.backgroundThreadGroup, new Runnable()
-+        {
-+            public void run()
-+            {
-+                try
-+                {
-+                    Thread.sleep(timeout);
-+
-+                    synchronized (transactionmutex)
-+                    {
-+                        if (transactionmutex.consumed)
-+                        {
-+                            return;
-+                        }
-+
-+                        transactionmutex.approved = false;
-+                        transactionmutex.consumed = true;
-+                        LocalPlayer.this.pendingTransactions.remove(Pair.of(short1, windowId));
-+                        transactionmutex.notifyAll();
-+                        LogManager.getLogger().warn("Timeout on window operation " + short1);
-+                    }
-+                }
-+                catch (InterruptedException interruptedexception1)
-+                {
-+                }
-+            }
-+        });
-+        transactionmutex.watchdog = thread;
-+        this.pendingTransactions.put(Pair.of(short1, windowId), transactionmutex);
-+
-+        try
-+        {
-+            synchronized (transactionmutex)
-+            {
-+                this.connection.send(new ServerboundContainerClickPacket(windowId, slotId, mouseButton, type, itemstack, short1));
-+                thread.start();
-+                transactionmutex.wait();
-+                return transactionmutex.approved;
-+            }
-+        }
-+        catch (InterruptedException interruptedexception)
-+        {
-+            interruptedexception.printStackTrace();
-+            return false;
-+        }
-+    }
++    //physical inventory in shambles
++//    public boolean windowClickSynced(final int windowId, int slotId, int mouseButton, ClickType type, final long timeout)
++//    {
++//        final short short1 = this.containerMenu.backup(this.inventory);
++//        ItemStack itemstack = this.containerMenu.clicked(slotId, mouseButton, type, this);
++//        final TransactionMutex transactionmutex = new TransactionMutex();
++//        Thread thread = new Thread(this.minecraft.backgroundThreadGroup, new Runnable()
++//        {
++//            public void run()
++//            {
++//                try
++//                {
++//                    Thread.sleep(timeout);
++//
++//                    synchronized (transactionmutex)
++//                    {
++//                        if (transactionmutex.consumed)
++//                        {
++//                            return;
++//                        }
++//
++//                        transactionmutex.approved = false;
++//                        transactionmutex.consumed = true;
++//                        LocalPlayer.this.pendingTransactions.remove(Pair.of(short1, windowId));
++//                        transactionmutex.notifyAll();
++//                        LogManager.getLogger().warn("Timeout on window operation " + short1);
++//                    }
++//                }
++//                catch (InterruptedException interruptedexception1)
++//                {
++//                }
++//            }
++//        });
++//        transactionmutex.watchdog = thread;
++//        this.pendingTransactions.put(Pair.of(short1, windowId), transactionmutex);
++//
++//        try
++//        {
++//            synchronized (transactionmutex)
++//            {
++//                this.connection.send(new ServerboundContainerClickPacket(windowId, slotId, mouseButton, type, itemstack, short1));
++//                thread.start();
++//                transactionmutex.wait();
++//                return transactionmutex.approved;
++//            }
++//        }
++//        catch (InterruptedException interruptedexception)
++//        {
++//            interruptedexception.printStackTrace();
++//            return false;
++//        }
++//    }
 +
 +    public void confirmTransaction(short transactionID, int windowId, boolean approved)
 +    {
@@ -200,8 +203,8 @@
      public boolean hurt(DamageSource p_108662_, float p_108663_)
      {
          return false;
-@@ -160,6 +290,8 @@
-                 this.setYHeadRot(p_108667_.yRot);
+@@ -167,6 +300,8 @@
+                 this.setYHeadRot(p_108667_.getYRot());
              }
  
 +            this.minecraft.vehicleTracker.onStartRiding(p_108667_, this);
@@ -209,7 +212,7 @@
              return true;
          }
      }
-@@ -168,6 +300,7 @@
+@@ -175,6 +310,7 @@
      {
          super.removeVehicle();
          this.handsBusy = false;
@@ -217,8 +220,8 @@
      }
  
      public float getViewXRot(float p_108742_)
-@@ -185,6 +318,8 @@
-         if (this.level.hasChunkAt(new BlockPos(this.getX(), 0.0D, this.getZ())))
+@@ -192,6 +328,8 @@
+         if (this.level.hasChunkAt(this.getBlockX(), this.getBlockZ()))
          {
              super.tick();
 +            NetworkHelper.overridePose(this);
@@ -226,7 +229,7 @@
  
              if (this.isPassenger())
              {
-@@ -253,7 +388,20 @@
+@@ -260,7 +398,20 @@
              boolean flag1 = d4 * d4 + d0 * d0 + d1 * d1 > 9.0E-4D || this.positionReminder >= 20;
              boolean flag2 = d2 != 0.0D || d3 != 0.0D;
  
@@ -247,8 +250,8 @@
 +            else if (this.isPassenger())
              {
                  Vec3 vec3 = this.getDeltaMovement();
-                 this.connection.send(new ServerboundMovePlayerPacket.PosRot(vec3.x, -999.0D, vec3.z, this.yRot, this.xRot, this.onGround));
-@@ -291,6 +439,12 @@
+                 this.connection.send(new ServerboundMovePlayerPacket.PosRot(vec3.x, -999.0D, vec3.z, this.getYRot(), this.getXRot(), this.onGround));
+@@ -298,6 +449,12 @@
              }
  
              this.lastOnGround = this.onGround;
@@ -261,7 +264,7 @@
              this.autoJumpEnabled = this.minecraft.options.autoJump;
          }
      }
-@@ -305,10 +459,29 @@
+@@ -312,10 +469,29 @@
      public void chat(String p_108740_)
      {
          this.connection.send(new ServerboundChatPacket(p_108740_));
@@ -278,7 +281,7 @@
      {
 +        if (!this.swinging)
 +        {
-+            if (this.minecraft.hitResult != null && this.minecraft.hitResult.getType() != HitResult.Type.MISS)
++            if (this.minecraft.hitResult != null && this.minecraft.hitResult.getType() != net.minecraft.world.phys.HitResult.Type.MISS)
 +            {
 +                this.minecraft.getItemInHandRenderer().xdist = (float)this.minecraft.hitResult.getLocation().subtract(this.minecraft.vrPlayer.vrdata_world_pre.getController(p_108660_.ordinal()).getPosition()).length();
 +            }
@@ -291,19 +294,7 @@
          super.swing(p_108660_);
          this.connection.send(new ServerboundSwingPacket(p_108660_));
      }
-@@ -501,9 +674,9 @@
-     {
-         AABB aabb = this.getBoundingBox();
-         AABB aabb1 = (new AABB((double)p_108747_.getX(), aabb.minY, (double)p_108747_.getZ(), (double)p_108747_.getX() + 1.0D, aabb.maxY, (double)p_108747_.getZ() + 1.0D)).deflate(1.0E-7D);
--        return !this.level.noBlockCollision(this, aabb1, (p_108688_, p_108689_) ->
-+        return !this.level.noBlockCollision(this, aabb1, (state, pos2) ->
-         {
--            return p_108688_.isSuffocating(this.level, p_108689_);
-+            return state.isSuffocating(this.level, pos2);
-         });
-     }
- 
-@@ -549,7 +722,23 @@
+@@ -554,7 +730,23 @@
  
      public void playSound(SoundEvent p_108651_, float p_108652_, float p_108653_)
      {
@@ -328,36 +319,36 @@
      }
  
      public void playNotifySound(SoundEvent p_108655_, SoundSource p_108656_, float p_108657_, float p_108658_)
-@@ -722,6 +911,7 @@
+@@ -749,6 +941,7 @@
          boolean flag2 = this.hasEnoughImpulseToStartSprinting();
-         this.crouching = !this.abilities.flying && !this.isSwimming() && this.canEnterPose(Pose.CROUCHING) && (this.isShiftKeyDown() || !this.isSleeping() && !this.canEnterPose(Pose.STANDING));
+         this.crouching = !this.getAbilities().flying && !this.isSwimming() && this.canEnterPose(Pose.CROUCHING) && (this.isShiftKeyDown() || !this.isSleeping() && !this.canEnterPose(Pose.STANDING));
          this.input.tick(this.isMovingSlowly());
 +        Reflector.call(Reflector.ForgeHooksClient_onInputUpdate, this, this.input);
          this.minecraft.getTutorial().onInput(this.input);
  
          if (this.isUsingItem() && !this.isPassenger())
-@@ -790,7 +980,7 @@
+@@ -817,7 +1010,7 @@
              }
          }
  
 -        boolean flag7 = false;
 +        boolean flag8 = false;
  
-         if (this.abilities.mayfly)
+         if (this.getAbilities().mayfly)
          {
-@@ -799,7 +989,7 @@
-                 if (!this.abilities.flying)
+@@ -826,7 +1019,7 @@
+                 if (!this.getAbilities().flying)
                  {
-                     this.abilities.flying = true;
+                     this.getAbilities().flying = true;
 -                    flag7 = true;
 +                    flag8 = true;
                      this.onUpdateAbilities();
                  }
              }
-@@ -812,18 +1002,24 @@
+@@ -839,21 +1032,28 @@
                  else if (!this.isSwimming())
                  {
-                     this.abilities.flying = !this.abilities.flying;
+                     this.getAbilities().flying = !this.getAbilities().flying;
 -                    flag7 = true;
 +                    flag8 = true;
                      this.onUpdateAbilities();
@@ -366,31 +357,37 @@
              }
          }
  
--        if (this.input.jumping && !flag7 && !flag && !this.abilities.flying && !this.isPassenger() && !this.onClimbable())
-+        if (this.input.jumping && !flag8 && !flag && !this.abilities.flying && !this.isPassenger() && !this.onClimbable())
+-        if (this.input.jumping && !flag7 && !flag && !this.getAbilities().flying && !this.isPassenger() && !this.onClimbable())
++        if (this.input.jumping && !flag8 && !flag && !this.getAbilities().flying && !this.isPassenger() && !this.onClimbable())
          {
-             ItemStack itemstack = this.getItemBySlot(EquipmentSlot.CHEST);
-+            boolean flag7 = itemstack.getItem() == Items.ELYTRA && ElytraItem.isFlyEnabled(itemstack);
- 
--            if (itemstack.getItem() == Items.ELYTRA && ElytraItem.isFlyEnabled(itemstack) && this.tryToStartFallFlying())
-+            if (Reflector.IForgeItemStack_canElytraFly.exists())
-+            {
-+                flag7 = Reflector.callBoolean(itemstack, Reflector.IForgeItemStack_canElytraFly, this);
-+            }
-+
-+            if (flag7 && this.tryToStartFallFlying())
+-            ItemStack itemstack = this.getItemBySlot(EquipmentSlot.CHEST);
+-
+-            if (itemstack.is(Items.ELYTRA) && ElytraItem.isFlyEnabled(itemstack) && this.tryToStartFallFlying())
++            ItemStack itemstack = this.getItemBySlot(EquipmentSlot.CHEST);      
++            
++            //Forge
++            boolean eflag = itemstack.is(Items.ELYTRA) && ElytraItem.isFlyEnabled(itemstack);
++            if(Reflector.IForgeItemStack_canElytraFly.exists()) 
++            	eflag = Reflector.callBoolean(itemstack, Reflector.IForgeItemStack_canElytraFly, this);
++            
++            //Forge
++            if (eflag && this.tryToStartFallFlying()) 
              {
                  this.connection.send(new ServerboundPlayerCommandPacket(this, ServerboundPlayerCommandPacket.Action.START_FALL_FLYING));
              }
-@@ -912,6 +1108,7 @@
++            
+         }
+ 
+         this.wasFallFlying = this.isFallFlying();
+@@ -939,6 +1139,7 @@
          }
  
          super.aiStep();
 +        this.minecraft.vrPlayer.tick(this, this.minecraft, this.random);
  
-         if (this.onGround && this.abilities.flying && !this.minecraft.gameMode.isAlwaysFlying())
+         if (this.onGround && this.getAbilities().flying && !this.minecraft.gameMode.isAlwaysFlying())
          {
-@@ -1007,10 +1204,67 @@
+@@ -1044,10 +1245,67 @@
  
      public void move(MoverType p_108670_, Vec3 p_108671_)
      {
@@ -462,29 +459,29 @@
      }
  
      public boolean isAutoJumpEnabled()
-@@ -1027,15 +1281,16 @@
+@@ -1064,14 +1322,18 @@
              Vec3 vec32 = new Vec3((double)p_108744_, 0.0D, (double)p_108745_);
              float f = this.getSpeed();
              float f1 = (float)vec32.lengthSqr();
-+            float f2 = Minecraft.getInstance().vrPlayer.vrdata_world_pre.getBodyYaw();
- 
+-
++            //VIVE
++            float yaw = Minecraft.getInstance().vrPlayer.vrdata_world_pre.getBodyYaw();
++               
              if (f1 <= 0.001F)
              {
                  Vec2 vec2 = this.input.getMoveVector();
--                float f2 = f * vec2.x;
--                float f3 = f * vec2.y;
--                float f4 = Mth.sin(this.yRot * ((float)Math.PI / 180F));
--                float f5 = Mth.cos(this.yRot * ((float)Math.PI / 180F));
--                vec32 = new Vec3((double)(f2 * f5 - f3 * f4), vec32.y, (double)(f3 * f5 + f2 * f4));
-+                float f3 = f * vec2.x;
-+                float f4 = f * vec2.y;
-+                float f5 = Mth.sin(f2 * ((float)Math.PI / 180F));
-+                float f6 = Mth.cos(f2 * ((float)Math.PI / 180F));
-+                vec32 = new Vec3((double)(f3 * f6 - f4 * f5), vec32.y, (double)(f4 * f6 + f3 * f5));
+                 float f2 = f * vec2.x;
+                 float f3 = f * vec2.y;
+-                float f4 = Mth.sin(this.getYRot() * ((float)Math.PI / 180F));
+-                float f5 = Mth.cos(this.getYRot() * ((float)Math.PI / 180F));
++                //float f4 = Mth.sin(this.getYRot() * ((float)Math.PI / 180F));
++                //float f5 = Mth.cos(this.getYRot() * ((float)Math.PI / 180F));
++                float f4 = Mth.sin(yaw * 0.017453292F);
++                float f5 = Mth.cos(yaw * 0.017453292F);
+                 vec32 = new Vec3((double)(f2 * f5 - f3 * f4), vec32.y, (double)(f3 * f5 + f2 * f4));
                  f1 = (float)vec32.lengthSqr();
  
-                 if (f1 <= 0.001F)
-@@ -1044,12 +1299,12 @@
+@@ -1081,12 +1343,12 @@
                  }
              }
  
@@ -501,67 +498,21 @@
              {
                  CollisionContext collisioncontext = CollisionContext.of(this);
                  BlockPos blockpos = new BlockPos(this.getX(), this.getBoundingBox().maxY, this.getZ());
-@@ -1062,35 +1317,35 @@
- 
-                     if (blockstate1.getCollisionShape(this.level, blockpos, collisioncontext).isEmpty())
-                     {
--                        float f6 = 7.0F;
--                        float f7 = 1.2F;
-+                        float f7 = 7.0F;
-+                        float f8 = 1.2F;
- 
-                         if (this.hasEffect(MobEffects.JUMP))
-                         {
--                            f7 += (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1) * 0.75F;
-+                            f8 += (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1) * 0.75F;
+@@ -1107,7 +1369,7 @@
+                             f7 += (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1) * 0.75F;
                          }
  
 -                        float f8 = Math.max(f * 7.0F, 1.0F / f12);
--                        Vec3 vec34 = vec31.add(vec312.scale((double)f8));
--                        float f9 = this.getBbWidth();
--                        float f10 = this.getBbHeight();
--                        AABB aabb = (new AABB(vec3, vec34.add(0.0D, (double)f10, 0.0D))).inflate((double)f9, 0.0D, (double)f9);
--                        Vec3 lvt_19_1_ = vec3.add(0.0D, (double)0.51F, 0.0D);
--                        vec34 = vec34.add(0.0D, (double)0.51F, 0.0D);
-+                        float f9 = Math.max(f * 7.0F, 1.0F / f13);
-+                        Vec3 vec33 = vec31.add(vec312.scale((double)f9));
-+                        float f10 = this.getBbWidth();
-+                        float f11 = this.getBbHeight();
-+                        AABB aabb = (new AABB(vec3, vec33.add(0.0D, (double)f11, 0.0D))).inflate((double)f10, 0.0D, (double)f10);
-+                        Vec3 vec34 = vec3.add(0.0D, (double)0.51F, 0.0D);
-+                        vec33 = vec33.add(0.0D, (double)0.51F, 0.0D);
-                         Vec3 vec35 = vec312.cross(new Vec3(0.0D, 1.0D, 0.0D));
--                        Vec3 vec36 = vec35.scale((double)(f9 * 0.5F));
--                        Vec3 vec37 = lvt_19_1_.subtract(vec36);
--                        Vec3 vec38 = vec34.subtract(vec36);
--                        Vec3 vec39 = lvt_19_1_.add(vec36);
--                        Vec3 vec310 = vec34.add(vec36);
--                        Iterator<AABB> iterator = this.level.getCollisions(this, aabb, (p_108722_) ->
-+                        Vec3 vec36 = vec35.scale((double)(f10 * 0.5F));
-+                        Vec3 vec37 = vec34.subtract(vec36);
-+                        Vec3 vec38 = vec33.subtract(vec36);
-+                        Vec3 vec39 = vec34.add(vec36);
-+                        Vec3 vec310 = vec33.add(vec36);
-+                        Iterator<AABB> iterator = this.level.getCollisions(this, aabb, (entity) ->
-                         {
-                             return true;
--                        }).flatMap((p_108691_) ->
-+                        }).flatMap((shape) ->
-                         {
--                            return p_108691_.toAabbs().stream();
-+                            return shape.toAabbs().stream();
-                         }).iterator();
--                        float f11 = Float.MIN_VALUE;
-+                        float f12 = Float.MIN_VALUE;
- 
-                         while (iterator.hasNext())
-                         {
-@@ -1098,11 +1353,11 @@
++                        float f8 = Math.max(f * 7.0F, 1.0F / f13);
+                         Vec3 vec34 = vec31.add(vec312.scale((double)f8));
+                         float f9 = this.getBbWidth();
+                         float f10 = this.getBbHeight();
+@@ -1135,11 +1397,11 @@
  
                              if (aabb1.intersects(vec37, vec38) || aabb1.intersects(vec39, vec310))
                              {
 -                                f11 = (float)aabb1.maxY;
-+                                f12 = (float)aabb1.maxY;
++                            	f11 = (float)aabb1.maxY;
                                  Vec3 vec311 = aabb1.getCenter();
                                  BlockPos blockpos1 = new BlockPos(vec311);
  
@@ -570,36 +521,33 @@
                                  {
                                      BlockPos blockpos2 = blockpos1.above(i);
                                      BlockState blockstate2 = this.level.getBlockState(blockpos2);
-@@ -1110,9 +1365,9 @@
+@@ -1147,9 +1409,9 @@
  
                                      if (!(voxelshape = blockstate2.getCollisionShape(this.level, blockpos2, collisioncontext)).isEmpty())
                                      {
 -                                        f11 = (float)voxelshape.max(Direction.Axis.Y) + (float)blockpos2.getY();
-+                                        f12 = (float)voxelshape.max(Direction.Axis.Y) + (float)blockpos2.getY();
++                                    	f11 = (float)voxelshape.max(Direction.Axis.Y) + (float)blockpos2.getY();
  
 -                                        if ((double)f11 - this.getY() > (double)f7)
-+                                        if ((double)f12 - this.getY() > (double)f8)
++                                        if ((double)f11 - this.getY() > (double)f8)
                                          {
                                              return;
                                          }
-@@ -1134,11 +1389,11 @@
-                             }
-                         }
+@@ -1173,9 +1435,9 @@
  
--                        if (f11 != Float.MIN_VALUE)
-+                        if (f12 != Float.MIN_VALUE)
+                         if (f11 != Float.MIN_VALUE)
                          {
 -                            float f14 = (float)((double)f11 - this.getY());
-+                            float f15 = (float)((double)f12 - this.getY());
++                            float f15 = (float)((double)f11 - this.getY());
  
 -                            if (!(f14 <= 0.5F) && !(f14 > f7))
 +                            if (!(f15 <= 0.5F) && !(f15 > f8))
                              {
                                  this.autoJumpTime = 1;
                              }
-@@ -1236,4 +1491,367 @@
-             return super.getRopeHoldPosition(p_108758_);
-         }
+@@ -1278,4 +1540,367 @@
+     {
+         this.minecraft.getTutorial().onInventoryAction(p_172532_, p_172533_, p_172534_);
      }
 +
 +    public void moveTo(double p_20108_, double p_20109_, double p_20110_, float p_20111_, float p_20112_)
@@ -699,7 +647,7 @@
 +
 +            if (d3 >= (double)1.0E-4F || Main.katvr)
 +            {
-+                d3 = (double)Mth.sqrt(d3);
++                d3 = (double)Mth.sqrt((float) d3);
 +
 +                if (d3 < 1.0D && !Main.katvr)
 +                {
@@ -711,7 +659,7 @@
 +                d2 = d2 * d3;
 +                Vec3 vec3 = new Vec3(d1, 0.0D, d2);
 +                VRPlayer vrplayer1 = this.minecraft.vrPlayer;
-+                boolean flag = !this.isPassenger() && (this.abilities.flying || this.isSwimming());
++                boolean flag = !this.isPassenger() && (this.getAbilities().flying || this.isSwimming());
 +
 +                if (Main.katvr)
 +                {
@@ -808,14 +756,14 @@
 +                d6 = vec3.y;
 +                d5 = vec3.z;
 +
-+                if (!this.abilities.flying && !this.wasTouchingWater)
++                if (!this.getAbilities().flying && !this.wasTouchingWater)
 +                {
 +                    d7 = VRSettings.getInertiaAddFactor(i);
 +                }
 +
 +                float f = 1.0F;
 +
-+                if (this.abilities.flying)
++                if (this.getAbilities().flying)
 +                {
 +                    f = 5.0F;
 +                }
@@ -825,7 +773,7 @@
 +                this.additionZ = d5;
 +            }
 +
-+            if (!this.abilities.flying && !this.wasTouchingWater)
++            if (!this.getAbilities().flying && !this.wasTouchingWater)
 +            {
 +                this.doDrag();
 +            }
@@ -859,8 +807,8 @@
 +        for (int i = 0; i < count; ++i)
 +        {
 +            Vec3 vec3 = new Vec3(((double)this.random.nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D, 0.0D);
-+            vec3 = vec3.xRot(-this.xRot * ((float)Math.PI / 180F));
-+            vec3 = vec3.yRot(-this.yRot * ((float)Math.PI / 180F));
++            vec3 = vec3.xRot(-this.getXRot() * ((float)Math.PI / 180F));
++            vec3 = vec3.yRot(-this.getYRot() * ((float)Math.PI / 180F));
 +            double d0 = (double)(-this.random.nextFloat()) * 0.6D - 0.3D;
 +            new Vec3(((double)this.random.nextFloat() - 0.5D) * 0.3D, d0, 0.6D);
 +            InteractionHand interactionhand = this.getUsedItemHand();

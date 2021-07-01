@@ -223,7 +223,7 @@ public class SwingTracker extends Tracker
                     {
                         if (flag3)
                         {
-                            Minecraft.getInstance().physicalGuiManager.preClickAction();
+                            //Minecraft.getInstance().physicalGuiManager.preClickAction();
                             this.mc.gameMode.attack(player, entity);
                             this.mc.vr.triggerHapticPulse(i, 1000);
                             this.lastWeaponSolid[i] = true;
@@ -253,7 +253,7 @@ public class SwingTracker extends Tracker
 
                             if (item instanceof HoeItem)
                             {
-                                this.mc.physicalGuiManager.preClickAction();
+                                //this.mc.physicalGuiManager.preClickAction();
                                 this.mc.gameMode.useItemOn(player, (ClientLevel)player.level, i == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND, blockhitresult1);
                             }
                             else if (blockstate.getBlock() instanceof NoteBlock)
@@ -263,7 +263,7 @@ public class SwingTracker extends Tracker
                             else
                             {
                                 j = (int)((double)j + Math.min((double)f2 - this.speedthresh, 4.0D));
-                                this.mc.physicalGuiManager.preClickAction();
+                                //this.mc.physicalGuiManager.preClickAction();
                                 this.mc.gameMode.startDestroyBlock(blockhitresult1.getBlockPos(), blockhitresult1.getDirection());
 
                                 if (this.getIsHittingBlock())
@@ -306,7 +306,7 @@ public class SwingTracker extends Tracker
 
     private boolean getIsHittingBlock()
     {
-        return MCReflection.PlayerController_isHittingBlock.get(Minecraft.getInstance().gameMode);
+        return (boolean) MCReflection.PlayerController_isHittingBlock.get(Minecraft.getInstance().gameMode);
     }
 
     private void clearBlockHitDelay()

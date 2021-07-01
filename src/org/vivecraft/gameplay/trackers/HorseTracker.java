@@ -47,7 +47,7 @@ public class HorseTracker extends Tracker
     {
         this.horse = (Horse)player.getVehicle();
         this.horse.setNoAi(true);
-        float f = (this.horse.yRot + 360.0F) % 360.0F;
+        float f = (this.horse.getYRot() + 360.0F) % 360.0F;
         float f1 = (this.horse.yBodyRot + 360.0F) % 360.0F;
         Vec3 vec3 = this.mc.vr.controllerHistory[1].netMovement(0.1D).scale(10.0D);
         Vec3 vec31 = this.mc.vr.controllerHistory[0].netMovement(0.1D).scale(10.0D);
@@ -99,7 +99,7 @@ public class HorseTracker extends Tracker
                 d4 = d2 - this.pullTrigger;
             }
 
-            this.horse.yRot = (float)((double)f + (d4 - d3) * this.turnspeed);
+            this.horse.setYRot((float)((double)f + (d4 - d3) * this.turnspeed));
         }
 
         this.horse.yBodyRot = (float)Utils.lerpMod((double)f1, (double)f, this.bodyturnspeed, 360.0D);

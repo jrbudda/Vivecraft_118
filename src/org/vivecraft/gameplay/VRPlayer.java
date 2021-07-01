@@ -471,7 +471,9 @@ public class VRPlayer
         {
             TerrainParticle terrainparticle = new TerrainParticle(minecraft.level, x, y, z, 0.0D, 0.0D, 0.0D, bs);
             terrainparticle.setPower(velscale);
-            minecraft.particleEngine.add(terrainparticle.init(bp).scale(scale));
+            //TODO: check
+           // minecraft.particleEngine.add(terrainparticle.init(bp).scale(scale));
+            minecraft.particleEngine.add(terrainparticle.scale(scale));
         }
     }
 
@@ -560,8 +562,10 @@ public class VRPlayer
     {
         if (entity != null)
         {
-            entity.yHeadRot = entity.yRot = data.hmd.getYaw();
-            entity.xRot = -data.hmd.getPitch();
+
+            entity.setYRot(data.hmd.getYaw());
+            entity.setYHeadRot(entity.getYRot());
+            entity.setXRot(-data.hmd.getPitch());
 
             if (entity.isSprinting() && entity.input.jumping || entity.isFallFlying() || entity.isSwimming() && entity.zza > 0.0F)
             {
@@ -569,13 +573,15 @@ public class VRPlayer
 
                 if (this.mc.vrSettings.vrFreeMoveMode == 1)
                 {
-                    entity.yHeadRot = entity.yRot = data.getController(1).getYaw();
-                    entity.xRot = -data.getController(1).getPitch();
+                    entity.setYRot(data.getController(1).getYaw());
+                    entity.setYHeadRot(entity.getYRot());
+                    entity.setXRot(-data.getController(1).getPitch());
                 }
                 else
                 {
-                    entity.yHeadRot = entity.yRot = data.hmd.getYaw();
-                    entity.xRot = -data.hmd.getPitch();
+                    entity.setYRot(data.hmd.getYaw());
+                    entity.setYHeadRot(entity.getYRot());
+                    entity.setXRot(-data.hmd.getPitch());
                 }
             }
 
@@ -585,8 +591,9 @@ public class VRPlayer
 
                 if (vec3 != null)
                 {
-                    entity.xRot = (float)Math.toDegrees(Math.asin(-vec3.y / vec3.length()));
-                    entity.yHeadRot = entity.yRot = (float)Math.toDegrees(Math.atan2(-vec3.x, vec3.z));
+                    entity.setXRot((float)Math.toDegrees(Math.asin(-vec3.y / vec3.length())));
+                    entity.setYRot((float)Math.toDegrees(Math.atan2(-vec3.x, vec3.z)));
+                    entity.setYHeadRot(entity.getYRot());
                 }
             }
         }

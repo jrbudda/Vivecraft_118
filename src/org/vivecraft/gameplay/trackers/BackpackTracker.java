@@ -82,14 +82,14 @@ public class BackpackTracker extends Tracker
                     {
                         if (!minecraft.climbTracker.isGrabbingLadder() || !minecraft.climbTracker.isClaws(minecraft.player.getMainHandItem()))
                         {
-                            if (player.inventory.selected != 0)
+                            if (player.getInventory().selected != 0)
                             {
-                                this.previousSlot = player.inventory.selected;
-                                player.inventory.selected = 0;
+                                this.previousSlot = player.getInventory().selected;
+                                player.getInventory().selected = 0;
                             }
                             else
                             {
-                                player.inventory.selected = this.previousSlot;
+                                player.getInventory().selected = this.previousSlot;
                                 this.previousSlot = 0;
                             }
                         }
@@ -98,7 +98,7 @@ public class BackpackTracker extends Tracker
                     {
                         if (minecraft.vrSettings.physicalGuiEnabled)
                         {
-                            minecraft.physicalGuiManager.toggleInventoryBag();
+                            //minecraft.physicalGuiManager.toggleInventoryBag();
                         }
                         else
                         {

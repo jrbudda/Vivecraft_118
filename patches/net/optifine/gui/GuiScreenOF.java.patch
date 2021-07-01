@@ -1,0 +1,51 @@
+--- a/net/optifine/gui/GuiScreenOF.java
++++ b/net/optifine/gui/GuiScreenOF.java
+@@ -23,21 +23,6 @@
+         super(p_96550_);
+     }
+ 
+-    public List<AbstractWidget> getButtonList()
+-    {
+-        List<AbstractWidget> list = new ArrayList<>();
+-
+-        for (GuiEventListener guieventlistener : this.children())
+-        {
+-            if (guieventlistener instanceof AbstractWidget)
+-            {
+-                list.add((AbstractWidget)guieventlistener);
+-            }
+-        }
+-
+-        return list;
+-    }
+-
+     protected void actionPerformed(AbstractWidget button)
+     {
+     }
+@@ -100,26 +85,7 @@
+         return !this.mousePressed ? false : super.mouseDragged(p_94699_, p_94700_, p_94701_, p_94702_, p_94703_);
+     }
+ 
+-    public static AbstractWidget getSelectedButton(int x, int y, List<AbstractWidget> listButtons)
+-    {
+-        for (int i = 0; i < listButtons.size(); ++i)
+-        {
+-            AbstractWidget abstractwidget = listButtons.get(i);
+-
+-            if (abstractwidget.visible)
+-            {
+-                int j = GuiUtils.getWidth(abstractwidget);
+-                int k = GuiUtils.getHeight(abstractwidget);
+ 
+-                if (x >= abstractwidget.x && y >= abstractwidget.y && x < abstractwidget.x + j && y < abstractwidget.y + k)
+-                {
+-                    return abstractwidget;
+-                }
+-            }
+-        }
+-
+-        return null;
+-    }
+ 
+     public static void drawCenteredString(PoseStack matrixStackIn, Font fontRendererIn, FormattedCharSequence textIn, int xIn, int yIn, int colorIn)
+     {

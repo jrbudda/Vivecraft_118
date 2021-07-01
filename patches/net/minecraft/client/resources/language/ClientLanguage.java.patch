@@ -25,9 +25,9 @@
                  }
              }
          }
-@@ -68,9 +70,9 @@
-             {
-                 Language.loadFromJson(inputstream, p_118923_::put);
+@@ -94,9 +96,9 @@
+                     inputstream.close();
+                 }
              }
 -            catch (IOException ioexception1)
 +            catch (IOException ioexception)

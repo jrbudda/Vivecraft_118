@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 
 public class GuiQuickCommandsList extends ObjectSelectionList<GuiQuickCommandsList.CommandEntry>
@@ -112,5 +113,11 @@ public class GuiQuickCommandsList extends ObjectSelectionList<GuiQuickCommandsLi
             this.btnDelete.visible = true;
             this.btnDelete.render(p_93523_, p_93529_, p_93530_, p_93532_);
         }
+
+		@Override
+		public Component getNarration() {
+			// TODO Auto-generated method stub
+			return null;
+		}
     }
 }

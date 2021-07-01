@@ -34,8 +34,8 @@ public class AimFixHandler extends ChannelInboundHandlerAdapter
             {
                 Vec3 vec3 = serverplayer.position();
                 Vec3 vec31 = new Vec3(serverplayer.xo, serverplayer.yo, serverplayer.zo);
-                float f = serverplayer.xRot;
-                float f1 = serverplayer.yRot;
+                float f = serverplayer.getXRot();
+                float f1 = serverplayer.getYRot();
                 float f2 = serverplayer.yHeadRot;
                 float f3 = serverplayer.xRotO;
                 float f4 = serverplayer.yRotO;
@@ -52,10 +52,10 @@ public class AimFixHandler extends ChannelInboundHandlerAdapter
                     serverplayer.xo = vec32.x;
                     serverplayer.yo = vec32.y;
                     serverplayer.zo = vec32.z;
-                    serverplayer.xRot = (float)Math.toDegrees(Math.asin(-vec33.y));
-                    serverplayer.yRot = (float)Math.toDegrees(Math.atan2(-vec33.x, vec33.z));
-                    serverplayer.xRotO = serverplayer.xRot;
-                    serverplayer.yRotO = serverplayer.yHeadRotO = serverplayer.yHeadRot = serverplayer.yRot;
+                    serverplayer.setXRot((float)Math.toDegrees(Math.asin(-vec33.y)));
+                    serverplayer.setYRot((float)Math.toDegrees(Math.atan2(-vec33.x, vec33.z)));
+                    serverplayer.xRotO = serverplayer.getXRot();
+                    serverplayer.yRotO = serverplayer.yHeadRotO = serverplayer.yHeadRot = serverplayer.getYRot();
                     MCReflection.Entity_eyeHeight.set(serverplayer, 0);
                     serverviveplayer.offset = vec3.subtract(vec32);
                 }
@@ -80,8 +80,8 @@ public class AimFixHandler extends ChannelInboundHandlerAdapter
                 serverplayer.xo = vec31.x;
                 serverplayer.yo = vec31.y;
                 serverplayer.zo = vec31.z;
-                serverplayer.xRot = f;
-                serverplayer.yRot = f1;
+                serverplayer.setXRot(f);
+                serverplayer.setYRot(f1);
                 serverplayer.yHeadRot = f2;
                 serverplayer.xRotO = f3;
                 serverplayer.yRotO = f4;

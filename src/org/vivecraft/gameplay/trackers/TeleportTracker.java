@@ -208,7 +208,7 @@ public class TeleportTracker extends Tracker
 
         if (flag && vec3 != null && (vec3.x != 0.0D || vec3.y != 0.0D || vec3.z != 0.0D))
         {
-            this.movementTeleportDistance = (double)Mth.sqrt(vec3.distanceToSqr(player.position()));
+            this.movementTeleportDistance = vec3.distanceTo(player.position());
 
             if (this.movementTeleportDistance > 0.0D && this.vrMovementStyle.endTeleportingSound != null)
             {
@@ -324,7 +324,7 @@ public class TeleportTracker extends Tracker
                     flag1 = false;
                 }
 
-                if (!mc.player.abilities.mayfly && NetworkHelper.isLimitedSurvivalTeleport())
+                if (!mc.player.getAbilities().mayfly && NetworkHelper.isLimitedSurvivalTeleport())
                 {
                     if (NetworkHelper.getTeleportDownLimit() > 0 && d0 > (double)NetworkHelper.getTeleportDownLimit() + 0.2D)
                     {
@@ -426,7 +426,7 @@ public class TeleportTracker extends Tracker
                 return true;
             }
 
-            if (!mc.player.abilities.mayfly && NetworkHelper.isLimitedSurvivalTeleport())
+            if (!mc.player.getAbilities().mayfly && NetworkHelper.isLimitedSurvivalTeleport())
             {
                 return false;
             }

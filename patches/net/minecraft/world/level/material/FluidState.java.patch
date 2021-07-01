@@ -8,4 +8,4 @@
 +public class FluidState extends StateHolder<Fluid, FluidState>
  {
      public static final Codec<FluidState> CODEC = codec(Registry.FLUID, Fluid::defaultFluidState).stable();
- 
+     public static final int AMOUNT_MAX = 9;

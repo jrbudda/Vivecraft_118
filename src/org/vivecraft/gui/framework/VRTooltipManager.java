@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.screens.Screen;
 import net.optifine.gui.GuiScreenOF;
 import net.optifine.gui.TooltipProvider;
@@ -34,7 +35,7 @@ public class VRTooltipManager
 
             if (System.currentTimeMillis() >= this.mouseStillTime + (long)i)
             {
-                AbstractWidget abstractwidget = GuiScreenOF.getSelectedButton(x, y, buttonList);
+                AbstractWidget abstractwidget = Screen.getSelectedButton((int)x, (int)y, buttonList);
 
                 if (abstractwidget != null)
                 {

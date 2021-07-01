@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/entity/vehicle/Boat.java
 +++ b/net/minecraft/world/entity/vehicle/Boat.java
-@@ -3,6 +3,7 @@
+@@ -4,6 +4,7 @@
  import java.util.List;
  import javax.annotation.Nullable;
  import net.minecraft.BlockUtil;
@@ -8,7 +8,7 @@
  import net.minecraft.core.BlockPos;
  import net.minecraft.core.Direction;
  import net.minecraft.core.particles.ParticleTypes;
-@@ -44,6 +45,7 @@
+@@ -47,6 +48,7 @@
  import net.minecraft.world.phys.shapes.BooleanOp;
  import net.minecraft.world.phys.shapes.Shapes;
  import net.minecraft.world.phys.shapes.VoxelShape;
@@ -16,7 +16,7 @@
  
  public class Boat extends Entity
  {
-@@ -585,7 +587,15 @@
+@@ -600,7 +602,15 @@
  
                              if (!(blockstate.getBlock() instanceof WaterlilyBlock) && Shapes.joinIsNotEmpty(blockstate.getCollisionShape(this.level, blockpos$mutableblockpos).move((double)l1, (double)k2, (double)i2), voxelshape, BooleanOp.AND))
                              {
@@ -33,7 +33,7 @@
                                  ++k1;
                              }
                          }
-@@ -734,15 +744,17 @@
+@@ -749,15 +759,17 @@
          if (this.isVehicle())
          {
              float f = 0.0F;
@@ -53,105 +53,8 @@
              }
  
              if (this.inputRight != this.inputLeft && !this.inputUp && !this.inputDown)
-@@ -762,7 +774,95 @@
-                 f -= 0.005F;
-             }
- 
--            this.setDeltaMovement(this.getDeltaMovement().add((double)(Mth.sin(-this.yRot * ((float)Math.PI / 180F)) * f), 0.0D, (double)(Mth.cos(this.yRot * ((float)Math.PI / 180F)) * f)));
-+            double d0;
-+            double d1;
-+
-+            if (this.inputUp && !minecraft.vrSettings.seated)
-+            {
-+                float f2 = minecraft.vrPlayer.vrdata_world_pre.getController(1).getYaw();
-+
-+                if (minecraft.vrSettings.vehicleRotation)
-+                {
-+                    float f3 = this.yRot % 360.0F;
-+                    float f4 = f2;
-+                    float f5 = Math.abs(f3 - f2);
-+
-+                    if (f5 > 180.0F)
-+                    {
-+                        if (f3 > f2)
-+                        {
-+                            f4 = f2 + 360.0F;
-+                        }
-+                        else
-+                        {
-+                            f3 += 360.0F;
-+                        }
-+                    }
-+
-+                    f5 = f3 - f4;
-+                    f = 0.0F;
-+
-+                    if (Math.abs(f5) < 30.0F)
-+                    {
-+                        f = 0.04F;
-+                    }
-+                    else if (Math.abs(f5) > 150.0F)
-+                    {
-+                        f = -0.005F;
-+                    }
-+                    else if (f5 < 0.0F)
-+                    {
-+                        ++this.deltaRotation;
-+                        f = 0.005F;
-+                    }
-+                    else if (f5 > 0.0F)
-+                    {
-+                        --this.deltaRotation;
-+                        f = 0.005F;
-+                    }
-+
-+                    d0 = (double)(Mth.sin(-this.yRot * ((float)Math.PI / 180F)) * f);
-+                    d1 = (double)(Mth.cos(this.yRot * ((float)Math.PI / 180F)) * f);
-+                }
-+                else
-+                {
-+                    d0 = (double)(Mth.sin(-f2 * ((float)Math.PI / 180F)) * f);
-+                    d1 = (double)(Mth.cos(f2 * ((float)Math.PI / 180F)) * f);
-+                    this.yRot = f2;
-+                }
-+            }
-+            else if (minecraft.rowTracker.isRowing() && !minecraft.vrSettings.seated)
-+            {
-+                this.deltaRotation = (float)((double)this.deltaRotation + (double)minecraft.rowTracker.LOar / 1.5D);
-+                this.deltaRotation = (float)((double)this.deltaRotation - (double)minecraft.rowTracker.ROar / 1.5D);
-+
-+                if (this.deltaRotation < 0.0F)
-+                {
-+                    this.inputLeft = true;
-+                }
-+
-+                if (this.deltaRotation > 0.0F)
-+                {
-+                    this.inputRight = true;
-+                }
-+
-+                f = 0.06F * minecraft.rowTracker.Foar;
-+
-+                if (f > 0.0F)
-+                {
-+                    this.inputUp = true;
-+                }
-+
-+                d0 = (double)(Mth.sin(-this.yRot * ((float)Math.PI / 180F)) * f);
-+                d1 = (double)(Mth.cos(this.yRot * ((float)Math.PI / 180F)) * f);
-+            }
-+            else
-+            {
-+                d0 = (double)(Mth.sin(-this.yRot * ((float)Math.PI / 180F)) * f);
-+                d1 = (double)(Mth.cos(this.yRot * ((float)Math.PI / 180F)) * f);
-+            }
-+
-+            this.setDeltaMovement(this.getDeltaMovement().x + d0, this.getDeltaMovement().y, this.getDeltaMovement().z + d1);
-             this.setPaddleState(this.inputRight && !this.inputLeft || this.inputUp, this.inputLeft && !this.inputRight || this.inputUp);
-         }
-     }
-@@ -1031,6 +1131,17 @@
-         return this.status == Boat.Status.UNDER_WATER || this.status == Boat.Status.UNDER_FLOWING_WATER;
+@@ -1055,6 +1067,17 @@
+         return new ItemStack(this.getDropItem());
      }
  
 +    protected void addPassenger(Entity p_20349_)

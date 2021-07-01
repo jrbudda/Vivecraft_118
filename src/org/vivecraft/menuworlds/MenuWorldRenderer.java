@@ -12,6 +12,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 import com.mojang.math.Matrix4f;
 import com.mojang.serialization.MapCodec;
@@ -52,6 +53,7 @@ import net.optifine.util.TextureUtils;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL43;
 import org.vivecraft.reflection.MCReflection;
 import org.vivecraft.render.GLUtils;
 
@@ -94,7 +96,7 @@ public class MenuWorldRenderer
         this.lightmapColors = this.lightmapTexture.getPixels();
         Builder<VertexFormatElement> builder = ImmutableList.builder();
         builder.add(new VertexFormatElement(0, VertexFormatElement.Type.FLOAT, VertexFormatElement.Usage.POSITION, 3));
-        this.vertexBufferFormat = new VertexFormat(builder.build());
+       // this.vertexBufferFormat = new VertexFormat(builder.build());
         this.cloudRenderer = new MenuWorldRenderer.MenuCloudRenderer(this.mc);
         this.fogRenderer = new MenuWorldRenderer.MenuFogRenderer(this);
         this.rand = new Random();
@@ -147,12 +149,12 @@ public class MenuWorldRenderer
     }
 
     public void render()
-    {
+    {/*
         this.prepare();
         RenderSystem.shadeModel(7425);
         GL11.glPushClientAttrib(2);
         this.enableLightmap();
-        RenderSystem.pushMatrix();
+        GL43.glPushMatrix();
         AbstractTexture abstracttexture = this.mc.getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS);
         this.mc.getTextureManager().bind(TextureAtlas.LOCATION_BLOCKS);
         int i = this.blockAccess.getGround();
@@ -162,12 +164,12 @@ public class MenuWorldRenderer
             i += 100;
         }
 
-        RenderSystem.translatef((float)(-this.blockAccess.getXSize() / 2), (float)(-i), (float)(-this.blockAccess.getZSize() / 2));
+        GL43.glTranslatef((float)(-this.blockAccess.getXSize() / 2), (float)(-i), (float)(-this.blockAccess.getZSize() / 2));
         Matrix4f matrix4f = GLUtils.getViewModelMatrix();
         GlStateManager._disableBlend();
-        RenderSystem.disableAlphaTest();
+        GlStateManager.disableAlphaTest();
         this.drawBlockLayer(RenderType.solid(), matrix4f);
-        RenderSystem.enableAlphaTest();
+        GlStateManager.enableAlphaTest();
         abstracttexture.setFilter(false, this.mc.options.mipmapLevels > 0);
         this.drawBlockLayer(RenderType.cutoutMipped(), matrix4f);
         abstracttexture.restoreLastBlurMipmap();
@@ -180,21 +182,21 @@ public class MenuWorldRenderer
         this.drawBlockLayer(RenderType.tripwire(), matrix4f);
         RenderSystem.depthMask(true);
         DefaultVertexFormat.BLOCK_VANILLA.clearBufferState();
-        RenderSystem.popMatrix();
+        GL43.glPopMatrix();
         this.disableLightmap();
         GL11.glPopClientAttrib();
-    }
+    */}
 
     private void drawBlockLayer(RenderType layer, Matrix4f matrix)
-    {
+    {/*
         VertexBuffer vertexbuffer = this.vertexBuffers[layer.ordinal()];
         vertexbuffer.bind();
         DefaultVertexFormat.BLOCK_VANILLA.setupBufferState(0L);
         vertexbuffer.draw(matrix, 7);
-    }
+    */}
 
     public void prepare()
-    {
+    {/*
         if (this.vertexBuffers == null)
         {
             AmbientOcclusionStatus ambientocclusionstatus = this.mc.options.ambientOcclusion;
@@ -221,7 +223,7 @@ public class MenuWorldRenderer
                     RenderType rendertype = list.get(i);
                     System.out.println("Layer: " + rendertype.getName());
                     BufferBuilder bufferbuilder = new BufferBuilder(41943040);
-                    bufferbuilder.begin(7, DefaultVertexFormat.BLOCK_VANILLA);
+                    bufferbuilder.begin(Mode.QUADS, DefaultVertexFormat.BLOCK_VANILLA);
                     bufferbuilder.setBlockLayer(rendertype);
                     int j = 0;
 
@@ -289,7 +291,7 @@ public class MenuWorldRenderer
                 DefaultVertexFormat.updateVertexFormats();
             }
         }
-    }
+    */}
 
     public void destroy()
     {
@@ -364,7 +366,7 @@ public class MenuWorldRenderer
     }
 
     public void renderSky(float x, float y, float z, int pass)
-    {
+    {/*
         if (this.dimensionInfo.skyType() == DimensionSpecialEffects.SkyType.END)
         {
             this.renderSkyEnd();
@@ -394,7 +396,7 @@ public class MenuWorldRenderer
             }
 
             GlStateManager._disableFog();
-            GlStateManager._disableAlphaTest();
+            GlStateManager.disableAlphaTest();
             GlStateManager._enableBlend();
             RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
             Lighting.turnOff();
@@ -404,7 +406,7 @@ public class MenuWorldRenderer
             {
                 GlStateManager._disableTexture();
                 GlStateManager._shadeModel(7425);
-                GlStateManager._pushMatrix();
+                GL43.glPushMatrix();
                 GlStateManager._rotatef(90.0F, 1.0F, 0.0F, 0.0F);
                 GlStateManager._rotatef(Mth.sin(this.getCelestialAngleRadians()) < 0.0F ? 180.0F : 0.0F, 0.0F, 0.0F, 1.0F);
                 GlStateManager._rotatef(90.0F, 0.0F, 0.0F, 1.0F);
@@ -424,15 +426,15 @@ public class MenuWorldRenderer
                 }
 
                 tesselator.end();
-                GlStateManager._popMatrix();
+                GL43.glPopMatrix();
                 GlStateManager._shadeModel(7424);
             }
 
             GlStateManager._enableTexture();
             RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-            GlStateManager._pushMatrix();
+            GL43.glPushMatrix();
             float f10 = 1.0F;
-            GlStateManager._color4f(1.0F, 1.0F, 1.0F, f10);
+            GlStateManager.color4f(1.0F, 1.0F, 1.0F, f10);
             GlStateManager._rotatef(-90.0F, 0.0F, 1.0F, 0.0F);
             GlStateManager._rotatef(this.getCelestialAngle() * 360.0F, 1.0F, 0.0F, 0.0F);
             float f11 = 30.0F;
@@ -440,7 +442,7 @@ public class MenuWorldRenderer
             if (Config.isSunTexture())
             {
                 this.mc.getTextureManager().bind(SUN_TEXTURES);
-                bufferbuilder.begin(7, DefaultVertexFormat.POSITION_TEX);
+                bufferbuilder.begin(Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
                 bufferbuilder.vertex((double)(-f11), 100.0D, (double)(-f11)).uv(0.0F, 0.0F).endVertex();
                 bufferbuilder.vertex((double)f11, 100.0D, (double)(-f11)).uv(1.0F, 0.0F).endVertex();
                 bufferbuilder.vertex((double)f11, 100.0D, (double)f11).uv(1.0F, 1.0F).endVertex();
@@ -460,7 +462,7 @@ public class MenuWorldRenderer
                 float f14 = (float)(i1 + 0) / 2.0F;
                 float f15 = (float)(l + 1) / 4.0F;
                 float f9 = (float)(i1 + 1) / 2.0F;
-                bufferbuilder.begin(7, DefaultVertexFormat.POSITION_TEX);
+                bufferbuilder.begin(Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
                 bufferbuilder.vertex((double)(-f11), -100.0D, (double)f11).uv(f15, f9).endVertex();
                 bufferbuilder.vertex((double)f11, -100.0D, (double)f11).uv(f13, f9).endVertex();
                 bufferbuilder.vertex((double)f11, -100.0D, (double)(-f11)).uv(f13, f14).endVertex();
@@ -473,7 +475,7 @@ public class MenuWorldRenderer
 
             if (f12 > 0.0F && Config.isStarsEnabled())
             {
-                GlStateManager._color4f(f12, f12, f12, f12);
+                GlStateManager.color4f(f12, f12, f12, f12);
                 this.starVBO.bind();
                 GlStateManager._enableClientState(32884);
                 GlStateManager._vertexPointer(3, 5126, 12, 0L);
@@ -482,18 +484,18 @@ public class MenuWorldRenderer
                 GlStateManager._disableClientState(32884);
             }
 
-            GlStateManager._color4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager._disableBlend();
-            GlStateManager._enableAlphaTest();
+            GlStateManager.enableAlphaTest();
             GlStateManager._enableFog();
-            GlStateManager._popMatrix();
+            GL43.glPopMatrix();
             GlStateManager._disableTexture();
             RenderSystem.color3f(0.0F, 0.0F, 0.0F);
             double d0 = (double)y - this.blockAccess.getHorizon();
 
             if (d0 < 0.0D)
             {
-                GlStateManager._pushMatrix();
+                GL43.glPushMatrix();
                 GlStateManager._translatef(0.0F, 12.0F, 0.0F);
                 this.sky2VBO.bind();
                 GlStateManager._enableClientState(32884);
@@ -501,7 +503,7 @@ public class MenuWorldRenderer
                 this.sky2VBO.draw(GLUtils.getViewModelMatrix(), 7);
                 VertexBuffer.unbind();
                 GlStateManager._disableClientState(32884);
-                GlStateManager._popMatrix();
+                GL43.glPopMatrix();
             }
 
             if (this.dimensionInfo.hasGround())
@@ -518,7 +520,7 @@ public class MenuWorldRenderer
                 RenderSystem.color3f(this.fogRenderer.red, this.fogRenderer.green, this.fogRenderer.blue);
             }
 
-            GlStateManager._pushMatrix();
+            GL43.glPushMatrix();
             GlStateManager._translatef(0.0F, -((float)(d0 - 16.0D)), 0.0F);
 
             if (Config.isSkyEnabled())
@@ -531,18 +533,18 @@ public class MenuWorldRenderer
                 GlStateManager._disableClientState(32884);
             }
 
-            GlStateManager._popMatrix();
+            GL43.glPopMatrix();
             GlStateManager._enableTexture();
             GlStateManager._depthMask(true);
         }
-    }
+    */}
 
     private void renderSkyEnd()
-    {
+    {/*
         if (Config.isSkyEnabled())
         {
             GlStateManager._disableFog();
-            GlStateManager._disableAlphaTest();
+            GlStateManager.disableAlphaTest();
             GlStateManager._enableBlend();
             RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
             Lighting.turnOff();
@@ -553,7 +555,7 @@ public class MenuWorldRenderer
 
             for (int i = 0; i < 6; ++i)
             {
-                GlStateManager._pushMatrix();
+                GL43.glPushMatrix();
 
                 if (i == 1)
                 {
@@ -580,7 +582,7 @@ public class MenuWorldRenderer
                     GlStateManager._rotatef(-90.0F, 0.0F, 0.0F, 1.0F);
                 }
 
-                bufferbuilder.begin(7, DefaultVertexFormat.POSITION_TEX_COLOR);
+                bufferbuilder.begin(Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
                 int j = 40;
                 int k = 40;
                 int l = 40;
@@ -598,24 +600,24 @@ public class MenuWorldRenderer
                 bufferbuilder.vertex(100.0D, -100.0D, 100.0D).uv(16.0F, 16.0F).color(j, k, l, 255).endVertex();
                 bufferbuilder.vertex(100.0D, -100.0D, -100.0D).uv(16.0F, 0.0F).color(j, k, l, 255).endVertex();
                 tesselator.end();
-                GlStateManager._popMatrix();
+                GL43.glPopMatrix();
             }
 
             GlStateManager._depthMask(true);
             GlStateManager._enableTexture();
-            GlStateManager._enableAlphaTest();
+            GlStateManager.enableAlphaTest();
         }
-    }
+    */}
 
     public void renderClouds(int pass, double x, double y, double z)
-    {
+    {/*
         float f = this.dimensionInfo.getCloudHeight();
 
         if (!Float.isNaN(f))
         {
             Vec3 vec3 = this.getCloudColour();
             this.cloudRenderer.prepareToRender(this.mc.getFrameTime(), vec3);
-            GlStateManager._pushMatrix();
+            GL43.glPushMatrix();
             GlStateManager._disableCull();
             Tesselator tesselator = Tesselator.getInstance();
             BufferBuilder bufferbuilder = tesselator.getBuilder();
@@ -700,7 +702,7 @@ public class MenuWorldRenderer
                 {
                     for (int j1 = -3; j1 <= 4; ++j1)
                     {
-                        bufferbuilder.begin(7, DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL);
+                        bufferbuilder.begin(Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL);
                         float f22 = (float)(l1 * 8);
                         float f23 = (float)(j1 * 8);
                         float f24 = f22 - f19;
@@ -773,12 +775,12 @@ public class MenuWorldRenderer
                 this.cloudRenderer.endUpdateGlList((float)x, (float)y, (float)z);
             }
 
-            GlStateManager._color4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager._disableBlend();
             GlStateManager._enableCull();
-            GlStateManager._popMatrix();
+            GL43.glPopMatrix();
         }
-    }
+    */}
 
     public float getCelestialAngle()
     {
@@ -865,7 +867,7 @@ public class MenuWorldRenderer
     }
 
     private void generateSky() throws Exception
-    {
+    {/*
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
 
@@ -878,10 +880,10 @@ public class MenuWorldRenderer
         this.renderSky(bufferbuilder, 16.0F, false);
         bufferbuilder.end();
         this.skyVBO.upload(bufferbuilder);
-    }
+    */}
 
     private void generateSky2() throws Exception
-    {
+    {/*
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
 
@@ -894,13 +896,13 @@ public class MenuWorldRenderer
         this.renderSky(bufferbuilder, -16.0F, true);
         bufferbuilder.end();
         this.sky2VBO.upload(bufferbuilder);
-    }
+    */}
 
     private void renderSky(BufferBuilder bufferBuilderIn, float posY, boolean reverseX)
-    {
+    {/*
         int i = 64;
         int j = 6;
-        bufferBuilderIn.begin(7, DefaultVertexFormat.POSITION);
+        bufferBuilderIn.begin(Mode.QUADS, DefaultVertexFormat.POSITION);
         int k = (this.renderDistance / 64 + 1) * 64 + 64;
 
         for (int l = -k; l <= k; l += 64)
@@ -922,10 +924,10 @@ public class MenuWorldRenderer
                 bufferBuilderIn.vertex((double)f, (double)posY, (double)(i1 + 64)).endVertex();
             }
         }
-    }
+    */}
 
     private void generateStars() throws Exception
-    {
+    {/*
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
 
@@ -938,12 +940,12 @@ public class MenuWorldRenderer
         this.renderStars(bufferbuilder);
         bufferbuilder.end();
         this.starVBO.upload(bufferbuilder);
-    }
+    */}
 
     private void renderStars(BufferBuilder bufferBuilderIn)
     {
         Random random = new Random(10842L);
-        bufferBuilderIn.begin(7, DefaultVertexFormat.POSITION);
+        bufferBuilderIn.begin(Mode.QUADS, DefaultVertexFormat.POSITION);
 
         for (int i = 0; i < 1500; ++i)
         {
@@ -998,23 +1000,23 @@ public class MenuWorldRenderer
     }
 
     public void enableLightmap()
-    {
+    {/*
         GlStateManager._activeTexture(33986);
-        GlStateManager._matrixMode(5890);
-        GlStateManager._loadIdentity();
+        GL43.glMatrixMode(5890);
+        GL43.glLoadIdentity();
         float f = 0.00390625F;
         GlStateManager._scalef(f, f, f);
         GlStateManager._translatef(8.0F, 8.0F, 8.0F);
-        GlStateManager._matrixMode(5888);
+        GL43.glMatrixMode(5888);
         this.mc.getTextureManager().bind(this.locationLightMap);
         GlStateManager._texParameter(3553, 10241, 9729);
         GlStateManager._texParameter(3553, 10240, 9729);
         GlStateManager._texParameter(3553, 10242, 33071);
         GlStateManager._texParameter(3553, 10243, 33071);
-        GlStateManager._color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager._enableTexture();
         GlStateManager._activeTexture(33984);
-    }
+    */}
 
     public void updateTorchFlicker()
     {
@@ -1299,7 +1301,7 @@ public class MenuWorldRenderer
         }
 
         public void endUpdateGlList(float x, float y, float z)
-        {
+        {/*
             GL11.glEndList();
             this.cloudTickCounterUpdate = this.mc.tickCounter;
             this.cloudPlayerX = (double)x;
@@ -1307,20 +1309,20 @@ public class MenuWorldRenderer
             this.cloudPlayerZ = (double)z;
             this.updated = true;
             GlStateManager._clearCurrentColor();
-        }
+        */}
 
         public void renderGlList(float x, float y, float z)
-        {
+        {/*
             double d0 = (double)((float)(this.mc.tickCounter - this.cloudTickCounterUpdate) + this.partialTicks);
             float f = (float)((double)x - this.cloudPlayerX + d0 * 0.03D);
             float f1 = (float)((double)y - this.cloudPlayerY);
             float f2 = (float)((double)z - this.cloudPlayerZ);
-            GlStateManager._pushMatrix();
+            GL43.glPushMatrix();
             GlStateManager._translatef(-f / 12.0F, -f1, -f2 / 12.0F);
             GL12.glCallList(this.glListClouds);
-            GlStateManager._popMatrix();
+            GL43.glPopMatrix();
             GlStateManager._clearCurrentColor();
-        }
+        */}
 
         public void reset()
         {
@@ -1492,12 +1494,12 @@ public class MenuWorldRenderer
         }
 
         public void setupFog(int startCoords)
-        {
+        {/*
             this.applyFog(false);
             float f = (float)this.menuWorldRenderer.renderDistance;
             Vec3 vec3 = this.menuWorldRenderer.getEyePos();
             GlStateManager._normal3f(0.0F, -1.0F, 0.0F);
-            GlStateManager._color4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
             float f1 = -1.0F;
 
             if (f1 >= 0.0F)
@@ -1552,10 +1554,10 @@ public class MenuWorldRenderer
             GlStateManager._enableColorMaterial();
             GlStateManager._enableFog();
             GlStateManager._colorMaterial(1028, 4608);
-        }
+        */}
 
         public void applyFog(boolean blackIn)
-        {
+        {/*
             if (blackIn)
             {
                 GlStateManager.m_84273_(2918, this.blackBuffer);
@@ -1564,7 +1566,7 @@ public class MenuWorldRenderer
             {
                 GlStateManager.m_84273_(2918, this.getFogBuffer());
             }
-        }
+        */}
 
         private float[] getFogBuffer()
         {

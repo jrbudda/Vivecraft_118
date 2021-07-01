@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/LevelRenderer.java
 +++ b/net/minecraft/client/renderer/LevelRenderer.java
-@@ -158,7 +158,8 @@
+@@ -163,7 +163,8 @@
  import net.optifine.util.RenderChunkUtils;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -10,7 +10,7 @@
  
  public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseable
  {
-@@ -273,6 +274,15 @@
+@@ -287,6 +288,15 @@
      private static boolean ambientOcclusion = false;
      private Map<String, List<Entity>> mapEntityLists = new HashMap<>();
      private Map<RenderType, Map> mapRegionLayers = new LinkedHashMap<>();
@@ -26,7 +26,7 @@
  
      public LevelRenderer(Minecraft p_109480_, RenderBuffers p_109481_)
      {
-@@ -322,9 +332,16 @@
+@@ -337,9 +347,16 @@
  
              p_109704_.turnOnLightLayer();
              Level level = this.minecraft.level;
@@ -45,22 +45,19 @@
 +            int k = Mth.floor(vec3.z);
              Tesselator tesselator = Tesselator.getInstance();
              BufferBuilder bufferbuilder = tesselator.getBuilder();
-             RenderSystem.enableAlphaTest();
-@@ -555,12 +572,7 @@
-         RenderSystem.texParameter(3553, 10242, 10497);
-         RenderSystem.texParameter(3553, 10243, 10497);
-         RenderSystem.bindTexture(0);
--        this.initOutline();
+             RenderSystem.disableCull();
+@@ -563,7 +580,9 @@
+     public void onResourceManagerReload(ResourceManager p_109513_)
+     {
+         this.initOutline();
 -
--        if (Minecraft.useShaderTransparency())
--        {
--            this.initTransparency();
--        }
++        //Vivecraft
 +        this.minecraft.vrRenderer.reinitFrameBuffers("Resource Reload");
-     }
- 
-     public void initOutline()
-@@ -592,10 +604,10 @@
++        //
+         if (Minecraft.useShaderTransparency())
+         {
+             this.initTransparency();
+@@ -599,10 +618,10 @@
          }
      }
  
@@ -73,7 +70,7 @@
  
          try
          {
-@@ -613,11 +625,11 @@
+@@ -620,11 +639,11 @@
              this.weatherTarget = rendertarget4;
              this.cloudsTarget = rendertarget;
          }
@@ -88,7 +85,7 @@
  
              if (this.minecraft.getResourcePackRepository().getSelectedIds().size() > 1)
              {
-@@ -627,7 +639,7 @@
+@@ -634,7 +653,7 @@
                  {
                      component = new TextComponent(this.minecraft.getResourceManager().getResource(resourcelocation).getSourceName());
                  }
@@ -97,7 +94,7 @@
                  {
                      component = null;
                  }
-@@ -647,7 +659,7 @@
+@@ -654,7 +673,7 @@
          }
      }
  
@@ -106,24 +103,8 @@
      {
          if (this.transparencyChain != null)
          {
-@@ -866,15 +878,6 @@
-     {
-         if (this.level != null)
-         {
--            if (Minecraft.useShaderTransparency())
--            {
--                this.initTransparency();
--            }
--            else
--            {
--                this.deinitTransparency();
--            }
--
-             this.level.clearTintCaches();
- 
-             if (this.chunkRenderDispatcher == null)
-@@ -1009,7 +1012,7 @@
-             this.viewArea.repositionCamera(this.minecraft.player.getX(), this.minecraft.player.getZ());
+@@ -1030,7 +1049,7 @@
+             this.viewArea.repositionCamera(d0, d2);
          }
  
 -        if (Config.isDynamicLights())
@@ -131,7 +112,7 @@
          {
              DynamicLights.update(this);
          }
-@@ -1023,7 +1026,7 @@
+@@ -1044,7 +1063,7 @@
          BlockPos blockpos1 = new BlockPos(Mth.floor(vec3.x / 16.0D) * 16, Mth.floor(vec3.y / 16.0D) * 16, Mth.floor(vec3.z / 16.0D) * 16);
          float f = p_109696_.getXRot();
          float f1 = p_109696_.getYRot();
@@ -140,19 +121,7 @@
          this.prevCamX = vec3.x;
          this.prevCamY = vec3.y;
          this.prevCamZ = vec3.z;
-@@ -1201,9 +1204,9 @@
-                         }
-                     }
- 
--                    list.sort(Comparator.comparingDouble((p_230016_1_) ->
-+                    list.sort(Comparator.comparingDouble((p_lambda$setupTerrain$0_1_) ->
-                     {
--                        return blockpos.distSqr(p_230016_1_.chunk.getOrigin().offset(8, 8, 8));
-+                        return blockpos.distSqr(p_lambda$setupTerrain$0_1_.chunk.getOrigin().offset(8, 8, 8));
-                     }));
-                     deque.addAll(list);
-                 }
-@@ -1306,25 +1309,25 @@
+@@ -1368,25 +1387,25 @@
      }
  
      @Nullable
@@ -184,8 +153,8 @@
                  int k = i * i + j * j;
  
                  if (k > this.renderDistanceSq)
-@@ -1367,8 +1370,14 @@
-         BlockEntityRenderDispatcher.instance.prepare(this.level, this.minecraft.getTextureManager(), this.minecraft.font, p_109604_, this.minecraft.hitResult);
+@@ -1440,8 +1459,14 @@
+         this.blockEntityRenderDispatcher.prepare(this.level, p_109604_, this.minecraft.hitResult);
          this.entityRenderDispatcher.prepare(this.level, p_109604_, this.minecraft.crosshairPickEntity);
          ProfilerFiller profilerfiller = this.level.getProfiler();
 -        profilerfiller.popPush("light_updates");
@@ -201,7 +170,7 @@
          Vec3 vec3 = p_109604_.getPosition();
          double d0 = vec3.x();
          double d1 = vec3.y();
-@@ -1475,13 +1484,6 @@
+@@ -1551,13 +1576,6 @@
          profilerfiller.popPush("terrain");
          Lagometer.timerTerrain.start();
  
@@ -214,8 +183,8 @@
 -
          if (Config.isFogOff() && FogRenderer.fogStandard)
          {
-             GlStateManager.setFogAllowed(false);
-@@ -1499,16 +1501,21 @@
+             RenderSystem.setFogAllowed(false);
+@@ -1573,16 +1591,21 @@
          }
  
          Lagometer.timerTerrain.end();
@@ -239,29 +208,29 @@
          if (flag1)
          {
              Shaders.beginEntities();
-@@ -1547,6 +1554,9 @@
-             RenderStateManager.enableCache();
-         }
+@@ -1624,15 +1647,19 @@
+         int i2 = this.level.getMinBuildHeight();
+         int j2 = this.level.getMaxBuildHeight();
  
-+        boolean flag4 = this.minecraft.currentPass == RenderPass.THIRD && this.minecraft.vrSettings.displayMirrorMode == 14 || this.minecraft.currentPass == RenderPass.CAMERA;
-+        flag4 = flag4 | (this.minecraft.vrSettings.shouldRenderSelf || this.minecraft.vrSettings.tmpRenderSelf);
++        boolean renderSelf = this.minecraft.currentPass == RenderPass.THIRD && this.minecraft.vrSettings.displayMirrorMode == 14 || this.minecraft.currentPass == RenderPass.CAMERA;
++        renderSelf = renderSelf | (this.minecraft.vrSettings.shouldRenderSelf || this.minecraft.vrSettings.tmpRenderSelf);
 +
-         for (LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo : this.renderInfosEntities)
++        
+         for (Entity entity : this.level.entitiesForRendering())
          {
-             ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = levelrenderer$renderchunkinfo.chunk;
-@@ -1554,9 +1564,9 @@
+             BlockPos blockpos = entity.blockPosition();
  
-             for (Entity entity : levelchunk.getEntitySections()[chunkrenderdispatcher$renderchunk.getOrigin().getY() / 16])
+             if (this.renderInfosEntities.contains(SectionPos.asLong(blockpos)) || blockpos.getY() <= i2 || blockpos.getY() >= j2)
              {
 -                boolean flag4 = entity == this.minecraft.player && !this.minecraft.player.isSpectator();
 +                boolean flag5 = entity == this.minecraft.player && !this.minecraft.player.isSpectator();
  
 -                if ((this.entityRenderDispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(this.minecraft.player)) && (entity != p_109604_.getEntity() || p_109604_.isDetached() || p_109604_.getEntity() instanceof LivingEntity && ((LivingEntity)p_109604_.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || p_109604_.getEntity() == entity || flag4))
-+                if ((this.entityRenderDispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(this.minecraft.player)) && (flag4 || entity != p_109604_.getEntity() || p_109604_.isDetached() || p_109604_.getEntity() instanceof LivingEntity && ((LivingEntity)p_109604_.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || p_109604_.getEntity() == entity || flag5))
++                if ((this.entityRenderDispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(this.minecraft.player)) && (renderSelf || entity != p_109604_.getEntity() || p_109604_.isDetached() || p_109604_.getEntity() instanceof LivingEntity && ((LivingEntity)p_109604_.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || p_109604_.getEntity() == entity || flag5))
                  {
                      String s = entity.getClass().getName();
                      List<Entity> list = this.mapEntityLists.get(s);
-@@ -1578,6 +1588,11 @@
+@@ -1654,6 +1681,11 @@
              {
                  ++this.renderedEntities;
  
@@ -273,26 +242,7 @@
                  if (entity1.tickCount == 0)
                  {
                      entity1.xOld = entity1.getX();
-@@ -1592,12 +1607,12 @@
-                     flag3 = true;
-                     OutlineBufferSource outlinebuffersource = this.renderBuffers.outlineBufferSource();
-                     multibuffersource = outlinebuffersource;
--                    int k2 = entity1.getTeamColor();
--                    int l2 = 255;
--                    int i3 = k2 >> 16 & 255;
--                    int i2 = k2 >> 8 & 255;
--                    int j2 = k2 & 255;
--                    outlinebuffersource.setColor(i3, i2, j2, 255);
-+                    int i3 = entity1.getTeamColor();
-+                    int j3 = 255;
-+                    int k3 = i3 >> 16 & 255;
-+                    int i2 = i3 >> 8 & 255;
-+                    int j2 = i3 & 255;
-+                    outlinebuffersource.setColor(k3, i2, j2, 255);
-                 }
-                 else
-                 {
-@@ -1613,6 +1628,12 @@
+@@ -1689,6 +1721,12 @@
  
                  this.renderEntity(entity1, d0, d1, d2, p_109601_, p_109600_, multibuffersource);
                  this.renderedEntity = null;
@@ -305,264 +255,38 @@
              }
  
              list1.clear();
-@@ -1632,9 +1653,9 @@
- 
-         profilerfiller.popPush("blockentities");
-         SignRenderer.updateTextRenderDistance();
--        boolean flag5 = Reflector.IForgeTileEntity_getRenderBoundingBox.exists();
-+        boolean flag6 = Reflector.IForgeTileEntity_getRenderBoundingBox.exists();
-         Frustum frustum1 = frustum;
--        label354:
-+        label401:
- 
-         for (LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo1 : this.renderInfosTileEntities)
-         {
-@@ -1642,7 +1663,7 @@
- 
-             if (!list2.isEmpty())
-             {
--                Iterator iterator1 = list2.iterator();
-+                Iterator iterator = list2.iterator();
- 
-                 while (true)
-                 {
-@@ -1651,14 +1672,14 @@
- 
-                     do
-                     {
--                        if (!iterator1.hasNext())
-+                        if (!iterator.hasNext())
-                         {
--                            continue label354;
-+                            continue label401;
-                         }
- 
--                        blockentity1 = (BlockEntity)iterator1.next();
-+                        blockentity1 = (BlockEntity)iterator.next();
- 
--                        if (!flag5)
-+                        if (!flag6)
-                         {
-                             break;
-                         }
-@@ -1672,24 +1693,24 @@
-                         Shaders.nextBlockEntity(blockentity1);
-                     }
- 
--                    BlockPos blockpos3 = blockentity1.getBlockPos();
-+                    BlockPos blockpos4 = blockentity1.getBlockPos();
-                     MultiBufferSource multibuffersource1 = multibuffersource$buffersource;
-                     p_109600_.pushPose();
--                    p_109600_.translate((double)blockpos3.getX() - d0, (double)blockpos3.getY() - d1, (double)blockpos3.getZ() - d2);
--                    SortedSet<BlockDestructionProgress> sortedset = this.destructionProgress.get(blockpos3.asLong());
-+                    p_109600_.translate((double)blockpos4.getX() - d0, (double)blockpos4.getY() - d1, (double)blockpos4.getZ() - d2);
-+                    SortedSet<BlockDestructionProgress> sortedset = this.destructionProgress.get(blockpos4.asLong());
- 
-                     if (sortedset != null && !sortedset.isEmpty())
-                     {
--                        int j3 = sortedset.last().getProgress();
-+                        int k2 = sortedset.last().getProgress();
- 
--                        if (j3 >= 0)
-+                        if (k2 >= 0)
-                         {
-                             PoseStack.Pose posestack$pose = p_109600_.last();
--                            VertexConsumer vertexconsumer = new SheetedDecalTextureGenerator(this.renderBuffers.crumblingBufferSource().getBuffer(ModelBakery.DESTROY_TYPES.get(j3)), posestack$pose.pose(), posestack$pose.normal());
--                            multibuffersource1 = (p_230014_2_) ->
-+                            VertexConsumer vertexconsumer = new SheetedDecalTextureGenerator(this.renderBuffers.crumblingBufferSource().getBuffer(ModelBakery.DESTROY_TYPES.get(k2)), posestack$pose.pose(), posestack$pose.normal());
-+                            multibuffersource1 = (p_lambda$updateCameraAndRender$1_2_) ->
-                             {
--                                VertexConsumer vertexconsumer3 = multibuffersource$buffersource.getBuffer(p_230014_2_);
--                                return p_230014_2_.affectsCrumbling() ? VertexMultiConsumer.create(vertexconsumer, vertexconsumer3) : vertexconsumer3;
-+                                VertexConsumer vertexconsumer3 = multibuffersource$buffersource.getBuffer(p_lambda$updateCameraAndRender$1_2_);
-+                                return p_lambda$updateCameraAndRender$1_2_.affectsCrumbling() ? VertexMultiConsumer.create(vertexconsumer, vertexconsumer3) : vertexconsumer3;
-                             };
-                         }
-                     }
-@@ -1703,40 +1724,26 @@
- 
-         synchronized (this.globalBlockEntities)
-         {
--            Iterator iterator = this.globalBlockEntities.iterator();
--            label329:
--
--            while (true)
-+            for (BlockEntity blockentity : this.globalBlockEntities)
-             {
--                BlockEntity blockentity;
--                AABB aabb;
--
--                do
-+                if (flag6)
-                 {
--                    if (!iterator.hasNext())
--                    {
--                        break label329;
--                    }
--
--                    blockentity = (BlockEntity)iterator.next();
-+                    AABB aabb = (AABB)Reflector.call(blockentity, Reflector.IForgeTileEntity_getRenderBoundingBox);
- 
--                    if (!flag5)
-+                    if (aabb != null && !frustum1.isVisible(aabb))
-                     {
--                        break;
-+                        continue;
-                     }
--
--                    aabb = (AABB)Reflector.call(blockentity, Reflector.IForgeTileEntity_getRenderBoundingBox);
-                 }
--                while (aabb != null && !frustum1.isVisible(aabb));
- 
-                 if (flag1)
-                 {
-                     Shaders.nextBlockEntity(blockentity);
-                 }
- 
--                BlockPos blockpos2 = blockentity.getBlockPos();
-+                BlockPos blockpos3 = blockentity.getBlockPos();
-                 p_109600_.pushPose();
--                p_109600_.translate((double)blockpos2.getX() - d0, (double)blockpos2.getY() - d1, (double)blockpos2.getZ() - d2);
-+                p_109600_.translate((double)blockpos3.getX() - d0, (double)blockpos3.getY() - d1, (double)blockpos3.getZ() - d2);
-                 BlockEntityRenderDispatcher.instance.render(blockentity, p_109601_, p_109600_, multibuffersource$buffersource);
-                 p_109600_.popPose();
-                 ++this.countTileEntitiesRendered;
-@@ -1786,11 +1793,11 @@
- 
-                 if (sortedset1 != null && !sortedset1.isEmpty())
-                 {
--                    int k3 = sortedset1.last().getProgress();
-+                    int l3 = sortedset1.last().getProgress();
-                     p_109600_.pushPose();
-                     p_109600_.translate((double)blockpos1.getX() - d0, (double)blockpos1.getY() - d1, (double)blockpos1.getZ() - d2);
-                     PoseStack.Pose posestack$pose1 = p_109600_.last();
--                    VertexConsumer vertexconsumer1 = new SheetedDecalTextureGenerator(this.renderBuffers.crumblingBufferSource().getBuffer(ModelBakery.DESTROY_TYPES.get(k3)), posestack$pose1.pose(), posestack$pose1.normal());
-+                    VertexConsumer vertexconsumer1 = new SheetedDecalTextureGenerator(this.renderBuffers.crumblingBufferSource().getBuffer(ModelBakery.DESTROY_TYPES.get(l3)), posestack$pose1.pose(), posestack$pose1.normal());
-                     this.minecraft.getBlockRenderer().renderBreakingTexture(this.level.getBlockState(blockpos1), blockpos1, this.level, p_109600_, vertexconsumer1);
-                     p_109600_.popPose();
-                 }
-@@ -1802,10 +1809,27 @@
-         --renderEntitiesCounter;
-         this.checkPoseStack(p_109600_);
-         HitResult hitresult = this.minecraft.hitResult;
-+        profilerfiller.popPush("outline");
-+        this.selR = this.selG = this.selB = 1.0F;
-+
-+        for (int l2 = 0; l2 < 2; ++l2)
-+        {
-+            if (this.minecraft.interactTracker.isInteractActive(l2) && (this.minecraft.interactTracker.inBlockHit[l2] != null || this.minecraft.interactTracker.bukkit[l2]))
-+            {
-+                BlockPos blockpos2 = this.minecraft.interactTracker.inBlockHit[l2] != null ? this.minecraft.interactTracker.inBlockHit[l2].getBlockPos() : new BlockPos(this.minecraft.vrPlayer.vrdata_world_render.getController(l2).getPosition());
-+                BlockState blockstate1 = this.level.getBlockState(blockpos2);
-+                this.renderHitOutline(p_109600_, multibuffersource$buffersource.getBuffer(RenderType.lines()), p_109604_.getEntity(), d0, d1, d2, blockpos2, blockstate1);
-+
-+                if (l2 == 0)
-+                {
-+                    p_109603_ = false;
-+                }
-+            }
-+        }
- 
-         if (p_109603_ && hitresult != null && hitresult.getType() == HitResult.Type.BLOCK)
-         {
--            profilerfiller.popPush("outline");
-+            this.selR = this.selG = this.selB = 0.0F;
-             BlockPos blockpos = ((BlockHitResult)hitresult).getBlockPos();
-             BlockState blockstate = this.level.getBlockState(blockpos);
- 
-@@ -1814,18 +1838,18 @@
-                 ShadersRender.beginOutline();
-             }
- 
--            boolean flag7;
-+            boolean flag9;
- 
-             if (Reflector.IForgeBlockState_isAir2.exists() && Reflector.ForgeHooksClient_onDrawBlockHighlight.exists())
-             {
--                flag7 = !Reflector.callBoolean(Reflector.ForgeHooksClient_onDrawBlockHighlight, this, p_109604_, hitresult, p_109601_, p_109600_, multibuffersource$buffersource) && !Reflector.callBoolean(blockstate, Reflector.IForgeBlockState_isAir2, this.level, blockpos) && this.level.getWorldBorder().isWithinBounds(blockpos);
-+                flag9 = !Reflector.callBoolean(Reflector.ForgeHooksClient_onDrawBlockHighlight, this, p_109604_, hitresult, p_109601_, p_109600_, multibuffersource$buffersource) && !Reflector.callBoolean(blockstate, Reflector.IForgeBlockState_isAir2, this.level, blockpos) && this.level.getWorldBorder().isWithinBounds(blockpos);
-             }
-             else
-             {
--                flag7 = !blockstate.isAir() && this.level.getWorldBorder().isWithinBounds(blockpos);
-+                flag9 = !blockstate.isAir() && this.level.getWorldBorder().isWithinBounds(blockpos);
-             }
- 
--            if (flag7)
-+            if (flag9)
-             {
-                 VertexConsumer vertexconsumer2 = multibuffersource$buffersource.getBuffer(RenderType.lines());
-                 this.renderHitOutline(p_109600_, vertexconsumer2, p_109604_.getEntity(), d0, d1, d2, blockpos, blockstate);
-@@ -1844,7 +1868,7 @@
- 
-         RenderSystem.pushMatrix();
-         RenderSystem.multMatrix(p_109600_.last().pose());
--        boolean flag6 = GlStateManager.isFogEnabled();
-+        boolean flag7 = GlStateManager.isFogEnabled();
-         GlStateManager._disableFog();
- 
-         if (flag1)
-@@ -1854,6 +1878,7 @@
- 
-         this.minecraft.debugRenderer.render(p_109600_, multibuffersource$buffersource, d0, d1, d2);
-         RenderSystem.popMatrix();
-+        this.minecraft.getProfiler().popPush("render bukkake");
-         multibuffersource$buffersource.endBatch(Sheets.translucentCullBlockSheet());
-         multibuffersource$buffersource.endBatch(Sheets.bannerSheet());
-         multibuffersource$buffersource.endBatch(Sheets.shieldSheet());
-@@ -1866,17 +1891,18 @@
-         multibuffersource$buffersource.endBatch(RenderType.entityGlintDirect());
-         multibuffersource$buffersource.endBatch(RenderType.waterMask());
-         this.renderBuffers.crumblingBufferSource().endBatch();
--        GlStateManager.setFogEnabled(flag6);
-+        GlStateManager.setFogEnabled(flag7);
- 
-         if (flag1)
-         {
+@@ -1951,11 +1989,14 @@
              multibuffersource$buffersource.endBatch();
              ShadersRender.endDebug();
--            Shaders.preRenderHand();
+             Shaders.preRenderHand();
+-            Matrix4f matrix4f1 = RenderSystem.getProjectionMatrix().copy();
 -            ShadersRender.renderHand0(p_109605_, p_109600_, p_109604_, p_109601_);
+-            RenderSystem.setProjectionMatrix(matrix4f1);
++//            Matrix4f matrix4f1 = RenderSystem.getProjectionMatrix().copy();
++//            ShadersRender.renderHand0(p_109605_, p_109600_, p_109604_, p_109601_);
++//            RenderSystem.setProjectionMatrix(matrix4f1);
              Shaders.preWater();
          }
++        
++        boolean menuHandleft = p_109605_.isInMenuRoom() || this.minecraft.screen != null || KeyboardHandler.Showing;
++        boolean menuhandright = menuHandleft || this.minecraft.interactTracker.hotbar >= 0 && this.minecraft.vrSettings.vrTouchHotbar;
  
-+        boolean flag8 = p_109605_.isInMenuRoom() || this.minecraft.screen != null || KeyboardHandler.Showing;
-+        boolean flag10 = flag8 || this.minecraft.interactTracker.hotbar >= 0 && this.minecraft.vrSettings.vrTouchHotbar;
-+
          if (this.transparencyChain != null)
          {
-             multibuffersource$buffersource.endBatch(RenderType.lines());
-@@ -1893,9 +1919,11 @@
-             profilerfiller.popPush("particles");
-             this.minecraft.particleEngine.renderParticles(p_109600_, multibuffersource$buffersource, p_109606_, p_109604_, p_109601_, frustum);
+@@ -1982,9 +2023,11 @@
+             }
+ 
              RenderStateShard.PARTICLES_TARGET.clearRenderState();
-+            p_109605_.renderVRFabulous(p_109601_, this, flag10, flag8);
++            p_109605_.renderVRFabulous(p_109601_, this, menuhandright, menuHandleft);
          }
          else
          {
-+            p_109605_.renderVrFast(p_109601_, false, flag10, flag8);
++            p_109605_.renderVrFast(p_109601_, false, menuhandright, menuHandleft);
              profilerfiller.popPush("translucent");
  
              if (flag1)
-@@ -1922,6 +1950,7 @@
-             }
- 
-             this.minecraft.particleEngine.renderParticles(p_109600_, multibuffersource$buffersource, p_109606_, p_109604_, p_109601_, frustum);
-+            p_109605_.renderVrFast(p_109601_, true, flag10, flag8);
- 
-             if (flag1)
-             {
-@@ -2068,7 +2097,7 @@
-             int j = Integer.MIN_VALUE;
-             int k = Integer.MIN_VALUE;
-             VboRegion vboregion2 = null;
--            Map<PairInt, Map<VboRegion, List<VertexBuffer>>> map = this.mapRegionLayers.computeIfAbsent(p_109716_, (kx) ->
-+            Map<PairInt, Map<VboRegion, List<VertexBuffer>>> map = this.mapRegionLayers.computeIfAbsent(p_109716_, (p_lambda$renderBlockLayer$3_0_) ->
-             {
-                 return new LinkedHashMap(16);
-             });
-@@ -2100,7 +2129,7 @@
-                     if (chunkrenderdispatcher$renderchunk.regionX != j || chunkrenderdispatcher$renderchunk.regionZ != k)
+@@ -2266,7 +2309,7 @@
+                     if (chunkrenderdispatcher$renderchunk.regionX != l || chunkrenderdispatcher$renderchunk.regionZ != i1)
                      {
                          PairInt pairint = PairInt.of(chunkrenderdispatcher$renderchunk.regionX, chunkrenderdispatcher$renderchunk.regionZ);
 -                        map1 = map.computeIfAbsent(pairint, (kx) ->
@@ -570,53 +294,7 @@
                          {
                              return new LinkedHashMap(8);
                          });
-@@ -2111,7 +2140,7 @@
- 
-                     if (vboregion != vboregion2)
-                     {
--                        list1 = map1.computeIfAbsent(vboregion, (kx) ->
-+                        list1 = map1.computeIfAbsent(vboregion, (p_lambda$renderBlockLayer$5_0_) ->
-                         {
-                             return new ArrayList();
-                         });
-@@ -2132,15 +2161,15 @@
-                 }
-             }
- 
--            for (java.util.Map.Entry<PairInt, Map<VboRegion, List<VertexBuffer>>> entry : map.entrySet())
-+            for (java.util.Map.Entry<PairInt, Map<VboRegion, List<VertexBuffer>>> entry1 : map.entrySet())
-             {
--                PairInt pairint1 = entry.getKey();
--                Map<VboRegion, List<VertexBuffer>> map2 = entry.getValue();
-+                PairInt pairint1 = entry1.getKey();
-+                Map<VboRegion, List<VertexBuffer>> map2 = entry1.getValue();
- 
--                for (java.util.Map.Entry<VboRegion, List<VertexBuffer>> entry1 : map2.entrySet())
-+                for (java.util.Map.Entry<VboRegion, List<VertexBuffer>> entry : map2.entrySet())
-                 {
--                    VboRegion vboregion1 = entry1.getKey();
--                    List<VertexBuffer> list = entry1.getValue();
-+                    VboRegion vboregion1 = entry.getKey();
-+                    List<VertexBuffer> list = entry.getValue();
- 
-                     for (VertexBuffer vertexbuffer2 : list)
-                     {
-@@ -2223,11 +2252,11 @@
-         p_109716_.clearRenderState();
-     }
- 
--    private void drawRegion(int regionX, int regionY, int regionZ, double xIn, double yIn, double zIn, VboRegion vboRegion)
-+    private void drawRegion(int p_drawRegion_1_, int p_drawRegion_2_, int p_drawRegion_3_, double p_drawRegion_4_, double p_drawRegion_6_, double p_drawRegion_8_, VboRegion p_drawRegion_10_)
-     {
-         GlStateManager._pushMatrix();
--        GlStateManager._translated((double)regionX - xIn, (double)regionY - yIn, (double)regionZ - zIn);
--        vboRegion.finishDraw();
-+        GlStateManager._translated((double)p_drawRegion_1_ - p_drawRegion_4_, (double)p_drawRegion_2_ - p_drawRegion_6_, (double)p_drawRegion_3_ - p_drawRegion_8_);
-+        p_drawRegion_10_.finishDraw();
-         GlStateManager.lockClientState();
-         GlStateManager._popMatrix();
-     }
-@@ -3074,19 +3103,19 @@
+@@ -3269,19 +3312,19 @@
              while (iterator1.hasNext())
              {
                  ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk1 = iterator1.next();
@@ -642,7 +320,7 @@
                  {
                      break;
                  }
-@@ -3094,7 +3123,7 @@
+@@ -3289,7 +3332,7 @@
                  chunkrenderdispatcher$renderchunk1.setNotDirty();
                  iterator1.remove();
  
@@ -651,7 +329,7 @@
                  {
                      double d0 = 2.0D * RenderChunkUtils.getRelativeBufferSize(chunkrenderdispatcher$renderchunk1);
                      d1 += d0;
-@@ -3248,7 +3277,7 @@
+@@ -3439,7 +3482,7 @@
      {
          if (!Config.isCustomEntityModels() || !CustomEntityModels.isCustomModel(p_109645_))
          {
@@ -660,21 +338,7 @@
          }
      }
  
-@@ -3272,10 +3301,10 @@
-     private static void renderShape(PoseStack p_109783_, VertexConsumer p_109784_, VoxelShape p_109785_, double p_109786_, double p_109787_, double p_109788_, float p_109789_, float p_109790_, float p_109791_, float p_109792_)
-     {
-         Matrix4f matrix4f = p_109783_.last().pose();
--        p_109785_.forAllEdges((p_230013_12_, p_230013_14_, p_230013_16_, p_230013_18_, p_230013_20_, p_230013_22_) ->
-+        p_109785_.forAllEdges((p_lambda$drawShape$6_12_, p_lambda$drawShape$6_14_, p_lambda$drawShape$6_16_, p_lambda$drawShape$6_18_, p_lambda$drawShape$6_20_, p_lambda$drawShape$6_22_) ->
-         {
--            p_109784_.vertex(matrix4f, (float)(p_230013_12_ + p_109786_), (float)(p_230013_14_ + p_109787_), (float)(p_230013_16_ + p_109788_)).color(p_109789_, p_109790_, p_109791_, p_109792_).endVertex();
--            p_109784_.vertex(matrix4f, (float)(p_230013_18_ + p_109786_), (float)(p_230013_20_ + p_109787_), (float)(p_230013_22_ + p_109788_)).color(p_109789_, p_109790_, p_109791_, p_109792_).endVertex();
-+            p_109784_.vertex(matrix4f, (float)(p_lambda$drawShape$6_12_ + p_109786_), (float)(p_lambda$drawShape$6_14_ + p_109787_), (float)(p_lambda$drawShape$6_16_ + p_109788_)).color(p_109789_, p_109790_, p_109791_, p_109792_).endVertex();
-+            p_109784_.vertex(matrix4f, (float)(p_lambda$drawShape$6_18_ + p_109786_), (float)(p_lambda$drawShape$6_20_ + p_109787_), (float)(p_lambda$drawShape$6_22_ + p_109788_)).color(p_109789_, p_109790_, p_109791_, p_109792_).endVertex();
-         });
-     }
- 
-@@ -3428,23 +3457,23 @@
+@@ -3632,23 +3675,23 @@
          this.playRecord(p_109515_, p_109516_, p_109515_ == null ? null : RecordItem.getBySound(p_109515_));
      }
  
@@ -704,7 +368,7 @@
              }
  
              if (recorditem != null)
-@@ -3452,12 +3481,12 @@
+@@ -3656,12 +3699,12 @@
                  this.minecraft.gui.setNowPlaying(recorditem.getDisplayName());
              }
  
@@ -720,7 +384,7 @@
      }
  
      private void notifyNearbyEntities(Level p_109551_, BlockPos p_109552_, boolean p_109553_)
-@@ -3716,6 +3745,7 @@
+@@ -3920,6 +3963,7 @@
      public void levelEvent(Player p_109533_, int p_109534_, BlockPos p_109535_, int p_109536_)
      {
          Random random = this.level.random;
@@ -728,7 +392,7 @@
  
          switch (p_109534_)
          {
-@@ -3779,18 +3809,38 @@
+@@ -3991,18 +4035,38 @@
                  break;
  
              case 1011:
@@ -767,7 +431,7 @@
                  this.level.playLocalSound(p_109535_, SoundEvents.FENCE_GATE_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
-@@ -3811,14 +3861,32 @@
+@@ -4023,14 +4087,32 @@
                  break;
  
              case 1019:
@@ -800,7 +464,7 @@
                  this.level.playLocalSound(p_109535_, SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, SoundSource.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
                  break;
  
-@@ -3847,10 +3915,21 @@
+@@ -4059,10 +4141,21 @@
                  break;
  
              case 1030:
@@ -822,7 +486,7 @@
                  this.level.playLocalSound(p_109535_, SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 0.3F, this.level.random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
-@@ -3871,6 +3950,11 @@
+@@ -4083,6 +4176,11 @@
                  break;
  
              case 1036:
@@ -834,16 +498,7 @@
                  this.level.playLocalSound(p_109535_, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
-@@ -4115,7 +4199,7 @@
- 
-             blockdestructionprogress1.setProgress(p_109777_);
-             blockdestructionprogress1.updateTick(this.ticks);
--            this.destructionProgress.computeIfAbsent(blockdestructionprogress1.getPos().asLong(), (p_230017_0_) ->
-+            this.destructionProgress.computeIfAbsent(blockdestructionprogress1.getPos().asLong(), (p_lambda$sendBlockBreakProgress$8_0_) ->
-             {
-                 return Sets.newTreeSet();
-             }).add(blockdestructionprogress1);
-@@ -4180,9 +4264,9 @@
+@@ -4442,9 +4540,9 @@
          return this.chunksToCompile.size();
      }
  
@@ -855,7 +510,7 @@
      }
  
      public ClientLevel getWorld()
-@@ -4256,11 +4340,11 @@
+@@ -4529,11 +4627,11 @@
          return this.renderInfosTileEntities;
      }
  
@@ -869,7 +524,7 @@
              this.minecraft.gui.getChat().removeById(201435902);
          }
  
-@@ -4270,7 +4354,7 @@
+@@ -4543,7 +4641,7 @@
          }
      }
  
@@ -878,7 +533,7 @@
      {
          int i = this.minecraft.options.ofChunkUpdates;
          boolean flag = this.minecraft.options.ofLazyChunkLoading;
-@@ -4294,7 +4378,7 @@
+@@ -4567,7 +4665,7 @@
                  for (int j1 = 0; j1 < 100; ++j1)
                  {
                      levelrenderer.needsUpdate();
@@ -887,7 +542,7 @@
  
                      if (!levelrenderer.hasRenderedAllChunks())
                      {
-@@ -4424,6 +4508,43 @@
+@@ -4697,6 +4795,43 @@
          return this.cloudsTarget;
      }
  
@@ -931,35 +586,3 @@
      public static class RenderChunkInfo
      {
          public final ChunkRenderDispatcher.RenderChunk chunk;
-@@ -4431,11 +4552,11 @@
-         private int directions;
-         private int step;
- 
--        public RenderChunkInfo(ChunkRenderDispatcher.RenderChunk renderChunkIn, @Nullable Direction facingIn, int setFacingIn)
-+        public RenderChunkInfo(ChunkRenderDispatcher.RenderChunk p_i242106_1_, @Nullable Direction p_i242106_2_, int p_i242106_3_)
-         {
--            this.chunk = renderChunkIn;
--            this.sourceDirection = facingIn;
--            this.directions = setFacingIn;
-+            this.chunk = p_i242106_1_;
-+            this.sourceDirection = p_i242106_2_;
-+            this.directions = p_i242106_3_;
-         }
- 
-         public void setDirections(byte p_109855_, Direction p_109856_)
-@@ -4448,11 +4569,11 @@
-             return (this.directions & 1 << p_109860_.ordinal()) > 0;
-         }
- 
--        private void initialize(Direction facingIn, int setFacingIn, int counter)
-+        private void initialize(Direction p_initialize_1_, int p_initialize_2_, int p_initialize_3_)
-         {
--            this.sourceDirection = facingIn;
--            this.directions = setFacingIn;
--            this.step = counter;
-+            this.sourceDirection = p_initialize_1_;
-+            this.directions = p_initialize_2_;
-+            this.step = p_initialize_3_;
-         }
-     }
- 

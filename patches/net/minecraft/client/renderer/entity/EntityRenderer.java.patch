@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/entity/EntityRenderer.java
 +++ b/net/minecraft/client/renderer/entity/EntityRenderer.java
-@@ -130,7 +130,7 @@
+@@ -133,7 +133,7 @@
              int i = "deadmau5".equals(p_114499_.getString()) ? -10 : 0;
              p_114500_.pushPose();
              p_114500_.translate(0.0D, (double)f, 0.0D);
@@ -9,7 +9,7 @@
              p_114500_.scale(-0.025F, -0.025F, 0.025F);
              Matrix4f matrix4f = p_114500_.last().pose();
              float f1 = Minecraft.getInstance().options.getBackgroundOpacity(0.25F);
-@@ -158,9 +158,9 @@
+@@ -156,9 +156,9 @@
          return this.entityType == null ? null : Either.makeLeft(this.entityType);
      }
  
@@ -21,7 +21,7 @@
      }
  
      public ResourceLocation getLocationTextureCustom()
-@@ -168,8 +168,8 @@
+@@ -166,8 +166,8 @@
          return this.locationTextureCustom;
      }
  

@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/tutorial/MovementTutorialStepInstance.java
 +++ b/net/minecraft/client/tutorial/MovementTutorialStepInstance.java
-@@ -93,12 +93,12 @@
+@@ -97,12 +97,12 @@
              if (this.moveCompleted == -1 && this.moveToast == null)
              {
                  this.moveToast = new TutorialToast(TutorialToast.Icons.MOVEMENT_KEYS, MOVE_TITLE, MOVE_DESCRIPTION, true);

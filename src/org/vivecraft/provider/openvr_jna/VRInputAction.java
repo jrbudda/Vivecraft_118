@@ -537,7 +537,7 @@ public class VRInputAction
         if (kb != null)
         {
             MCReflection.KeyBinding_pressed.set(kb, pressed);
-            MCReflection.KeyBinding_pressTime.set(kb, MCReflection.KeyBinding_pressTime.get(kb) + 1);
+            MCReflection.KeyBinding_pressTime.set(kb, (int)MCReflection.KeyBinding_pressTime.get(kb) + 1);
         }
     }
 

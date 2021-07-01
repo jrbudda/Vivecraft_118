@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/Options.java
 +++ b/net/minecraft/client/Options.java
-@@ -177,6 +177,7 @@
+@@ -196,6 +196,7 @@
      public float fovEffectScale = 1.0F;
      public double gamma;
      public int guiScale;
@@ -8,7 +8,7 @@
      public ParticleStatus particles = ParticleStatus.ALL;
      public NarratorStatus narratorStatus = NarratorStatus.OFF;
      public String languageCode = "en_us";
-@@ -188,7 +189,7 @@
+@@ -207,7 +208,7 @@
      public boolean ofSmoothFps = false;
      public boolean ofSmoothWorld = Config.isSingleProcessor();
      public boolean ofLazyChunkLoading = Config.isSingleProcessor();
@@ -17,7 +17,7 @@
      public boolean ofSmartAnimations = false;
      public double ofAoLevel = 1.0D;
      public int ofAaLevel = 0;
-@@ -227,7 +228,7 @@
+@@ -246,7 +247,7 @@
      public int ofTranslucentBlocks = 0;
      public boolean ofDynamicFov = true;
      public boolean ofAlternateBlocks = true;
@@ -26,7 +26,7 @@
      public boolean ofCustomEntityModels = true;
      public boolean ofCustomGuis = true;
      public boolean ofShowGlErrors = true;
-@@ -301,6 +302,7 @@
+@@ -322,6 +323,7 @@
          this.ofKeyBindZoom = new KeyMapping("of.key.zoom", 67, "key.categories.misc");
          this.keyMappings = ArrayUtils.add(this.keyMappings, this.ofKeyBindZoom);
          KeyUtils.fixKeyConflicts(this.keyMappings, new KeyMapping[] {this.ofKeyBindZoom});
@@ -34,59 +34,20 @@
          this.renderDistance = 8;
          this.load();
          Config.initGameSettings(this);
-@@ -341,15 +343,15 @@
+@@ -388,7 +390,9 @@
+         this.gamma = p_168428_.process("gamma", this.gamma);
+         this.renderDistance = p_168428_.process("renderDistance", this.renderDistance);
+         this.entityDistanceScaling = p_168428_.process("entityDistanceScaling", this.entityDistanceScaling);
+-        this.guiScale = p_168428_.process("guiScale", this.guiScale);
++        //Vivecraft
++        this.guiScaleUser = p_168428_.process("guiScale", this.guiScaleUser);
++        //
+         this.particles = p_168428_.process("particles", this.particles, ParticleStatus::byId, ParticleStatus::getId);
+         this.framerateLimit = p_168428_.process("maxFps", this.framerateLimit);
  
-             try (BufferedReader bufferedreader = Files.newReader(this.optionsFile, Charsets.UTF_8))
-             {
--                bufferedreader.lines().forEach((p_230004_1_) ->
-+                bufferedreader.lines().forEach((p_lambda$loadOptions$2_1_) ->
-                 {
-                     try {
--                        Iterator<String> iterator = OPTION_SPLITTER.split(p_230004_1_).iterator();
-+                        Iterator<String> iterator = OPTION_SPLITTER.split(p_lambda$loadOptions$2_1_).iterator();
-                         compoundtag.putString(iterator.next(), iterator.next());
-                     }
--                    catch (Exception exception21)
-+                    catch (Exception exception2)
-                     {
--                        LOGGER.warn("Skipping bad option: {}", (Object)p_230004_1_);
-+                        LOGGER.warn("Skipping bad option: {}", (Object)p_lambda$loadOptions$2_1_);
-                     }
-                 });
-             }
-@@ -513,7 +515,7 @@
+@@ -796,9 +800,9 @@
  
-                     if ("guiScale".equals(s))
-                     {
--                        this.guiScale = Integer.parseInt(s1);
-+                        this.guiScaleUser = Integer.parseInt(s1);
-                     }
- 
-                     if ("particles".equals(s))
-@@ -819,9 +821,9 @@
- 
-             KeyMapping.resetMapping();
-         }
--        catch (Exception exception11)
-+        catch (Exception exception1)
-         {
--            LOGGER.error("Failed to load options", (Throwable)exception11);
-+            LOGGER.error("Failed to load options", (Throwable)exception1);
-         }
- 
-         this.loadOfOptions();
-@@ -887,7 +889,7 @@
-                 printwriter.println("gamma:" + this.gamma);
-                 printwriter.println("renderDistance:" + this.renderDistance);
-                 printwriter.println("entityDistanceScaling:" + this.entityDistanceScaling);
--                printwriter.println("guiScale:" + this.guiScale);
-+                printwriter.println("guiScale:" + this.guiScaleUser);
-                 printwriter.println("particles:" + this.particles.getId());
-                 printwriter.println("maxFps:" + this.framerateLimit);
-                 printwriter.println("difficulty:" + this.difficulty.getId());
-@@ -974,9 +976,9 @@
-                     printwriter.println("modelPart_" + playermodelpart.getId() + ":" + this.modelParts.contains(playermodelpart));
-                 }
+                 printwriter.close();
              }
 -            catch (Exception exception1)
 +            catch (Exception exception)
@@ -95,8 +56,8 @@
 +                LOGGER.error("Failed to save options", (Throwable)exception);
              }
  
-             this.saveOfOptions();
-@@ -1053,22 +1055,22 @@
+             this.saveOptions = false;
+@@ -866,22 +870,22 @@
          return this.useNativeTransport;
      }
  
@@ -126,7 +87,7 @@
  
              if (i > 0 && Config.isShaders())
              {
-@@ -1084,60 +1086,61 @@
+@@ -897,60 +901,61 @@
  
              this.ofAaLevel = i;
              this.ofAaLevel = Config.limit(this.ofAaLevel, 0, 16);
@@ -203,7 +164,7 @@
          {
              switch (this.ofFogType)
              {
-@@ -1164,7 +1167,7 @@
+@@ -963,7 +968,7 @@
              }
          }
  
@@ -212,7 +173,7 @@
          {
              this.ofFogStart += 0.2F;
  
-@@ -1174,18 +1177,18 @@
+@@ -973,18 +978,18 @@
              }
          }
  
@@ -234,7 +195,7 @@
          {
              ++this.ofClouds;
  
-@@ -1197,13 +1200,13 @@
+@@ -996,13 +1001,13 @@
              this.updateRenderClouds();
          }
  
@@ -250,7 +211,7 @@
          {
              ++this.ofDroppedItems;
  
-@@ -1213,7 +1216,7 @@
+@@ -1012,7 +1017,7 @@
              }
          }
  
@@ -259,7 +220,7 @@
          {
              ++this.ofRain;
  
-@@ -1223,7 +1226,7 @@
+@@ -1022,7 +1027,7 @@
              }
          }
  
@@ -268,7 +229,7 @@
          {
              ++this.ofAnimatedWater;
  
-@@ -1238,7 +1241,7 @@
+@@ -1037,7 +1042,7 @@
              }
          }
  
@@ -277,7 +238,7 @@
          {
              ++this.ofAnimatedLava;
  
-@@ -1253,92 +1256,92 @@
+@@ -1052,92 +1057,92 @@
              }
          }
  
@@ -388,7 +349,7 @@
          {
              int i = 900;
              this.ofAutoSaveTicks = Math.max(this.ofAutoSaveTicks / i * i, i);
-@@ -1350,7 +1353,7 @@
+@@ -1149,7 +1154,7 @@
              }
          }
  
@@ -397,7 +358,7 @@
          {
              ++this.ofBetterGrass;
  
-@@ -1362,7 +1365,7 @@
+@@ -1161,7 +1166,7 @@
              this.minecraft.levelRenderer.allChanged();
          }
  
@@ -406,7 +367,7 @@
          {
              ++this.ofConnectedTextures;
  
-@@ -1381,27 +1384,27 @@
+@@ -1180,27 +1185,27 @@
              }
          }
  
@@ -439,7 +400,7 @@
          {
              ++this.ofVignette;
  
-@@ -1411,7 +1414,7 @@
+@@ -1210,7 +1215,7 @@
              }
          }
  
@@ -448,7 +409,7 @@
          {
              ++this.ofChunkUpdates;
  
-@@ -1421,12 +1424,12 @@
+@@ -1220,12 +1225,12 @@
              }
          }
  
@@ -463,7 +424,7 @@
          {
              ++this.ofTime;
  
-@@ -1436,85 +1439,85 @@
+@@ -1235,85 +1240,85 @@
              }
          }
  
@@ -564,7 +525,7 @@
          {
              if (this.ofTranslucentBlocks == 0)
              {
-@@ -1536,41 +1539,41 @@
+@@ -1335,41 +1340,41 @@
              this.minecraft.levelRenderer.allChanged();
          }
  
@@ -613,7 +574,7 @@
          {
              ++this.ofScreenshotSize;
  
-@@ -1580,34 +1583,34 @@
+@@ -1379,34 +1384,34 @@
              }
          }
  
@@ -654,7 +615,7 @@
          {
              if (this.ofChatBackground == 0)
              {
-@@ -1623,29 +1626,29 @@
+@@ -1422,29 +1427,29 @@
              }
          }
  
@@ -691,7 +652,7 @@
          {
              int i1 = (int)Option.RENDER_DISTANCE.get(this);
              String s2 = I18n.m_118938_("of.options.renderDistance.tiny");
-@@ -1697,7 +1700,7 @@
+@@ -1496,7 +1501,7 @@
  
              return s + i1 + " " + s1 + "";
          }
@@ -700,7 +661,7 @@
          {
              switch (this.ofFogType)
              {
-@@ -1714,23 +1717,23 @@
+@@ -1513,23 +1518,23 @@
                      return s + Lang.getOff();
              }
          }
@@ -730,7 +691,7 @@
          {
              switch (this.ofClouds)
              {
-@@ -1747,7 +1750,7 @@
+@@ -1546,7 +1551,7 @@
                      return s + Lang.getDefault();
              }
          }
@@ -739,7 +700,7 @@
          {
              switch (this.ofTrees)
              {
-@@ -1765,7 +1768,7 @@
+@@ -1564,7 +1569,7 @@
                      return s + Lang.get("of.general.smart");
              }
          }
@@ -748,7 +709,7 @@
          {
              switch (this.ofDroppedItems)
              {
-@@ -1779,7 +1782,7 @@
+@@ -1578,7 +1583,7 @@
                      return s + Lang.getDefault();
              }
          }
@@ -757,7 +718,7 @@
          {
              switch (this.ofRain)
              {
-@@ -1796,7 +1799,7 @@
+@@ -1595,7 +1600,7 @@
                      return s + Lang.getDefault();
              }
          }
@@ -766,7 +727,7 @@
          {
              switch (this.ofAnimatedWater)
              {
-@@ -1810,7 +1813,7 @@
+@@ -1609,7 +1614,7 @@
                      return s + Lang.getOn();
              }
          }
@@ -775,7 +736,7 @@
          {
              switch (this.ofAnimatedLava)
              {
-@@ -1824,75 +1827,75 @@
+@@ -1623,75 +1628,75 @@
                      return s + Lang.getOn();
              }
          }
@@ -869,7 +830,7 @@
          {
              int l = 900;
  
-@@ -1917,7 +1920,7 @@
+@@ -1716,7 +1721,7 @@
                  return this.ofAutoSaveTicks <= 16 * l ? s + Lang.get("of.options.save.12min") : s + Lang.get("of.options.save.24min");
              }
          }
@@ -878,7 +839,7 @@
          {
              switch (this.ofBetterGrass)
              {
-@@ -1931,7 +1934,7 @@
+@@ -1730,7 +1735,7 @@
                      return s + Lang.getOff();
              }
          }
@@ -887,7 +848,7 @@
          {
              switch (this.ofConnectedTextures)
              {
-@@ -1945,23 +1948,23 @@
+@@ -1744,23 +1749,23 @@
                      return s + Lang.getOff();
              }
          }
@@ -916,7 +877,7 @@
          {
              switch (this.ofVignette)
              {
-@@ -1975,15 +1978,15 @@
+@@ -1774,15 +1779,15 @@
                      return s + Lang.getDefault();
              }
          }
@@ -935,7 +896,7 @@
          {
              if (this.ofTime == 1)
              {
-@@ -1994,67 +1997,67 @@
+@@ -1793,67 +1798,67 @@
                  return this.ofTime == 2 ? s + Lang.get("of.options.time.nightOnly") : s + Lang.getDefault();
              }
          }
@@ -1021,7 +982,7 @@
          {
              if (this.ofTranslucentBlocks == 1)
              {
-@@ -2065,56 +2068,56 @@
+@@ -1864,56 +1869,56 @@
                  return this.ofTranslucentBlocks == 2 ? s + Lang.getFancy() : s + Lang.getDefault();
              }
          }
@@ -1091,7 +1052,7 @@
          {
              double d1 = Option.FRAMERATE_LIMIT.get(this);
  
-@@ -2127,7 +2130,7 @@
+@@ -1926,7 +1931,7 @@
                  return d1 == Option.FRAMERATE_LIMIT.getMaxValue() ? s + I18n.m_118938_("options.framerateLimit.max") : s + (int)d1 + " fps";
              }
          }
@@ -1100,7 +1061,7 @@
          {
              if (this.ofChatBackground == 3)
              {
-@@ -2138,13 +2141,13 @@
+@@ -1937,13 +1942,13 @@
                  return this.ofChatBackground == 5 ? s + Lang.get("of.general.compact") : s + Lang.getDefault();
              }
          }
@@ -1117,7 +1078,7 @@
              double d0 = progressoption.get(this);
              return d0 == 0.0D ? s + I18n.m_118938_("options.off") : s + (int)(d0 * 100.0D) + "%";
          }
-@@ -2573,16 +2576,19 @@
+@@ -2372,16 +2377,19 @@
                          this.ofKeyBindZoom.setKey(InputConstants.getKey(astring[1]));
                      }
                  }
@@ -1139,7 +1100,7 @@
          }
          catch (Exception exception11)
          {
-@@ -2669,10 +2675,10 @@
+@@ -2468,10 +2476,10 @@
              printwriter.println("key_" + this.ofKeyBindZoom.getName() + ":" + this.ofKeyBindZoom.saveString());
              printwriter.close();
          }
@@ -1152,7 +1113,7 @@
          }
      }
  
-@@ -2733,7 +2739,7 @@
+@@ -2532,7 +2540,7 @@
          this.renderClouds = CloudStatus.FANCY;
          this.fov = 70.0D;
          this.gamma = 0.0D;
@@ -1161,7 +1122,7 @@
          this.particles = ParticleStatus.ALL;
          this.heldItemTooltips = true;
          this.forceUnicodeFont = false;
-@@ -2746,7 +2752,7 @@
+@@ -2545,7 +2553,7 @@
          Config.updateAvailableProcessors();
          this.ofSmoothWorld = Config.isSingleProcessor();
          this.ofLazyChunkLoading = false;
@@ -1170,7 +1131,7 @@
          this.ofFastMath = false;
          this.ofFastRender = false;
          this.ofTranslucentBlocks = 0;
-@@ -2830,61 +2836,61 @@
+@@ -2629,61 +2637,61 @@
          this.minecraft.delayTextureReload();
      }
  
@@ -1261,7 +1222,7 @@
              {
                  return i;
              }
-@@ -2893,37 +2899,34 @@
+@@ -2692,37 +2700,34 @@
          return -1;
      }
  

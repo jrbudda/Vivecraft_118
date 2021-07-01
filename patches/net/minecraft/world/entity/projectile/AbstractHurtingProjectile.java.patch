@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/entity/projectile/AbstractHurtingProjectile.java
 +++ b/net/minecraft/world/entity/projectile/AbstractHurtingProjectile.java
-@@ -14,6 +14,9 @@
+@@ -13,6 +13,9 @@
  import net.minecraft.world.level.Level;
  import net.minecraft.world.phys.HitResult;
  import net.minecraft.world.phys.Vec3;
@@ -10,7 +10,7 @@
  
  public abstract class AbstractHurtingProjectile extends Projectile
  {
-@@ -79,8 +82,14 @@
+@@ -78,8 +81,14 @@
              }
  
              HitResult hitresult = ProjectileUtil.getHitResult(this, this::canHitEntity);
@@ -26,7 +26,7 @@
              {
                  this.onHit(hitresult);
              }
-@@ -181,6 +190,13 @@
+@@ -180,6 +189,13 @@
              if (entity != null)
              {
                  Vec3 vec3 = entity.getLookAngle();

@@ -58,18 +58,17 @@ public class GuiRadialConfiguration extends GuiVROptionsBase
     {
         this.vrTitle = "vivecraft.options.screen.radialmenu";
         this.list = new GuiRadialItemsList(this, this.minecraft);
-        this.buttons.clear();
-        this.children.clear();
+        this.clearWidgets();
 
         if (this.isselectmode)
         {
-            this.addButton(new Button(this.width / 2 - 155, this.height - 25, 150, 20, new TranslatableComponent("gui.cancel"), (p) ->
+            this.addRenderableWidget(new Button(this.width / 2 - 155, this.height - 25, 150, 20, new TranslatableComponent("gui.cancel"), (p) ->
             {
                 this.isselectmode = false;
                 this.reinit = true;
                 this.visibleList = null;
             }));
-            this.addButton(new Button(this.width / 2 - 155, 25, 150, 20, new TranslatableComponent("vivecraft.gui.clear"), (p) ->
+            this.addRenderableWidget(new Button(this.width / 2 - 155, 25, 150, 20, new TranslatableComponent("vivecraft.gui.clear"), (p) ->
             {
                 this.setKey((KeyMapping)null);
             }));
@@ -78,7 +77,7 @@ public class GuiRadialConfiguration extends GuiVROptionsBase
         {
             if (this.isShift)
             {
-                this.addButton(new Button(this.width / 2 + 2, 30, 150, 20, new TranslatableComponent("vivecraft.gui.radialmenu.mainset"), (p) ->
+                this.addRenderableWidget(new Button(this.width / 2 + 2, 30, 150, 20, new TranslatableComponent("vivecraft.gui.radialmenu.mainset"), (p) ->
                 {
                     this.isShift = !this.isShift;
                     this.reinit = true;
@@ -86,7 +85,7 @@ public class GuiRadialConfiguration extends GuiVROptionsBase
             }
             else
             {
-                this.addButton(new Button(this.width / 2 + 2, 30, 150, 20, new TranslatableComponent("vivecraft.gui.radialmenu.alternateset"), (p) ->
+                this.addRenderableWidget(new Button(this.width / 2 + 2, 30, 150, 20, new TranslatableComponent("vivecraft.gui.radialmenu.alternateset"), (p) ->
                 {
                     this.isShift = !this.isShift;
                     this.reinit = true;
@@ -173,7 +172,7 @@ public class GuiRadialConfiguration extends GuiVROptionsBase
                 }
 
                 int l1 = k1;
-                this.addButton(new Button(i1 + j2 - i2 / 2, j1 + k2, i2, 20, s, (p) ->
+                this.addRenderableWidget(new Button(i1 + j2 - i2 / 2, j1 + k2, i2, 20, s, (p) ->
                 {
                     this.selectedIndex = l1;
                     this.isselectmode = true;

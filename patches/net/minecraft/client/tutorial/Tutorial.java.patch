@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/tutorial/Tutorial.java
 +++ b/net/minecraft/client/tutorial/Tutorial.java
-@@ -92,7 +92,7 @@
+@@ -96,7 +96,7 @@
              this.stop();
          }
  
@@ -9,30 +9,7 @@
      }
  
      public void addTimedToast(TutorialToast p_120573_, int p_120574_)
-@@ -103,18 +103,18 @@
- 
-     public void removeTimedToast(TutorialToast p_120571_)
-     {
--        this.timedToasts.removeIf((p_120577_) ->
-+        this.timedToasts.removeIf((p_244699_1_) ->
-         {
--            return p_120577_.toast == p_120571_;
-+            return p_244699_1_.toast == p_120571_;
-         });
-         p_120571_.hide();
-     }
- 
-     public void tick()
-     {
--        this.timedToasts.removeIf((p_120591_) ->
-+        this.timedToasts.removeIf((p_244700_0_) ->
-         {
--            return p_120591_.updateProgress();
-+            return p_244700_0_.updateProgress();
-         });
- 
-         if (this.instance != null)
-@@ -146,7 +146,7 @@
+@@ -147,7 +147,7 @@
          }
      }
  

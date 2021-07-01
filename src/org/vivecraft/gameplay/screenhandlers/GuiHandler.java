@@ -25,6 +25,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL43;
 import org.vivecraft.api.VRData;
 import org.vivecraft.gameplay.VRPlayer;
 import org.vivecraft.provider.ControllerType;
@@ -532,11 +533,11 @@ public class GuiHandler
 
         GL11.glMultMatrixf(mc.vrPlayer.vrdata_world_render.getEye(currentPass).getMatrix().toFloatBuffer());
         Vec3 vec36 = vec31.subtract(vec3);
-        RenderSystem.translated(vec36.x, vec36.y, vec36.z);
+        GL43.glTranslated(vec36.x, vec36.y, vec36.z);
         GL11.glMultMatrixf(matrix4f.transposed().toFloatBuffer());
         GL11.glTranslatef((float)vec32.x, (float)vec32.y, (float)vec32.z);
         float f2 = f * mc.vrPlayer.vrdata_world_render.worldScale;
-        GlStateManager._scalef(f2, f2, f2);
+        GL43.glScalef(f2, f2, f2);
         guiScaleApplied = f2;
         mc.getProfiler().pop();
         return vec31;

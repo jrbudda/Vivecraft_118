@@ -6,9 +6,9 @@
  import com.mojang.math.Vector3f;
 +import net.minecraft.client.Minecraft;
  import net.minecraft.client.model.GuardianModel;
- import net.minecraft.client.renderer.MultiBufferSource;
- import net.minecraft.client.renderer.RenderType;
-@@ -16,6 +17,7 @@
+ import net.minecraft.client.model.geom.ModelLayerLocation;
+ import net.minecraft.client.model.geom.ModelLayers;
+@@ -18,6 +19,7 @@
  import net.minecraft.world.entity.monster.Guardian;
  import net.minecraft.world.phys.AABB;
  import net.minecraft.world.phys.Vec3;
@@ -16,7 +16,7 @@
  
  public class GuardianRenderer extends MobRenderer<Guardian, GuardianModel>
  {
-@@ -79,6 +81,12 @@
+@@ -81,6 +83,12 @@
              p_114832_.pushPose();
              p_114832_.translate(0.0D, (double)f3, 0.0D);
              Vec3 vec3 = this.getPosition(livingentity, (double)livingentity.getBbHeight() * 0.5D, p_114831_);

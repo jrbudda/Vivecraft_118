@@ -6,6 +6,8 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat.Mode;
+
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+
+import org.lwjgl.opengl.GL43;
 import org.vivecraft.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.provider.ControllerType;
@@ -405,39 +409,39 @@ public class PhysicalKeyboard
     public void render()
     {
         Vector3f vector3f = this.getCenterPos();
-        GlStateManager._translatef(-vector3f.x, -vector3f.y, -vector3f.z);
+        GL43.glTranslatef(-vector3f.x, -vector3f.y, -vector3f.z);
         GlStateManager._disableTexture();
         GlStateManager._disableCull();
-        GlStateManager._enableAlphaTest();
-        GlStateManager._alphaFunc(516, 0.0F);
+        GlStateManager.enableAlphaTest();
+        GlStateManager.alphaFunc(516, 0.0F);
         GlStateManager._enableBlend();
 
         if (this.easterEggActive)
         {
             for (PhysicalKeyboard.KeyButton physicalkeyboard$keybutton : this.keys)
             {
-                GlStateManager.Color glstatemanager$color = Utils.colorFromHSB(((float)this.mc.tickCounter + this.mc.getFrameTime()) / 100.0F + (float)(physicalkeyboard$keybutton.boundingBox.minX + (physicalkeyboard$keybutton.boundingBox.maxX - physicalkeyboard$keybutton.boundingBox.minX) / 2.0D) / 2.0F, 1.0F, 1.0F);
-                physicalkeyboard$keybutton.color.r = glstatemanager$color.r;
-                physicalkeyboard$keybutton.color.g = glstatemanager$color.g;
-                physicalkeyboard$keybutton.color.b = glstatemanager$color.b;
+                GlStateManager.Color GlStateManager$color = Utils.colorFromHSB(((float)this.mc.tickCounter + this.mc.getFrameTime()) / 100.0F + (float)(physicalkeyboard$keybutton.boundingBox.minX + (physicalkeyboard$keybutton.boundingBox.maxX - physicalkeyboard$keybutton.boundingBox.minX) / 2.0D) / 2.0F, 1.0F, 1.0F);
+                physicalkeyboard$keybutton.color.r = GlStateManager$color.r;
+                physicalkeyboard$keybutton.color.g = GlStateManager$color.g;
+                physicalkeyboard$keybutton.color.b = GlStateManager$color.b;
             }
         }
 
-        this.mc.getTextureManager().bind(new ResourceLocation("vivecraft:textures/white.png"));
+        this.mc.getTextureManager().bindForSetup(new ResourceLocation("vivecraft:textures/white.png"));
         GlStateManager._depthFunc(519);
         RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        Font font = this.mc.getEntityRenderDispatcher().getFont();
+        Font font = this.mc.font;
         ArrayList<Tuple<String, Vector3f>> arraylist = new ArrayList<>();
         float f5 = 0.002F * this.scale;
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
-        bufferbuilder.begin(7, DefaultVertexFormat.POSITION_COLOR_NORMAL);
+        bufferbuilder.begin(Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_NORMAL);
 
         for (PhysicalKeyboard.KeyButton physicalkeyboard$keybutton1 : this.keys)
         {
             AABB aabb = physicalkeyboard$keybutton1.getRenderBoundingBox();
-            GlStateManager.Color glstatemanager$color1 = physicalkeyboard$keybutton1.getRenderColor();
-            this.drawBox(bufferbuilder, aabb, glstatemanager$color1);
+            GlStateManager.Color GlStateManager$color1 = physicalkeyboard$keybutton1.getRenderColor();
+            this.drawBox(bufferbuilder, aabb, GlStateManager$color1);
             float f = (float)font.width(physicalkeyboard$keybutton1.label) * f5;
             float f1 = 9.0F * f5;
             float f2 = (float)aabb.minX + ((float)aabb.maxX - (float)aabb.minX) / 2.0F - f / 2.0F;
@@ -449,7 +453,7 @@ public class PhysicalKeyboard
         tesselator.end();
         GlStateManager._depthFunc(515);
         GlStateManager._enableTexture();
-        GlStateManager._disableLighting();
+        //GlStateManager._disableLighting();
         MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(tesselator.getBuilder());
         PoseStack posestack = new PoseStack();
 
@@ -463,7 +467,7 @@ public class PhysicalKeyboard
         }
 
         multibuffersource$buffersource.endBatch();
-        GlStateManager._enableLighting();
+        //GlStateManager._enableLighting();
         GlStateManager._enableBlend();
         GlStateManager._enableDepthTest();
         GlStateManager._enableTexture();
@@ -546,16 +550,16 @@ public class PhysicalKeyboard
 
         public GlStateManager.Color getRenderColor()
         {
-            GlStateManager.Color glstatemanager$color = new GlStateManager.Color(this.color.r, this.color.g, this.color.b, this.color.a);
+            GlStateManager.Color GlStateManager$color = new GlStateManager.Color(this.color.r, this.color.g, this.color.b, this.color.a);
 
             if (!this.pressed)
             {
-                glstatemanager$color.r *= 0.5F;
-                glstatemanager$color.g *= 0.5F;
-                glstatemanager$color.b *= 0.5F;
+                GlStateManager$color.r *= 0.5F;
+                GlStateManager$color.g *= 0.5F;
+                GlStateManager$color.b *= 0.5F;
             }
 
-            return glstatemanager$color;
+            return GlStateManager$color;
         }
 
         public final void press(ControllerType controller, boolean isRepeat)

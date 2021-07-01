@@ -23,7 +23,7 @@ public class GuiQuickCommandsInGame extends Screen
     {
         KeyMapping.releaseAll();
         this.field_146445_a = 0;
-        this.buttons.clear();
+        this.clearWidgets();
         byte b0 = -16;
         boolean flag = true;
         String[] astring = this.minecraft.vrSettings.vrQuickCommands;
@@ -33,14 +33,14 @@ public class GuiQuickCommandsInGame extends Screen
         {
             i = j > 5 ? 1 : 0;
             String s = astring[j];
-            this.addButton(new Button(this.width / 2 - 125 + 127 * i, 36 + (j - 6 * i) * 24, 125, 20, s.toString(), (p) ->
+            this.addRenderableWidget(new Button(this.width / 2 - 125 + 127 * i, 36 + (j - 6 * i) * 24, 125, 20, s.toString(), (p) ->
             {
                 this.minecraft.setScreen((Screen)null);
                 this.minecraft.player.chat(p.getMessage().getString());
             }));
         }
 
-        this.addButton(new Button(this.width / 2 - 50, this.height - 30 + b0, 100, 20, "Cancel", (p) ->
+        this.addRenderableWidget(new Button(this.width / 2 - 50, this.height - 30 + b0, 100, 20, "Cancel", (p) ->
         {
             this.minecraft.setScreen(this.parentScreen);
         }));

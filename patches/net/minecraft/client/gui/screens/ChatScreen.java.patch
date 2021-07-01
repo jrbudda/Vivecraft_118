@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/gui/screens/ChatScreen.java
 +++ b/net/minecraft/client/gui/screens/ChatScreen.java
-@@ -123,7 +123,16 @@
+@@ -127,7 +127,16 @@
                  this.sendMessage(s);
              }
  

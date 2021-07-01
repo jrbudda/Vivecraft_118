@@ -13,8 +13,7 @@ public class GuiKeyboard extends TwoHandedScreen
     {
         String s = this.minecraft.vrSettings.keyboardKeys;
         String s1 = this.minecraft.vrSettings.keyboardKeysShift;
-        this.buttons.clear();
-        this.children.clear();
+        this.clearWidgets();
 
         if (this.isShift)
         {
@@ -54,73 +53,73 @@ public class GuiKeyboard extends TwoHandedScreen
                 {
                     InputSimulator.typeChars(s2);
                 });
-                this.addButton(button);
+                this.addRenderableWidget(button);
             }
         }
 
-        this.addButton(new Button(0, k + 3 * (20 + l), 30, 20, "Shift", (p) ->
+        this.addRenderableWidget(new Button(0, k + 3 * (20 + l), 30, 20, "Shift", (p) ->
         {
             this.setShift(!this.isShift);
         }));
-        this.addButton(new Button(k + 4 * (i1 + l), k + j * (20 + l), 5 * (i1 + l), 20, " ", (p) ->
+        this.addRenderableWidget(new Button(k + 4 * (i1 + l), k + j * (20 + l), 5 * (i1 + l), 20, " ", (p) ->
         {
             InputSimulator.typeChars(" ");
         }));
-        this.addButton(new Button(i * (i1 + l) + k, k, 35, 20, "BKSP", (p) ->
+        this.addRenderableWidget(new Button(i * (i1 + l) + k, k, 35, 20, "BKSP", (p) ->
         {
             InputSimulator.pressKey(259);
             InputSimulator.releaseKey(259);
         }));
-        this.addButton(new Button(i * (i1 + l) + k, k + 2 * (20 + l), 35, 20, "ENTER", (p) ->
+        this.addRenderableWidget(new Button(i * (i1 + l) + k, k + 2 * (20 + l), 35, 20, "ENTER", (p) ->
         {
             InputSimulator.pressKey(257);
             InputSimulator.releaseKey(257);
         }));
-        this.addButton(new Button(0, k + 20 + l, 30, 20, "TAB", (p) ->
+        this.addRenderableWidget(new Button(0, k + 20 + l, 30, 20, "TAB", (p) ->
         {
             InputSimulator.pressKey(258);
             InputSimulator.releaseKey(258);
         }));
-        this.addButton(new Button(0, k, 30, 20, "ESC", (p) ->
+        this.addRenderableWidget(new Button(0, k, 30, 20, "ESC", (p) ->
         {
             InputSimulator.pressKey(256);
             InputSimulator.releaseKey(256);
         }));
-        this.addButton(new Button((i - 1) * (i1 + l) + k, k + j * (20 + l), i1, 20, "\u2191", (p) ->
+        this.addRenderableWidget(new Button((i - 1) * (i1 + l) + k, k + j * (20 + l), i1, 20, "\u2191", (p) ->
         {
             InputSimulator.pressKey(265);
             InputSimulator.releaseKey(265);
         }));
-        this.addButton(new Button((i - 1) * (i1 + l) + k, k + (j + 1) * (20 + l), i1, 20, "\u2193", (p) ->
+        this.addRenderableWidget(new Button((i - 1) * (i1 + l) + k, k + (j + 1) * (20 + l), i1, 20, "\u2193", (p) ->
         {
             InputSimulator.pressKey(264);
             InputSimulator.releaseKey(264);
         }));
-        this.addButton(new Button((i - 2) * (i1 + l) + k, k + (j + 1) * (20 + l), i1, 20, "\u2190", (p) ->
+        this.addRenderableWidget(new Button((i - 2) * (i1 + l) + k, k + (j + 1) * (20 + l), i1, 20, "\u2190", (p) ->
         {
             InputSimulator.pressKey(263);
             InputSimulator.releaseKey(263);
         }));
-        this.addButton(new Button(i * (i1 + l) + k, k + (j + 1) * (20 + l), i1, 20, "\u2192", (p) ->
+        this.addRenderableWidget(new Button(i * (i1 + l) + k, k + (j + 1) * (20 + l), i1, 20, "\u2192", (p) ->
         {
             InputSimulator.pressKey(262);
             InputSimulator.releaseKey(262);
         }));
-        this.addButton(new Button(k, k + -1 * (20 + l), 35, 20, "CUT", (p) ->
+        this.addRenderableWidget(new Button(k, k + -1 * (20 + l), 35, 20, "CUT", (p) ->
         {
             InputSimulator.pressKey(341);
             InputSimulator.pressKey(88);
             InputSimulator.releaseKey(88);
             InputSimulator.releaseKey(341);
         }));
-        this.addButton(new Button(35 + l + k, k + -1 * (20 + l), 35, 20, "COPY", (p) ->
+        this.addRenderableWidget(new Button(35 + l + k, k + -1 * (20 + l), 35, 20, "COPY", (p) ->
         {
             InputSimulator.pressKey(341);
             InputSimulator.pressKey(67);
             InputSimulator.releaseKey(67);
             InputSimulator.releaseKey(341);
         }));
-        this.addButton(new Button(2 * (35 + l) + k, k + -1 * (20 + l), 35, 20, "PASTE", (p) ->
+        this.addRenderableWidget(new Button(2 * (35 + l) + k, k + -1 * (20 + l), 35, 20, "PASTE", (p) ->
         {
             InputSimulator.pressKey(341);
             InputSimulator.pressKey(86);

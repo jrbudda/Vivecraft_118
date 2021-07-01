@@ -27,7 +27,7 @@
  import org.lwjgl.system.MemoryStack;
  
  public class Library
-@@ -47,6 +54,7 @@
+@@ -49,6 +56,7 @@
      private Library.ChannelPool staticChannels = EMPTY;
      private Library.ChannelPool streamingChannels = EMPTY;
      private final Listener listener = new Listener();
@@ -35,7 +35,7 @@
  
      public void init()
      {
-@@ -72,6 +80,103 @@
+@@ -74,6 +82,103 @@
              this.streamingChannels = new Library.CountingChannelPool(j);
              ALCapabilities alcapabilities = AL.createCapabilities(alccapabilities);
              OpenAlUtil.checkALError("Initialization");
@@ -139,53 +139,3 @@
  
              if (!alcapabilities.AL_EXT_source_distance_model)
              {
-@@ -96,7 +201,7 @@
- 
-     private int getChannelCount()
-     {
--        int i1;
-+        byte b0;
- 
-         try (MemoryStack memorystack = MemoryStack.stackPush())
-         {
-@@ -116,31 +221,28 @@
-             }
- 
-             int j = 0;
--            int k;
--            int l;
- 
--            do
-+            while (j < i)
-             {
--                if (j >= i)
-+                int k = intbuffer.get(j++);
-+
-+                if (k == 0)
-                 {
-                     return 30;
-                 }
- 
--                k = intbuffer.get(j++);
-+                int l = intbuffer.get(j++);
- 
--                if (k == 0)
-+                if (k == 4112)
-                 {
--                    return 30;
-+                    return l;
-                 }
--
--                l = intbuffer.get(j++);
-             }
--            while (k != 4112);
- 
--            i1 = l;
-+            b0 = 30;
-         }
- 
--        return i1;
-+        return b0;
-     }
- 
-     private static long tryOpenDevice()

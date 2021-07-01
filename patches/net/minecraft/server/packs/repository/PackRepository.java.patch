@@ -18,9 +18,9 @@
  import javax.annotation.Nullable;
 +import net.minecraft.client.Minecraft;
  import net.minecraft.server.packs.PackResources;
+ import net.minecraft.server.packs.PackType;
  
- public class PackRepository implements AutoCloseable
-@@ -25,7 +29,7 @@
+@@ -26,7 +30,7 @@
      public PackRepository(Pack.PackConstructor p_10502_, RepositorySource... p_10503_)
      {
          this.constructor = p_10502_;
@@ -28,8 +28,8 @@
 +        this.sources = new HashSet<>(Arrays.asList(p_10503_));
      }
  
-     public PackRepository(RepositorySource... p_10505_)
-@@ -35,10 +39,16 @@
+     public PackRepository(PackType p_143890_, RepositorySource... p_143891_)
+@@ -39,10 +43,16 @@
  
      public void reload()
      {
@@ -48,19 +48,7 @@
      }
  
      private Map<String, Pack> discoverAvailable()
-@@ -47,9 +57,9 @@
- 
-         for (RepositorySource repositorysource : this.sources)
-         {
--            repositorysource.loadPacks((p_10513_) ->
-+            repositorysource.loadPacks((p_232615_1_) ->
-             {
--                Pack pack = map.put(p_10513_.getId(), p_10513_);
-+                Pack pack = map.put(p_232615_1_.getId(), p_232615_1_);
-             }, this.constructor);
-         }
- 
-@@ -58,7 +68,13 @@
+@@ -62,7 +72,13 @@
  
      public void setSelected(Collection<String> p_10510_)
      {
@@ -74,7 +62,7 @@
      }
  
      private List<Pack> rebuildSelected(Collection<String> p_10518_)
-@@ -121,4 +137,9 @@
+@@ -125,4 +141,9 @@
      {
          return this.selected.stream().map(Pack::open).collect(ImmutableList.toImmutableList());
      }

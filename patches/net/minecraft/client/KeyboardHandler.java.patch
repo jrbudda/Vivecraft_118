@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/KeyboardHandler.java
 +++ b/net/minecraft/client/KeyboardHandler.java
-@@ -38,6 +38,9 @@
+@@ -43,6 +43,9 @@
  import net.optifine.reflect.Reflector;
  import net.optifine.shaders.Shaders;
  import net.optifine.shaders.gui.GuiShaderOptions;
@@ -10,31 +10,7 @@
  
  public class KeyboardHandler
  {
-@@ -241,9 +244,9 @@
-                     {
-                         if (p_90930_)
-                         {
--                            this.minecraft.player.connection.getDebugQueryHandler().queryBlockEntityTag(blockpos, (p_211561_3_) ->
-+                            this.minecraft.player.connection.getDebugQueryHandler().queryBlockEntityTag(blockpos, (p_lambda$copyHoveredObject$0_3_) ->
-                             {
--                                this.copyCreateBlockCommand(blockstate, blockpos, p_211561_3_);
-+                                this.copyCreateBlockCommand(blockstate, blockpos, p_lambda$copyHoveredObject$0_3_);
-                                 this.m_90913_("debug.inspect.server.block");
-                             });
-                         }
-@@ -271,9 +274,9 @@
-                     {
-                         if (p_90930_)
-                         {
--                            this.minecraft.player.connection.getDebugQueryHandler().queryEntityTag(entity.getId(), (p_227999_3_) ->
-+                            this.minecraft.player.connection.getDebugQueryHandler().queryEntityTag(entity.getId(), (p_lambda$copyHoveredObject$1_3_) ->
-                             {
--                                this.copyCreateEntityCommand(resourcelocation, entity.position(), p_227999_3_);
-+                                this.copyCreateEntityCommand(resourcelocation, entity.position(), p_lambda$copyHoveredObject$1_3_);
-                                 this.m_90913_("debug.inspect.server.entity");
-                             });
-                         }
-@@ -338,6 +341,26 @@
+@@ -411,6 +414,26 @@
      {
          if (p_90894_ == this.minecraft.getWindow().getWindow())
          {
@@ -61,21 +37,35 @@
              if (this.debugCrashKeyTime > 0L)
              {
                  if (!InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 67) || !InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 292))
-@@ -373,12 +396,7 @@
-                         {
-                         }
+@@ -442,16 +465,17 @@
  
--                        Screenshot.grab(this.minecraft.gameDirectory, this.minecraft.getWindow().getWidth(), this.minecraft.getWindow().getHeight(), this.minecraft.getMainRenderTarget(), (p_212449_1_) ->
+                     if (this.minecraft.options.keyScreenshot.matches(p_90895_, p_90896_))
+                     {
+-                        if (Screen.hasControlDown())
+-                        {
+-                        }
+-
+-                        Screenshot.grab(this.minecraft.gameDirectory, this.minecraft.getWindow().getWidth(), this.minecraft.getWindow().getHeight(), this.minecraft.getMainRenderTarget(), (p_90916_1_) ->
 -                        {
 -                            this.minecraft.execute(() -> {
--                                this.minecraft.gui.getChat().addMessage(p_212449_1_);
+-                                this.minecraft.gui.getChat().addMessage(p_90916_1_);
 -                            });
 -                        });
-+                        this.minecraft.grabScreenShot = true;
++//                        if (Screen.hasControlDown())
++//                        {
++//                        }
++//
++//                        Screenshot.grab(this.minecraft.gameDirectory, this.minecraft.getWindow().getWidth(), this.minecraft.getWindow().getHeight(), this.minecraft.getMainRenderTarget(), (p_90916_1_) ->
++//                        {
++//                            this.minecraft.execute(() -> {
++//                                this.minecraft.gui.getChat().addMessage(p_90916_1_);
++//                            });
++//                        });
++                    	this.minecraft.grabScreenShot = true;
                          return;
                      }
                  }
-@@ -453,7 +471,7 @@
+@@ -537,7 +561,7 @@
                  }
              }
  
@@ -84,7 +74,7 @@
              {
                  InputConstants.Key inputconstants$key = InputConstants.getKey(p_90895_, p_90896_);
  
-@@ -511,6 +529,7 @@
+@@ -595,6 +619,7 @@
                          if (p_90895_ == 290)
                          {
                              this.minecraft.options.hideGui = !this.minecraft.options.hideGui;
@@ -92,7 +82,7 @@
                          }
                      }
  
-@@ -535,7 +554,7 @@
+@@ -619,7 +644,7 @@
          }
      }
  
@@ -101,37 +91,3 @@
      {
          if (p_90890_ == this.minecraft.getWindow().getWindow())
          {
-@@ -587,26 +606,26 @@
- 
-     public void setup(long p_90888_)
-     {
--        InputConstants.setupKeyboardCallbacks(p_90888_, (p_228001_1_, p_228001_3_, p_228001_4_, p_228001_5_, p_228001_6_) ->
-+        InputConstants.setupKeyboardCallbacks(p_90888_, (p_lambda$setupCallbacks$8_1_, p_lambda$setupCallbacks$8_3_, p_lambda$setupCallbacks$8_4_, p_lambda$setupCallbacks$8_5_, p_lambda$setupCallbacks$8_6_) ->
-         {
-             this.minecraft.execute(() -> {
--                this.keyPress(p_228001_1_, p_228001_3_, p_228001_4_, p_228001_5_, p_228001_6_);
-+                this.keyPress(p_lambda$setupCallbacks$8_1_, p_lambda$setupCallbacks$8_3_, p_lambda$setupCallbacks$8_4_, p_lambda$setupCallbacks$8_5_, p_lambda$setupCallbacks$8_6_);
-             });
--        }, (p_228000_1_, p_228000_3_, p_228000_4_) ->
-+        }, (p_lambda$setupCallbacks$10_1_, p_lambda$setupCallbacks$10_3_, p_lambda$setupCallbacks$10_4_) ->
-         {
-             this.minecraft.execute(() -> {
--                this.charTyped(p_228000_1_, p_228000_3_, p_228000_4_);
-+                this.charTyped(p_lambda$setupCallbacks$10_1_, p_lambda$setupCallbacks$10_3_, p_lambda$setupCallbacks$10_4_);
-             });
-         });
-     }
- 
-     public String getClipboard()
-     {
--        return this.clipboardManager.getClipboard(this.minecraft.getWindow().getWindow(), (p_227998_1_, p_227998_2_) ->
-+        return this.clipboardManager.getClipboard(this.minecraft.getWindow().getWindow(), (p_lambda$getClipboardString$11_1_, p_lambda$getClipboardString$11_2_) ->
-         {
--            if (p_227998_1_ != 65545)
-+            if (p_lambda$getClipboardString$11_1_ != 65545)
-             {
--                this.minecraft.getWindow().defaultErrorCallback(p_227998_1_, p_227998_2_);
-+                this.minecraft.getWindow().defaultErrorCallback(p_lambda$getClipboardString$11_1_, p_lambda$getClipboardString$11_2_);
-             }
-         });
-     }

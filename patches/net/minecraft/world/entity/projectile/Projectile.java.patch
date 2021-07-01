@@ -1,22 +1,17 @@
 --- a/net/minecraft/world/entity/projectile/Projectile.java
 +++ b/net/minecraft/world/entity/projectile/Projectile.java
-@@ -7,12 +7,15 @@
- import net.minecraft.util.Mth;
- import net.minecraft.world.entity.Entity;
- import net.minecraft.world.entity.EntityType;
-+import net.minecraft.world.entity.player.Player;
- import net.minecraft.world.level.Level;
- import net.minecraft.world.level.block.state.BlockState;
- import net.minecraft.world.phys.BlockHitResult;
- import net.minecraft.world.phys.EntityHitResult;
- import net.minecraft.world.phys.HitResult;
- import net.minecraft.world.phys.Vec3;
+@@ -3,6 +3,10 @@
+ import com.google.common.base.MoreObjects;
+ import java.util.UUID;
+ import javax.annotation.Nullable;
++
 +import org.vivecraft.api.NetworkHelper;
 +import org.vivecraft.api.ServerVivePlayer;
- 
- public abstract class Projectile extends Entity
- {
-@@ -86,9 +89,9 @@
++
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.nbt.CompoundTag;
+ import net.minecraft.network.protocol.Packet;
+@@ -120,9 +124,9 @@
  
          if (entity != null)
          {
@@ -28,7 +23,7 @@
              }))
              {
                  if (entity1.getRootVehicle() == entity.getRootVehicle())
-@@ -114,12 +117,29 @@
+@@ -148,12 +152,29 @@
  
      public void shootFromRotation(Entity p_37252_, float p_37253_, float p_37254_, float p_37255_, float p_37256_, float p_37257_)
      {

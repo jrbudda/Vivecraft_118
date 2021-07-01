@@ -1,12 +1,12 @@
 --- a/net/minecraft/client/ClientBrandRetriever.java
 +++ b/net/minecraft/client/ClientBrandRetriever.java
-@@ -1,9 +0,0 @@
--package net.minecraft.client;
--
--public class ClientBrandRetriever
--{
--    public static String getClientModName()
+@@ -8,7 +8,7 @@
+ 
+     @DontObfuscate
+     public static String getClientModName()
 -    {
 -        return "vanilla";
--    }
--}
++    {//duh
++        return "vivecraft";
+     }
+ }

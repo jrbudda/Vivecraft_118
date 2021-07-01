@@ -1,6 +1,6 @@
 --- a/com/mojang/blaze3d/systems/RenderSystem.java
 +++ b/com/mojang/blaze3d/systems/RenderSystem.java
-@@ -966,7 +966,7 @@
+@@ -857,7 +857,7 @@
  
      public static void defaultBlendFunc()
      {
@@ -8,4 +8,4 @@
 +        blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
      }
  
-     public static void defaultAlphaFunc()
+     @Deprecated

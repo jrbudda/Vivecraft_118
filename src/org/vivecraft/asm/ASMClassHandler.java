@@ -24,7 +24,7 @@ public abstract class ASMClassHandler
         this.patchClassRoot(classNode);
         ASMMethodHandler[] aasmmethodhandler = this.getMethodHandlers();
 
-        for (MethodNode methodnode : new ArrayList(classNode.methods))
+        for (MethodNode methodnode : new ArrayList<MethodNode>(classNode.methods))
         {
             for (ASMMethodHandler asmmethodhandler : aasmmethodhandler)
             {

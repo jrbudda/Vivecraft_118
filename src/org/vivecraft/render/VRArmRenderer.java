@@ -10,21 +10,19 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemStack;
+
+import org.lwjgl.opengl.GL43;
 import org.vivecraft.gameplay.trackers.SwingTracker;
 import org.vivecraft.provider.ControllerType;
 import org.vivecraft.reflection.MCReflection;
 
 public class VRArmRenderer extends PlayerRenderer
 {
-    public VRArmRenderer(EntityRenderDispatcher p_114480_)
-    {
-        super(p_114480_);
-    }
-
-    public VRArmRenderer(EntityRenderDispatcher p_117733_, boolean p_117734_)
+    public VRArmRenderer(EntityRendererProvider.Context p_117733_, boolean p_117734_)
     {
         super(p_117733_, p_117734_);
     }
@@ -56,9 +54,9 @@ public class VRArmRenderer extends PlayerRenderer
         rendererArmIn.render(matrixStackIn, bufferIn.getBuffer(RenderType.entityTranslucent(playerIn.getSkinTextureLocation())), combinedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, f);
         rendererArmwearIn.xRot = 0.0F;
         rendererArmwearIn.render(matrixStackIn, bufferIn.getBuffer(RenderType.entityTranslucent(playerIn.getSkinTextureLocation())), combinedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, f);
-        GlStateManager._texEnv(8960, 8704, 8448);
-        GlStateManager._texEnv(8960, 34163, 1);
+        GL43.glTexEnvi(8960, 8704, 8448);
+        GL43.glTexEnvi(8960, 34163, 1);
         GlStateManager._disableBlend();
-        GlStateManager._color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
     }
 }

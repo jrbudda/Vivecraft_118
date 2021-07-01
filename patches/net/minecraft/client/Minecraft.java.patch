@@ -1,9 +1,9 @@
 --- a/net/minecraft/client/Minecraft.java
 +++ b/net/minecraft/client/Minecraft.java
-@@ -14,7 +14,10 @@
- import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
- import com.mojang.blaze3d.pipeline.RenderTarget;
+@@ -19,7 +19,10 @@
+ import com.mojang.blaze3d.pipeline.TextureTarget;
  import com.mojang.blaze3d.platform.DisplayData;
+ import com.mojang.blaze3d.platform.GlDebug;
 +import com.mojang.blaze3d.platform.GlStateManager;
  import com.mojang.blaze3d.platform.GlUtil;
 +import com.mojang.blaze3d.platform.Lighting;
@@ -11,10 +11,10 @@
  import com.mojang.blaze3d.platform.Window;
  import com.mojang.blaze3d.platform.WindowEventHandler;
  import com.mojang.blaze3d.systems.RenderSystem;
-@@ -30,17 +33,29 @@
- import java.io.File;
+@@ -39,20 +42,32 @@
  import java.io.IOException;
  import java.io.InputStream;
+ import java.io.UncheckedIOException;
 +import java.lang.reflect.Field;
 +import java.lang.reflect.Method;
  import java.net.Proxy;
@@ -22,8 +22,11 @@
 +import java.net.URL;
 +import java.net.URLClassLoader;
 +import java.nio.Buffer;
+ import java.nio.ByteBuffer;
  import java.nio.ByteOrder;
 +import java.nio.FloatBuffer;
+ import java.nio.file.Path;
+ import java.nio.file.Paths;
  import java.text.DecimalFormat;
  import java.text.DecimalFormatSymbols;
  import java.text.SimpleDateFormat;
@@ -41,7 +44,7 @@
  import java.util.UUID;
  import java.util.concurrent.CompletableFuture;
  import java.util.concurrent.ExecutionException;
-@@ -132,6 +147,7 @@
+@@ -152,6 +167,7 @@
  import net.minecraft.client.searchtree.SearchRegistry;
  import net.minecraft.client.server.IntegratedServer;
  import net.minecraft.client.sounds.MusicManager;
@@ -49,7 +52,7 @@
  import net.minecraft.client.sounds.SoundManager;
  import net.minecraft.client.tutorial.Tutorial;
  import net.minecraft.commands.Commands;
-@@ -217,6 +233,7 @@
+@@ -235,6 +251,7 @@
  import net.minecraft.world.level.LevelSettings;
  import net.minecraft.world.level.biome.Biome;
  import net.minecraft.world.level.block.Block;
@@ -57,7 +60,7 @@
  import net.minecraft.world.level.block.RenderShape;
  import net.minecraft.world.level.block.entity.BlockEntity;
  import net.minecraft.world.level.block.entity.SkullBlockEntity;
-@@ -229,12 +246,115 @@
+@@ -247,15 +264,118 @@
  import net.minecraft.world.phys.BlockHitResult;
  import net.minecraft.world.phys.EntityHitResult;
  import net.minecraft.world.phys.HitResult;
@@ -65,11 +68,16 @@
 +import net.optifine.Config;
 +import net.optifine.reflect.Reflector;
 +import net.optifine.shaders.Shaders;
++
+ import org.apache.commons.io.Charsets;
+ import org.apache.commons.io.FileUtils;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
+ import org.lwjgl.util.tinyfd.TinyFileDialogs;
 +import org.lwjgl.opengl.ARBShaderObjects;
 +import org.lwjgl.opengl.GL11;
 +import org.lwjgl.opengl.GL30;
++import org.lwjgl.opengl.GL43;
 +import org.vivecraft.api.ErrorHelper;
 +import org.vivecraft.api.NetworkHelper;
 +import org.vivecraft.gameplay.VRPlayer;
@@ -92,7 +100,6 @@
 +import org.vivecraft.gameplay.trackers.TeleportTracker;
 +import org.vivecraft.gameplay.trackers.TelescopeTracker;
 +import org.vivecraft.gameplay.trackers.VehicleTracker;
-+import org.vivecraft.gui.physical.PhysicalGuiManager;
 +import org.vivecraft.menuworlds.MenuWorldRenderer;
 +import org.vivecraft.provider.MCVR;
 +import org.vivecraft.provider.VRRenderer;
@@ -110,7 +117,6 @@
 +import org.vivecraft.settings.VRSettings;
 +import org.vivecraft.utils.LangHelper;
 +import org.vivecraft.utils.Utils;
-+import org.vivecraft.utils.lwjgl.Matrix4f;
 +import org.vivecraft.utils.math.Vector3;
  
  public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements SnooperPopulator, WindowEventHandler
@@ -132,7 +138,7 @@
 +    public SwingTracker swingTracker = new SwingTracker(this);
 +    public HorseTracker horseTracker = new HorseTracker(this);
 +    public VehicleTracker vehicleTracker = new VehicleTracker(this);
-+    public PhysicalGuiManager physicalGuiManager = new PhysicalGuiManager(this);
++    //public PhysicalGuiManager physicalGuiManager = new PhysicalGuiManager(this);
 +    public InteractTracker interactTracker = new InteractTracker(this);
 +    public CrawlTracker crawlTracker = new CrawlTracker(this);
 +    public CameraTracker cameraTracker = new CameraTracker(this);
@@ -169,11 +175,11 @@
 +    private boolean lastClick;
 +    public boolean resourcePacksChanged;
 +    public int tickCounter;
-+    public final String minecriftVerString = "Vivecraft 1.16.5 jrbudda-7-5";
++    public final String minecriftVerString = "Vivecraft 1.17 jrbudda-1-a";
      private static final Logger LOGGER = LogManager.getLogger();
      public static final boolean ON_OSX = Util.getPlatform() == Util.OS.OSX;
-     public static final ResourceLocation DEFAULT_FONT = new ResourceLocation("default");
-@@ -263,7 +383,7 @@
+     private static final int MAX_TICKS_PER_UPDATE = 10;
+@@ -286,7 +406,7 @@
      public final DebugRenderer debugRenderer;
      private final AtomicReference<StoringChunkProgressListener> progressListener = new AtomicReference<>();
      public final Gui gui;
@@ -182,7 +188,7 @@
      private final HotbarManager hotbarManager;
      public final MouseHandler mouseHandler;
      public final KeyboardHandler keyboardHandler;
-@@ -283,7 +403,7 @@
+@@ -306,7 +426,7 @@
      private final LanguageManager languageManager;
      private final BlockColors blockColors;
      private final ItemColors itemColors;
@@ -191,9 +197,9 @@
      private final SoundManager soundManager;
      private final MusicManager musicManager;
      private final FontManager fontManager;
-@@ -357,11 +477,20 @@
-     @Nullable
-     private ProfileResults fpsPieResults;
+@@ -385,11 +505,20 @@
+     private MetricsRecorder metricsRecorder = InactiveMetricsRecorder.INSTANCE;
+     private final ResourceLoadStateTracker reloadStateTracker = new ResourceLoadStateTracker();
      private String debugPath = "root";
 +    private float fov = 1.0F;
 +    public float watereffect;
@@ -212,7 +218,7 @@
          this.gameDirectory = p_91084_.location.gameDirectory;
          File file1 = p_91084_.location.assetDirectory;
          this.resourcePackDirectory = p_91084_.location.resourcePackDirectory;
-@@ -375,8 +504,6 @@
+@@ -403,8 +532,6 @@
          this.minecraftSessionService = yggdrasilauthenticationservice.createMinecraftSessionService();
          this.socialInteractionsService = this.createSocialInteractions(yggdrasilauthenticationservice, p_91084_);
          this.user = p_91084_.user.user;
@@ -221,11 +227,10 @@
          this.demo = p_91084_.game.demo;
          this.allowsMultiplayer = !p_91084_.game.disableMultiplayer;
          this.allowsChat = !p_91084_.game.disableChat;
-@@ -400,6 +527,25 @@
+@@ -427,6 +554,23 @@
+         KeybindComponent.setKeyResolver(KeyMapping::createNameSupplier);
          this.fixerUpper = DataFixers.getDataFixer();
          this.toast = new ToastComponent(this);
-         this.tutorial = new Tutorial(this);
-+
 +        if (!this.oculus)
 +        {
 +            this.vr = new MCOpenVR(this);
@@ -243,31 +248,27 @@
 +            this.vrSettings.badStereoProviderPluginID = "";
 +            this.vrSettings.saveOptions();
 +        }
-+
          this.gameThread = Thread.currentThread();
          this.options = new Options(this, this.gameDirectory);
-         this.hotbarManager = new HotbarManager(this.gameDirectory, this.fixerUpper);
-@@ -433,13 +579,13 @@
- 
-         this.window.setFramerateLimit(this.options.framerateLimit);
-         this.mouseHandler = new MouseHandler(this);
--        this.mouseHandler.setup(this.window.getWindow());
+         this.tutorial = new Tutorial(this, this.options);
+@@ -465,10 +609,11 @@
          this.keyboardHandler = new KeyboardHandler(this);
          this.keyboardHandler.setup(this.window.getWindow());
          RenderSystem.initRenderer(this.options.glDebugVerbosity, false);
--        this.mainRenderTarget = new RenderTarget(this.window.getWidth(), this.window.getHeight(), true, ON_OSX);
-+        this.mainRenderTarget = new RenderTarget(this.window.getScreenWidth(), this.window.getScreenHeight(), true, ON_OSX);
+-        this.mainRenderTarget = new MainTarget(this.window.getWidth(), this.window.getHeight());
++        this.mainRenderTarget = new MainTarget(this.window.getScreenWidth(), this.window.getScreenHeight());
          this.mainRenderTarget.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+         this.mainRenderTarget.clear(ON_OSX);
          this.resourceManager = new SimpleReloadableResourceManager(PackType.CLIENT_RESOURCES);
 +        Reflector.call(Reflector.ClientModLoader_begin, this, this.resourcePackRepository, this.resourceManager, this.clientPackSource);
          this.resourcePackRepository.reload();
          this.options.loadSelectedResourcePacks(this.resourcePackRepository);
          this.languageManager = new LanguageManager(this.options.languageCode);
-@@ -457,6 +603,16 @@
+@@ -486,6 +631,16 @@
          this.font = this.fontManager.createFont();
          this.resourceManager.registerReloadListener(this.fontManager.getReloadListener());
          this.selectMainFont(this.isEnforceUnicode());
-+
++        /** MINECRIFT */
 +        try
 +        {
 +            this.initMinecrift();
@@ -276,11 +277,11 @@
 +        {
 +            exception.printStackTrace();
 +        }
-+
++        /** END MINECRIFT */
          this.resourceManager.registerReloadListener(new GrassColorReloadListener());
          this.resourceManager.registerReloadListener(new FoliageColorReloadListener());
          this.window.setErrorSection("Startup");
-@@ -481,6 +637,7 @@
+@@ -517,6 +672,7 @@
          this.createSearchTrees();
          this.resourceManager.registerReloadListener(this.searchRegistry);
          this.particleEngine = new ParticleEngine(this.level, this.textureManager);
@@ -288,7 +289,7 @@
          this.resourceManager.registerReloadListener(this.particleEngine);
          this.paintingTextures = new PaintingTextureManager(this.textureManager);
          this.resourceManager.registerReloadListener(this.paintingTextures);
-@@ -488,7 +645,17 @@
+@@ -524,7 +680,17 @@
          this.resourceManager.registerReloadListener(this.mobEffectTextures);
          this.gpuWarnlistManager = new GpuWarnlistManager();
          this.resourceManager.registerReloadListener(this.gpuWarnlistManager);
@@ -307,46 +308,46 @@
          this.debugRenderer = new DebugRenderer(this);
          RenderSystem.setErrorCallback(this::onFullscreenError);
  
-@@ -502,25 +669,36 @@
+@@ -553,15 +719,9 @@
          this.window.updateRawMouseInput(this.options.rawMouseInput);
          this.window.setDefaultErrorCallback();
          this.resizeDisplay();
 -
 -        if (s != null)
 -        {
--            this.setScreen(new ConnectScreen(new TitleScreen(), this, s, i));
+-            ConnectScreen.startConnecting(new TitleScreen(), this, new ServerAddress(s, i), (ServerData)null);
 -        }
 -        else
 -        {
 -            this.setScreen(new TitleScreen(true));
 -        }
--
 +        this.menuWorldRenderer = new MenuWorldRenderer();
 +        this.vrSettings.firstRun = false;
 +        this.vrSettings.saveOptions();
+ 
+         this.gameRenderer.preloadUiShader(this.getClientPackSource().getVanillaPack());
          LoadingOverlay.registerTextures(this);
-         List<PackResources> list = this.resourcePackRepository.openAllSelected();
--        this.setOverlay(new LoadingOverlay(this, this.resourceManager.createFullReload(Util.backgroundExecutor(), this, RESOURCE_RELOAD_INITIAL_TASK, list), (p_91245_) ->
-+        this.setOverlay(new LoadingOverlay(this, this.resourceManager.createFullReload(Util.backgroundExecutor(), this, RESOURCE_RELOAD_INITIAL_TASK, list), (throwable) ->
+@@ -569,6 +729,11 @@
+         this.reloadStateTracker.startReload(ResourceLoadStateTracker.ReloadReason.INITIAL, list);
+         this.setOverlay(new LoadingOverlay(this, this.resourceManager.createReload(Util.backgroundExecutor(), this, RESOURCE_RELOAD_INITIAL_TASK, list), (p_91245_) ->
          {
--            Util.ifElse(p_91245_, this::rollbackResourcePacks, () -> {
 +            if (this.vrRenderer.isInitialized())
 +            {
 +                this.menuWorldRenderer.init();
 +            }
-+
 +            this.vr.postinit();
-+            Util.ifElse(throwable, this::rollbackResourcePacks, () -> {
+             Util.ifElse(p_91245_, this::rollbackResourcePacks, () -> {
                  if (SharedConstants.IS_RUNNING_IN_IDE)
                  {
-                     this.selfTest();
+@@ -576,6 +741,17 @@
                  }
-+
+ 
+                 this.reloadStateTracker.finishReload();
 +                if (!Reflector.callBoolean(Reflector.ClientModLoader_completeModLoading))
 +                {
 +                    if (s != null)
 +                    {
-+                        this.setScreen(new ConnectScreen(new TitleScreen(), this, s, i));
++                        ConnectScreen.startConnecting(new TitleScreen(), this, new ServerAddress(s, i), (ServerData)null);
 +                    }
 +                    else
 +                    {
@@ -356,7 +357,7 @@
              });
          }, false));
      }
-@@ -532,13 +710,7 @@
+@@ -587,13 +763,7 @@
  
      private String createTitle()
      {
@@ -371,7 +372,7 @@
          stringbuilder.append(" ");
          stringbuilder.append(SharedConstants.getCurrentVersion().getName());
          ClientPacketListener clientpacketlistener = this.getConnection();
-@@ -555,13 +727,13 @@
+@@ -610,13 +780,13 @@
              {
                  stringbuilder.append(I18n.m_118938_("title.multiplayer.realms"));
              }
@@ -388,7 +389,7 @@
              }
          }
  
-@@ -588,7 +760,10 @@
+@@ -643,7 +813,10 @@
  
      private void rollbackResourcePacks(Throwable p_91240_)
      {
@@ -400,7 +401,7 @@
          {
              Component component;
  
-@@ -671,10 +846,10 @@
+@@ -729,10 +902,10 @@
              LOGGER.fatal("Reported exception thrown!", (Throwable)reportedexception);
              crash(reportedexception.getReport());
          }
@@ -414,75 +415,16 @@
              this.emergencySave();
              crash(crashreport);
          }
-@@ -687,20 +862,20 @@
- 
-     private void createSearchTrees()
-     {
--        ReloadableSearchTree<ItemStack> reloadablesearchtree = new ReloadableSearchTree<>((p_91345_) ->
-+        ReloadableSearchTree<ItemStack> reloadablesearchtree = new ReloadableSearchTree<>((stack) ->
-         {
--            return p_91345_.getTooltipLines((Player)null, TooltipFlag.Default.NORMAL).stream().map((p_91371_) -> {
--                return ChatFormatting.stripFormatting(p_91371_.getString()).trim();
--            }).filter((p_91378_) -> {
--                return !p_91378_.isEmpty();
-+            return stack.getTooltipLines((Player)null, TooltipFlag.Default.NORMAL).stream().map((textComponent) -> {
-+                return ChatFormatting.stripFormatting(textComponent.getString()).trim();
-+            }).filter((name) -> {
-+                return !name.isEmpty();
-             });
--        }, (p_91317_) ->
-+        }, (stack) ->
-         {
--            return Stream.of(Registry.ITEM.getKey(p_91317_.getItem()));
-+            return Stream.of(Registry.ITEM.getKey(stack.getItem()));
+@@ -758,7 +931,7 @@
          });
--        ReloadableIdSearchTree<ItemStack> reloadableidsearchtree = new ReloadableIdSearchTree<>((p_91121_) ->
-+        ReloadableIdSearchTree<ItemStack> reloadableidsearchtree = new ReloadableIdSearchTree<>((stack) ->
+         ReloadableIdSearchTree<ItemStack> reloadableidsearchtree = new ReloadableIdSearchTree<>((p_91121_) ->
          {
 -            return ItemTags.getAllTags().getMatchingTags(p_91121_.getItem()).stream();
-+            return Reflector.ForgeItem_getTags.exists() ? ((Set)Reflector.call(stack.getItem(), Reflector.ForgeItem_getTags)).stream() : ItemTags.getAllTags().getMatchingTags(stack.getItem()).stream();
++            return Reflector.ForgeItem_getTags.exists() ? ((Set)Reflector.call(p_91121_.getItem(), Reflector.ForgeItem_getTags)).stream() : ItemTags.getAllTags().getMatchingTags(p_91121_.getItem()).stream();
          });
          NonNullList<ItemStack> nonnulllist = NonNullList.create();
  
-@@ -709,24 +884,24 @@
-             item.fillItemCategory(CreativeModeTab.TAB_SEARCH, nonnulllist);
-         }
- 
--        nonnulllist.forEach((p_91170_) ->
-+        nonnulllist.forEach((stack) ->
-         {
--            reloadablesearchtree.add(p_91170_);
--            reloadableidsearchtree.add(p_91170_);
-+            reloadablesearchtree.add(stack);
-+            reloadableidsearchtree.add(stack);
-         });
--        ReloadableSearchTree<RecipeCollection> reloadablesearchtree1 = new ReloadableSearchTree<>((p_91323_) ->
-+        ReloadableSearchTree<RecipeCollection> reloadablesearchtree1 = new ReloadableSearchTree<>((recipeList) ->
-         {
--            return p_91323_.getRecipes().stream().flatMap((p_91319_) -> {
--                return p_91319_.getResultItem().getTooltipLines((Player)null, TooltipFlag.Default.NORMAL).stream();
--            }).map((p_91357_) -> {
--                return ChatFormatting.stripFormatting(p_91357_.getString()).trim();
--            }).filter((p_91367_) -> {
--                return !p_91367_.isEmpty();
-+            return recipeList.getRecipes().stream().flatMap((recipe) -> {
-+                return recipe.getResultItem().getTooltipLines((Player)null, TooltipFlag.Default.NORMAL).stream();
-+            }).map((textComponent) -> {
-+                return ChatFormatting.stripFormatting(textComponent.getString()).trim();
-+            }).filter((name) -> {
-+                return !name.isEmpty();
-             });
--        }, (p_91155_) ->
-+        }, (recipeList) ->
-         {
--            return p_91155_.getRecipes().stream().map((p_91126_) -> {
--                return Registry.ITEM.getKey(p_91126_.getResultItem().getItem());
-+            return recipeList.getRecipes().stream().map((recipe) -> {
-+                return Registry.ITEM.getKey(recipe.getResultItem().getItem());
-             });
-         });
-         this.searchRegistry.register(SearchRegistry.CREATIVE_NAMES, reloadablesearchtree);
-@@ -786,17 +961,41 @@
+@@ -844,17 +1017,41 @@
          if (p_91333_.getSaveFile() != null)
          {
              Bootstrap.realStdoutPrintln("#@!@# Game crashed! Crash report saved to: #@!@# " + p_91333_.getSaveFile());
@@ -527,14 +469,11 @@
          }
      }
  
-@@ -824,9 +1023,23 @@
-             {
-                 this.resourcePackRepository.reload();
-                 List<PackResources> list = this.resourcePackRepository.openAllSelected();
--                this.setOverlay(new LoadingOverlay(this, this.resourceManager.createFullReload(Util.backgroundExecutor(), this, RESOURCE_RELOAD_INITIAL_TASK, list), (p_91252_) ->
-+                this.setOverlay(new LoadingOverlay(this, this.resourceManager.createFullReload(Util.backgroundExecutor(), this, RESOURCE_RELOAD_INITIAL_TASK, list), (throwable) ->
+@@ -895,6 +1092,22 @@
+ 
+                 this.setOverlay(new LoadingOverlay(this, this.resourceManager.createReload(Util.backgroundExecutor(), this, RESOURCE_RELOAD_INITIAL_TASK, list), (p_91252_) ->
                  {
--                    Util.ifElse(p_91252_, this::rollbackResourcePacks, () -> {
++                	//Vivecraft
 +                    if (this.menuWorldRenderer.isReady() && this.resourcePacksChanged)
 +                    {
 +                        try
@@ -547,31 +486,18 @@
 +                            exception.printStackTrace();
 +                        }
 +                    }
-+
++                    
 +                    this.resourcePacksChanged = false;
-+                    Util.ifElse(throwable, this::rollbackResourcePacks, () -> {
++                    //
+                     Util.ifElse(p_91252_, this::rollbackResourcePacks, () -> {
                          this.levelRenderer.allChanged();
-                         completablefuture.complete((Void)null);
-                     });
-@@ -924,11 +1137,6 @@
- 
-     public void setScreen(@Nullable Screen p_91153_)
-     {
--        if (this.screen != null)
--        {
--            this.screen.removed();
--        }
--
-         if (p_91153_ == null && this.level == null)
-         {
-             p_91153_ = new TitleScreen();
-@@ -945,12 +1153,31 @@
+                         this.reloadStateTracker.finishReload();
+@@ -1020,6 +1233,17 @@
              }
          }
  
 +        Screen screen = this.screen;
 +        Object object = Reflector.newInstance(Reflector.GuiOpenEvent_Constructor, p_91153_);
-+
 +        if (object != null)
 +        {
 +            if (Reflector.postForgeBusEvent(object))
@@ -581,23 +507,10 @@
 +
 +            p_91153_ = (Screen)Reflector.call(object, Reflector.GuiOpenEvent_getGui);
 +        }
-+
-+        if (screen != null && p_91153_ != screen)
-+        {
-+            screen.removed();
-+        }
-+
-         if (p_91153_ instanceof TitleScreen || p_91153_ instanceof JoinMultiplayerScreen)
-         {
-             this.options.renderDebug = false;
-             this.gui.getChat().clearMessages(true);
-         }
- 
-+        GuiHandler.onScreenChanged(this.screen, p_91153_, true);
          this.screen = p_91153_;
+         BufferUploader.reset();
  
-         if (p_91153_ != null)
-@@ -1013,6 +1240,14 @@
+@@ -1082,6 +1306,14 @@
          {
              Util.timeSource = System::nanoTime;
  
@@ -612,7 +525,7 @@
              if (this.delayedCrash == null)
              {
                  System.exit(0);
-@@ -1052,7 +1287,6 @@
+@@ -1121,7 +1353,6 @@
      private void runTick(boolean p_91384_)
      {
          this.window.setErrorSection("Pre render");
@@ -620,20 +533,18 @@
  
          if (this.window.shouldClose())
          {
-@@ -1078,75 +1312,253 @@
+@@ -1147,79 +1378,265 @@
  
          if (p_91384_)
          {
--            int j = this.timer.advanceTime(Util.getMillis());
 +            this.options.ofFastRender = false;
 +            ++this.frameIndex;
-+            int i = this.timer.advanceTime(Util.getMillis());
+             int j = this.timer.advanceTime(Util.getMillis());
              this.profiler.push("scheduledExecutables");
              this.runAllTasks();
              this.profiler.pop();
-+
-+            try
-+            {
++            
++            try {
 +                this.vrRenderer.setupRenderConfiguration();
 +            }
 +            catch (RenderConfigException renderconfigexception)
@@ -644,12 +555,12 @@
 +                if (this.overlay != null)
 +                {
 +                    RenderSystem.clear(256, ON_OSX);
-+                    RenderSystem.matrixMode(5889);
-+                    RenderSystem.loadIdentity();
-+                    RenderSystem.ortho(0.0D, (double)this.window.getScreenWidth() / this.window.getGuiScale(), (double)this.window.getScreenHeight() / this.window.getGuiScale(), 0.0D, 1000.0D, 3000.0D);
-+                    RenderSystem.matrixMode(5888);
-+                    RenderSystem.loadIdentity();
-+                    RenderSystem.translatef(0.0F, 0.0F, -2000.0F);
++                    GL43.glMatrixMode(5889);
++                    GL43.glLoadIdentity();
++                    GL43.glOrtho(0.0D, (double)this.window.getScreenWidth() / this.window.getGuiScale(), (double)this.window.getScreenHeight() / this.window.getGuiScale(), 0.0D, 1000.0D, 3000.0D);
++                    GL43.glMatrixMode(5888);
++                    GL43.glLoadIdentity();
++                    GL43.glTranslatef(0.0F, 0.0F, -2000.0F);
 +                    Lighting.setupFor3DItems();
 +                    this.overlay.render(new PoseStack(), 0, 0, 0.0F);
 +                }
@@ -686,8 +597,7 @@
 +            this.vrPlayer.postPoll();
              this.profiler.push("tick");
  
--            for (int k = 0; k < Math.min(10, j); ++k)
-+            for (int j = 0; j < Math.min(10, i); ++j)
+             for (int k = 0; k < Math.min(10, j); ++k)
              {
                  this.profiler.incrementCounter("clientTick");
 +                this.vrPlayer.preTick();
@@ -695,22 +605,17 @@
 +                this.vrPlayer.postTick();
 +                this.profiler.pop();
              }
--
--            this.profiler.pop();
+ 
+             this.profiler.pop();
          }
  
 +        this.options.ofFastRender = false;
 +        this.profiler.popPush("setupRenderConfiguration");
          this.mouseHandler.turnPlayer();
          this.window.setErrorSection("Render");
--        this.profiler.push("sound");
--        this.soundManager.updateSource(this.gameRenderer.getMainCamera());
--        this.profiler.pop();
--        this.profiler.push("render");
--        RenderSystem.pushMatrix();
--        RenderSystem.clear(16640, ON_OSX);
--        this.mainRenderTarget.bindWrite(true);
-+
+         this.profiler.push("sound");
+         this.soundManager.updateSource(this.gameRenderer.getMainCamera());
+         this.profiler.pop();
 +        try
 +        {
 +            this.checkGLError("pre render setup ");
@@ -724,11 +629,23 @@
 +
 +        float f = this.pause ? this.pausePartialTick : this.timer.partialTick;
 +        this.profiler.popPush("preRender");
-+        this.vrPlayer.preRender(f);
++        this.vrPlayer.preRender(f);      
+         this.profiler.push("render");
+-        PoseStack posestack = RenderSystem.getModelViewStack();
+-        posestack.pushPose();
+-        RenderSystem.applyModelViewMatrix();
+-        RenderSystem.clear(16640, ON_OSX);
+-        this.mainRenderTarget.bindWrite(true);
++        
++        //PoseStack posestack = RenderSystem.getModelViewStack();
++        //posestack.pushPose();
++        //RenderSystem.applyModelViewMatrix();
++        //RenderSystem.clear(16640, ON_OSX);
++        //this.mainRenderTarget.bindWrite(true);
          FogRenderer.setupNoFog();
--        this.profiler.push("display");
+         this.profiler.push("display");
          RenderSystem.enableTexture();
--        RenderSystem.enableCull();
+         RenderSystem.enableCull();
          this.profiler.pop();
 +        this.profiler.push("Gui");
 +        this.currentPass = RenderPass.GUI;
@@ -763,29 +680,30 @@
  
 -        this.profiler.push("blit");
 -        this.mainRenderTarget.unbindWrite();
--        RenderSystem.popMatrix();
--        RenderSystem.pushMatrix();
+-        posestack.popPose();
+-        posestack.pushPose();
+-        RenderSystem.applyModelViewMatrix();
 -        this.mainRenderTarget.blitToScreen(this.window.getWidth(), this.window.getHeight());
--        RenderSystem.popMatrix();
+-        posestack.popPose();
+-        RenderSystem.applyModelViewMatrix();
 -        this.profiler.popPush("updateDisplay");
 -        this.window.updateDisplay();
--        int i1 = this.getFramerateLimit();
 +        if (RadialHandler.isShowing())
 +        {
 +            this.mainRenderTarget = RadialHandler.Framebuffer;
 +            this.mainRenderTarget.bindWrite(true);
 +            this.gameRenderer.drawScreen(f, RadialHandler.UI, new PoseStack());
 +        }
- 
--        if ((double)i1 < Option.FRAMERATE_LIMIT.getMaxValue())
++
 +        this.checkGLError("post 2d ");
 +        VRHotkeys.updateMovingThirdPersonCam();
 +        this.profiler.popPush("sound");
 +        this.currentPass = RenderPass.CENTER;
 +        this.soundManager.updateSource(this.gameRenderer.getMainCamera());
 +        this.profiler.pop();
-+        this.profiler.push("render");
-+
+         int i1 = this.getFramerateLimit();
+ 
+-        if ((double)i1 < Option.FRAMERATE_LIMIT.getMaxValue())
 +        if (!this.noRender)
          {
 -            RenderSystem.limitDisplayFPS(i1);
@@ -826,7 +744,7 @@
 +                this.profiler.push("setup");
 +                this.mainRenderTarget.bindWrite(true);
 +                this.profiler.pop();
-+                RenderSystem.loadIdentity();
++                GL43.glLoadIdentity();
 +                this.renderSingleView(renderpass.ordinal(), f, p_91384_);
 +                this.profiler.pop();
 +
@@ -911,7 +829,7 @@
          {
              if (this.pause)
              {
-@@ -1157,12 +1569,12 @@
+@@ -1230,12 +1647,12 @@
                  this.timer.partialTick = this.pausePartialTick;
              }
  
@@ -928,7 +846,7 @@
          this.profiler.push("fpsUpdate");
  
          while (Util.getMillis() >= this.lastTime + 1000L)
-@@ -1231,14 +1643,16 @@
+@@ -1313,14 +1730,16 @@
          int i = this.window.calculateScale(this.options.guiScale, this.isEnforceUnicode());
          this.window.setGuiScale((double)i);
  
@@ -948,7 +866,7 @@
          this.mouseHandler.setIgnoreFirstMove();
      }
  
-@@ -1249,7 +1663,7 @@
+@@ -1331,7 +1750,7 @@
  
      private int getFramerateLimit()
      {
@@ -957,7 +875,7 @@
      }
  
      public void emergencySave()
-@@ -1321,6 +1735,16 @@
+@@ -1548,6 +1967,16 @@
          }
      }
  
@@ -974,27 +892,8 @@
      private void renderFpsMeter(PoseStack p_91141_, ProfileResults p_91142_)
      {
          List<ResultField> list = p_91142_.getTimes(this.debugPath);
-@@ -1337,14 +1761,15 @@
-         Tesselator tesselator = Tesselator.getInstance();
-         BufferBuilder bufferbuilder = tesselator.getBuilder();
-         int i = 160;
--        int j = this.window.getWidth() - 160 - 10;
--        int k = this.window.getHeight() - 320;
-+        int j = this.window.getWidth() / 3;
-+        int k = this.window.getHeight() / 9;
-         RenderSystem.enableBlend();
-+        RenderSystem.scaled(2.2D, 2.7D, 1.0D);
-         bufferbuilder.begin(7, DefaultVertexFormat.POSITION_COLOR);
-         bufferbuilder.vertex((double)((float)j - 176.0F), (double)((float)k - 96.0F - 16.0F), 0.0D).color(200, 0, 0, 0).endVertex();
-         bufferbuilder.vertex((double)((float)j - 176.0F), (double)(k + 320), 0.0D).color(200, 0, 0, 0).endVertex();
-         bufferbuilder.vertex((double)((float)j + 176.0F), (double)(k + 320), 0.0D).color(200, 0, 0, 0).endVertex();
--        bufferbuilder.vertex((double)((float)j + 176.0F), (double)((float)k - 96.0F - 16.0F), 0.0D).color(200, 0, 0, 0).endVertex();
-+        bufferbuilder.vertex((double)((float)j + 704.0F), (double)((float)k - 96.0F - 16.0F), 0.0D).color(200, 0, 0, 0).endVertex();
-         tesselator.end();
-         RenderSystem.disableBlend();
-         double d0 = 0.0D;
-@@ -1407,14 +1832,14 @@
-             s1 = s1 + s + ' ';
+@@ -1635,14 +2064,14 @@
+             s1 = s1 + s + " ";
          }
  
 -        int k2 = 16777215;
@@ -1011,7 +910,7 @@
              StringBuilder stringbuilder = new StringBuilder();
  
              if ("unspecified".equals(resultfield2.name))
-@@ -1423,15 +1848,15 @@
+@@ -1651,15 +2080,15 @@
              }
              else
              {
@@ -1031,7 +930,7 @@
          }
      }
  
-@@ -1476,19 +1901,44 @@
+@@ -1704,19 +2133,44 @@
              {
                  BlockHitResult blockhitresult = (BlockHitResult)this.hitResult;
                  BlockPos blockpos = blockhitresult.getBlockPos();
@@ -1080,7 +979,7 @@
              {
                  this.gameMode.stopDestroyBlock();
              }
-@@ -1510,39 +1960,48 @@
+@@ -1738,39 +2192,48 @@
              }
              else if (!this.player.isHandsBusy())
              {
@@ -1150,7 +1049,7 @@
          {
              this.rightClickDelay = 4;
  
-@@ -1555,74 +2014,102 @@
+@@ -1783,74 +2246,102 @@
  
                  for (InteractionHand interactionhand : InteractionHand.values())
                  {
@@ -1167,76 +1066,89 @@
 -                                EntityHitResult entityhitresult = (EntityHitResult)this.hitResult;
 -                                Entity entity = entityhitresult.getEntity();
 -                                InteractionResult interactionresult = this.gameMode.interactAt(this.player, entity, entityhitresult, interactionhand);
-+                            this.player.swing(interactionhand);
-+                        }
- 
+-
 -                                if (!interactionresult.consumesAction())
 -                                {
 -                                    interactionresult = this.gameMode.interact(this.player, entity, interactionhand);
 -                                }
-+                        return;
-+                    }
++                            this.player.swing(interactionhand);
++                        }
  
 -                                if (interactionresult.consumesAction())
 -                                {
 -                                    if (interactionresult.shouldSwing())
-+                    ItemStack itemstack = this.player.getItemInHand(interactionhand);
-+
-+                    if (!TelescopeTracker.isTelescope(itemstack))
-+                    {
-+                        NetworkHelper.sendActiveHand((byte)interactionhand.ordinal());
-+
-+                        if (this.hitResult != null)
-+                        {
-+                            switch (this.hitResult.getType())
-+                            {
-+                                case ENTITY:
-+                                    this.physicalGuiManager.preClickAction();
-+                                    EntityHitResult entityhitresult = (EntityHitResult)this.hitResult;
-+                                    Entity entity = entityhitresult.getEntity();
-+                                    InteractionResult interactionresult = this.gameMode.interactAt(this.player, entity, entityhitresult, interactionhand);
-+
-+                                    if (!interactionresult.consumesAction())
-                                     {
+-                                    {
 -                                        this.player.swing(interactionhand);
-+                                        interactionresult = this.gameMode.interact(this.player, entity, interactionhand);
-                                     }
+-                                    }
++                        return;
++                    }
  
 -                                    return;
 -                                }
-+                                    if (interactionresult.consumesAction())
-+                                    {
-+                                        if (interactionresult.shouldSwing() && (object == null || Reflector.callBoolean(object, Reflector.ClickInputEvent_shouldSwingHand)))
-+                                        {
-+                                            this.player.swingArm(interactionhand, VRFirstPersonArmSwing.Use);
-+                                        }
++                    ItemStack itemstack = this.player.getItemInHand(interactionhand);
  
 -                                break;
-+                                        return;
-+                                    }
++                    if (!TelescopeTracker.isTelescope(itemstack))
++                    {
++                        NetworkHelper.sendActiveHand((byte)interactionhand.ordinal());
  
 -                            case BLOCK:
 -                                BlockHitResult blockhitresult = (BlockHitResult)this.hitResult;
 -                                int i = itemstack.getCount();
 -                                InteractionResult interactionresult1 = this.gameMode.useItemOn(this.player, this.level, interactionhand, blockhitresult);
-+                                    break;
++                        if (this.hitResult != null)
++                        {
++                            switch (this.hitResult.getType())
++                            {
++                                case ENTITY:
++                                    //this.physicalGuiManager.preClickAction();
++                                    EntityHitResult entityhitresult = (EntityHitResult)this.hitResult;
++                                    Entity entity = entityhitresult.getEntity();
++                                    InteractionResult interactionresult = this.gameMode.interactAt(this.player, entity, entityhitresult, interactionhand);
  
 -                                if (interactionresult1.consumesAction())
 -                                {
 -                                    if (interactionresult1.shouldSwing())
--                                    {
++                                    if (!interactionresult.consumesAction())
+                                     {
 -                                        this.player.swing(interactionhand);
++                                        interactionresult = this.gameMode.interact(this.player, entity, interactionhand);
++                                    }
+ 
+-                                        if (!itemstack.isEmpty() && (itemstack.getCount() != i || this.gameMode.hasInfiniteItems()))
++                                    if (interactionresult.consumesAction())
++                                    {
++                                        if (interactionresult.shouldSwing() && (object == null || Reflector.callBoolean(object, Reflector.ClickInputEvent_shouldSwingHand)))
+                                         {
+-                                            this.gameRenderer.itemInHandRenderer.itemUsed(interactionhand);
++                                            this.player.swingArm(interactionhand, VRFirstPersonArmSwing.Use);
+                                         }
++
++                                        return;
+                                     }
+ 
+-                                    return;
+-                                }
++                                    break;
+ 
+-                                if (interactionresult1 == InteractionResult.FAIL)
+-                                {
+-                                    return;
+-                                }
+-                        }
+-                    }
 +                                case BLOCK:
 +                                    BlockHitResult blockhitresult = (BlockHitResult)this.hitResult;
 +                                    int i = itemstack.getCount();
 +                                    InteractionResult interactionresult1 = this.gameMode.useItemOn(this.player, this.level, interactionhand, blockhitresult);
  
--                                        if (!itemstack.isEmpty() && (itemstack.getCount() != i || this.gameMode.hasInfiniteItems()))
+-                    if (!itemstack.isEmpty())
+-                    {
+-                        InteractionResult interactionresult2 = this.gameMode.useItem(this.player, this.level, interactionhand);
 +                                    if (interactionresult1.consumesAction())
 +                                    {
 +                                        if (interactionresult1.shouldSwing())
-                                         {
--                                            this.gameRenderer.itemInHandRenderer.itemUsed(interactionhand);
++                                        {
 +                                            if (object == null || Reflector.callBoolean(object, Reflector.ClickInputEvent_shouldSwingHand))
 +                                            {
 +                                                this.player.swingArm(interactionhand, VRFirstPersonArmSwing.Use);
@@ -1246,37 +1158,26 @@
 +                                            {
 +                                                this.gameRenderer.itemInHandRenderer.itemUsed(interactionhand);
 +                                            }
-                                         }
--                                    }
++                                        }
  
--                                    return;
--                                }
+-                        if (interactionresult2.consumesAction())
 +                                        return;
 +                                    }
- 
--                                if (interactionresult1 == InteractionResult.FAIL)
--                                {
--                                    return;
--                                }
++
 +                                    if (interactionresult1 == InteractionResult.FAIL)
 +                                    {
 +                                        return;
 +                                    }
 +                            }
-                         }
--                    }
- 
--                    if (!itemstack.isEmpty())
--                    {
--                        InteractionResult interactionresult2 = this.gameMode.useItem(this.player, this.level, interactionhand);
-+                        this.physicalGuiManager.preClickAction();
++                        }
++
++                        //this.physicalGuiManager.preClickAction();
 +
 +                        if (itemstack.isEmpty() && (this.hitResult == null || this.hitResult.getType() == HitResult.Type.MISS))
 +                        {
 +                            Reflector.call(Reflector.ForgeHooks_onEmptyClick, this.player, interactionhand);
 +                        }
- 
--                        if (interactionresult2.consumesAction())
++
 +                        if (!itemstack.isEmpty())
                          {
 -                            if (interactionresult2.shouldSwing())
@@ -1299,7 +1200,7 @@
                          }
                      }
                  }
-@@ -1637,12 +2124,15 @@
+@@ -1865,12 +2356,15 @@
  
      public void tick()
      {
@@ -1316,7 +1217,7 @@
  
          if (!this.pause)
          {
-@@ -1650,7 +2140,6 @@
+@@ -1878,7 +2372,6 @@
          }
  
          this.profiler.pop();
@@ -1324,7 +1225,7 @@
          this.tutorial.onLookAt(this.level, this.hitResult);
          this.profiler.push("gameMode");
  
-@@ -1660,11 +2149,7 @@
+@@ -1888,11 +2381,7 @@
          }
  
          this.profiler.popPush("textures");
@@ -1337,7 +1238,7 @@
  
          if (this.screen == null && this.player != null)
          {
-@@ -1700,6 +2185,10 @@
+@@ -1928,6 +2417,10 @@
              this.gui.clearCache();
          }
  
@@ -1348,7 +1249,7 @@
          if (this.overlay == null && (this.screen == null || this.screen.passEvents))
          {
              this.profiler.popPush("Keybindings");
-@@ -1711,8 +2200,30 @@
+@@ -1939,8 +2432,30 @@
              }
          }
  
@@ -1379,7 +1280,7 @@
              this.profiler.popPush("gameRenderer");
  
              if (!this.pause)
-@@ -1744,6 +2255,13 @@
+@@ -1972,6 +2487,13 @@
              this.gameRenderer.shutdownEffect();
          }
  
@@ -1393,7 +1294,7 @@
          if (!this.pause)
          {
              this.musicManager.tick();
-@@ -1815,24 +2333,21 @@
+@@ -2043,24 +2565,21 @@
          this.profiler.popPush("keyboard");
          this.keyboardHandler.tick();
          this.profiler.pop();
@@ -1424,24 +1325,7 @@
          }
  
          while (this.options.keySmoothCamera.consumeClick())
-@@ -1851,13 +2366,13 @@
-                 {
-                     this.gui.getSpectatorGui().onHotbarSelected(i);
-                 }
--                else if (!this.player.isCreative() || this.screen != null || !flag1 && !flag)
-+                else if (this.player.isCreative() && this.screen == null && (flag1 || flag))
-                 {
--                    this.player.inventory.selected = i;
-+                    CreativeModeInventoryScreen.handleHotbarLoadOrSave(this, i, flag1, flag);
-                 }
-                 else
-                 {
--                    CreativeModeInventoryScreen.handleHotbarLoadOrSave(this, i, flag1, flag);
-+                    this.player.inventory.selected = i;
-                 }
-             }
-         }
-@@ -1911,7 +2426,7 @@
+@@ -2139,7 +2658,7 @@
          {
              if (!this.player.isSpectator() && this.player.drop(Screen.hasControlDown()))
              {
@@ -1450,16 +1334,7 @@
              }
          }
  
-@@ -1919,7 +2434,7 @@
- 
-         if (flag2)
-         {
--            while (this.options.keyChat.consumeClick())
-+            if (this.screen == null && this.options.keyChat.consumeClick())
-             {
-                 this.openChatScreen("");
-             }
-@@ -1932,8 +2447,9 @@
+@@ -2155,8 +2674,9 @@
  
          if (this.player.isUsingItem())
          {
@@ -1470,7 +1345,7 @@
                  this.gameMode.releaseUsingItem(this.player);
              }
  
-@@ -1951,9 +2467,21 @@
+@@ -2174,9 +2694,21 @@
          }
          else
          {
@@ -1493,7 +1368,7 @@
              }
  
              while (this.options.keyUse.consumeClick())
-@@ -1972,7 +2500,7 @@
+@@ -2195,7 +2727,7 @@
              this.startUseItem();
          }
  
@@ -1502,195 +1377,9 @@
      }
  
      public static DataPackConfig loadDataPacks(LevelStorageSource.LevelStorageAccess p_91134_)
-@@ -2007,54 +2535,57 @@
- 
-     public void loadLevel(String p_91201_)
-     {
--        this.doLoadLevel(p_91201_, RegistryAccess.builtin(), Minecraft::loadDataPacks, Minecraft::loadWorldData, false, Minecraft.ExperimentalDialogType.BACKUP);
-+        this.loadWorld(p_91201_, RegistryAccess.builtin(), Minecraft::loadDataPacks, Minecraft::loadWorldData, false, Minecraft.ExperimentalDialogType.BACKUP, false);
-     }
- 
-     public void createLevel(String p_91203_, LevelSettings p_91204_, RegistryAccess.RegistryHolder p_91205_, WorldGenSettings p_91206_)
-     {
--        this.doLoadLevel(p_91203_, p_91205_, (p_91129_) ->
-+        this.loadWorld(p_91203_, p_91205_, (worldStorage) ->
-         {
-             return p_91204_.getDataPackConfig();
--        }, (p_91177_, p_91178_, p_91179_, p_91180_) ->
-+        }, (worldStorage, dynamicRegistries, resourceManager, datapackCodec) ->
-         {
-             RegistryWriteOps<JsonElement> registrywriteops = RegistryWriteOps.create(JsonOps.INSTANCE, p_91205_);
--            RegistryReadOps<JsonElement> registryreadops = RegistryReadOps.create(JsonOps.INSTANCE, p_91179_, p_91205_);
--            DataResult<WorldGenSettings> dataresult = WorldGenSettings.CODEC.encodeStart(registrywriteops, p_91206_).setLifecycle(Lifecycle.stable()).flatMap((p_91257_) -> {
--                return WorldGenSettings.CODEC.parse(registryreadops, p_91257_);
-+            RegistryReadOps<JsonElement> registryreadops = RegistryReadOps.create(JsonOps.INSTANCE, resourceManager, p_91205_);
-+            DataResult<WorldGenSettings> dataresult = WorldGenSettings.CODEC.encodeStart(registrywriteops, p_91206_).setLifecycle(Lifecycle.stable()).flatMap((p_243209_1_) -> {
-+                return WorldGenSettings.CODEC.parse(registryreadops, p_243209_1_);
-             });
-             WorldGenSettings worldgensettings = dataresult.resultOrPartial(Util.prefix("Error reading worldgen settings after loading data packs: ", LOGGER::error)).orElse(p_91206_);
-             return new PrimaryLevelData(p_91204_, worldgensettings, dataresult.lifecycle());
--        }, false, Minecraft.ExperimentalDialogType.CREATE);
-+        }, false, Minecraft.ExperimentalDialogType.CREATE, true);
-     }
- 
--    private void doLoadLevel(String p_91220_, RegistryAccess.RegistryHolder p_91221_, Function<LevelStorageSource.LevelStorageAccess, DataPackConfig> p_91222_, Function4<LevelStorageSource.LevelStorageAccess, RegistryAccess.RegistryHolder, ResourceManager, DataPackConfig, WorldData> p_91223_, boolean p_91224_, Minecraft.ExperimentalDialogType p_91225_)
-+    private void loadWorld(String worldName, RegistryAccess.RegistryHolder dynamicRegistries, Function<LevelStorageSource.LevelStorageAccess, DataPackConfig> levelSaveToDatapackFunction, Function4<LevelStorageSource.LevelStorageAccess, RegistryAccess.RegistryHolder, ResourceManager, DataPackConfig, WorldData> quadFunction, boolean vanillaOnly, Minecraft.ExperimentalDialogType selectionType, boolean creating)
-     {
-         LevelStorageSource.LevelStorageAccess levelstoragesource$levelstorageaccess;
- 
-         try
-         {
--            levelstoragesource$levelstorageaccess = this.levelSource.createAccess(p_91220_);
-+            levelstoragesource$levelstorageaccess = this.levelSource.createAccess(worldName);
-         }
-         catch (IOException ioexception2)
-         {
--            LOGGER.warn("Failed to read level {} data", p_91220_, ioexception2);
--            SystemToast.onWorldAccessFailure(this, p_91220_);
-+            LOGGER.warn("Failed to read level {} data", worldName, ioexception2);
-+            SystemToast.onWorldAccessFailure(this, worldName);
-             this.setScreen((Screen)null);
-             return;
-         }
- 
-         Minecraft.ServerStem minecraft$serverstem;
-+        RegistryAccess.RegistryHolder registryaccess$registryholder;
- 
-         try
-         {
--            minecraft$serverstem = this.makeServerStem(p_91221_, p_91222_, p_91223_, p_91224_, levelstoragesource$levelstorageaccess);
-+            Minecraft.ServerStem minecraft$serverstem1 = this.makeServerStem(dynamicRegistries, levelSaveToDatapackFunction, quadFunction, vanillaOnly, levelstoragesource$levelstorageaccess);
-+            registryaccess$registryholder = creating ? dynamicRegistries : RegistryAccess.builtin();
-+            minecraft$serverstem = creating ? minecraft$serverstem1 : this.makeServerStem(registryaccess$registryholder, levelSaveToDatapackFunction, quadFunction, vanillaOnly, levelstoragesource$levelstorageaccess);
-         }
-         catch (Exception exception)
-         {
-             LOGGER.warn("Failed to load datapacks, can't proceed with server load", (Throwable)exception);
-             this.setScreen(new DatapackLoadFailureScreen(() ->
-             {
--                this.doLoadLevel(p_91220_, p_91221_, p_91222_, p_91223_, true, p_91225_);
-+                this.loadWorld(worldName, dynamicRegistries, levelSaveToDatapackFunction, quadFunction, true, selectionType, creating);
-             }));
- 
-             try
-@@ -2063,7 +2594,7 @@
-             }
-             catch (IOException ioexception)
-             {
--                LOGGER.warn("Failed to unlock access to level {}", p_91220_, ioexception);
-+                LOGGER.warn("Failed to unlock access to level {}", worldName, ioexception);
-             }
- 
-             return;
-@@ -2073,14 +2604,14 @@
-         boolean flag = worlddata.worldGenSettings().isOldCustomizedWorld();
-         boolean flag1 = worlddata.worldGenSettingsLifecycle() != Lifecycle.stable();
- 
--        if (p_91225_ == Minecraft.ExperimentalDialogType.NONE || !flag && !flag1)
-+        if (selectionType == Minecraft.ExperimentalDialogType.NONE || !flag && !flag1)
-         {
-             this.clearLevel();
-             this.progressListener.set((StoringChunkProgressListener)null);
- 
-             try
-             {
--                levelstoragesource$levelstorageaccess.saveDataTag(p_91221_, worlddata);
-+                levelstoragesource$levelstorageaccess.saveDataTag(registryaccess$registryholder, worlddata);
-                 minecraft$serverstem.serverResources().updateGlobals();
-                 YggdrasilAuthenticationService yggdrasilauthenticationservice = new YggdrasilAuthenticationService(this.proxy);
-                 MinecraftSessionService minecraftsessionservice = yggdrasilauthenticationservice.createMinecraftSessionService();
-@@ -2089,10 +2620,10 @@
-                 SkullBlockEntity.setProfileCache(gameprofilecache);
-                 SkullBlockEntity.setSessionService(minecraftsessionservice);
-                 GameProfileCache.setUsesAuthentication(false);
--                this.singleplayerServer = MinecraftServer.spin((p_91189_) ->
-+                this.singleplayerServer = MinecraftServer.spin((thread) ->
-                 {
--                    return new IntegratedServer(p_91189_, this, p_91221_, levelstoragesource$levelstorageaccess, minecraft$serverstem.packRepository(), minecraft$serverstem.serverResources(), worlddata, minecraftsessionservice, gameprofilerepository, gameprofilecache, (p_91343_) -> {
--                        StoringChunkProgressListener storingchunkprogresslistener = new StoringChunkProgressListener(p_91343_ + 0);
-+                    return new IntegratedServer(thread, this, registryaccess$registryholder, levelstoragesource$levelstorageaccess, minecraft$serverstem.packRepository(), minecraft$serverstem.serverResources(), worlddata, minecraftsessionservice, gameprofilerepository, gameprofilecache, (radius) -> {
-+                        StoringChunkProgressListener storingchunkprogresslistener = new StoringChunkProgressListener(radius + 0);
-                         storingchunkprogresslistener.start();
-                         this.progressListener.set(storingchunkprogresslistener);
-                         return new ProcessorChunkProgressListener(storingchunkprogresslistener, this.progressTasks::add);
-@@ -2104,7 +2635,7 @@
-             {
-                 CrashReport crashreport = CrashReport.forThrowable(throwable, "Starting integrated server");
-                 CrashReportCategory crashreportcategory = crashreport.addCategory("Starting integrated server");
--                crashreportcategory.setDetail("Level ID", p_91220_);
-+                crashreportcategory.setDetail("Level ID", worldName);
-                 crashreportcategory.setDetail("Level Name", worlddata.getLevelName());
-                 throw new ReportedException(crashreport);
-             }
-@@ -2141,18 +2672,26 @@
-             this.profiler.pop();
-             SocketAddress socketaddress = this.singleplayerServer.getConnection().startMemoryChannel();
-             Connection connection = Connection.connectToLocalServer(socketaddress);
--            connection.setListener(new ClientHandshakePacketListenerImpl(connection, this, (Screen)null, (p_91335_) ->
-+            connection.setListener(new ClientHandshakePacketListenerImpl(connection, this, (Screen)null, (statusMessage) ->
-             {
-             }));
-             connection.send(new ClientIntentionPacket(socketaddress.toString(), 0, ConnectionProtocol.LOGIN));
-+            GameProfile gameprofile = this.getUser().getGameProfile();
-+
-+            if (Reflector.ForgeSession_hasCachedProperties.exists() && !Reflector.callBoolean(this.getUser(), Reflector.ForgeSession_hasCachedProperties))
-+            {
-+                gameprofile = this.minecraftSessionService.fillProfileProperties(gameprofile, true);
-+                Reflector.call(this.getUser(), Reflector.ForgeSession_setProperties, gameprofile.getProperties());
-+            }
-+
-             connection.send(new ServerboundHelloPacket(this.getUser().getGameProfile()));
-             this.pendingConnection = connection;
-         }
-         else
-         {
--            this.displayExperimentalConfirmationDialog(p_91225_, p_91220_, flag, () ->
-+            this.displayExperimentalConfirmationDialog(selectionType, worldName, flag, () ->
-             {
--                this.doLoadLevel(p_91220_, p_91221_, p_91222_, p_91223_, p_91224_, Minecraft.ExperimentalDialogType.NONE);
-+                this.loadWorld(worldName, dynamicRegistries, levelSaveToDatapackFunction, quadFunction, vanillaOnly, Minecraft.ExperimentalDialogType.NONE, creating);
-             });
-             minecraft$serverstem.close();
- 
-@@ -2160,9 +2699,9 @@
-             {
-                 levelstoragesource$levelstorageaccess.close();
-             }
--            catch (IOException ioexception1)
-+            catch (IOException ioexception11)
-             {
--                LOGGER.warn("Failed to unlock access to level {}", p_91220_, ioexception1);
-+                LOGGER.warn("Failed to unlock access to level {}", worldName, ioexception11);
-             }
-         }
-     }
-@@ -2185,9 +2724,9 @@
-                 component1 = new TranslatableComponent("selectWorld.backupWarning.experimental");
-             }
- 
--            this.setScreen(new BackupConfirmScreen((Screen)null, (p_91229_, p_91230_) ->
-+            this.setScreen(new BackupConfirmScreen((Screen)null, (editMode, checkedBox) ->
-             {
--                if (p_91229_)
-+                if (editMode)
-                 {
-                     EditWorldScreen.makeBackupAndShowToast(this.levelSource, p_91145_);
-                 }
-@@ -2197,9 +2736,9 @@
-         }
-         else
-         {
--            this.setScreen(new ConfirmScreen((p_91199_) ->
-+            this.setScreen(new ConfirmScreen((confirm) ->
-             {
--                if (p_91199_)
-+                if (confirm)
-                 {
-                     p_91147_.run();
-                 }
-@@ -2210,10 +2749,10 @@
-                     {
-                         levelstoragesource$levelstorageaccess.deleteLevel();
+@@ -2457,10 +2989,10 @@
+                             levelstoragesource$levelstorageaccess.close();
+                         }
                      }
 -                    catch (IOException ioexception)
 +                    catch (IOException ioexception1)
@@ -1701,18 +1390,7 @@
                      }
                  }
              }, new TranslatableComponent("selectWorld.backupQuestion.experimental"), new TranslatableComponent("selectWorld.backupWarning.experimental"), CommonComponents.GUI_PROCEED, CommonComponents.GUI_CANCEL));
-@@ -2234,15 +2773,22 @@
-             WorldData worlddata = p_91193_.apply(p_91195_, p_91191_, serverresources.getResourceManager(), datapackconfig1);
-             return new Minecraft.ServerStem(packrepository, serverresources, worlddata);
-         }
--        catch (ExecutionException | InterruptedException interruptedexception)
-+        catch (InterruptedException | ExecutionException executionexception)
-         {
-             packrepository.close();
--            throw interruptedexception;
-+            throw executionexception;
-         }
-     }
+@@ -2490,6 +3022,13 @@
  
      public void setLevel(ClientLevel p_91157_)
      {
@@ -1723,10 +1401,10 @@
 +            Reflector.postForgeBusEvent(Reflector.newInstance(Reflector.WorldEvent_Unload_Constructor, this.level));
 +        }
 +
-         ProgressScreen progressscreen = new ProgressScreen();
+         ProgressScreen progressscreen = new ProgressScreen(true);
          progressscreen.progressStartNoAbort(new TranslatableComponent("connect.joining"));
          this.updateScreenAndTick(progressscreen);
-@@ -2279,12 +2825,15 @@
+@@ -2527,12 +3066,15 @@
          IntegratedServer integratedserver = this.singleplayerServer;
          this.singleplayerServer = null;
          this.gameRenderer.resetData();
@@ -1742,7 +1420,7 @@
              if (integratedserver != null)
              {
                  this.profiler.push("waitForServer");
-@@ -2301,6 +2850,7 @@
+@@ -2549,6 +3091,7 @@
              this.gui.onDisconnected();
              this.currentServer = null;
              this.isLocalServer = false;
@@ -1750,15 +1428,15 @@
              this.game.onLeaveGameSession();
          }
  
-@@ -2334,6 +2884,7 @@
+@@ -2582,6 +3125,7 @@
          this.particleEngine.setLevel(p_91325_);
-         BlockEntityRenderDispatcher.instance.setLevel(p_91325_);
+         this.blockEntityRenderDispatcher.setLevel(p_91325_);
          this.updateTitle();
 +        Reflector.call(Reflector.MinecraftForgeClient_clearRenderCache);
      }
  
      public boolean allowsMultiplayer()
-@@ -2393,6 +2944,18 @@
+@@ -2657,6 +3201,17 @@
      {
          if (this.hitResult != null && this.hitResult.getType() != HitResult.Type.MISS)
          {
@@ -1773,42 +1451,20 @@
 +            {
 +                return;
 +            }
-+
-             boolean flag = this.player.abilities.instabuild;
+             boolean flag = this.player.getAbilities().instabuild;
              BlockEntity blockentity = null;
              HitResult.Type hitresult$type = this.hitResult.getType();
-@@ -2554,6 +3117,8 @@
+@@ -2745,6 +3300,8 @@
                  }
              }
          }
 +
-+        this.physicalGuiManager.init(this.player);
++        //this.physicalGuiManager.init(this.player);
      }
  
      private ItemStack addCustomNbtData(ItemStack p_91123_, BlockEntity p_91124_)
-@@ -2672,9 +3237,9 @@
- 
-     public CompletableFuture<Void> delayTextureReload()
-     {
--        return this.submit(this::reloadResourcePacks).thenCompose((p_91249_) ->
-+        return this.submit(this::reloadResourcePacks).thenCompose((voidIn) ->
-         {
--            return p_91249_;
-+            return voidIn;
-         });
-     }
- 
-@@ -3068,7 +3633,7 @@
-             supplier = adaptV4(supplier);
-         }
- 
--        return new Pack(p_91232_, p_91233_, supplier, p_91235_, p_91236_, p_91237_, p_91238_);
-+        return Reflector.IForgeIResourcePack_isHidden.exists() ? (Pack)Reflector.newInstance(Reflector.ClientResourcePackInfo_Constructor, p_91232_, p_91233_, supplier, p_91235_, p_91236_, p_91237_, p_91238_, Reflector.callBoolean(p_91235_, Reflector.IForgeIResourcePack_isHidden)) : new Pack(p_91232_, p_91233_, supplier, p_91235_, p_91236_, p_91237_, p_91238_);
-     }
- 
-     private static Supplier<PackResources> adaptV3(Supplier<PackResources> p_91331_)
-@@ -3092,6 +3657,575 @@
-         this.modelManager.updateMaxMipLevel(p_91313_);
+@@ -3541,6 +4098,575 @@
+         public abstract boolean isChatAllowed(boolean p_168035_);
      }
  
 +    public void printChatMessage(String msg)
@@ -1959,7 +1615,7 @@
 +        }
 +        else
 +        {
-+            GlStateManager._bindTexture(this.vrRenderer.framebufferMR.depthBufferId);
++            GlStateManager._bindTexture(this.vrRenderer.framebufferMR.getDepthBufferId());
 +        }
 +
 +        GlStateManager._activeTexture(33984);
@@ -2043,7 +1699,7 @@
 +        this.vrPlayer.registerTracker(this.teleportTracker);
 +        this.vrPlayer.registerTracker(this.horseTracker);
 +        this.vrPlayer.registerTracker(this.vehicleTracker);
-+        this.vrPlayer.registerTracker(this.physicalGuiManager);
++        //this.vrPlayer.registerTracker(this.physicalGuiManager);
 +        this.vrPlayer.registerTracker(this.crawlTracker);
 +        this.vrPlayer.registerTracker(this.cameraTracker);
 +    }
@@ -2221,7 +1877,7 @@
 +                    }
 +                }
 +
-+                ItemStack itemstack = this.player.inventory.getArmor(3);
++                ItemStack itemstack = this.player.getInventory().getArmor(3);
 +
 +                if (itemstack.getItem() == Blocks.CARVED_PUMPKIN.asItem() && (!itemstack.hasTag() || itemstack.getTag().getInt("CustomModelData") == 0))
 +                {
@@ -2345,15 +2001,15 @@
 +        if (System.currentTimeMillis() < this.mirroNotifyStart + this.mirroNotifyLen)
 +        {
 +            RenderSystem.viewport(0, 0, this.window.getScreenWidth(), this.window.getScreenHeight());
-+            RenderSystem.matrixMode(5889);
-+            RenderSystem.loadIdentity();
-+            RenderSystem.ortho(0.0D, (double)this.window.getScreenWidth() / 4.0D, (double)this.window.getScreenHeight() / 4.0D, 0.0D, -10.0D, 10.0D);
-+            RenderSystem.matrixMode(5888);
-+            RenderSystem.loadIdentity();
++            GL43.glMatrixMode(5889);
++            GL43.glLoadIdentity();
++            GL43.glOrtho(0.0D, (double)this.window.getScreenWidth() / 4.0D, (double)this.window.getScreenHeight() / 4.0D, 0.0D, -10.0D, 10.0D);
++            GL43.glMatrixMode(5888);
++            GL43.glLoadIdentity();
 +            RenderSystem.clear(256, ON_OSX);
-+            RenderSystem.fogMode(GlStateManager.FogMode.EXP2);
-+            RenderSystem.fogDensity(0.0F);
-+            RenderSystem.disableFog();
++            //RenderSystem.fogMode(GlStateManager.FogMode.EXP2);
++            //RenderSystem.fogDensity(0.0F);
++            //RenderSystem.disableFog();
 +
 +            if (this.mirrorNotifyClear)
 +            {

@@ -19,7 +19,7 @@ public class SpecialItemRenderer
     private static void addQuad(VertexConsumer buffer, PoseStack.Pose matrixEntryIn, BakedQuad quadIn, float[] colorMuls, float redIn, float greenIn, float blueIn, float alphaIn, int[] combinedLightsIn, int combinedOverlayIn, boolean mulColor)
     {
         int[] aint = buffer.isMultiTexture() ? quadIn.getVertexDataSingle() : quadIn.getVertices();
-        buffer.putSprite(quadIn.a());
+        buffer.putSprite(quadIn.getSprite());
         boolean flag = ModelBlockRenderer.isSeparateAoLightValue();
         Vec3i vec3i = quadIn.getDirection().getNormal();
         float f = (float)vec3i.getX();

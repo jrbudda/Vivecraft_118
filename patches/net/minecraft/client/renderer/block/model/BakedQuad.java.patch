@@ -1,0 +1,14 @@
+--- a/net/minecraft/client/renderer/block/model/BakedQuad.java
++++ b/net/minecraft/client/renderer/block/model/BakedQuad.java
+@@ -115,11 +115,6 @@
+         Reflector.callVoid(Reflector.LightUtil_putBakedQuad, consumer, this);
+     }
+ 
+-    public TextureAtlasSprite func_187508_a()
+-    {
+-        return this.sprite;
+-    }
+-
+     private static TextureAtlasSprite getSpriteByUv(int[] vertexData)
+     {
+         float f = 1.0F;

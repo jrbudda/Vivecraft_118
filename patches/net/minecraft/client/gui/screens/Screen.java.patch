@@ -1,188 +1,82 @@
 --- a/net/minecraft/client/gui/screens/Screen.java
 +++ b/net/minecraft/client/gui/screens/Screen.java
-@@ -18,6 +18,7 @@
+@@ -16,6 +16,7 @@
+ import java.net.URI;
+ import java.net.URISyntaxException;
+ import java.nio.file.Path;
++import java.util.ArrayList;
+ import java.util.Arrays;
  import java.util.List;
  import java.util.Locale;
- import java.util.Set;
-+import java.util.function.Consumer;
- import javax.annotation.Nullable;
- import net.minecraft.CrashReport;
- import net.minecraft.CrashReportCategory;
-@@ -34,11 +35,13 @@
- import net.minecraft.client.renderer.entity.ItemRenderer;
- import net.minecraft.network.chat.ClickEvent;
- import net.minecraft.network.chat.Component;
-+import net.minecraft.network.chat.FormattedText;
- import net.minecraft.network.chat.HoverEvent;
- import net.minecraft.network.chat.Style;
- import net.minecraft.util.FormattedCharSequence;
+@@ -31,6 +32,7 @@
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.gui.Font;
+ import net.minecraft.client.gui.chat.NarratorChatListener;
++import net.minecraft.client.gui.components.AbstractWidget;
+ import net.minecraft.client.gui.components.Widget;
+ import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
+ import net.minecraft.client.gui.components.events.GuiEventListener;
+@@ -51,6 +53,9 @@
+ import net.minecraft.world.inventory.tooltip.TooltipComponent;
  import net.minecraft.world.item.ItemStack;
  import net.minecraft.world.item.TooltipFlag;
 +import net.optifine.reflect.Reflector;
++import net.optifine.util.GuiUtils;
++
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
  
-@@ -129,7 +132,17 @@
+@@ -68,7 +73,8 @@
+     protected ItemRenderer itemRenderer;
+     public int width;
+     public int height;
+-    private final List<Widget> renderables = Lists.newArrayList();
++    //vivecraft idk why this was private...
++    protected final List<Widget> renderables = Lists.newArrayList();
+     public boolean passEvents;
+     protected Font font;
+     private URI clickedLink;
+@@ -183,7 +189,20 @@
  
      protected void renderTooltip(PoseStack p_96566_, ItemStack p_96567_, int p_96568_, int p_96569_)
      {
--        this.renderComponentTooltip(p_96566_, this.getTooltipFromItem(p_96567_), p_96568_, p_96569_);
-+        if (Reflector.GuiUtils.exists())
-+        {
-+            Reflector.call(Reflector.GuiUtils_preItemToolTip, p_96567_);
-+            Font font = (Font)Reflector.call(p_96567_.getItem(), Reflector.IForgeItem_getFontRenderer, p_96567_);
-+            this.renderToolTip(p_96566_, Lists.transform(this.getTooltipFromItem(p_96567_), Component::getVisualOrderText), p_96568_, p_96569_, font == null ? this.font : font);
-+            Reflector.call(Reflector.GuiUtils_postItemToolTip);
-+        }
-+        else
-+        {
-+            this.renderComponentTooltip(p_96566_, this.getTooltipFromItem(p_96567_), p_96568_, p_96569_);
-+        }
+-        this.renderTooltip(p_96566_, this.getTooltipFromItem(p_96567_), p_96567_.getTooltipImage(), p_96568_, p_96569_);
++    	//TODO: fix
++    	if (Reflector.GuiUtils.exists())
++    	{
++//    		Reflector.call(Reflector.GuiUtils_preItemToolTip, p_96567_);
++//    		Font font = (Font)Reflector.call(p_96567_.getItem(), Reflector.IForgeItem_getFontRenderer, p_96567_);
++//    		this.renderTooltip(p_96566_, Lists.transform(this.getTooltipFromItem(p_96567_), Component::getVisualOrderText), p_96568_, p_96569_, font == null ? this.font : font);
++//    		Reflector.call(Reflector.GuiUtils_postItemToolTip);
++    	}
++    	else
++    	{
++    	//	this.renderComponentTooltip(p_96566_, this.getTooltipFromItem(p_96567_), p_96568_, p_96569_);
++    	}
++    	
++    	this.renderTooltip(p_96566_, this.getTooltipFromItem(p_96567_), p_96567_.getTooltipImage(), p_96568_, p_96569_);
      }
  
-     public List<Component> getTooltipFromItem(ItemStack p_96556_)
-@@ -144,16 +157,33 @@
+     public void renderTooltip(PoseStack p_169389_, List<Component> p_169390_, Optional<TooltipComponent> p_169391_, int p_169392_, int p_169393_)
+@@ -208,7 +227,16 @@
  
      public void renderComponentTooltip(PoseStack p_96598_, List<Component> p_96599_, int p_96600_, int p_96601_)
      {
 -        this.renderTooltip(p_96598_, Lists.transform(p_96599_, Component::getVisualOrderText), p_96600_, p_96601_);
-+        if (Reflector.GuiUtils.exists())
-+        {
-+            this.renderWrappedToolTip(p_96598_, p_96599_, p_96600_, p_96601_, this.font);
-+        }
-+        else
-+        {
-+            this.renderTooltip(p_96598_, Lists.transform(p_96599_, Component::getVisualOrderText), p_96600_, p_96601_);
-+        }
-+    }
-+
-+    public void renderWrappedToolTip(PoseStack matrixStack, List <? extends FormattedText > tooltips, int mouseX, int mouseY, Font font)
-+    {
-+        Reflector.call(Reflector.GuiUtils_drawHoveringText, matrixStack, tooltips, mouseX, mouseY, this.width, this.height, -1, font);
++    	if (Reflector.GuiUtils.exists())
++    	{
++    		//this.renderWrappedToolTip(p_96598_, p_96599_, p_96600_, p_96601_, this.font);
++    	}
++    	else
++    	{
++    		this.renderTooltip(p_96598_, Lists.transform(p_96599_, Component::getVisualOrderText), p_96600_, p_96601_);
++    	}
++    	
++        //this.renderTooltip(p_96598_, Lists.transform(p_96599_, Component::getVisualOrderText), p_96600_, p_96601_);
      }
  
      public void renderTooltip(PoseStack p_96618_, List <? extends FormattedCharSequence > p_96619_, int p_96620_, int p_96621_)
-     {
--        if (!p_96619_.isEmpty())
-+        this.renderToolTip(p_96618_, p_96619_, p_96620_, p_96621_, this.font);
-+    }
-+
-+    public void renderToolTip(PoseStack matrixStack, List <? extends FormattedCharSequence > tooltips, int mouseX, int mouseY, Font font)
-+    {
-+        if (!tooltips.isEmpty())
-         {
-             int i = 0;
- 
--            for (FormattedCharSequence formattedcharsequence : p_96619_)
-+            for (FormattedCharSequence formattedcharsequence : tooltips)
-             {
-                 int j = this.font.width(formattedcharsequence);
- 
-@@ -163,43 +193,43 @@
-                 }
-             }
- 
--            int i2 = p_96620_ + 12;
--            int j2 = p_96621_ - 12;
--            int k = 8;
-+            int l1 = mouseX + 12;
-+            int i2 = mouseY - 12;
-+            int j2 = 8;
- 
--            if (p_96619_.size() > 1)
-+            if (tooltips.size() > 1)
-             {
--                k += 2 + (p_96619_.size() - 1) * 10;
-+                j2 += 2 + (tooltips.size() - 1) * 10;
-             }
- 
--            if (i2 + i > this.width)
-+            if (l1 + i > this.width)
-             {
--                i2 -= 28 + i;
-+                l1 -= 28 + i;
-             }
- 
--            if (j2 + k + 6 > this.height)
-+            if (i2 + j2 + 6 > this.height)
-             {
--                j2 = this.height - k - 6;
-+                i2 = this.height - j2 - 6;
-             }
- 
--            p_96618_.pushPose();
--            int l = -267386864;
--            int i1 = 1347420415;
--            int j1 = 1344798847;
--            int k1 = 400;
-+            matrixStack.pushPose();
-+            int k = -267386864;
-+            int l = 1347420415;
-+            int i1 = 1344798847;
-+            int j1 = 400;
-             Tesselator tesselator = Tesselator.getInstance();
-             BufferBuilder bufferbuilder = tesselator.getBuilder();
-             bufferbuilder.begin(7, DefaultVertexFormat.POSITION_COLOR);
--            Matrix4f matrix4f = p_96618_.last().pose();
--            fillGradient(matrix4f, bufferbuilder, i2 - 3, j2 - 4, i2 + i + 3, j2 - 3, 400, -267386864, -267386864);
--            fillGradient(matrix4f, bufferbuilder, i2 - 3, j2 + k + 3, i2 + i + 3, j2 + k + 4, 400, -267386864, -267386864);
--            fillGradient(matrix4f, bufferbuilder, i2 - 3, j2 - 3, i2 + i + 3, j2 + k + 3, 400, -267386864, -267386864);
--            fillGradient(matrix4f, bufferbuilder, i2 - 4, j2 - 3, i2 - 3, j2 + k + 3, 400, -267386864, -267386864);
--            fillGradient(matrix4f, bufferbuilder, i2 + i + 3, j2 - 3, i2 + i + 4, j2 + k + 3, 400, -267386864, -267386864);
--            fillGradient(matrix4f, bufferbuilder, i2 - 3, j2 - 3 + 1, i2 - 3 + 1, j2 + k + 3 - 1, 400, 1347420415, 1344798847);
--            fillGradient(matrix4f, bufferbuilder, i2 + i + 2, j2 - 3 + 1, i2 + i + 3, j2 + k + 3 - 1, 400, 1347420415, 1344798847);
--            fillGradient(matrix4f, bufferbuilder, i2 - 3, j2 - 3, i2 + i + 3, j2 - 3 + 1, 400, 1347420415, 1347420415);
--            fillGradient(matrix4f, bufferbuilder, i2 - 3, j2 + k + 2, i2 + i + 3, j2 + k + 3, 400, 1344798847, 1344798847);
-+            Matrix4f matrix4f = matrixStack.last().pose();
-+            fillGradient(matrix4f, bufferbuilder, l1 - 3, i2 - 4, l1 + i + 3, i2 - 3, 400, -267386864, -267386864);
-+            fillGradient(matrix4f, bufferbuilder, l1 - 3, i2 + j2 + 3, l1 + i + 3, i2 + j2 + 4, 400, -267386864, -267386864);
-+            fillGradient(matrix4f, bufferbuilder, l1 - 3, i2 - 3, l1 + i + 3, i2 + j2 + 3, 400, -267386864, -267386864);
-+            fillGradient(matrix4f, bufferbuilder, l1 - 4, i2 - 3, l1 - 3, i2 + j2 + 3, 400, -267386864, -267386864);
-+            fillGradient(matrix4f, bufferbuilder, l1 + i + 3, i2 - 3, l1 + i + 4, i2 + j2 + 3, 400, -267386864, -267386864);
-+            fillGradient(matrix4f, bufferbuilder, l1 - 3, i2 - 3 + 1, l1 - 3 + 1, i2 + j2 + 3 - 1, 400, 1347420415, 1344798847);
-+            fillGradient(matrix4f, bufferbuilder, l1 + i + 2, i2 - 3 + 1, l1 + i + 3, i2 + j2 + 3 - 1, 400, 1347420415, 1344798847);
-+            fillGradient(matrix4f, bufferbuilder, l1 - 3, i2 - 3, l1 + i + 3, i2 - 3 + 1, 400, 1347420415, 1347420415);
-+            fillGradient(matrix4f, bufferbuilder, l1 - 3, i2 + j2 + 2, l1 + i + 3, i2 + j2 + 3, 400, 1344798847, 1344798847);
-             RenderSystem.enableDepthTest();
-             RenderSystem.disableTexture();
-             RenderSystem.enableBlend();
-@@ -211,27 +241,27 @@
-             RenderSystem.disableBlend();
-             RenderSystem.enableTexture();
-             MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
--            p_96618_.translate(0.0D, 0.0D, 400.0D);
-+            matrixStack.translate(0.0D, 0.0D, 400.0D);
- 
--            for (int l1 = 0; l1 < p_96619_.size(); ++l1)
-+            for (int k1 = 0; k1 < tooltips.size(); ++k1)
-             {
--                FormattedCharSequence formattedcharsequence1 = p_96619_.get(l1);
-+                FormattedCharSequence formattedcharsequence1 = tooltips.get(k1);
- 
-                 if (formattedcharsequence1 != null)
-                 {
--                    this.font.drawInBatch(formattedcharsequence1, (float)i2, (float)j2, -1, true, matrix4f, multibuffersource$buffersource, false, 0, 15728880);
-+                    this.font.drawInBatch(formattedcharsequence1, (float)l1, (float)i2, -1, true, matrix4f, multibuffersource$buffersource, false, 0, 15728880);
-                 }
- 
--                if (l1 == 0)
-+                if (k1 == 0)
-                 {
--                    j2 += 2;
-+                    i2 += 2;
-                 }
- 
--                j2 += 10;
-+                i2 += 10;
-             }
- 
-             multibuffersource$buffersource.endBatch();
--            p_96618_.popPose();
-+            matrixStack.popPose();
-         }
-     }
- 
-@@ -366,12 +396,20 @@
+@@ -434,12 +462,20 @@
  
      public void sendMessage(String p_96613_, boolean p_96614_)
      {
@@ -205,38 +99,26 @@
 +        }
      }
  
-     public void init(Minecraft p_96607_, int p_96608_, int p_96609_)
-@@ -381,10 +419,25 @@
+     public final void init(Minecraft p_96607_, int p_96608_, int p_96609_)
+@@ -449,9 +485,14 @@
          this.font = p_96607_.font;
          this.width = p_96608_;
          this.height = p_96609_;
--        this.buttons.clear();
--        this.children.clear();
+-        this.clearWidgets();
 -        this.setFocused((GuiEventListener)null);
 -        this.init();
-+        Consumer<AbstractWidget> consumer = (b) ->
-+        {
-+            this.buttons.remove(b);
-+            this.children.remove(b);
-+        };
-+        Consumer<AbstractWidget> consumer1 = (b) ->
-+        {
-+            this.addButton(b);
-+        };
-+
-+        if (!Reflector.postForgeBusEvent(Reflector.InitGuiEvent_Pre_Constructor, this, this.buttons, consumer1, consumer))
-+        {
-+            this.buttons.clear();
-+            this.children.clear();
++        //TODO: fix
++        //if (!Reflector.postForgeBusEvent(Reflector.InitGuiEvent_Pre_Constructor, this, this.buttons, consumer1, consumer))
++        //{
++            this.clearWidgets();
 +            this.setFocused((GuiEventListener)null);
 +            this.init();
-+        }
-+
-+        Reflector.postForgeBusEvent(Reflector.InitGuiEvent_Post_Constructor, this, this.buttons, consumer1, consumer);
++        //}
++        //Reflector.postForgeBusEvent(Reflector.InitGuiEvent_Post_Constructor, this, this.buttons, consumer1, consumer);
+         this.triggerImmediateNarration(false);
+         this.suppressNarration(NARRATE_SUPPRESS_AFTER_INIT_TIME);
      }
- 
-     public List <? extends GuiEventListener > children()
-@@ -413,7 +466,16 @@
+@@ -482,7 +523,16 @@
      {
          if (this.minecraft.level != null)
          {
@@ -254,7 +136,7 @@
          }
          else
          {
-@@ -434,6 +496,7 @@
+@@ -504,6 +554,7 @@
          bufferbuilder.vertex((double)this.width, 0.0D, 0.0D).uv((float)this.width / 32.0F, (float)p_96627_).color(64, 64, 64, 255).endVertex();
          bufferbuilder.vertex(0.0D, 0.0D, 0.0D).uv(0.0F, (float)p_96627_).color(64, 64, 64, 255).endVertex();
          tesselator.end();
@@ -262,13 +144,64 @@
      }
  
      public boolean isPauseScreen()
-@@ -549,4 +612,9 @@
-     public void onFilesDrop(List<Path> p_96591_)
-     {
+@@ -769,4 +820,60 @@
+             this.priority = p_169426_;
+         }
      }
 +
 +    public Minecraft getMinecraft()
 +    {
 +        return this.minecraft;
 +    }
++    
++    //Vivecraft / OF
++    protected List<AbstractWidget> getButtonList()
++    {
++        List<AbstractWidget> list = new ArrayList<>();
++
++        for (GuiEventListener guieventlistener : this.children())
++        {
++            if (guieventlistener instanceof AbstractWidget)
++            {
++                list.add((AbstractWidget)guieventlistener);
++            }
++        }
++
++        return list;
++    }
++    
++    protected AbstractWidget getSelectedButton(int x, int y)
++    {
++        for (AbstractWidget butt : getButtonList())
++        {
++            if (butt.visible && butt.isHovered())
++            {
++                return butt;
++            }
++        }
++
++        return null;
++    }
++    
++    public static AbstractWidget getSelectedButton(int x, int y, List<AbstractWidget> listButtons)
++    {
++        for (int i = 0; i < listButtons.size(); ++i)
++        {
++            AbstractWidget abstractwidget = listButtons.get(i);
++
++            if (abstractwidget.visible)
++            {
++                int j = GuiUtils.getWidth(abstractwidget);
++                int k = GuiUtils.getHeight(abstractwidget);
++
++                if (x >= abstractwidget.x && y >= abstractwidget.y && x < abstractwidget.x + j && y < abstractwidget.y + k)
++                {
++                    return abstractwidget;
++                }
++            }
++        }
++
++        return null;
++    }
++    //
  }

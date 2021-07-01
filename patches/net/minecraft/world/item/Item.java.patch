@@ -1,14 +1,6 @@
 --- a/net/minecraft/world/item/Item.java
 +++ b/net/minecraft/world/item/Item.java
-@@ -38,6 +38,7 @@
- import net.minecraft.world.level.block.state.BlockState;
- import net.minecraft.world.phys.BlockHitResult;
- import net.minecraft.world.phys.Vec3;
-+import org.vivecraft.asm.ASMDelegator;
- 
- public class Item implements ItemLike
- {
-@@ -118,14 +119,14 @@
+@@ -141,14 +141,14 @@
          {
              ItemStack itemstack = p_41433_.getItemInHand(p_41434_);
  
@@ -27,13 +19,3 @@
              }
          }
          else
-@@ -302,6 +303,9 @@
-         float f = p_41437_.xRot;
-         float f1 = p_41437_.yRot;
-         Vec3 vec3 = p_41437_.getEyePosition(1.0F);
-+        f = ASMDelegator.itemRayTracePitch(p_41437_, f);
-+        f1 = ASMDelegator.itemRayTraceYaw(p_41437_, f1);
-+        vec3 = ASMDelegator.itemRayTracePos(p_41437_, vec3);
-         float f2 = Mth.cos(-f1 * ((float)Math.PI / 180F) - (float)Math.PI);
-         float f3 = Mth.sin(-f1 * ((float)Math.PI / 180F) - (float)Math.PI);
-         float f4 = -Mth.cos(-f * ((float)Math.PI / 180F));

@@ -45,11 +45,11 @@ public abstract class VRRenderType extends RenderStateShard
         }
     }
 
-    public static RenderType getTextNoCull(ResourceLocation locationIn)
-    {
-        return getRenderType("text_nocull", locationIn, () ->
-        {
-            return RenderType.create("text_nocull", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, 7, 256, false, true, RenderType.CompositeState.builder().setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false)).setAlphaState(DEFAULT_ALPHA).setTransparencyState(NO_TRANSPARENCY).setLightmapState(LIGHTMAP).setCullState(NO_CULL).createCompositeState(false));
-        });
-    }
+//    public static RenderType getTextNoCull(ResourceLocation locationIn)
+//    {
+//        return getRenderType("text_nocull", locationIn, () ->
+//        {
+//            return RenderType.create("text_nocull", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, 7, 256, false, true, RenderType.CompositeState.builder().setTextureState(new RenderStateShard.TextureStateShard(locationIn, false, false)).setAlphaState(DEFAULT_ALPHA).setTransparencyState(NO_TRANSPARENCY).setLightmapState(LIGHTMAP).setCullState(NO_CULL).createCompositeState(false));
+//        });
+//    }
 }

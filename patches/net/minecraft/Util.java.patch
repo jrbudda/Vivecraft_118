@@ -1,6 +1,6 @@
 --- a/net/minecraft/Util.java
 +++ b/net/minecraft/Util.java
-@@ -102,7 +102,7 @@
+@@ -115,7 +115,7 @@
  
      private static ExecutorService makeExecutor(String p_137478_)
      {
@@ -9,71 +9,7 @@
          ExecutorService executorservice;
  
          if (i <= 0)
-@@ -111,9 +111,9 @@
-         }
-         else
-         {
--            executorservice = new ForkJoinPool(i, (p_240981_1_) ->
-+            executorservice = new ForkJoinPool(i, (p_lambda$createExecutor$0_1_) ->
-             {
--                ForkJoinWorkerThread forkjoinworkerthread = new ForkJoinWorkerThread(p_240981_1_)
-+                ForkJoinWorkerThread forkjoinworkerthread = new ForkJoinWorkerThread(p_lambda$createExecutor$0_1_)
-                 {
-                     protected void onTermination(Throwable p_137590_)
-                     {
-@@ -181,9 +181,9 @@
- 
-     private static ExecutorService makeIoExecutor()
-     {
--        return Executors.newCachedThreadPool((p_240978_0_) ->
-+        return Executors.newCachedThreadPool((p_lambda$createIoExecutor$1_0_) ->
-         {
--            Thread thread = new Thread(p_240978_0_);
-+            Thread thread = new Thread(p_lambda$createIoExecutor$1_0_);
-             thread.setName("IO-Worker-" + WORKER_COUNT.getAndIncrement());
-             thread.setUncaughtExceptionHandler(Util::onThreadException);
-             return thread;
-@@ -281,9 +281,9 @@
-     public static Stream<String> getVmArguments()
-     {
-         RuntimeMXBean runtimemxbean = ManagementFactory.getRuntimeMXBean();
--        return runtimemxbean.getInputArguments().stream().filter((p_211566_0_) ->
-+        return runtimemxbean.getInputArguments().stream().filter((p_lambda$getJvmFlags$2_0_) ->
-         {
--            return p_211566_0_.startsWith("-X");
-+            return p_lambda$getJvmFlags$2_0_.startsWith("-X");
-         });
-     }
- 
-@@ -363,21 +363,21 @@
-         List<V> list = Lists.newArrayListWithCapacity(p_137568_.size());
-         CompletableFuture<?>[] completablefuture = new CompletableFuture[p_137568_.size()];
-         CompletableFuture<Void> completablefuture1 = new CompletableFuture<>();
--        p_137568_.forEach((p_215083_3_) ->
-+        p_137568_.forEach((p_lambda$gather$4_3_) ->
-         {
-             int i = list.size();
-             list.add((V)null);
--            completablefuture[i] = p_215083_3_.whenComplete((p_215085_3_, p_215085_4_) -> {
--                if (p_215085_4_ != null)
-+            completablefuture[i] = p_lambda$gather$4_3_.whenComplete((p_lambda$null$3_3_, p_lambda$null$3_4_) -> {
-+                if (p_lambda$null$3_4_ != null)
-                 {
--                    completablefuture1.completeExceptionally(p_215085_4_);
-+                    completablefuture1.completeExceptionally(p_lambda$null$3_4_);
-                 }
-                 else {
--                    list.set(i, p_215085_3_);
-+                    list.set(i, p_lambda$null$3_3_);
-                 }
-             });
-         });
--        return CompletableFuture.allOf(completablefuture).applyToEither(completablefuture1, (p_215089_1_) ->
-+        return CompletableFuture.allOf(completablefuture).applyToEither(completablefuture1, (p_lambda$gather$5_1_) ->
-         {
-             return list;
-         });
-@@ -393,9 +393,9 @@
+@@ -470,9 +470,9 @@
          return exceptionOpenUrl;
      }
  
@@ -85,31 +21,7 @@
      }
  
      public static ExecutorService getCapeExecutor()
-@@ -624,9 +624,9 @@
- 
-     public static Consumer<String> prefix(String p_137490_, Consumer<String> p_137491_)
-     {
--        return (p_240986_2_) ->
-+        return (p_lambda$func_240982_a_$6_2_) ->
-         {
--            p_137491_.accept(p_137490_ + p_240986_2_);
-+            p_137491_.accept(p_137490_ + p_lambda$func_240982_a_$6_2_);
-         };
-     }
- 
-@@ -679,9 +679,9 @@
- 
-     public static String sanitizeName(String p_137484_, CharPredicate p_137485_)
-     {
--        return p_137484_.toLowerCase(Locale.ROOT).chars().mapToObj((p_244360_1_) ->
-+        return p_137484_.toLowerCase(Locale.ROOT).chars().mapToObj((p_lambda$func_244361_a$7_1_) ->
-         {
--            return p_137485_.test((char)p_244360_1_) ? Character.toString((char)p_244360_1_) : "_";
-+            return p_137485_.test((char)p_lambda$func_244361_a$7_1_) ? Character.toString((char)p_lambda$func_244361_a$7_1_) : "_";
-         }).collect(Collectors.joining());
-     }
- 
-@@ -740,10 +740,10 @@
+@@ -882,10 +882,10 @@
                  process.getErrorStream().close();
                  process.getOutputStream().close();
              }
@@ -123,7 +35,7 @@
              }
          }
  
-@@ -789,9 +789,9 @@
+@@ -931,9 +931,9 @@
              {
                  this.openUrl((new URI(p_137647_)).toURL());
              }

@@ -10,16 +10,16 @@
  import net.minecraft.world.phys.Vec3;
  
  public class FishingHookRenderer extends EntityRenderer<FishingHook>
-@@ -51,7 +51,7 @@
+@@ -52,7 +52,7 @@
              int i = player.getMainArm() == HumanoidArm.RIGHT ? 1 : -1;
              ItemStack itemstack = player.getMainHandItem();
  
--            if (itemstack.getItem() != Items.FISHING_ROD)
+-            if (!itemstack.is(Items.FISHING_ROD))
 +            if (!(itemstack.getItem() instanceof FishingRodItem))
              {
                  i = -i;
              }
-@@ -81,6 +81,19 @@
+@@ -80,6 +80,19 @@
                  d5 = Mth.lerp((double)p_114707_, player.yo, player.getY()) + vec3.y;
                  d6 = Mth.lerp((double)p_114707_, player.zo, player.getZ()) + vec3.z;
                  f3 = player.getEyeHeight();
@@ -39,34 +39,3 @@
              }
              else
              {
-@@ -90,20 +103,20 @@
-                 f3 = player.isCrouching() ? -0.1875F : 0.0F;
-             }
- 
--            double d9 = Mth.lerp((double)p_114707_, p_114705_.xo, p_114705_.getX());
--            double d10 = Mth.lerp((double)p_114707_, p_114705_.yo, p_114705_.getY()) + 0.25D;
--            double d8 = Mth.lerp((double)p_114707_, p_114705_.zo, p_114705_.getZ());
--            float f4 = (float)(d4 - d9);
--            float f5 = (float)(d5 - d10) + f3;
--            float f6 = (float)(d6 - d8);
-+            double d8 = Mth.lerp((double)p_114707_, p_114705_.xo, p_114705_.getX());
-+            double d9 = Mth.lerp((double)p_114707_, p_114705_.yo, p_114705_.getY()) + 0.25D;
-+            double d10 = Mth.lerp((double)p_114707_, p_114705_.zo, p_114705_.getZ());
-+            float f4 = (float)(d4 - d8);
-+            float f5 = (float)(d5 - d9) + f3;
-+            float f6 = (float)(d6 - d10);
-             VertexConsumer vertexconsumer1 = p_114709_.getBuffer(RenderType.lines());
-             Matrix4f matrix4f1 = p_114708_.last().pose();
--            int j = 16;
-+            int k = 16;
- 
--            for (int k = 0; k < 16; ++k)
-+            for (int l = 0; l < 16; ++l)
-             {
--                stringVertex(f4, f5, f6, vertexconsumer1, matrix4f1, fraction(k, 16));
--                stringVertex(f4, f5, f6, vertexconsumer1, matrix4f1, fraction(k + 1, 16));
-+                stringVertex(f4, f5, f6, vertexconsumer1, matrix4f1, fraction(l, 16));
-+                stringVertex(f4, f5, f6, vertexconsumer1, matrix4f1, fraction(l + 1, 16));
-             }
- 
-             p_114708_.popPose();

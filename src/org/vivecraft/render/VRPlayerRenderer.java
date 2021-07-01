@@ -1,24 +1,30 @@
 package org.vivecraft.render;
 
+import java.util.UUID;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
-import java.util.UUID;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.ArrowLayer;
 import net.minecraft.client.renderer.entity.layers.BeeStingerLayer;
+import net.minecraft.client.renderer.entity.layers.CapeLayer;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
+import net.minecraft.client.renderer.entity.layers.Deadmau5EarsLayer;
 import net.minecraft.client.renderer.entity.layers.ElytraLayer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
-import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.entity.layers.ParrotOnShoulderLayer;
+import net.minecraft.client.renderer.entity.layers.PlayerItemInHandLayer;
 import net.minecraft.client.renderer.entity.layers.SpinAttackEffectLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
@@ -26,9 +32,7 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.PlayerModelPart;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
@@ -39,23 +43,26 @@ import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.Score;
 import net.minecraft.world.scores.Scoreboard;
 
-public class VRPlayerRenderer extends LivingEntityRenderer<AbstractClientPlayer, VRPlayerModel<AbstractClientPlayer>>
+public class VRPlayerRenderer extends LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>>
 {
-    public VRPlayerRenderer(EntityRenderDispatcher p_i1296_1_, boolean p_i1296_2_, boolean seated)
+    public VRPlayerRenderer(EntityRendererProvider.Context p_174557_, boolean p_174558_, boolean seated)
     {
-        super(p_i1296_1_, new VRPlayerModel<>(0.0F, p_i1296_2_, seated), 0.5F);
-        this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(0.5F), new HumanoidModel(1.0F)));
-        this.addLayer(new ItemInHandLayer<>(this));
-        this.addLayer(new ArrowLayer<>(this));
-        this.addLayer(new VRCapeLayer(this));
-        this.addLayer(new CustomHeadLayer<>(this));
-        this.addLayer(new ElytraLayer<>(this));
-        this.addLayer(new ParrotOnShoulderLayer<>(this));
-        this.addLayer(new SpinAttackEffectLayer<>(this));
+        super(p_174557_, seated ? 
+        		new VRPlayerModel<AbstractClientPlayer>(p_174557_.bakeLayer(p_174558_ ? ModelLayers.PLAYER_SLIM : ModelLayers.PLAYER), p_174558_) : 
+        			new VRPlayerModel_WithArms<AbstractClientPlayer>(p_174557_.bakeLayer(p_174558_ ? ModelLayers.PLAYER_SLIM : ModelLayers.PLAYER), p_174558_), 0.5F);
+        this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(p_174557_.bakeLayer(p_174558_ ? ModelLayers.PLAYER_SLIM_INNER_ARMOR : ModelLayers.PLAYER_INNER_ARMOR)), new HumanoidModel(p_174557_.bakeLayer(p_174558_ ? ModelLayers.PLAYER_SLIM_OUTER_ARMOR : ModelLayers.PLAYER_OUTER_ARMOR))));
+        this.addLayer(new PlayerItemInHandLayer<>(this));
+        this.addLayer(new ArrowLayer<>(p_174557_, this));
+        this.addLayer(new Deadmau5EarsLayer(this));
+        this.addLayer(new CapeLayer(this));
+        this.addLayer(new CustomHeadLayer<>(this, p_174557_.getModelSet()));
+        this.addLayer(new ElytraLayer<>(this, p_174557_.getModelSet()));
+        this.addLayer(new ParrotOnShoulderLayer<>(this, p_174557_.getModelSet()));
+        this.addLayer(new SpinAttackEffectLayer<>(this, p_174557_.getModelSet()));
         this.addLayer(new BeeStingerLayer<>(this));
     }
 
-    public void render(AbstractClientPlayer entityIn, float entityYaw, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn, int packedLightIn)
+    public void render(AbstractClientPlayer entityIn, float p_117789_, float p_117790_, PoseStack matrixStackIn, MultiBufferSource p_117792_, int p_117793_)
     {
         if (Minecraft.getInstance().currentPass == RenderPass.GUI && entityIn.isLocalPlayer())
         {
@@ -73,61 +80,63 @@ public class VRPlayerRenderer extends LivingEntityRenderer<AbstractClientPlayer,
         if (playermodelcontroller$rotinfo != null)
         {
             matrixStackIn.scale(playermodelcontroller$rotinfo.heightScale, playermodelcontroller$rotinfo.heightScale, playermodelcontroller$rotinfo.heightScale);
-            this.setModelVisibilities(entityIn);
-            super.render(entityIn, entityYaw, partialTicks, matrixStackIn, bufferIn, packedLightIn);
+            this.setModelProperties(entityIn);
+            super.render(entityIn, p_117789_, p_117790_, matrixStackIn, p_117792_, p_117793_);
             matrixStackIn.scale(1.0F, 1.0F / playermodelcontroller$rotinfo.heightScale, 1.0F);
         }
     }
 
-    public Vec3 getRenderOffset(AbstractClientPlayer entityIn, float partialTicks)
+    public Vec3 getRenderOffset(AbstractClientPlayer p_117785_, float p_117786_)
     {
-        return entityIn.isVisuallySwimming() ? new Vec3(0.0D, -0.125D, 0.0D) : Vec3.ZERO;
+    	//idk why we do this anymore
+        return p_117785_.isVisuallySwimming() ? new Vec3(0.0D, -0.125D, 0.0D) : Vec3.ZERO;
+       // return p_117785_.isCrouching() ? new Vec3(0.0D, -0.125D, 0.0D) : super.getRenderOffset(p_117785_, p_117786_);
     }
 
-    private void setModelVisibilities(AbstractClientPlayer clientPlayer)
+    private void setModelProperties(AbstractClientPlayer p_117819_)
     {
-        VRPlayerModel<AbstractClientPlayer> vrplayermodel = this.getModel();
+        VRPlayerModel<AbstractClientPlayer> playermodel = (VRPlayerModel<AbstractClientPlayer>) this.getModel();
 
-        if (clientPlayer.isSpectator())
+        if (p_117819_.isSpectator())
         {
-            vrplayermodel.setAllVisible(false);
-            vrplayermodel.head.visible = true;
-            vrplayermodel.hat.visible = true;
+            playermodel.setAllVisible(false);
+            playermodel.head.visible = true;
+            playermodel.hat.visible = true;
         }
         else
         {
-            vrplayermodel.setAllVisible(true);
-            vrplayermodel.hat.visible = clientPlayer.isModelPartShown(PlayerModelPart.HAT);
-            vrplayermodel.jacket.visible = clientPlayer.isModelPartShown(PlayerModelPart.JACKET);
-            vrplayermodel.leftPants.visible = clientPlayer.isModelPartShown(PlayerModelPart.LEFT_PANTS_LEG);
-            vrplayermodel.rightPants.visible = clientPlayer.isModelPartShown(PlayerModelPart.RIGHT_PANTS_LEG);
-            vrplayermodel.leftSleeve.visible = clientPlayer.isModelPartShown(PlayerModelPart.LEFT_SLEEVE);
-            vrplayermodel.rightSleeve.visible = clientPlayer.isModelPartShown(PlayerModelPart.RIGHT_SLEEVE);
-            vrplayermodel.crouching = clientPlayer.isCrouching() && !clientPlayer.isVisuallySwimming();
-            HumanoidModel.ArmPose humanoidmodel$armpose = func_241741_a_(clientPlayer, InteractionHand.MAIN_HAND);
-            HumanoidModel.ArmPose humanoidmodel$armpose1 = func_241741_a_(clientPlayer, InteractionHand.OFF_HAND);
+            playermodel.setAllVisible(true);
+            playermodel.hat.visible = p_117819_.isModelPartShown(PlayerModelPart.HAT);
+            playermodel.jacket.visible = p_117819_.isModelPartShown(PlayerModelPart.JACKET);
+            playermodel.leftPants.visible = p_117819_.isModelPartShown(PlayerModelPart.LEFT_PANTS_LEG);
+            playermodel.rightPants.visible = p_117819_.isModelPartShown(PlayerModelPart.RIGHT_PANTS_LEG);
+            playermodel.leftSleeve.visible = p_117819_.isModelPartShown(PlayerModelPart.LEFT_SLEEVE);
+            playermodel.rightSleeve.visible = p_117819_.isModelPartShown(PlayerModelPart.RIGHT_SLEEVE);
+            playermodel.crouching = p_117819_.isCrouching() && !p_117819_.isVisuallySwimming();
+            HumanoidModel.ArmPose humanoidmodel$armpose = getArmPose(p_117819_, InteractionHand.MAIN_HAND);
+            HumanoidModel.ArmPose humanoidmodel$armpose1 = getArmPose(p_117819_, InteractionHand.OFF_HAND);
 
             if (humanoidmodel$armpose.isTwoHanded())
             {
-                humanoidmodel$armpose1 = clientPlayer.getOffhandItem().isEmpty() ? HumanoidModel.ArmPose.EMPTY : HumanoidModel.ArmPose.ITEM;
+                humanoidmodel$armpose1 = p_117819_.getOffhandItem().isEmpty() ? HumanoidModel.ArmPose.EMPTY : HumanoidModel.ArmPose.ITEM;
             }
 
-            if (clientPlayer.getMainArm() == HumanoidArm.RIGHT)
+            if (p_117819_.getMainArm() == HumanoidArm.RIGHT)
             {
-                vrplayermodel.rightArmPose = humanoidmodel$armpose;
-                vrplayermodel.leftArmPose = humanoidmodel$armpose1;
+                playermodel.rightArmPose = humanoidmodel$armpose;
+                playermodel.leftArmPose = humanoidmodel$armpose1;
             }
             else
             {
-                vrplayermodel.rightArmPose = humanoidmodel$armpose1;
-                vrplayermodel.leftArmPose = humanoidmodel$armpose;
+                playermodel.rightArmPose = humanoidmodel$armpose1;
+                playermodel.leftArmPose = humanoidmodel$armpose;
             }
         }
     }
 
-    private static HumanoidModel.ArmPose func_241741_a_(AbstractClientPlayer p_241741_0_, InteractionHand p_241741_1_)
+    private static HumanoidModel.ArmPose getArmPose(AbstractClientPlayer p_117795_, InteractionHand p_117796_)
     {
-        ItemStack itemstack = p_241741_0_.getItemInHand(p_241741_1_);
+        ItemStack itemstack = p_117795_.getItemInHand(p_117796_);
 
         if (itemstack.isEmpty())
         {
@@ -135,7 +144,7 @@ public class VRPlayerRenderer extends LivingEntityRenderer<AbstractClientPlayer,
         }
         else
         {
-            if (p_241741_0_.getUsedItemHand() == p_241741_1_ && p_241741_0_.getUseItemRemainingTicks() > 0)
+            if (p_117795_.getUsedItemHand() == p_117796_ && p_117795_.getUseItemRemainingTicks() > 0)
             {
                 UseAnim useanim = itemstack.getUseAnimation();
 
@@ -154,12 +163,17 @@ public class VRPlayerRenderer extends LivingEntityRenderer<AbstractClientPlayer,
                     return HumanoidModel.ArmPose.THROW_SPEAR;
                 }
 
-                if (useanim == UseAnim.CROSSBOW && p_241741_1_ == p_241741_0_.getUsedItemHand())
+                if (useanim == UseAnim.CROSSBOW && p_117796_ == p_117795_.getUsedItemHand())
                 {
                     return HumanoidModel.ArmPose.CROSSBOW_CHARGE;
                 }
+
+                if (useanim == UseAnim.SPYGLASS)
+                {
+                    return HumanoidModel.ArmPose.SPYGLASS;
+                }
             }
-            else if (!p_241741_0_.swinging && itemstack.getItem() == Items.CROSSBOW && CrossbowItem.isCharged(itemstack))
+            else if (!p_117795_.swinging && itemstack.is(Items.CROSSBOW) && CrossbowItem.isCharged(itemstack))
             {
                 return HumanoidModel.ArmPose.CROSSBOW_HOLD;
             }
@@ -168,121 +182,119 @@ public class VRPlayerRenderer extends LivingEntityRenderer<AbstractClientPlayer,
         }
     }
 
-    public ResourceLocation getEntityTexture(AbstractClientPlayer entity)
+    public ResourceLocation getTextureLocation(AbstractClientPlayer p_117783_)
     {
-        return entity.getSkinTextureLocation();
+        return p_117783_.getSkinTextureLocation();
     }
 
-    protected void preRenderCallback(AbstractClientPlayer entitylivingbaseIn, PoseStack matrixStackIn, float partialTickTime)
+    protected void scale(AbstractClientPlayer p_117798_, PoseStack p_117799_, float p_117800_)
     {
         float f = 0.9375F;
-        matrixStackIn.scale(0.9375F, 0.9375F, 0.9375F);
+        p_117799_.scale(0.9375F, 0.9375F, 0.9375F);
     }
 
-    protected void renderName(AbstractClientPlayer entityIn, Component displayNameIn, PoseStack matrixStackIn, MultiBufferSource bufferIn, int packedLightIn)
+    protected void renderNameTag(AbstractClientPlayer p_117808_, Component p_117809_, PoseStack p_117810_, MultiBufferSource p_117811_, int p_117812_)
     {
-        double d0 = this.entityRenderDispatcher.distanceToSqr(entityIn);
-        matrixStackIn.pushPose();
+        double d0 = this.entityRenderDispatcher.distanceToSqr(p_117808_);
+        p_117810_.pushPose();
 
         if (d0 < 100.0D)
         {
-            Scoreboard scoreboard = entityIn.getScoreboard();
+            Scoreboard scoreboard = p_117808_.getScoreboard();
             Objective objective = scoreboard.getDisplayObjective(2);
 
             if (objective != null)
             {
-                Score score = scoreboard.getOrCreatePlayerScore(entityIn.getScoreboardName(), objective);
-                super.renderNameTag(entityIn, (new TextComponent(Integer.toString(score.getScore()))).append(" ").append(objective.getDisplayName()), matrixStackIn, bufferIn, packedLightIn);
-                matrixStackIn.translate(0.0D, (double)0.25875F, 0.0D);
+                Score score = scoreboard.getOrCreatePlayerScore(p_117808_.getScoreboardName(), objective);
+                super.renderNameTag(p_117808_, (new TextComponent(Integer.toString(score.getScore()))).append(" ").append(objective.getDisplayName()), p_117810_, p_117811_, p_117812_);
+                p_117810_.translate(0.0D, (double)(9.0F * 1.15F * 0.025F), 0.0D);
             }
         }
 
-        super.renderNameTag(entityIn, displayNameIn, matrixStackIn, bufferIn, packedLightIn);
-        matrixStackIn.popPose();
+        super.renderNameTag(p_117808_, p_117809_, p_117810_, p_117811_, p_117812_);
+        p_117810_.popPose();
     }
 
-    public void renderRightArm(PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, AbstractClientPlayer playerIn)
+    public void renderRightHand(PoseStack p_117771_, MultiBufferSource p_117772_, int p_117773_, AbstractClientPlayer p_117774_)
     {
-        this.renderItem(matrixStackIn, bufferIn, combinedLightIn, playerIn, (this.model).rightArm, (this.model).rightSleeve);
+        this.renderHand(p_117771_, p_117772_, p_117773_, p_117774_, (this.model).rightArm, (this.model).rightSleeve);
     }
 
-    public void renderLeftArm(PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, AbstractClientPlayer playerIn)
+    public void renderLeftHand(PoseStack p_117814_, MultiBufferSource p_117815_, int p_117816_, AbstractClientPlayer p_117817_)
     {
-        this.renderItem(matrixStackIn, bufferIn, combinedLightIn, playerIn, (this.model).leftArm, (this.model).leftSleeve);
+        this.renderHand(p_117814_, p_117815_, p_117816_, p_117817_, (this.model).leftArm, (this.model).leftSleeve);
     }
 
-    private void renderItem(PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, AbstractClientPlayer playerIn, ModelPart rendererArmIn, ModelPart rendererArmwearIn)
+    private void renderHand(PoseStack p_117776_, MultiBufferSource p_117777_, int p_117778_, AbstractClientPlayer p_117779_, ModelPart p_117780_, ModelPart p_117781_)
     {
-        VRPlayerModel<AbstractClientPlayer> vrplayermodel = this.getModel();
-        this.setModelVisibilities(playerIn);
-        vrplayermodel.attackTime = 0.0F;
-        vrplayermodel.crouching = false;
-        vrplayermodel.swimAmount = 0.0F;
-        vrplayermodel.setupAnim(playerIn, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
-        rendererArmIn.xRot = 0.0F;
-        rendererArmIn.render(matrixStackIn, bufferIn.getBuffer(RenderType.entitySolid(playerIn.getSkinTextureLocation())), combinedLightIn, OverlayTexture.NO_OVERLAY);
-        rendererArmwearIn.xRot = 0.0F;
-        rendererArmwearIn.render(matrixStackIn, bufferIn.getBuffer(RenderType.entityTranslucent(playerIn.getSkinTextureLocation())), combinedLightIn, OverlayTexture.NO_OVERLAY);
+        VRPlayerModel<AbstractClientPlayer> playermodel = (VRPlayerModel<AbstractClientPlayer>) this.getModel();
+        this.setModelProperties(p_117779_);
+        playermodel.attackTime = 0.0F;
+        playermodel.crouching = false;
+        playermodel.swimAmount = 0.0F;
+        playermodel.setupAnim(p_117779_, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
+        p_117780_.xRot = 0.0F;
+        p_117780_.render(p_117776_, p_117777_.getBuffer(RenderType.entitySolid(p_117779_.getSkinTextureLocation())), p_117778_, OverlayTexture.NO_OVERLAY);
+        p_117781_.xRot = 0.0F;
+        p_117781_.render(p_117776_, p_117777_.getBuffer(RenderType.entityTranslucent(p_117779_.getSkinTextureLocation())), p_117778_, OverlayTexture.NO_OVERLAY);
     }
 
-    protected void applyRotations(AbstractClientPlayer entityLiving, PoseStack matrixStackIn, float ageInTicks, float rotationYaw, float partialTicks)
+    protected void setupRotations(AbstractClientPlayer p_117802_, PoseStack p_117803_, float p_117804_, float p_117805_, float p_117806_)
     {
-        if (this.getModel() instanceof VRPlayerModel && entityLiving instanceof Player)
+    	VRPlayerModel vrplayermodel = (VRPlayerModel) this.getModel();
+    	double d4 = p_117802_.xOld + (p_117802_.getX() - p_117802_.xOld) * (double)p_117806_;
+    	d4 = p_117802_.yOld + (p_117802_.getY() - p_117802_.yOld) * (double)p_117806_;
+    	d4 = p_117802_.zOld + (p_117802_.getZ() - p_117802_.zOld) * (double)p_117806_;
+    	
+    	UUID uuid = p_117802_.getUUID();
+    	if (PlayerModelController.getInstance().isTracked(uuid))
+    	{
+    		PlayerModelController.RotInfo playermodelcontroller$rotinfo = PlayerModelController.getInstance().getRotationsForPlayer(uuid);
+    		p_117805_ = (float)Math.toDegrees(playermodelcontroller$rotinfo.getBodyYawRadians());
+    	}
+        float wasyaw = p_117802_.getYRot();
+
+        //vanilla below here
+        float f = p_117802_.getSwimAmount(p_117806_);
+
+        if (p_117802_.isFallFlying())
         {
-            UUID uuid = entityLiving.getUUID();
-            VRPlayerModel vrplayermodel = this.getModel();
-            double d4 = entityLiving.xOld + (entityLiving.getX() - entityLiving.xOld) * (double)partialTicks;
-            d4 = entityLiving.yOld + (entityLiving.getY() - entityLiving.yOld) * (double)partialTicks;
-            d4 = entityLiving.zOld + (entityLiving.getZ() - entityLiving.zOld) * (double)partialTicks;
+            super.setupRotations(p_117802_, p_117803_, p_117804_, p_117805_, p_117806_);
+            float f1 = (float)p_117802_.getFallFlyingTicks() + p_117806_;
+            float f2 = Mth.clamp(f1 * f1 / 100.0F, 0.0F, 1.0F);
 
-            if (PlayerModelController.getInstance().isTracked(uuid))
+            if (!p_117802_.isAutoSpinAttack())
             {
-                PlayerModelController.RotInfo playermodelcontroller$rotinfo = PlayerModelController.getInstance().getRotationsForPlayer(uuid);
-                rotationYaw = (float)Math.toDegrees(playermodelcontroller$rotinfo.getBodyYawRadians());
+                p_117803_.mulPose(Vector3f.XP.rotationDegrees(f2 * (-90.0F - p_117802_.getXRot())));
+            }
+
+            Vec3 vec3 = p_117802_.getViewVector(p_117806_);
+            Vec3 vec31 = p_117802_.getDeltaMovement();
+            double d0 = vec31.horizontalDistanceSqr();
+            double d1 = vec3.horizontalDistanceSqr();
+
+            if (d0 > 0.0D && d1 > 0.0D)
+            {
+                double d2 = (vec31.x * vec3.x + vec31.z * vec3.z) / Math.sqrt(d0 * d1);
+                double d3 = vec31.x * vec3.z - vec31.z * vec3.x;
+                p_117803_.mulPose(Vector3f.YP.rotation((float)(Math.signum(d3) * Math.acos(d2))));
             }
         }
-
-        float f2 = entityLiving.yRot;
-        float f3 = entityLiving.getSwimAmount(partialTicks);
-
-        if (entityLiving.isFallFlying())
+        else if (f > 0.0F)
         {
-            super.setupRotations(entityLiving, matrixStackIn, ageInTicks, rotationYaw, partialTicks);
-            float f = (float)entityLiving.getFallFlyingTicks() + partialTicks;
-            float f1 = Mth.clamp(f * f / 100.0F, 0.0F, 1.0F);
+            super.setupRotations(p_117802_, p_117803_, p_117804_, p_117805_, p_117806_);
+            float f3 = p_117802_.isInWater() ? -90.0F - p_117802_.getXRot() : -90.0F;
+            float f4 = Mth.lerp(f, 0.0F, f3);
+            p_117803_.mulPose(Vector3f.XP.rotationDegrees(f4));
 
-            if (!entityLiving.isAutoSpinAttack())
+            if (p_117802_.isVisuallySwimming())
             {
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(f1 * (-90.0F - entityLiving.xRot)));
-            }
-
-            Vec3 vec3 = entityLiving.getViewVector(partialTicks);
-            Vec3 vec31 = entityLiving.getDeltaMovement();
-            double d0 = Entity.getHorizontalDistanceSqr(vec31);
-            double d3 = Entity.getHorizontalDistanceSqr(vec3);
-
-            if (d0 > 0.0D && d3 > 0.0D)
-            {
-                double d1 = (vec31.x * vec3.x + vec31.z * vec3.z) / (Math.sqrt(d0) * Math.sqrt(d3));
-                double d2 = vec31.x * vec3.z - vec31.z * vec3.x;
-                matrixStackIn.mulPose(Vector3f.YP.rotation((float)(Math.signum(d2) * Math.acos(d1))));
-            }
-        }
-        else if (f3 > 0.0F)
-        {
-            super.setupRotations(entityLiving, matrixStackIn, ageInTicks, rotationYaw, partialTicks);
-            float f4 = entityLiving.isInWater() ? -90.0F - entityLiving.xRot : -90.0F;
-            float f5 = Mth.lerp(f3, 0.0F, f4);
-            matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(f5));
-
-            if (entityLiving.isVisuallySwimming())
-            {
-                matrixStackIn.translate(0.0D, -1.0D, (double)0.3F);
+                p_117803_.translate(0.0D, -1.0D, (double)0.3F);
             }
         }
         else
         {
-            super.setupRotations(entityLiving, matrixStackIn, ageInTicks, rotationYaw, partialTicks);
+            super.setupRotations(p_117802_, p_117803_, p_117804_, p_117805_, p_117806_);
         }
     }
 }

@@ -272,9 +272,9 @@ public class InteractTracker extends Tracker
                 InteractionHand interactionhand = InteractionHand.values()[i];
                 boolean flag = false;
 
-                if (this.hotbar >= 0 && this.hotbar < 9 && this.mc.player.inventory.selected != this.hotbar && interactionhand == InteractionHand.MAIN_HAND)
+                if (this.hotbar >= 0 && this.hotbar < 9 && this.mc.player.getInventory().selected != this.hotbar && interactionhand == InteractionHand.MAIN_HAND)
                 {
-                    this.mc.player.inventory.selected = this.hotbar;
+                    this.mc.player.getInventory().selected = this.hotbar;
                     flag = true;
                 }
                 else if (this.hotbar == 9 && interactionhand == InteractionHand.MAIN_HAND)

@@ -185,7 +185,7 @@ public class ClimbTracker extends Tracker
         {
             this.forceActivate = true;
         }
-        else if (this.mc.player.isOnGround() || this.mc.player.abilities.flying)
+        else if (this.mc.player.isOnGround() || this.mc.player.getAbilities().flying)
         {
             this.forceActivate = false;
         }

@@ -278,8 +278,8 @@ public class NetworkHelper
     {
         if (!serverWantsData)
         {
-            capturedPitch = player.xRot;
-            capturedYaw = player.yRot;
+            capturedPitch = player.getXRot();
+            capturedYaw = player.getYRot();
             float f = (float)Math.toDegrees(Math.asin(-view.y / view.length()));
             float f1 = (float)Math.toDegrees(Math.atan2(-view.x, view.z));
             ((LocalPlayer)player).connection.send(new ServerboundMovePlayerPacket.Rot(f1, f, player.isOnGround()));

@@ -17,8 +17,7 @@ public class GuiRadial extends TwoHandedScreen
     {
         this.arr = this.minecraft.vrSettings.vrRadialItems;
         String[] astring = this.minecraft.vrSettings.vrRadialItemsAlt;
-        this.buttons.clear();
-        this.children.clear();
+        this.clearWidgets();
         int i = 8;
         int j = 120;
         int k = 360 / i;
@@ -99,7 +98,7 @@ public class GuiRadial extends TwoHandedScreen
 
             if (s != "?")
             {
-                this.addButton(new Button(i1 + j2 - i2 / 2, j1 + k2 - 10, i2, 20, s, (p) ->
+                this.addRenderableWidget(new Button(i1 + j2 - i2 / 2, j1 + k2 - 10, i2, 20, s, (p) ->
                 {
                     if (l1 < 200)
                     {

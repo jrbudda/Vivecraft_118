@@ -29,7 +29,7 @@ public class ProfileWriter
     public void println(String s)
     {
         String[] astring = ProfileManager.splitKeyValue(s);
-        String s = astring[0];
+        String sa = astring[0];
         String s1 = "";
 
         if (astring.length > 1)
@@ -37,7 +37,7 @@ public class ProfileWriter
             s1 = astring[1];
         }
 
-        this.data.put(s, s1);
+        this.data.put(sa, s1);
     }
 
     public void close()
