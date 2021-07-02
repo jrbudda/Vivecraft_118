@@ -1,0 +1,25 @@
+--- a/net/minecraft/world/level/block/entity/HopperBlockEntity.java
++++ b/net/minecraft/world/level/block/entity/HopperBlockEntity.java
+@@ -205,18 +205,18 @@
+         return p_59340_ instanceof WorldlyContainer ? IntStream.of(((WorldlyContainer)p_59340_).getSlotsForFace(p_59341_)) : IntStream.range(0, p_59340_.getContainerSize());
+     }
+ 
+-    private static boolean isFullContainer(Container pInventory, Direction pInventory)
++    private static boolean isFullContainer(Container pInventory, Direction pDirection)
+     {
+-        return getSlots(pInventory, pInventory).allMatch((p_59379_) ->
++        return getSlots(pInventory, pDirection).allMatch((p_59379_) ->
+         {
+             ItemStack itemstack = pInventory.getItem(p_59379_);
+             return itemstack.getCount() >= itemstack.getMaxStackSize();
+         });
+     }
+ 
+-    private static boolean isEmptyContainer(Container pInventory, Direction pInventory)
++    private static boolean isEmptyContainer(Container pInventory, Direction pDirection)
+     {
+-        return getSlots(pInventory, pInventory).allMatch((p_59319_) ->
++        return getSlots(pInventory, pDirection).allMatch((p_59319_) ->
+         {
+             return pInventory.getItem(p_59319_).isEmpty();
+         });

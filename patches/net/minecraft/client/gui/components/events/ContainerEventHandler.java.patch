@@ -9,26 +9,26 @@
  public interface ContainerEventHandler extends GuiEventListener
  {
 @@ -47,9 +48,9 @@
- default boolean mouseReleased(double p_94722_, double p_94723_, int p_94724_)
+ default boolean mouseReleased(double p_94722_, double pMouseX, int p_94724_)
      {
          this.setDragging(false);
--        return this.getChildAt(p_94722_, p_94723_).filter((p_94708_) ->
-+        return this.getChildAt(p_94722_, p_94723_).filter((listener) ->
+-        return this.getChildAt(p_94722_, pMouseX).filter((p_94708_) ->
++        return this.getChildAt(p_94722_, pMouseX).filter((listener) ->
          {
--            return p_94708_.mouseReleased(p_94722_, p_94723_, p_94724_);
-+            return listener.mouseReleased(p_94722_, p_94723_, p_94724_);
+-            return p_94708_.mouseReleased(p_94722_, pMouseX, p_94724_);
++            return listener.mouseReleased(p_94722_, pMouseX, p_94724_);
          }).isPresent();
      }
  
 @@ -64,9 +65,9 @@
  
- default boolean mouseScrolled(double p_94686_, double p_94687_, double p_94688_)
+ default boolean mouseScrolled(double p_94686_, double pMouseX, double p_94688_)
      {
--        return this.getChildAt(p_94686_, p_94687_).filter((p_94693_) ->
-+        return this.getChildAt(p_94686_, p_94687_).filter((listener) ->
+-        return this.getChildAt(p_94686_, pMouseX).filter((p_94693_) ->
++        return this.getChildAt(p_94686_, pMouseX).filter((listener) ->
          {
--            return p_94693_.mouseScrolled(p_94686_, p_94687_, p_94688_);
-+            return listener.mouseScrolled(p_94686_, p_94687_, p_94688_);
+-            return p_94693_.mouseScrolled(p_94686_, pMouseX, p_94688_);
++            return listener.mouseScrolled(p_94686_, pMouseX, p_94688_);
          }).isPresent();
      }
  

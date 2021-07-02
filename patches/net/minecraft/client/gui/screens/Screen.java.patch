@@ -38,49 +38,49 @@
      private URI clickedLink;
 @@ -183,7 +189,20 @@
  
-     protected void renderTooltip(PoseStack p_96566_, ItemStack p_96567_, int p_96568_, int p_96569_)
+     protected void renderTooltip(PoseStack p_96566_, ItemStack pMatrixStack, int pItemStack, int pMouseX)
      {
--        this.renderTooltip(p_96566_, this.getTooltipFromItem(p_96567_), p_96567_.getTooltipImage(), p_96568_, p_96569_);
+-        this.renderTooltip(p_96566_, this.getTooltipFromItem(pMatrixStack), pMatrixStack.getTooltipImage(), pItemStack, pMouseX);
 +    	//TODO: fix
 +    	if (Reflector.GuiUtils.exists())
 +    	{
-+//    		Reflector.call(Reflector.GuiUtils_preItemToolTip, p_96567_);
-+//    		Font font = (Font)Reflector.call(p_96567_.getItem(), Reflector.IForgeItem_getFontRenderer, p_96567_);
-+//    		this.renderTooltip(p_96566_, Lists.transform(this.getTooltipFromItem(p_96567_), Component::getVisualOrderText), p_96568_, p_96569_, font == null ? this.font : font);
++//    		Reflector.call(Reflector.GuiUtils_preItemToolTip, pMatrixStack);
++//    		Font font = (Font)Reflector.call(pMatrixStack.getItem(), Reflector.IForgeItem_getFontRenderer, pMatrixStack);
++//    		this.renderTooltip(p_96566_, Lists.transform(this.getTooltipFromItem(pMatrixStack), Component::getVisualOrderText), pItemStack, pMouseX, font == null ? this.font : font);
 +//    		Reflector.call(Reflector.GuiUtils_postItemToolTip);
 +    	}
 +    	else
 +    	{
-+    	//	this.renderComponentTooltip(p_96566_, this.getTooltipFromItem(p_96567_), p_96568_, p_96569_);
++    	//	this.renderComponentTooltip(p_96566_, this.getTooltipFromItem(pMatrixStack), pItemStack, pMouseX);
 +    	}
 +    	
-+    	this.renderTooltip(p_96566_, this.getTooltipFromItem(p_96567_), p_96567_.getTooltipImage(), p_96568_, p_96569_);
++    	this.renderTooltip(p_96566_, this.getTooltipFromItem(pMatrixStack), pMatrixStack.getTooltipImage(), pItemStack, pMouseX);
      }
  
      public void renderTooltip(PoseStack p_169389_, List<Component> p_169390_, Optional<TooltipComponent> p_169391_, int p_169392_, int p_169393_)
 @@ -208,7 +227,16 @@
  
-     public void renderComponentTooltip(PoseStack p_96598_, List<Component> p_96599_, int p_96600_, int p_96601_)
+     public void renderComponentTooltip(PoseStack p_96598_, List<Component> pMatrixStack, int pTooltips, int pMouseX)
      {
--        this.renderTooltip(p_96598_, Lists.transform(p_96599_, Component::getVisualOrderText), p_96600_, p_96601_);
+-        this.renderTooltip(p_96598_, Lists.transform(pMatrixStack, Component::getVisualOrderText), pTooltips, pMouseX);
 +    	if (Reflector.GuiUtils.exists())
 +    	{
-+    		//this.renderWrappedToolTip(p_96598_, p_96599_, p_96600_, p_96601_, this.font);
++    		//this.renderWrappedToolTip(p_96598_, pMatrixStack, pTooltips, pMouseX, this.font);
 +    	}
 +    	else
 +    	{
-+    		this.renderTooltip(p_96598_, Lists.transform(p_96599_, Component::getVisualOrderText), p_96600_, p_96601_);
++    		this.renderTooltip(p_96598_, Lists.transform(pMatrixStack, Component::getVisualOrderText), pTooltips, pMouseX);
 +    	}
 +    	
-+        //this.renderTooltip(p_96598_, Lists.transform(p_96599_, Component::getVisualOrderText), p_96600_, p_96601_);
++        //this.renderTooltip(p_96598_, Lists.transform(pMatrixStack, Component::getVisualOrderText), pTooltips, pMouseX);
      }
  
-     public void renderTooltip(PoseStack p_96618_, List <? extends FormattedCharSequence > p_96619_, int p_96620_, int p_96621_)
+     public void renderTooltip(PoseStack p_96618_, List <? extends FormattedCharSequence > pMatrixStack, int pTooltips, int pMouseX)
 @@ -434,12 +462,20 @@
  
-     public void sendMessage(String p_96613_, boolean p_96614_)
+     public void sendMessage(String p_96613_, boolean pText)
      {
--        if (p_96614_)
+-        if (pText)
 +        if (Reflector.ForgeEventFactory_onClientSendMessage.exists())
          {
 -            this.minecraft.gui.getChat().addRecentChat(p_96613_);
@@ -90,7 +90,7 @@
 -        this.minecraft.player.chat(p_96613_);
 +        if (!p_96613_.isEmpty())
 +        {
-+            if (p_96614_)
++            if (pText)
 +            {
 +                this.minecraft.gui.getChat().addRecentChat(p_96613_);
 +            }
@@ -99,11 +99,11 @@
 +        }
      }
  
-     public final void init(Minecraft p_96607_, int p_96608_, int p_96609_)
+     public final void init(Minecraft p_96607_, int pMinecraft, int pWidth)
 @@ -449,9 +485,14 @@
          this.font = p_96607_.font;
-         this.width = p_96608_;
-         this.height = p_96609_;
+         this.width = pMinecraft;
+         this.height = pWidth;
 -        this.clearWidgets();
 -        this.setFocused((GuiEventListener)null);
 -        this.init();

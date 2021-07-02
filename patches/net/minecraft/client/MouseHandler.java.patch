@@ -19,8 +19,8 @@
          this.minecraft = p_91522_;
      }
  
--    private void onPress(long p_91531_, int p_91532_, int p_91533_, int p_91534_)
-+    public void onPress(long p_91531_, int p_91532_, int p_91533_, int p_91534_)
+-    private void onPress(long p_91531_, int pHandle, int p_91533_, int pButton)
++    public void onPress(long p_91531_, int pHandle, int p_91533_, int pButton)
      {
          if (p_91531_ == this.minecraft.getWindow().getWindow())
          {
@@ -28,7 +28,7 @@
                  this.activeButton = -1;
              }
  
-+            if (Reflector.callBoolean(Reflector.ForgeHooksClient_onRawMouseClicked, p_91532_, p_91533_, p_91534_))
++            if (Reflector.callBoolean(Reflector.ForgeHooksClient_onRawMouseClicked, pHandle, p_91533_, pButton))
 +            {
 +                return;
 +            }
@@ -102,12 +102,12 @@
                  }
              }
 +
-+            Reflector.call(Reflector.ForgeHooksClient_fireMouseInput, p_91532_, p_91533_, p_91534_);
++            Reflector.call(Reflector.ForgeHooksClient_fireMouseInput, pHandle, p_91533_, pButton);
          }
      }
  
--    private void onScroll(long p_91527_, double p_91528_, double p_91529_)
-+    public void onScroll(long p_91527_, double p_91528_, double p_91529_)
+-    private void onScroll(long p_91527_, double pHandle, double p_91529_)
++    public void onScroll(long p_91527_, double pHandle, double p_91529_)
      {
          if (p_91527_ == Minecraft.getInstance().getWindow().getWindow())
          {
@@ -147,25 +147,25 @@
  
      public void setup(long p_91525_)
      {
--        InputConstants.setupMouseCallbacks(p_91525_, (p_91591_, p_91592_, p_91593_) ->
+-        InputConstants.setupMouseCallbacks(p_91525_, (p_91591_, pHandle, p_91593_) ->
 +        InputConstants.setupMouseCallbacks(p_91525_, (handle1, xPos, yPos) ->
          {
              this.minecraft.execute(() -> {
--                this.onMove(p_91591_, p_91592_, p_91593_);
+-                this.onMove(p_91591_, pHandle, p_91593_);
 +                this.onMove(handle1, xPos, yPos);
              });
--        }, (p_91566_, p_91567_, p_91568_, p_91569_) ->
+-        }, (p_91566_, pHandle, p_91568_, pButton) ->
 +        }, (handle1, button, action, modifiers) ->
          {
              this.minecraft.execute(() -> {
--                this.onPress(p_91566_, p_91567_, p_91568_, p_91569_);
+-                this.onPress(p_91566_, pHandle, p_91568_, pButton);
 +                this.onPress(handle1, button, action, modifiers);
              });
--        }, (p_91576_, p_91577_, p_91578_) ->
+-        }, (p_91576_, pHandle, p_91578_) ->
 +        }, (handle1, xOffset, yOffset) ->
          {
              this.minecraft.execute(() -> {
--                this.onScroll(p_91576_, p_91577_, p_91578_);
+-                this.onScroll(p_91576_, pHandle, p_91578_);
 +                this.onScroll(handle1, xOffset, yOffset);
              });
 -        }, (p_91536_, p_91537_, p_91538_) ->
@@ -188,8 +188,8 @@
          });
      }
  
--    private void onMove(long p_91562_, double p_91563_, double p_91564_)
-+    public void onMove(long p_91562_, double p_91563_, double p_91564_)
+-    private void onMove(long p_91562_, double pHandle, double p_91564_)
++    public void onMove(long p_91562_, double pHandle, double p_91564_)
      {
          if (p_91562_ == Minecraft.getInstance().getWindow().getWindow())
          {

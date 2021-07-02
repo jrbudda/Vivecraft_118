@@ -9,11 +9,11 @@
  public class PlayerControllerOF extends MultiPlayerGameMode
  {
 @@ -47,13 +48,21 @@
-     public InteractionResult useItem(Player p_105236_, Level p_105237_, InteractionHand p_105238_)
+     public InteractionResult useItem(Player p_105236_, Level pPlayer, InteractionHand pLevel)
      {
          this.acting = true;
-+        NetworkHelper.overrideLook(p_105236_, Minecraft.getInstance().vrPlayer.getRightClickLookOverride(p_105236_, p_105238_.ordinal()));
-         InteractionResult interactionresult = super.useItem(p_105236_, p_105237_, p_105238_);
++        NetworkHelper.overrideLook(p_105236_, Minecraft.getInstance().vrPlayer.getRightClickLookOverride(p_105236_, pLevel.ordinal()));
+         InteractionResult interactionresult = super.useItem(p_105236_, pPlayer, pLevel);
          this.acting = false;
          return interactionresult;
      }

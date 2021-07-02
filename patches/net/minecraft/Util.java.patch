@@ -2,7 +2,7 @@
 +++ b/net/minecraft/Util.java
 @@ -115,7 +115,7 @@
  
-     private static ExecutorService makeExecutor(String p_137478_)
+     private static ExecutorService makeExecutor(String pServiceName)
      {
 -        int i = Mth.clamp(Runtime.getRuntime().availableProcessors() - 1, 1, 7);
 +        int i = Mth.clamp(Runtime.getRuntime().availableProcessors() - 2, 1, 7);

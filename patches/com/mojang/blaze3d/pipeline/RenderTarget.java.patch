@@ -121,10 +121,10 @@
              RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
 @@ -329,8 +366,8 @@
      {
-         this.blitToScreen(p_83939_, p_83940_, true);
+         this.blitToScreen(p_83939_, pWidth, true);
      }
 -
--    public void blitToScreen(int p_83958_, int p_83959_, boolean p_83960_)
+-    public void blitToScreen(int p_83958_, int pWidth, boolean pHeight)
 +	//Vivecraft add x/y offsets
 +    public void framebufferRenderExt(int left, int width, int height, int top, boolean disableBlend, float xCropFactor, float yCropFactor, boolean keepAspect)
      {
@@ -134,18 +134,18 @@
          {
              RenderSystem.recordRenderCall(() ->
              {
--                this._blitToScreen(p_83958_, p_83959_, p_83960_);
+-                this._blitToScreen(p_83958_, pWidth, pHeight);
 +                this.framebufferRenderExtRaw(left, width, height, top, disableBlend, xCropFactor, yCropFactor, keepAspect);
              });
          }
          else
          {
--            this._blitToScreen(p_83958_, p_83959_, p_83960_);
+-            this._blitToScreen(p_83958_, pWidth, pHeight);
 +            this.framebufferRenderExtRaw(left, width, height, top, disableBlend, xCropFactor, yCropFactor, keepAspect);
          }
      }
  
--    private void _blitToScreen(int p_83972_, int p_83973_, boolean p_83974_)
+-    private void _blitToScreen(int p_83972_, int pWidth, boolean pHeight)
 +    private void framebufferRenderExtRaw(int left, int width, int height, int top, boolean p_227588_3_, float xCropFactor, float yCropFactor, boolean keepAspect)
      {
          if (GLX.isUsingFBOs())
@@ -154,11 +154,11 @@
              GlStateManager._colorMask(true, true, true, false);
              GlStateManager._disableDepthTest();
              GlStateManager._depthMask(false);
--            GlStateManager._viewport(0, 0, p_83972_, p_83973_);
+-            GlStateManager._viewport(0, 0, p_83972_, pWidth);
 +            
 +            GlStateManager._viewport(left, top, width, height);
  
--            if (p_83974_)
+-            if (pHeight)
 +            if (p_227588_3_)
              {
                  GlStateManager._disableBlend();
@@ -167,7 +167,7 @@
              Minecraft minecraft = Minecraft.getInstance();
              ShaderInstance shaderinstance = minecraft.gameRenderer.blitShader;
              shaderinstance.setSampler("DiffuseSampler", this.colorTextureId);
--            Matrix4f matrix4f = Matrix4f.orthographic((float)p_83972_, (float)(-p_83973_), 1000.0F, 3000.0F);
+-            Matrix4f matrix4f = Matrix4f.orthographic((float)p_83972_, (float)(-pWidth), 1000.0F, 3000.0F);
 +            Matrix4f matrix4f = Matrix4f.orthographic((float)width, (float)(-height), 1000.0F, 3000.0F);
              RenderSystem.setProjectionMatrix(matrix4f);
  
@@ -177,7 +177,7 @@
  
              shaderinstance.apply();
 -            float f = (float)p_83972_;
--            float f1 = (float)p_83973_;
+-            float f1 = (float)pWidth;
 -            float f2 = (float)this.viewWidth / (float)this.width;
 -            float f3 = (float)this.viewHeight / (float)this.height;
 +            float f = (float)width / (float)height;
@@ -250,9 +250,9 @@
 +        GL30.glGenerateMipmap(3553);
 +    }
 +
-+    public void blitToScreen(int p_83958_, int p_83959_, boolean p_83960_)
++    public void blitToScreen(int p_83958_, int pWidth, boolean pHeight)
 +    {
-+        this.framebufferRenderExt(0, p_83958_, p_83959_, 0, p_83960_, 0.0F, 0.0F, false);
++        this.framebufferRenderExt(0, p_83958_, pWidth, 0, pHeight, 0.0F, 0.0F, false);
 +    }
 +
 +    public String toString()

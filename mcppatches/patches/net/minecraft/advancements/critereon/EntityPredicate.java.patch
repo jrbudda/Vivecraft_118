@@ -1,0 +1,11 @@
+--- a/net/minecraft/advancements/critereon/EntityPredicate.java
++++ b/net/minecraft/advancements/critereon/EntityPredicate.java
+@@ -167,7 +167,7 @@
+                 {
+                     return false;
+                 }
+-                else if (this.passenger != ANY && pVector.getPassengers().stream().noneMatch((pVector) ->
++                else if (this.passenger != ANY && pVector.getPassengers().stream().noneMatch((pVector1) ->
+             {
+                 return this.passenger.matches(p_36608_, pLevel, pVector);
+                 }))

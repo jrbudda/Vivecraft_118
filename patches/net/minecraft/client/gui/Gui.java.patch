@@ -38,7 +38,7 @@
  
 +    boolean nope = false;
 +    boolean yup = false;
-     public void render(PoseStack p_93031_, float p_93032_)
+     public void render(PoseStack p_93031_, float pMatrixStack)
      {
          this.screenWidth = this.minecraft.getWindow().getGuiScaledWidth();
          this.screenHeight = this.minecraft.getWindow().getGuiScaledHeight();
@@ -71,7 +71,7 @@
              this.renderTextureOverlay(POWDER_SNOW_OUTLINE_LOCATION, this.minecraft.player.getPercentFrozen());
          }
  
-         float f2 = Mth.lerp(p_93032_, this.minecraft.player.oPortalTime, this.minecraft.player.portalTime);
+         float f2 = Mth.lerp(pMatrixStack, this.minecraft.player.oPortalTime, this.minecraft.player.portalTime);
  
 -        if (f2 > 0.0F && !this.minecraft.player.hasEffect(MobEffects.CONFUSION))
 +        if (nope)
@@ -149,8 +149,8 @@
          if (options.getCameraType().isFirstPerson() && (this.minecraft.gameMode.getPlayerMode() != GameType.SPECTATOR || this.canRenderCrosshairForSpectator(this.minecraft.hitResult)))
 @@ -643,12 +672,36 @@
              this.setBlitOffset(-90);
-             this.blit(p_93011_, i - 91, this.screenHeight - 22, 0, 0, 182, 22);
-             this.blit(p_93011_, i - 91 - 1 + player.getInventory().selected * 20, this.screenHeight - 22 - 1, 0, 22, 24, 22);
+             this.blit(pPartialTicks, i - 91, this.screenHeight - 22, 0, 0, 182, 22);
+             this.blit(pPartialTicks, i - 91 - 1 + player.getInventory().selected * 20, this.screenHeight - 22 - 1, 0, 22, 24, 22);
 -
 -            if (!itemstack.isEmpty())
 +            
@@ -158,7 +158,7 @@
 +            if (this.minecraft.interactTracker.hotbar >= 0 && this.minecraft.interactTracker.hotbar < 9 && player.getInventory().selected != this.minecraft.interactTracker.hotbar)
 +            {
 +                RenderSystem.setShaderColor(0.0F, 1.0F, 0.0F, 1.0F);
-+                this.blit(p_93011_, i - 91 - 1 + this.minecraft.interactTracker.hotbar * 20, this.screenHeight - 22 - 1, 0, 22, 24, 22);
++                this.blit(pPartialTicks, i - 91 - 1 + this.minecraft.interactTracker.hotbar * 20, this.screenHeight - 22 - 1, 0, 22, 24, 22);
 +                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 +            }
 +            
@@ -167,22 +167,22 @@
              {
                  if (humanoidarm == HumanoidArm.LEFT)
                  {
--                    this.blit(p_93011_, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
+-                    this.blit(pPartialTicks, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
 +                    if (this.minecraft.interactTracker.hotbar == 9)
 +                    {
 +                        RenderSystem.setShaderColor(0.0F, 0.0F, 1.0F, 1.0F);
-+                        this.blit(p_93011_, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
++                        this.blit(pPartialTicks, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
 +                        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 +                    }
 +                    else
 +                    {
-+                        this.blit(p_93011_, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
++                        this.blit(pPartialTicks, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
 +                    }
 +                }
 +                else if (this.minecraft.interactTracker.hotbar == 9)
 +                {
 +                    RenderSystem.setShaderColor(0.0F, 0.0F, 1.0F, 1.0F);
-+                    this.blit(p_93011_, i + 91, this.screenHeight - 23, 53, 22, 29, 24);
++                    this.blit(pPartialTicks, i + 91, this.screenHeight - 23, 53, 22, 29, 24);
 +                    RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                  }
                  else
@@ -191,7 +191,7 @@
              }
  
              RenderSystem.disableBlend();
-+            this.renderViveHudIcons(p_93011_);
++            this.renderViveHudIcons(pPartialTicks);
          }
      }
  

@@ -229,7 +229,7 @@
      }
  
 +    //Vivecraft do not modify
-     private double getFov(Camera p_109142_, float p_109143_, boolean p_109144_)
+     private double getFov(Camera p_109142_, float pActiveRenderInfo, boolean pPartialTicks)
      {
 -        if (this.panoramicMode)
 +        if (this.minecraft.level == null)
@@ -302,7 +302,7 @@
  
 @@ -1093,29 +1219,39 @@
  
-     public void render(float p_109094_, long p_109095_, boolean p_109096_)
+     public void render(float p_109094_, long pPartialTicks, boolean pNanoTime)
      {
 -        this.frameInit();
 -
@@ -336,13 +336,13 @@
              int j = (int)(this.minecraft.mouseHandler.ypos() * (double)this.minecraft.getWindow().getGuiScaledHeight() / (double)this.minecraft.getWindow().getScreenHeight());
 +            RenderSystem.viewport(0, 0, this.minecraft.getWindow().getWidth(), this.minecraft.getWindow().getHeight());
  
--            if (p_109096_ && this.minecraft.level != null && !Config.isReloadingResources())
-+            if (p_109096_ && !this.isInMenuRoom() && this.minecraft.level != null && !Config.isReloadingResources())
+-            if (pNanoTime && this.minecraft.level != null && !Config.isReloadingResources())
++            if (pNanoTime && !this.isInMenuRoom() && this.minecraft.level != null && !Config.isReloadingResources())
              {
 +                PoseStack posestack = new PoseStack();
                  this.minecraft.getProfiler().push("level");
--                this.renderLevel(p_109094_, p_109095_, new PoseStack());
-+                this.renderLevel(p_109094_, p_109095_, posestack);
+-                this.renderLevel(p_109094_, pPartialTicks, new PoseStack());
++                this.renderLevel(p_109094_, pPartialTicks, posestack);
 +
 +                if (this.minecraft.currentPass != RenderPass.THIRD && this.minecraft.currentPass != RenderPass.CAMERA)
 +                {
@@ -395,7 +395,7 @@
 +        }
      }
  
-     public void renderLevel(float p_109090_, long p_109091_, PoseStack p_109092_)
+     public void renderLevel(float p_109090_, long pPartialTicks, PoseStack pFinishTimeNano)
      {
 -        this.lightTexture.updateLightTexture(p_109090_);
 +        if (this.minecraft.currentPass == RenderPass.LEFT)
@@ -446,7 +446,7 @@
          double d0 = this.getFov(camera, p_109090_, true);
          posestack.last().pose().multiply(this.getProjectionMatrix(d0));
 @@ -1488,26 +1638,13 @@
-             Reflector.callVoid(Reflector.ForgeHooksClient_dispatchRenderLast, this.minecraft.levelRenderer, p_109092_, p_109090_, matrix4f, p_109091_);
+             Reflector.callVoid(Reflector.ForgeHooksClient_dispatchRenderLast, this.minecraft.levelRenderer, pFinishTimeNano, p_109090_, matrix4f, pPartialTicks);
          }
  
 -        this.minecraft.getProfiler().popPush("hand");
@@ -459,7 +459,7 @@
          {
 -            if (flag)
 -            {
--                ShadersRender.renderHand1(this, p_109092_, camera, p_109090_);
+-                ShadersRender.renderHand1(this, pFinishTimeNano, camera, p_109090_);
 -                Shaders.renderCompositeFinal();
 -            }
 -
@@ -467,11 +467,11 @@
 -
 -            if (flag)
 -            {
--                ShadersRender.renderFPOverlay(this, p_109092_, camera, p_109090_);
+-                ShadersRender.renderFPOverlay(this, pFinishTimeNano, camera, p_109090_);
 -            }
 -            else
 -            {
--                this.renderItemInHand(p_109092_, camera, p_109090_);
+-                this.renderItemInHand(pFinishTimeNano, camera, p_109090_);
 -            }
 +            Shaders.renderCompositeFinal();
          }

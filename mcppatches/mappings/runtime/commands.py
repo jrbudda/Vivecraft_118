@@ -1879,7 +1879,7 @@ class Commands(object):
         regexps = {
             'methods': re.compile(r'm_[0-9]+_'),
             'fields': re.compile(r'f_[0-9]+_'),
-            'params': re.compile(r'p_[\w]+_\d+_'),
+            'params': re.compile(r'p_[0-9]+_'),
         }
 
         def updatefile(src_file):
@@ -1918,9 +1918,9 @@ class Commands(object):
             return False
 
         regexps = {
-            'methods': re.compile(r'func_([0-9]+)_[a-zA-Z_]+'),
-            'fields': re.compile(r'field_([0-9]+)_[a-zA-Z_]+'),
-            'params': re.compile(r'p_[\d]+_'),
+            'methods': re.compile(r'm_([0-9]+)_'),
+            'fields': re.compile(r'f_([0-9]+)_'),
+            'params': re.compile(r'p_([0-9]+)_'),
         }
 
         # HINT: We read the relevant CSVs

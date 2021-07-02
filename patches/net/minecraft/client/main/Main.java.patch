@@ -83,7 +83,7 @@
          {
 @@ -275,9 +303,4 @@
      {
-         return p_129637_ != null && !p_129637_.isEmpty();
+         return pStr != null && !pStr.isEmpty();
      }
 -
 -    static

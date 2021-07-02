@@ -30,8 +30,8 @@
  
              p_109704_.turnOnLightLayer();
              Level level = this.minecraft.level;
--            int i = Mth.floor(p_109706_);
--            int j = Mth.floor(p_109707_);
+-            int i = Mth.floor(pPartialTicks);
+-            int j = Mth.floor(pX);
 -            int k = Mth.floor(p_109708_);
 +            Vec3 vec3 = this.minecraft.vrPlayer.vrdata_world_render.getEye(RenderPass.CENTER).getPosition();
 +
@@ -203,7 +203,7 @@
          }
  
 +        this.minecraft.getProfiler().popPush("stencil");
-+        p_109605_.drawEyeStencil(flag1);
++        pDrawBlockOutline.drawEyeStencil(flag1);
 +
          if (flag1)
          {
@@ -236,7 +236,7 @@
  
 +                if (entity1 == p_109604_.getEntity())
 +                {
-+                    p_109605_.restoreRVEPos((LivingEntity)entity1);
++                    pDrawBlockOutline.restoreRVEPos((LivingEntity)entity1);
 +                }
 +
                  if (entity1.tickCount == 0)
@@ -244,13 +244,13 @@
                      entity1.xOld = entity1.getX();
 @@ -1689,6 +1721,12 @@
  
-                 this.renderEntity(entity1, d0, d1, d2, p_109601_, p_109600_, multibuffersource);
+                 this.renderEntity(entity1, d0, d1, d2, pMatrixStack, p_109600_, multibuffersource);
                  this.renderedEntity = null;
 +
 +                if (entity1 == p_109604_.getEntity())
 +                {
-+                    p_109605_.cacheRVEPos((LivingEntity)entity1);
-+                    p_109605_.setupRVE();
++                    pDrawBlockOutline.cacheRVEPos((LivingEntity)entity1);
++                    pDrawBlockOutline.setupRVE();
 +                }
              }
  
@@ -260,15 +260,15 @@
              ShadersRender.endDebug();
              Shaders.preRenderHand();
 -            Matrix4f matrix4f1 = RenderSystem.getProjectionMatrix().copy();
--            ShadersRender.renderHand0(p_109605_, p_109600_, p_109604_, p_109601_);
+-            ShadersRender.renderHand0(pDrawBlockOutline, p_109600_, p_109604_, pMatrixStack);
 -            RenderSystem.setProjectionMatrix(matrix4f1);
 +//            Matrix4f matrix4f1 = RenderSystem.getProjectionMatrix().copy();
-+//            ShadersRender.renderHand0(p_109605_, p_109600_, p_109604_, p_109601_);
++//            ShadersRender.renderHand0(pDrawBlockOutline, p_109600_, p_109604_, pMatrixStack);
 +//            RenderSystem.setProjectionMatrix(matrix4f1);
              Shaders.preWater();
          }
 +        
-+        boolean menuHandleft = p_109605_.isInMenuRoom() || this.minecraft.screen != null || KeyboardHandler.Showing;
++        boolean menuHandleft = pDrawBlockOutline.isInMenuRoom() || this.minecraft.screen != null || KeyboardHandler.Showing;
 +        boolean menuhandright = menuHandleft || this.minecraft.interactTracker.hotbar >= 0 && this.minecraft.vrSettings.vrTouchHotbar;
  
          if (this.transparencyChain != null)
@@ -277,11 +277,11 @@
              }
  
              RenderStateShard.PARTICLES_TARGET.clearRenderState();
-+            p_109605_.renderVRFabulous(p_109601_, this, menuhandright, menuHandleft);
++            pDrawBlockOutline.renderVRFabulous(pMatrixStack, this, menuhandright, menuHandleft);
          }
          else
          {
-+            p_109605_.renderVrFast(p_109601_, false, menuhandright, menuHandleft);
++            pDrawBlockOutline.renderVrFast(pMatrixStack, false, menuhandright, menuHandleft);
              profilerfiller.popPush("translucent");
  
              if (flag1)
@@ -333,13 +333,13 @@
      {
          if (!Config.isCustomEntityModels() || !CustomEntityModels.isCustomModel(p_109645_))
          {
--            renderShape(p_109638_, p_109639_, p_109645_.getShape(this.level, p_109644_, CollisionContext.of(p_109640_)), (double)p_109644_.getX() - p_109641_, (double)p_109644_.getY() - p_109642_, (double)p_109644_.getZ() - p_109643_, 0.0F, 0.0F, 0.0F, 0.4F);
-+            renderShape(p_109638_, p_109639_, p_109645_.getShape(this.level, p_109644_, CollisionContext.of(p_109640_)), (double)p_109644_.getX() - p_109641_, (double)p_109644_.getY() - p_109642_, (double)p_109644_.getZ() - p_109643_, this.selR, this.selG, this.selB, 0.4F);
+-            renderShape(p_109638_, pMatrixStack, p_109645_.getShape(this.level, pY, CollisionContext.of(pBuffer)), (double)pY.getX() - pEntity, (double)pY.getY() - pX, (double)pY.getZ() - p_109643_, 0.0F, 0.0F, 0.0F, 0.4F);
++            renderShape(p_109638_, pMatrixStack, p_109645_.getShape(this.level, pY, CollisionContext.of(pBuffer)), (double)pY.getX() - pEntity, (double)pY.getY() - pX, (double)pY.getZ() - p_109643_, this.selR, this.selG, this.selB, 0.4F);
          }
      }
  
 @@ -3632,23 +3675,23 @@
-         this.playRecord(p_109515_, p_109516_, p_109515_ == null ? null : RecordItem.getBySound(p_109515_));
+         this.playRecord(p_109515_, pSound, p_109515_ == null ? null : RecordItem.getBySound(p_109515_));
      }
  
 -    public void playRecord(@Nullable SoundEvent soundIn, BlockPos pos, @Nullable RecordItem musicDiscItem)
@@ -383,14 +383,14 @@
 +        this.notifyNearbyEntities(this.level, p_playRecord_2_, p_playRecord_1_ != null);
      }
  
-     private void notifyNearbyEntities(Level p_109551_, BlockPos p_109552_, boolean p_109553_)
+     private void notifyNearbyEntities(Level p_109551_, BlockPos pLevel, boolean pPos)
 @@ -3920,6 +3963,7 @@
-     public void levelEvent(Player p_109533_, int p_109534_, BlockPos p_109535_, int p_109536_)
+     public void levelEvent(Player p_109533_, int pPlayer, BlockPos pType, int pBlockPos)
      {
          Random random = this.level.random;
-+        boolean flag = this.minecraft.player != null && this.minecraft.player.isAlive() && this.minecraft.player.blockPosition().distSqr(p_109535_) < 25.0D;
++        boolean flag = this.minecraft.player != null && this.minecraft.player.isAlive() && this.minecraft.player.blockPosition().distSqr(pType) < 25.0D;
  
-         switch (p_109534_)
+         switch (pPlayer)
          {
 @@ -3991,18 +4035,38 @@
                  break;
@@ -401,7 +401,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(0, 250);
 +                }
 +
-                 this.level.playLocalSound(p_109535_, SoundEvents.IRON_DOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
+                 this.level.playLocalSound(pType, SoundEvents.IRON_DOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
              case 1012:
@@ -410,7 +410,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(0, 250);
 +                }
 +
-                 this.level.playLocalSound(p_109535_, SoundEvents.WOODEN_DOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
+                 this.level.playLocalSound(pType, SoundEvents.WOODEN_DOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
              case 1013:
@@ -419,7 +419,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(0, 250);
 +                }
 +
-                 this.level.playLocalSound(p_109535_, SoundEvents.WOODEN_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
+                 this.level.playLocalSound(pType, SoundEvents.WOODEN_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
              case 1014:
@@ -428,7 +428,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(0, 250);
 +                }
 +
-                 this.level.playLocalSound(p_109535_, SoundEvents.FENCE_GATE_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
+                 this.level.playLocalSound(pType, SoundEvents.FENCE_GATE_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
 @@ -4023,14 +4087,32 @@
@@ -441,7 +441,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(1, 750);
 +                }
 +
-                 this.level.playLocalSound(p_109535_, SoundEvents.ZOMBIE_ATTACK_WOODEN_DOOR, SoundSource.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
+                 this.level.playLocalSound(pType, SoundEvents.ZOMBIE_ATTACK_WOODEN_DOOR, SoundSource.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
                  break;
  
              case 1020:
@@ -451,7 +451,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(1, 750);
 +                }
 +
-                 this.level.playLocalSound(p_109535_, SoundEvents.ZOMBIE_ATTACK_IRON_DOOR, SoundSource.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
+                 this.level.playLocalSound(pType, SoundEvents.ZOMBIE_ATTACK_IRON_DOOR, SoundSource.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
                  break;
  
              case 1021:
@@ -461,7 +461,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(1, 750);
 +                }
 +
-                 this.level.playLocalSound(p_109535_, SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, SoundSource.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
+                 this.level.playLocalSound(pType, SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, SoundSource.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
                  break;
  
 @@ -4059,10 +4141,21 @@
@@ -473,7 +473,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(0, 500);
 +                }
 +
-                 this.level.playLocalSound(p_109535_, SoundEvents.ANVIL_USE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
+                 this.level.playLocalSound(pType, SoundEvents.ANVIL_USE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
              case 1031:
@@ -483,7 +483,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(1, 1250);
 +                }
 +
-                 this.level.playLocalSound(p_109535_, SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 0.3F, this.level.random.nextFloat() * 0.1F + 0.9F, false);
+                 this.level.playLocalSound(pType, SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 0.3F, this.level.random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
 @@ -4083,6 +4176,11 @@
@@ -495,7 +495,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(0, 250);
 +                }
 +
-                 this.level.playLocalSound(p_109535_, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
+                 this.level.playLocalSound(pType, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
 @@ -4442,9 +4540,9 @@

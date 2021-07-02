@@ -228,7 +228,7 @@ public class Debug
             buffer.vertex(vert.x - offX, vert.y - offY, vert.z - offZ).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
         }
 
-        public void render(PoseStack p_113507_, MultiBufferSource p_113508_, double p_113509_, double p_113510_, double p_113511_)
+        public void render(PoseStack p_113507_, MultiBufferSource pMatrixStack, double pBuffer, double pCamX, double p_113511_)
         {
         }
     }

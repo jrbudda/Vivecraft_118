@@ -33,9 +33,9 @@
 +    private VRArmRenderer armRenderer;
 +    public final Map<String, VRArmRenderer> armSkinMap = new HashMap<>();
 +    //
-     public <E extends Entity> int getPackedLightCoords(E p_114395_, float p_114396_)
+     public <E extends Entity> int getPackedLightCoords(E p_114395_, float pEntity)
      {
-         int i = this.getRenderer(p_114395_).getPackedLightCoords(p_114395_, p_114396_);
+         int i = this.getRenderer(p_114395_).getPackedLightCoords(p_114395_, pEntity);
 @@ -103,8 +118,66 @@
          if (p_114383_ instanceof AbstractClientPlayer)
          {
@@ -107,7 +107,7 @@
          {
 @@ -217,9 +290,9 @@
  
-                 p_114391_.popPose();
+                 pZ.popPose();
              }
 -            catch (Throwable throwable1)
 +            catch (Throwable throwable)

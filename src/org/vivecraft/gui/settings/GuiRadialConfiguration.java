@@ -206,9 +206,9 @@ public class GuiRadialConfiguration extends GuiVROptionsBase
         }
     }
 
-    public void render(PoseStack p_96562_, int p_96563_, int p_96564_, float p_96565_)
+    public void render(PoseStack p_96562_, int pMatrixStack, int pMouseX, float pMouseY)
     {
-        super.render(p_96562_, p_96563_, p_96564_, p_96565_);
+        super.render(p_96562_, pMatrixStack, pMouseX, pMouseY);
 
         if (this.visibleList == null)
         {

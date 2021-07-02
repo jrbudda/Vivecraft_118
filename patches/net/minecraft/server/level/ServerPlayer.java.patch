@@ -387,13 +387,13 @@
              }
          }
 @@ -1176,6 +1276,7 @@
-         this.connection.send(new ClientboundHorseScreenOpenPacket(this.containerCounter, p_9060_.getContainerSize(), p_9059_.getId()));
-         this.containerMenu = new HorseInventoryMenu(this.containerCounter, this.getInventory(), p_9060_, p_9059_);
+         this.connection.send(new ClientboundHorseScreenOpenPacket(this.containerCounter, pHorse.getContainerSize(), p_9059_.getId()));
+         this.containerMenu = new HorseInventoryMenu(this.containerCounter, this.getInventory(), pHorse, p_9059_);
          this.initMenu(this.containerMenu);
 +        Reflector.postForgeBusEvent(Reflector.newInstance(Reflector.PlayerContainerEvent_Open_Constructor, this, this.containerMenu));
      }
  
-     public void openItemGui(ItemStack p_9082_, InteractionHand p_9083_)
+     public void openItemGui(ItemStack p_9082_, InteractionHand pStack)
 @@ -1207,6 +1308,7 @@
      {
          this.containerMenu.removed(this);
@@ -403,14 +403,14 @@
      }
  
 @@ -1232,9 +1334,9 @@
-     public void awardStat(Stat<?> p_9026_, int p_9027_)
+     public void awardStat(Stat<?> p_9026_, int pStat)
      {
-         this.stats.increment(this, p_9026_, p_9027_);
+         this.stats.increment(this, p_9026_, pStat);
 -        this.getScoreboard().forAllObjectives(p_9026_, this.getScoreboardName(), (p_8996_) ->
 +        this.getScoreboard().forAllObjectives(p_9026_, this.getScoreboardName(), (p_195396_1_) ->
          {
--            p_8996_.add(p_9027_);
-+            p_195396_1_.add(p_9027_);
+-            p_8996_.add(pStat);
++            p_195396_1_.add(pStat);
          });
      }
  
@@ -425,7 +425,7 @@
 +            ((CompoundTag)Reflector.call(this, Reflector.Entity_getPersistentData)).put("PlayerPersisted", compoundtag.getCompound("PlayerPersisted"));
 +        }
 +
-+        Reflector.callVoid(Reflector.ForgeEventFactory_onPlayerClone, this, p_9016_, !p_9017_);
++        Reflector.callVoid(Reflector.ForgeEventFactory_onPlayerClone, this, p_9016_, !pThat);
      }
  
      protected void onEffectAdded(MobEffectInstance p_143393_, @Nullable Entity p_143394_)
@@ -476,11 +476,11 @@
 +            }
 +            //
 +            
-             this.moveTo(p_9001_, p_9002_, p_9003_, p_9004_, p_9005_);
+             this.moveTo(pNewLevel, pX, p_9003_, pY, p_9005_);
              this.setLevel(p_9000_);
              p_9000_.addDuringCommandTeleport(this);
 @@ -1659,6 +1792,80 @@
-             this.connection.teleport(p_9001_, p_9002_, p_9003_, p_9004_, p_9005_);
+             this.connection.teleport(pNewLevel, pX, p_9003_, pY, p_9005_);
              this.server.getPlayerList().sendLevelInfo(this, p_9000_);
              this.server.getPlayerList().sendAllPlayerInfo(this);
 +            Reflector.call(Reflector.BasicEventHooks_firePlayerChangedDimensionEvent, this, serverlevel.dimension(), p_9000_.dimension());
@@ -510,7 +510,7 @@
 +        }
 +    }
 +
-+    protected void triggerItemUseEffects(ItemStack p_21138_, int p_21139_)
++    protected void triggerItemUseEffects(ItemStack p_21138_, int pStack)
 +    {
 +        if (!p_21138_.isEmpty() && this.isUsingItem())
 +        {
@@ -521,7 +521,7 @@
 +
 +            if (p_21138_.getUseAnimation() == UseAnim.EAT)
 +            {
-+                this.addItemParticles(p_21138_, p_21139_);
++                this.addItemParticles(p_21138_, pStack);
 +                this.playSound(this.getEatingSound(p_21138_), 0.5F + 0.5F * (float)this.random.nextInt(2), (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
 +            }
 +        }
@@ -613,7 +613,7 @@
 -            this.level.addFreshEntity(itementity);
 +            ServerVivePlayer serverviveplayer = NetworkHelper.vivePlayers.get(this.getUUID());
 +
-+            if (serverviveplayer != null && serverviveplayer.isVR() && !p_9086_)
++            if (serverviveplayer != null && serverviveplayer.isVR() && !pDroppedItem)
 +            {
 +                Vec3 vec3 = serverviveplayer.getControllerPos(0, this);
 +                Vec3 vec31 = serverviveplayer.getControllerDir(0);
@@ -635,7 +635,7 @@
 +
              ItemStack itemstack = itementity.getItem();
  
-             if (p_9087_)
+             if (pDropAround)
 @@ -1843,4 +2074,21 @@
          CriteriaTriggers.USING_ITEM.trigger(this, p_143402_);
          super.updateUsingItem(p_143402_);

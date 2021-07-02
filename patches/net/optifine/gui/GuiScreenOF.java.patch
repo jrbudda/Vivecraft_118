@@ -23,7 +23,7 @@
      {
      }
 @@ -100,26 +85,7 @@
-         return !this.mousePressed ? false : super.mouseDragged(p_94699_, p_94700_, p_94701_, p_94702_, p_94703_);
+         return !this.mousePressed ? false : super.mouseDragged(p_94699_, pMouseX, p_94701_, pMouseY, p_94703_);
      }
  
 -    public static AbstractWidget getSelectedButton(int x, int y, List<AbstractWidget> listButtons)

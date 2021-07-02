@@ -35,7 +35,7 @@
 @@ -166,6 +177,16 @@
              }
  
-             p_115147_.translate(-0.5D, -0.5D, -0.5D);
+             pLeftHand.translate(-0.5D, -0.5D, -0.5D);
 +            LocalPlayer localplayer = Minecraft.getInstance().player;
 +
 +            if (localplayer != null && isfphand)
@@ -47,7 +47,7 @@
 +                this.fade = this.manualFade;
 +            }
  
-             if (!p_115151_.isCustomRenderer() && (!p_115144_.is(Items.TRIDENT) || flag))
+             if (!pCombinedOverlay.isCustomRenderer() && (!p_115144_.is(Items.TRIDENT) || flag))
              {
 @@ -188,6 +209,12 @@
                  else
@@ -66,15 +66,15 @@
                  }
              }
  
-+            if (Minecraft.getInstance().jumpTracker.isBoots(p_115166_))
++            if (Minecraft.getInstance().jumpTracker.isBoots(pQuads))
 +            {
 +                k = this.makeColor(1, 0, 255, 0);
 +            }
-+            else if (Minecraft.getInstance().climbTracker.isClaws(p_115166_))
++            else if (Minecraft.getInstance().climbTracker.isClaws(pQuads))
 +            {
 +                k = this.makeColor(1, 130, 0, 75);
 +            }
-+            else if (TelescopeTracker.isTelescope(p_115166_))
++            else if (TelescopeTracker.isTelescope(pQuads))
 +            {
 +                k = this.makeColor(1, 190, 110, 135);
 +            }
@@ -86,8 +86,8 @@
              }
              else
              {
--                p_115164_.putBulkData(posestack$pose, bakedquad, f, f1, f2, p_115167_, p_115168_);
-+                SpecialItemRenderer.addQuad(p_115164_, posestack$pose, bakedquad, f, f1, f2, this.fade, p_115167_, p_115168_);
+-                pMatrixStack.putBulkData(posestack$pose, bakedquad, f, f1, f2, pItemStack, pCombinedLight);
++                SpecialItemRenderer.addQuad(pMatrixStack, posestack$pose, bakedquad, f, f1, f2, this.fade, pItemStack, pCombinedLight);
              }
          }
      }
@@ -101,7 +101,7 @@
 +        //
          PoseStack posestack = RenderSystem.getModelViewStack();
          posestack.pushPose();
-         posestack.translate((double)p_115129_, (double)p_115130_, (double)(100.0F + this.blitOffset));
+         posestack.translate((double)pStack, (double)pX, (double)(100.0F + this.blitOffset));
 @@ -635,4 +679,24 @@
      {
          return VanillaResourceType.MODELS;

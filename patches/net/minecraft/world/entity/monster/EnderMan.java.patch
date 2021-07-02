@@ -25,7 +25,7 @@
  
          if (flag && !flag1)
          {
-+            Object object = Reflector.call(Reflector.ForgeEventFactory_onEnderTeleport, this, p_32544_, p_32545_, p_32546_);
++            Object object = Reflector.call(Reflector.ForgeEventFactory_onEnderTeleport, this, p_32544_, pX, p_32546_);
 +
 +            if (object != null)
 +            {
@@ -35,11 +35,11 @@
 +                }
 +
 +                p_32544_ = Reflector.callDouble(object, Reflector.EnderTeleportEvent_getTargetX);
-+                p_32545_ = Reflector.callDouble(object, Reflector.EnderTeleportEvent_getTargetY);
++                pX = Reflector.callDouble(object, Reflector.EnderTeleportEvent_getTargetY);
 +                p_32546_ = Reflector.callDouble(object, Reflector.EnderTeleportEvent_getTargetZ);
 +            }
 +
-             boolean flag2 = this.randomTeleport(p_32544_, p_32545_, p_32546_, true);
+             boolean flag2 = this.randomTeleport(p_32544_, pX, p_32546_, true);
  
              if (flag2 && !this.isSilent())
 @@ -471,11 +491,18 @@

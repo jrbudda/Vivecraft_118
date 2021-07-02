@@ -46,9 +46,9 @@
 +            int i = this.getScreenWidth();
 +            int j = this.getScreenHeight();
  
-             if (p_85417_ != 0 && p_85418_ != 0)
+             if (pWindowPointer != 0 && p_85418_ != 0)
              {
-                 this.framebufferWidth = p_85417_;
+                 this.framebufferWidth = pWindowPointer;
                  this.framebufferHeight = p_85418_;
  
 -                if (this.getWidth() != i || this.getHeight() != j)
@@ -74,19 +74,19 @@
          }
      }
  
-     private void onResize(long p_85428_, int p_85429_, int p_85430_)
+     private void onResize(long p_85428_, int pWindowPointer, int p_85430_)
      {
--        this.width = p_85429_;
+-        this.width = pWindowPointer;
 -        this.height = p_85430_;
-+        if (p_85430_ * p_85429_ != 0)
++        if (p_85430_ * pWindowPointer != 0)
 +        {
-+            this.width = p_85429_;
++            this.width = pWindowPointer;
 +            this.height = p_85430_;
 +            this.eventHandler.resizeDisplay();
 +        }
      }
  
-     private void onFocus(long p_85393_, boolean p_85394_)
+     private void onFocus(long p_85393_, boolean pWindowPointer)
 @@ -580,13 +584,12 @@
      {
          int i;
@@ -96,7 +96,7 @@
          {
          }
  
-         if (p_85387_ && i % 2 != 0)
+         if (pGuiScale && i % 2 != 0)
          {
 -            ++i;
          }

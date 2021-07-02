@@ -82,9 +82,9 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         return ImmutableList.of(this.body, this.leftHand, this.rightHand,this.leftShoulder, this.rightShoulder, this.rightLeg, this.leftLeg, this.hat, this.leftPants, this.rightPants, this.leftSleeve, this.rightSleeve, this.jacket);
 	}
 
-	public void setupAnim(T p_103395_, float p_103396_, float p_103397_, float p_103398_, float p_103399_, float p_103400_)
+	public void setupAnim(T p_103395_, float pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw)
 	{
-		super.setupAnim(p_103395_, p_103396_, p_103397_, p_103398_, p_103399_, p_103400_);
+		super.setupAnim(p_103395_, pEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw);
 		this.rotInfo = PlayerModelController.getInstance().getRotationsForPlayer(((Player)p_103395_).getUUID());
 		PlayerModelController.RotInfo rotinfo = PlayerModelController.getInstance().getRotationsForPlayer(((Player)p_103395_).getUUID());
 
@@ -206,54 +206,54 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 		return p_102852_ == HumanoidArm.LEFT ? this.leftHand : this.rightHand;
 	}
 
-	public void translateToHand(HumanoidArm p_103392_, PoseStack p_103393_)
+	public void translateToHand(HumanoidArm p_103392_, PoseStack pSide)
 	{
 		ModelPart modelpart = this.getArm(p_103392_);
 
 		if (this.laying)
 		{
-			p_103393_.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
+			pSide.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
 		}
 
-		modelpart.translateAndRotate(p_103393_);
-		p_103393_.mulPose(Vector3f.XP.rotation((float)Math.sin((double)this.attackTime * Math.PI)));
-		p_103393_.translate(0.0D, -0.5D, 0.0D);
+		modelpart.translateAndRotate(pSide);
+		pSide.mulPose(Vector3f.XP.rotation((float)Math.sin((double)this.attackTime * Math.PI)));
+		pSide.translate(0.0D, -0.5D, 0.0D);
 	}
 
-//	public void renderToBuffer(PoseStack p_103111_, VertexConsumer p_103112_, int p_103113_, int p_103114_, float p_103115_, float p_103116_, float p_103117_, float p_103118_)
+//	public void renderToBuffer(PoseStack p_103111_, VertexConsumer pMatrixStack, int pBuffer, int pPackedLight, float pPackedOverlay, float pRed, float pGreen, float pBlue)
 //	{
-//		this.body.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
-//		this.jacket.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
-//		this.leftLeg.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
-//		this.rightLeg.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
-//		this.leftPants.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
-//		this.rightPants.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
+//		this.body.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//		this.jacket.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//		this.leftLeg.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//		this.rightLeg.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//		this.leftPants.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//		this.rightPants.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
 //		p_103111_.pushPose();
-//		this.head.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
-//		this.hat.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
-//		this.vrHMD.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
+//		this.head.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//		this.hat.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//		this.vrHMD.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
 //
 //		if (this.seated)
 //		{
-//			this.leftArm.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
-//			this.rightArm.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
+//			this.leftArm.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//			this.rightArm.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
 //		}
 //		else
 //		{
-//			this.leftShoulder.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
-//			this.rightShoulder.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
+//			this.leftShoulder.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//			this.rightShoulder.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
 //
 //			if (this.laying)
 //			{
 //				p_103111_.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
 //			}
 //
-//			this.rightHand.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
-//			this.leftHand.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
+//			this.rightHand.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//			this.leftHand.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
 //		}
 //
-//		this.leftSleeve.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
-//		this.rightSleeve.render(p_103111_, p_103112_, p_103113_, p_103114_, p_103115_, p_103116_, p_103117_, p_103118_);
+//		this.leftSleeve.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//		this.rightSleeve.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
 //		p_103111_.popPose();
 //	}
 }

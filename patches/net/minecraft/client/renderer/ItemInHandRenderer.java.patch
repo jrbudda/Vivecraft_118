@@ -82,9 +82,9 @@
      }
  
 +    
-     public void renderItem(LivingEntity p_109323_, ItemStack p_109324_, ItemTransforms.TransformType p_109325_, boolean p_109326_, PoseStack p_109327_, MultiBufferSource p_109328_, int p_109329_)
+     public void renderItem(LivingEntity p_109323_, ItemStack pLivingEntity, ItemTransforms.TransformType pItemStack, boolean pTransformType, PoseStack pLeftHand, MultiBufferSource pMatrixStack, int pBuffer)
      {
-         CustomItems.setRenderOffHand(p_109326_);
+         CustomItems.setRenderOffHand(pTransformType);
 @@ -257,6 +296,18 @@
          p_109347_.mulPose(Vector3f.ZP.rotationDegrees(f * f5 * -20.0F));
          AbstractClientPlayer abstractclientplayer = this.minecraft.player;
@@ -94,12 +94,12 @@
 +
 +        if (abstractclientplayer.swingingArm == InteractionHand.MAIN_HAND && flag)
 +        {
-+            this.transformFirstPersonVR(p_109347_, p_109352_, p_109351_);
++            this.transformFirstPersonVR(p_109347_, pSwingProgress, pEquippedProgress);
 +        }
 +
 +        if (abstractclientplayer.swingingArm == InteractionHand.OFF_HAND && !flag)
 +        {
-+            this.transformFirstPersonVR(p_109347_, p_109352_, p_109351_);
++            this.transformFirstPersonVR(p_109347_, pSwingProgress, pEquippedProgress);
 +        }
          p_109347_.translate((double)(f * -1.0F), (double)3.6F, 3.5D);
          p_109347_.mulPose(Vector3f.ZP.rotationDegrees(f * 120.0F));
@@ -108,18 +108,18 @@
  
          if (flag)
          {
--            playerrenderer.renderRightHand(p_109347_, p_109348_, p_109349_, abstractclientplayer);
-+            vrarmrenderer.renderRightHand(p_109347_, p_109348_, p_109349_, abstractclientplayer);
+-            playerrenderer.renderRightHand(p_109347_, pMatrixStack, pBuffer, abstractclientplayer);
++            vrarmrenderer.renderRightHand(p_109347_, pMatrixStack, pBuffer, abstractclientplayer);
          }
          else
          {
--            playerrenderer.renderLeftHand(p_109347_, p_109348_, p_109349_, abstractclientplayer);
-+            vrarmrenderer.renderLeftHand(p_109347_, p_109348_, p_109349_, abstractclientplayer);
+-            playerrenderer.renderLeftHand(p_109347_, pMatrixStack, pBuffer, abstractclientplayer);
++            vrarmrenderer.renderLeftHand(p_109347_, pMatrixStack, pBuffer, abstractclientplayer);
          }
 +       p_109347_.popPose();
      }
  
-     private void applyEatTransform(PoseStack p_109331_, float p_109332_, HumanoidArm p_109333_, ItemStack p_109334_)
+     private void applyEatTransform(PoseStack p_109331_, float pMatrixStack, HumanoidArm pPartialTicks, ItemStack pHand)
 @@ -304,6 +356,49 @@
          p_109336_.mulPose(Vector3f.YP.rotationDegrees((float)i * -45.0F));
      }
@@ -167,30 +167,30 @@
 +        }
 +    }
 +
-     private void applyItemArmTransform(PoseStack p_109383_, HumanoidArm p_109384_, float p_109385_)
+     private void applyItemArmTransform(PoseStack p_109383_, HumanoidArm pMatrixStack, float pHand)
      {
-         int i = p_109384_ == HumanoidArm.RIGHT ? 1 : -1;
+         int i = pMatrixStack == HumanoidArm.RIGHT ? 1 : -1;
 @@ -380,188 +475,481 @@
          return p_172913_.is(Items.CROSSBOW) && CrossbowItem.isCharged(p_172913_);
      }
  
--    private void renderArmWithItem(AbstractClientPlayer p_109372_, float p_109373_, float p_109374_, InteractionHand p_109375_, float p_109376_, ItemStack p_109377_, float p_109378_, PoseStack p_109379_, MultiBufferSource p_109380_, int p_109381_)
-+    void renderArmWithItem(AbstractClientPlayer p_109372_, float p_109373_, float p_109374_, InteractionHand p_109375_, float p_109376_, ItemStack p_109377_, float p_109378_, PoseStack p_109379_, MultiBufferSource p_109380_, int p_109381_)
+-    private void renderArmWithItem(AbstractClientPlayer p_109372_, float pPlayer, float pPartialTicks, InteractionHand pPitch, float pHand, ItemStack pSwingProgress, float pStack, PoseStack pEquippedProgress, MultiBufferSource pMatrixStack, int pBuffer)
++    void renderArmWithItem(AbstractClientPlayer p_109372_, float pPlayer, float pPartialTicks, InteractionHand pPitch, float pHand, ItemStack pSwingProgress, float pStack, PoseStack pEquippedProgress, MultiBufferSource pMatrixStack, int pBuffer)
      {
-         if (!Config.isShaders() || !Shaders.isSkipRenderHand(p_109375_))
+         if (!Config.isShaders() || !Shaders.isSkipRenderHand(pPitch))
          {
 -            if (!p_109372_.isScoping())
-+            boolean flag = p_109375_ == InteractionHand.MAIN_HAND;
++            boolean flag = pPitch == InteractionHand.MAIN_HAND;
 +            HumanoidArm humanoidarm = flag ? p_109372_.getMainArm() : p_109372_.getMainArm().getOpposite();
-+            p_109378_ = this.getEquipProgress(p_109375_, p_109373_);
-+            p_109379_.pushPose();
++            pStack = this.getEquipProgress(pPitch, pPlayer);
++            pEquippedProgress.pushPose();
 +            boolean flag1 = true;
 +
 +            if (this.minecraft.currentPass == RenderPass.THIRD && !this.minecraft.vrSettings.mixedRealityRenderHands)
              {
--                boolean flag = p_109375_ == InteractionHand.MAIN_HAND;
+-                boolean flag = pPitch == InteractionHand.MAIN_HAND;
 -                HumanoidArm humanoidarm = flag ? p_109372_.getMainArm() : p_109372_.getMainArm().getOpposite();
--                p_109379_.pushPose();
+-                pEquippedProgress.pushPose();
 +                flag1 = false;
 +            }
 +
@@ -199,34 +199,34 @@
 +                flag1 = false;
 +            }
  
--                if (p_109377_.isEmpty())
-+            if (BowTracker.isBow(p_109377_) && this.minecraft.bowTracker.isActive((LocalPlayer)p_109372_))
+-                if (pSwingProgress.isEmpty())
++            if (BowTracker.isBow(pSwingProgress) && this.minecraft.bowTracker.isActive((LocalPlayer)p_109372_))
 +            {
 +                flag1 = false;
 +            }
 +
-+            if (TelescopeTracker.isTelescope(p_109377_) && (p_109375_ == InteractionHand.OFF_HAND && this.minecraft.currentPass == RenderPass.SCOPEL || p_109375_ == InteractionHand.MAIN_HAND && this.minecraft.currentPass == RenderPass.SCOPER))
++            if (TelescopeTracker.isTelescope(pSwingProgress) && (pPitch == InteractionHand.OFF_HAND && this.minecraft.currentPass == RenderPass.SCOPEL || pPitch == InteractionHand.MAIN_HAND && this.minecraft.currentPass == RenderPass.SCOPER))
 +            {
 +                flag1 = false;
 +            }
 +
 +            if (flag1 && !p_109372_.isInvisible())
 +            {
-+                this.renderPlayerArm(p_109379_, p_109380_, p_109381_, p_109378_, p_109376_, humanoidarm);
++                this.renderPlayerArm(pEquippedProgress, pMatrixStack, pBuffer, pStack, pHand, humanoidarm);
 +            }
 +
-+            if (!p_109377_.isEmpty())
++            if (!pSwingProgress.isEmpty())
 +            {
-+                Item item = p_109377_.getItem();
++                Item item = pSwingProgress.getItem();
 +                boolean flag2 = false;
 +                VivecraftItemRendering vivecraftitemrendering = VivecraftItemRendering.Item;
 +
-+                if (p_109377_.getUseAnimation() != UseAnim.EAT && p_109377_.getUseAnimation() != UseAnim.DRINK)
++                if (pSwingProgress.getUseAnimation() != UseAnim.EAT && pSwingProgress.getUseAnimation() != UseAnim.DRINK)
                  {
 -                    if (flag && !p_109372_.isInvisible())
 +                    if (item instanceof BlockItem)
                      {
--                        this.renderPlayerArm(p_109379_, p_109380_, p_109381_, p_109378_, p_109376_, humanoidarm);
+-                        this.renderPlayerArm(pEquippedProgress, pMatrixStack, pBuffer, pStack, pHand, humanoidarm);
 +                        Block block = ((BlockItem)item).getBlock();
 +
 +                        if (block instanceof TorchBlock)
@@ -235,7 +235,7 @@
 +                        }
 +                        else
 +                        {
-+                            BakedModel bakedmodel = this.itemRenderer.getModel(p_109377_, this.minecraft.level, this.minecraft.player, 0);
++                            BakedModel bakedmodel = this.itemRenderer.getModel(pSwingProgress, this.minecraft.level, this.minecraft.player, 0);
 +
 +                            if (bakedmodel.isGui3d())
 +                            {
@@ -248,15 +248,15 @@
 +                        }
                      }
 -                }
--                else if (p_109377_.getItem() instanceof MapItem)
+-                else if (pSwingProgress.getItem() instanceof MapItem)
 -                {
 -                    if (flag && this.offHandItem.isEmpty())
 +                    else if (item instanceof MapItem)
                      {
--                        this.renderTwoHandedMap(p_109379_, p_109380_, p_109381_, p_109374_, p_109378_, p_109376_);
+-                        this.renderTwoHandedMap(pEquippedProgress, pMatrixStack, pBuffer, pPartialTicks, pStack, pHand);
 +                        vivecraftitemrendering = VivecraftItemRendering.Map;
 +                    }
-+                    else if (p_109377_.getUseAnimation() == UseAnim.BOW)
++                    else if (pSwingProgress.getUseAnimation() == UseAnim.BOW)
 +                    {
 +                        vivecraftitemrendering = VivecraftItemRendering.Bow_Seated;
 +
@@ -299,21 +299,21 @@
 +                                vivecraftitemrendering = VivecraftItemRendering.Tool_Rod;
 +                            }
 +                        }
-+                        else if (TelescopeTracker.isTelescope(p_109377_))
++                        else if (TelescopeTracker.isTelescope(pSwingProgress))
 +                        {
 +                            vivecraftitemrendering = VivecraftItemRendering.Telescope;
 +                        }
                      }
                      else
                      {
--                        this.renderOneHandedMap(p_109379_, p_109380_, p_109381_, p_109378_, humanoidarm, p_109376_, p_109377_);
+-                        this.renderOneHandedMap(pEquippedProgress, pMatrixStack, pBuffer, pStack, humanoidarm, pHand, pSwingProgress);
 +                        vivecraftitemrendering = VivecraftItemRendering.Compass;
                      }
                  }
--                else if (p_109377_.is(Items.CROSSBOW))
+-                else if (pSwingProgress.is(Items.CROSSBOW))
 +                else
                  {
--                    boolean flag2 = CrossbowItem.isCharged(p_109377_);
+-                    boolean flag2 = CrossbowItem.isCharged(pSwingProgress);
 -                    boolean flag3 = humanoidarm == HumanoidArm.RIGHT;
 -                    int l = flag3 ? 1 : -1;
 +                    vivecraftitemrendering = VivecraftItemRendering.Noms;
@@ -328,10 +328,10 @@
 +                Quaternion quaternion = Vector3f.YP.rotationDegrees(0.0F);
 +                Quaternion quaternion1 = Vector3f.YP.rotationDegrees(0.0F);
 +                quaternion.mul(Vector3f.XP.rotationDegrees((float)(-110.0D + d3)));
-+                p_109379_.pushPose();
++                pEquippedProgress.pushPose();
 +                boolean flag3 = false;
  
--                    if (p_109372_.isUsingItem() && p_109372_.getUseItemRemainingTicks() > 0 && p_109372_.getUsedItemHand() == p_109375_)
+-                    if (p_109372_.isUsingItem() && p_109372_.getUseItemRemainingTicks() > 0 && p_109372_.getUsedItemHand() == pPitch)
 +                if (vivecraftitemrendering == VivecraftItemRendering.Bow_Seated)
 +                {
 +                    d1 += -0.1D;
@@ -342,7 +342,7 @@
 +                else if (vivecraftitemrendering == VivecraftItemRendering.Bow_Roomscale)
 +                {
 +                    quaternion = Vector3f.XP.rotationDegrees(0.0F);
-+                    p_109379_.mulPose(Vector3f.XP.rotationDegrees((float)(-110.0D + d3)));
++                    pEquippedProgress.mulPose(Vector3f.XP.rotationDegrees((float)(-110.0D + d3)));
 +                    d1 -= 0.25D;
 +                    d2 += (double)0.025F + 0.03D * d3 / 40.0D;
 +                    d0 += -0.0225D;
@@ -356,13 +356,13 @@
 +
 +                    if (this.minecraft.vrSettings.vrReverseShootingEye)
                      {
--                        this.applyItemArmTransform(p_109379_, humanoidarm, p_109378_);
--                        p_109379_.translate((double)((float)l * -0.4785682F), (double) - 0.094387F, (double)0.05731531F);
--                        p_109379_.mulPose(Vector3f.XP.rotationDegrees(-11.935F));
--                        p_109379_.mulPose(Vector3f.YP.rotationDegrees((float)l * 65.3F));
--                        p_109379_.mulPose(Vector3f.ZP.rotationDegrees((float)l * -9.785F));
--                        float f10 = (float)p_109377_.getUseDuration() - ((float)this.minecraft.player.getUseItemRemainingTicks() - p_109373_ + 1.0F);
--                        float f14 = f10 / (float)CrossbowItem.getChargeDuration(p_109377_);
+-                        this.applyItemArmTransform(pEquippedProgress, humanoidarm, pStack);
+-                        pEquippedProgress.translate((double)((float)l * -0.4785682F), (double) - 0.094387F, (double)0.05731531F);
+-                        pEquippedProgress.mulPose(Vector3f.XP.rotationDegrees(-11.935F));
+-                        pEquippedProgress.mulPose(Vector3f.YP.rotationDegrees((float)l * 65.3F));
+-                        pEquippedProgress.mulPose(Vector3f.ZP.rotationDegrees((float)l * -9.785F));
+-                        float f10 = (float)pSwingProgress.getUseDuration() - ((float)this.minecraft.player.getUseItemRemainingTicks() - pPlayer + 1.0F);
+-                        float f14 = f10 / (float)CrossbowItem.getChargeDuration(pSwingProgress);
 +                        i = 1;
 +                    }
  
@@ -388,7 +388,7 @@
 -                            float f17 = Mth.sin((f10 - 0.1F) * 1.3F);
 -                            float f19 = f14 - 0.1F;
 -                            float f20 = f17 * f19;
--                            p_109379_.translate((double)(f20 * 0.0F), (double)(f20 * 0.004F), (double)(f20 * 0.0F));
+-                            pEquippedProgress.translate((double)(f20 * 0.0F), (double)(f20 * 0.004F), (double)(f20 * 0.0F));
 -                        }
 +                    if (d5 != 0.0D)
 +                    {
@@ -401,28 +401,28 @@
 +                    double d7 = vec35.dot(vec37.cross(vec34));
 +                    float f2;
  
--                        p_109379_.translate((double)(f14 * 0.0F), (double)(f14 * 0.0F), (double)(f14 * 0.04F));
--                        p_109379_.scale(1.0F, 1.0F, 1.0F + f14 * 0.2F);
--                        p_109379_.mulPose(Vector3f.YN.rotationDegrees((float)l * 45.0F));
+-                        pEquippedProgress.translate((double)(f14 * 0.0F), (double)(f14 * 0.0F), (double)(f14 * 0.04F));
+-                        pEquippedProgress.scale(1.0F, 1.0F, 1.0F + f14 * 0.2F);
+-                        pEquippedProgress.mulPose(Vector3f.YN.rotationDegrees((float)l * 45.0F));
 +                    if (d7 < 0.0D)
 +                    {
 +                        f2 = -((float)Math.acos(d6));
                      }
                      else
                      {
--                        float f9 = -0.4F * Mth.sin(Mth.sqrt(p_109376_) * (float)Math.PI);
--                        float f13 = 0.2F * Mth.sin(Mth.sqrt(p_109376_) * ((float)Math.PI * 2F));
--                        float f16 = -0.2F * Mth.sin(p_109376_ * (float)Math.PI);
--                        p_109379_.translate((double)((float)l * f9), (double)f13, (double)f16);
--                        this.applyItemArmTransform(p_109379_, humanoidarm, p_109378_);
--                        this.applyItemArmAttackTransform(p_109379_, humanoidarm, p_109376_);
+-                        float f9 = -0.4F * Mth.sin(Mth.sqrt(pHand) * (float)Math.PI);
+-                        float f13 = 0.2F * Mth.sin(Mth.sqrt(pHand) * ((float)Math.PI * 2F));
+-                        float f16 = -0.2F * Mth.sin(pHand * (float)Math.PI);
+-                        pEquippedProgress.translate((double)((float)l * f9), (double)f13, (double)f16);
+-                        this.applyItemArmTransform(pEquippedProgress, humanoidarm, pStack);
+-                        this.applyItemArmAttackTransform(pEquippedProgress, humanoidarm, pHand);
 +                        f2 = (float)Math.acos(d6);
 +                    }
  
--                        if (flag2 && p_109376_ < 0.001F && flag)
+-                        if (flag2 && pHand < 0.001F && flag)
 -                        {
--                            p_109379_.translate((double)((float)l * -0.641864F), 0.0D, 0.0D);
--                            p_109379_.mulPose(Vector3f.YP.rotationDegrees((float)l * 10.0F));
+-                            pEquippedProgress.translate((double)((float)l * -0.641864F), 0.0D, 0.0D);
+-                            pEquippedProgress.mulPose(Vector3f.YP.rotationDegrees((float)l * 10.0F));
 -                        }
 +                    float f3 = (float)((180D / Math.PI) * (double)f2);
 +
@@ -432,14 +432,14 @@
 +                        d0 += 0.003D * Math.sin((double)j);
                      }
  
--                    this.renderItem(p_109372_, p_109377_, flag3 ? ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND, !flag3, p_109379_, p_109380_, p_109381_);
-+                    p_109379_.translate(0.0D, 0.0D, 0.1D);
-+                    p_109379_.last().pose().multiply(this.minecraft.vrPlayer.vrdata_world_render.getController(1).getMatrix().transposed().toMCMatrix());
+-                    this.renderItem(p_109372_, pSwingProgress, flag3 ? ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND, !flag3, pEquippedProgress, pMatrixStack, pBuffer);
++                    pEquippedProgress.translate(0.0D, 0.0D, 0.1D);
++                    pEquippedProgress.last().pose().multiply(this.minecraft.vrPlayer.vrdata_world_render.getController(1).getMatrix().transposed().toMCMatrix());
 +                    quaternion.mul(Vector3f.YP.rotationDegrees(f1));
 +                    quaternion.mul(Vector3f.XP.rotationDegrees(-f));
 +                    quaternion.mul(Vector3f.ZP.rotationDegrees(-f3));
 +                    quaternion.mul(Vector3f.ZP.rotationDegrees(180.0F));
-+                    p_109379_.last().pose().multiply(quaternion);
++                    pEquippedProgress.last().pose().multiply(quaternion);
 +                    quaternion = Vector3f.YP.rotationDegrees(0.0F);
 +                    quaternion.mul(Vector3f.YP.rotationDegrees(180.0F));
 +                    quaternion.mul(Vector3f.XP.rotationDegrees(160.0F));
@@ -514,11 +514,11 @@
 +                            d0 += -0.015D;
 +                        }
  
--                    if (p_109372_.isUsingItem() && p_109372_.getUseItemRemainingTicks() > 0 && p_109372_.getUsedItemHand() == p_109375_)
+-                    if (p_109372_.isUsingItem() && p_109372_.getUseItemRemainingTicks() > 0 && p_109372_.getUsedItemHand() == pPitch)
 +                        d2 += (double) - 0.01F;
 +                        quaternion.mul(Vector3f.XP.rotationDegrees((float)(105.0D - d3)));
 +
-+                        if (p_109372_.isUsingItem() && p_109372_.getUseItemRemainingTicks() > 0 && p_109372_.getUsedItemHand() == p_109375_)
++                        if (p_109372_.isUsingItem() && p_109372_.getUseItemRemainingTicks() > 0 && p_109372_.getUsedItemHand() == pPitch)
 +                        {
 +                            quaternion.mul(Vector3f.ZP.rotationDegrees((float)(k * -5)));
 +                            d1 += (double) - 0.13F;
@@ -531,7 +531,7 @@
 +                            }
 +                            else
 +                            {
-+                                quaternion.mul(Vector3f.YP.rotationDegrees((1.0F - p_109378_) * (float)k * 90.0F));
++                                quaternion.mul(Vector3f.YP.rotationDegrees((1.0F - pStack) * (float)k * 90.0F));
 +                            }
 +                        }
 +
@@ -548,34 +548,34 @@
 +                        boolean flag5 = false;
 +                        int i1 = 0;
  
--                        switch (p_109377_.getUseAnimation())
-+                        if (p_109372_.isUsingItem() && p_109372_.getUseItemRemainingTicks() > 0 && p_109372_.getUsedItemHand() == p_109375_)
+-                        switch (pSwingProgress.getUseAnimation())
++                        if (p_109372_.isUsingItem() && p_109372_.getUseItemRemainingTicks() > 0 && p_109372_.getUsedItemHand() == pPitch)
                          {
 -                            case NONE:
--                                this.applyItemArmTransform(p_109379_, humanoidarm, p_109378_);
+-                                this.applyItemArmTransform(pEquippedProgress, humanoidarm, pStack);
 -                                break;
 -
 -                            case EAT:
 -                            case DRINK:
--                                this.applyEatTransform(p_109379_, p_109373_, humanoidarm, p_109377_);
--                                this.applyItemArmTransform(p_109379_, humanoidarm, p_109378_);
+-                                this.applyEatTransform(pEquippedProgress, pPlayer, humanoidarm, pSwingProgress);
+-                                this.applyItemArmTransform(pEquippedProgress, humanoidarm, pStack);
 -                                break;
 -
 -                            case BLOCK:
--                                this.applyItemArmTransform(p_109379_, humanoidarm, p_109378_);
+-                                this.applyItemArmTransform(pEquippedProgress, humanoidarm, pStack);
 -                                break;
 -
 -                            case BOW:
--                                this.applyItemArmTransform(p_109379_, humanoidarm, p_109378_);
--                                p_109379_.translate((double)((float)k * -0.2785682F), (double)0.18344387F, (double)0.15731531F);
--                                p_109379_.mulPose(Vector3f.XP.rotationDegrees(-13.935F));
--                                p_109379_.mulPose(Vector3f.YP.rotationDegrees((float)k * 35.3F));
--                                p_109379_.mulPose(Vector3f.ZP.rotationDegrees((float)k * -9.785F));
--                                float f7 = (float)p_109377_.getUseDuration() - ((float)this.minecraft.player.getUseItemRemainingTicks() - p_109373_ + 1.0F);
+-                                this.applyItemArmTransform(pEquippedProgress, humanoidarm, pStack);
+-                                pEquippedProgress.translate((double)((float)k * -0.2785682F), (double)0.18344387F, (double)0.15731531F);
+-                                pEquippedProgress.mulPose(Vector3f.XP.rotationDegrees(-13.935F));
+-                                pEquippedProgress.mulPose(Vector3f.YP.rotationDegrees((float)k * 35.3F));
+-                                pEquippedProgress.mulPose(Vector3f.ZP.rotationDegrees((float)k * -9.785F));
+-                                float f7 = (float)pSwingProgress.getUseDuration() - ((float)this.minecraft.player.getUseItemRemainingTicks() - pPlayer + 1.0F);
 -                                float f8 = f7 / 20.0F;
 -                                f8 = (f8 * f8 + f8 * 2.0F) / 3.0F;
 +                            flag5 = true;
-+                            i1 = EnchantmentHelper.getRiptide(p_109377_);
++                            i1 = EnchantmentHelper.getRiptide(pSwingProgress);
  
 -                                if (f8 > 1.0F)
 -                                {
@@ -583,7 +583,7 @@
 -                                }
 +                            if (i1 <= 0 || i1 > 0 && p_109372_.isInWaterOrRain())
 +                            {
-+                                f4 = (float)p_109377_.getUseDuration() - ((float)this.minecraft.player.getUseItemRemainingTicks() - p_109373_ + 1.0F);
++                                f4 = (float)pSwingProgress.getUseDuration() - ((float)this.minecraft.player.getUseItemRemainingTicks() - pPlayer + 1.0F);
  
 -                                if (f8 > 0.1F)
 +                                if (f4 > 10.0F)
@@ -591,26 +591,26 @@
 -                                    float f12 = Mth.sin((f7 - 0.1F) * 1.3F);
 -                                    float f15 = f8 - 0.1F;
 -                                    float f18 = f12 * f15;
--                                    p_109379_.translate((double)(f18 * 0.0F), (double)(f18 * 0.004F), (double)(f18 * 0.0F));
+-                                    pEquippedProgress.translate((double)(f18 * 0.0F), (double)(f18 * 0.004F), (double)(f18 * 0.0F));
 -                                }
 +                                    f4 = 10.0F;
  
--                                p_109379_.translate((double)(f8 * 0.0F), (double)(f8 * 0.0F), (double)(f8 * 0.04F));
--                                p_109379_.scale(1.0F, 1.0F, 1.0F + f8 * 0.2F);
--                                p_109379_.mulPose(Vector3f.YN.rotationDegrees((float)k * 45.0F));
+-                                pEquippedProgress.translate((double)(f8 * 0.0F), (double)(f8 * 0.0F), (double)(f8 * 0.04F));
+-                                pEquippedProgress.scale(1.0F, 1.0F, 1.0F + f8 * 0.2F);
+-                                pEquippedProgress.mulPose(Vector3f.YN.rotationDegrees((float)k * 45.0F));
 -                                break;
 -
 -                            case SPEAR:
--                                this.applyItemArmTransform(p_109379_, humanoidarm, p_109378_);
--                                p_109379_.translate((double)((float)k * -0.5F), (double)0.7F, (double)0.1F);
--                                p_109379_.mulPose(Vector3f.XP.rotationDegrees(-55.0F));
--                                p_109379_.mulPose(Vector3f.YP.rotationDegrees((float)k * 35.3F));
--                                p_109379_.mulPose(Vector3f.ZP.rotationDegrees((float)k * -9.785F));
--                                float f11 = (float)p_109377_.getUseDuration() - ((float)this.minecraft.player.getUseItemRemainingTicks() - p_109373_ + 1.0F);
+-                                this.applyItemArmTransform(pEquippedProgress, humanoidarm, pStack);
+-                                pEquippedProgress.translate((double)((float)k * -0.5F), (double)0.7F, (double)0.1F);
+-                                pEquippedProgress.mulPose(Vector3f.XP.rotationDegrees(-55.0F));
+-                                pEquippedProgress.mulPose(Vector3f.YP.rotationDegrees((float)k * 35.3F));
+-                                pEquippedProgress.mulPose(Vector3f.ZP.rotationDegrees((float)k * -9.785F));
+-                                float f11 = (float)pSwingProgress.getUseDuration() - ((float)this.minecraft.player.getUseItemRemainingTicks() - pPlayer + 1.0F);
 -                                float f2 = f11 / 10.0F;
 +                                    if (i1 > 0 && p_109372_.isInWaterOrRain())
 +                                    {
-+                                        p_109379_.mulPose(Vector3f.ZP.rotationDegrees((float)(-this.minecraft.tickCounter * 10 * i1 % 360) - p_109373_ * 10.0F * (float)i1));
++                                        pEquippedProgress.mulPose(Vector3f.ZP.rotationDegrees((float)(-this.minecraft.tickCounter * 10 * i1 % 360) - pPlayer * 10.0F * (float)i1));
 +                                    }
 +
 +                                    if (this.minecraft.frameIndex % 4L == 0L)
@@ -631,7 +631,7 @@
 +                        {
 +                            i1 = 5;
 +                            d2 += (double) - 0.15F;
-+                            p_109379_.mulPose(Vector3f.ZP.rotationDegrees((float)(-this.minecraft.tickCounter * 10 * i1 % 360) - p_109373_ * 10.0F * (float)i1));
++                            pEquippedProgress.mulPose(Vector3f.ZP.rotationDegrees((float)(-this.minecraft.tickCounter * 10 * i1 % 360) - pPlayer * 10.0F * (float)i1));
 +                            flag5 = true;
 +                        }
 +
@@ -656,7 +656,7 @@
 +                        }
 +                        else if (vivecraftitemrendering == VivecraftItemRendering.Tool)
 +                        {
-+                            boolean flag4 = this.minecraft.climbTracker.isClaws(p_109377_) && this.minecraft.climbTracker.isClimbeyClimb();
++                            boolean flag4 = this.minecraft.climbTracker.isClaws(pSwingProgress) && this.minecraft.climbTracker.isClimbeyClimb();
 +
 +                            if (flag4)
 +                            {
@@ -672,14 +672,14 @@
 -                                    float f3 = Mth.sin((f11 - 0.1F) * 1.3F);
 -                                    float f4 = f2 - 0.1F;
 -                                    float f5 = f3 * f4;
--                                    p_109379_.translate((double)(f5 * 0.0F), (double)(f5 * 0.004F), (double)(f5 * 0.0F));
+-                                    pEquippedProgress.translate((double)(f5 * 0.0F), (double)(f5 * 0.004F), (double)(f5 * 0.0F));
 +                                    d2 += (double) - 0.2F;
                                  }
 +                            }
  
--                                p_109379_.translate(0.0D, 0.0D, (double)(f2 * 0.2F));
--                                p_109379_.scale(1.0F, 1.0F, 1.0F + f2 * 0.2F);
--                                p_109379_.mulPose(Vector3f.YN.rotationDegrees((float)k * 45.0F));
+-                                pEquippedProgress.translate(0.0D, 0.0D, (double)(f2 * 0.2F));
+-                                pEquippedProgress.scale(1.0F, 1.0F, 1.0F + f2 * 0.2F);
+-                                pEquippedProgress.mulPose(Vector3f.YN.rotationDegrees((float)k * 45.0F));
 +                            if (item instanceof ArrowItem)
 +                            {
 +                                quaternion1 = Vector3f.ZP.rotationDegrees(-180.0F);
@@ -697,11 +697,11 @@
                      }
 -                    else if (p_109372_.isAutoSpinAttack())
 -                    {
--                        this.applyItemArmTransform(p_109379_, humanoidarm, p_109378_);
+-                        this.applyItemArmTransform(pEquippedProgress, humanoidarm, pStack);
 -                        int i = flag1 ? 1 : -1;
--                        p_109379_.translate((double)((float)i * -0.4F), (double)0.8F, (double)0.3F);
--                        p_109379_.mulPose(Vector3f.YP.rotationDegrees((float)i * 65.0F));
--                        p_109379_.mulPose(Vector3f.ZP.rotationDegrees((float)i * -85.0F));
+-                        pEquippedProgress.translate((double)((float)i * -0.4F), (double)0.8F, (double)0.3F);
+-                        pEquippedProgress.mulPose(Vector3f.YP.rotationDegrees((float)i * 65.0F));
+-                        pEquippedProgress.mulPose(Vector3f.ZP.rotationDegrees((float)i * -85.0F));
 -                    }
 -                    else
 +                }
@@ -714,72 +714,72 @@
 +                    d2 += (double) - 0.08F;
 +                }
 +
-+                if (p_109372_.swingingArm == p_109375_)
++                if (p_109372_.swingingArm == pPitch)
 +                {
-+                    this.transformFirstPersonVR(p_109379_, humanoidarm, p_109376_);
++                    this.transformFirstPersonVR(pEquippedProgress, humanoidarm, pHand);
 +                }
 +
 +                ItemRenderer itemrenderer = this.itemRenderer;
 +                ItemRenderer.isfphand = true;
 +                ItemTransforms.TransformType itemtransforms$transformtype = flag ? ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : (flag3 ? ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND : ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND);
 +
-+                if (p_109377_.hasTag() && p_109377_.getTag().getInt("CustomModelData") > 0)
++                if (pSwingProgress.hasTag() && pSwingProgress.getTag().getInt("CustomModelData") > 0)
 +                {
 +                    itemtransforms$transformtype = ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND;
-+                    p_109379_.scale(0.7F, 0.7F, 0.7F);
++                    pEquippedProgress.scale(0.7F, 0.7F, 0.7F);
 +                }
 +                else
 +                {
-+                    p_109379_.mulPose(quaternion1);
-+                    p_109379_.translate(d0, d1, d2);
-+                    p_109379_.mulPose(quaternion);
-+                    p_109379_.scale((float)d8, (float)d8, (float)d8);
++                    pEquippedProgress.mulPose(quaternion1);
++                    pEquippedProgress.translate(d0, d1, d2);
++                    pEquippedProgress.mulPose(quaternion);
++                    pEquippedProgress.scale((float)d8, (float)d8, (float)d8);
 +                }
 +
 +                if (flag2)
 +                {
 +                    RenderSystem.disableCull();
-+                    this.renderMap(p_109379_, p_109380_, p_109381_, p_109377_);
++                    this.renderMap(pEquippedProgress, pMatrixStack, pBuffer, pSwingProgress);
 +                }
 +                else if (vivecraftitemrendering == VivecraftItemRendering.Telescope)
 +                {
 +                    if (this.minecraft.currentPass != RenderPass.SCOPEL && this.minecraft.currentPass != RenderPass.SCOPER)
                      {
--                        float f6 = -0.4F * Mth.sin(Mth.sqrt(p_109376_) * (float)Math.PI);
--                        float f = 0.2F * Mth.sin(Mth.sqrt(p_109376_) * ((float)Math.PI * 2F));
--                        float f1 = -0.2F * Mth.sin(p_109376_ * (float)Math.PI);
+-                        float f6 = -0.4F * Mth.sin(Mth.sqrt(pHand) * (float)Math.PI);
+-                        float f = 0.2F * Mth.sin(Mth.sqrt(pHand) * ((float)Math.PI * 2F));
+-                        float f1 = -0.2F * Mth.sin(pHand * (float)Math.PI);
 -                        int j = flag1 ? 1 : -1;
--                        p_109379_.translate((double)((float)j * f6), (double)f, (double)f1);
--                        this.applyItemArmTransform(p_109379_, humanoidarm, p_109378_);
--                        this.applyItemArmAttackTransform(p_109379_, humanoidarm, p_109376_);
-+                        p_109379_.pushPose();
-+                        p_109379_.translate((double) - 0.1325F, 0.25D, (double)0.08F);
-+                        p_109379_.mulPose(Vector3f.XP.rotationDegrees(180.0F));
-+                        p_109379_.scale(0.25F, 1.5F, 0.25F);
-+                        this.minecraft.getBlockRenderer().getModelRenderer().renderModel(p_109379_.last(), p_109380_.getBuffer(Sheets.solidBlockSheet()), (BlockState)null, this.minecraft.getModelManager().getModel(TelescopeTracker.scopeModel), 0.5F, 0.5F, 1.0F, p_109381_, OverlayTexture.NO_OVERLAY);
-+                        p_109379_.popPose();
+-                        pEquippedProgress.translate((double)((float)j * f6), (double)f, (double)f1);
+-                        this.applyItemArmTransform(pEquippedProgress, humanoidarm, pStack);
+-                        this.applyItemArmAttackTransform(pEquippedProgress, humanoidarm, pHand);
++                        pEquippedProgress.pushPose();
++                        pEquippedProgress.translate((double) - 0.1325F, 0.25D, (double)0.08F);
++                        pEquippedProgress.mulPose(Vector3f.XP.rotationDegrees(180.0F));
++                        pEquippedProgress.scale(0.25F, 1.5F, 0.25F);
++                        this.minecraft.getBlockRenderer().getModelRenderer().renderModel(pEquippedProgress.last(), pMatrixStack.getBuffer(Sheets.solidBlockSheet()), (BlockState)null, this.minecraft.getModelManager().getModel(TelescopeTracker.scopeModel), 0.5F, 0.5F, 1.0F, pBuffer, OverlayTexture.NO_OVERLAY);
++                        pEquippedProgress.popPose();
                      }
  
--                    this.renderItem(p_109372_, p_109377_, flag1 ? ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND, !flag1, p_109379_, p_109380_, p_109381_);
-+                    p_109379_.pushPose();
-+                    p_109379_.translate(0.0D, (double)0.2501F, (double) - 0.053F);
-+                    p_109379_.mulPose(Vector3f.XP.rotationDegrees(90.0F));
-+                    p_109379_.mulPose(Vector3f.YP.rotationDegrees(180.0F));
-+                    p_109379_.mulPose(Vector3f.ZP.rotationDegrees(180.0F));
-+                    this.minecraft.gameRenderer.DrawScopeFB(p_109379_, p_109375_ == InteractionHand.MAIN_HAND ? 0 : 1);
-+                    p_109379_.popPose();
+-                    this.renderItem(p_109372_, pSwingProgress, flag1 ? ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND, !flag1, pEquippedProgress, pMatrixStack, pBuffer);
++                    pEquippedProgress.pushPose();
++                    pEquippedProgress.translate(0.0D, (double)0.2501F, (double) - 0.053F);
++                    pEquippedProgress.mulPose(Vector3f.XP.rotationDegrees(90.0F));
++                    pEquippedProgress.mulPose(Vector3f.YP.rotationDegrees(180.0F));
++                    pEquippedProgress.mulPose(Vector3f.ZP.rotationDegrees(180.0F));
++                    this.minecraft.gameRenderer.DrawScopeFB(pEquippedProgress, pPitch == InteractionHand.MAIN_HAND ? 0 : 1);
++                    pEquippedProgress.popPose();
 +                }
 +                else
 +                {
-+                    this.renderItem(p_109372_, p_109377_, itemtransforms$transformtype, flag3, p_109379_, p_109380_, p_109381_);
++                    this.renderItem(p_109372_, pSwingProgress, itemtransforms$transformtype, flag3, pEquippedProgress, pMatrixStack, pBuffer);
                  }
  
 +                itemrenderer = this.itemRenderer;
 +                ItemRenderer.isfphand = false;
-                 p_109379_.popPose();
+                 pEquippedProgress.popPose();
              }
 +
-+            p_109379_.popPose();
++            pEquippedProgress.popPose();
          }
      }
  

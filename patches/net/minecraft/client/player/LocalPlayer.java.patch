@@ -200,7 +200,7 @@
 +        }
 +    }
 +
-     public boolean hurt(DamageSource p_108662_, float p_108663_)
+     public boolean hurt(DamageSource p_108662_, float pSource)
      {
          return false;
 @@ -167,6 +300,8 @@
@@ -296,14 +296,14 @@
      }
 @@ -554,7 +730,23 @@
  
-     public void playSound(SoundEvent p_108651_, float p_108652_, float p_108653_)
+     public void playSound(SoundEvent p_108651_, float pSound, float pVolume)
      {
--        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), p_108651_, this.getSoundSource(), p_108652_, p_108653_, false);
+-        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), p_108651_, this.getSoundSource(), pSound, pVolume, false);
 +        SoundSource soundsource = this.getSoundSource();
 +
 +        if (Reflector.ForgeEventFactory_onPlaySoundAtEntity.exists())
 +        {
-+            Object object = Reflector.ForgeEventFactory_onPlaySoundAtEntity.call(this, p_108651_, this.getSoundSource(), p_108652_, p_108653_);
++            Object object = Reflector.ForgeEventFactory_onPlaySoundAtEntity.call(this, p_108651_, this.getSoundSource(), pSound, pVolume);
 +
 +            if (Reflector.callBoolean(object, Reflector.Event_isCanceled) || Reflector.call(object, Reflector.PlaySoundAtEntityEvent_getSound) == null)
 +            {
@@ -312,10 +312,10 @@
 +
 +            p_108651_ = (SoundEvent)Reflector.call(object, Reflector.PlaySoundAtEntityEvent_getSound);
 +            soundsource = (SoundSource)Reflector.call(object, Reflector.PlaySoundAtEntityEvent_getCategory);
-+            p_108652_ = Reflector.callFloat(object, Reflector.PlaySoundAtEntityEvent_getVolume);
++            pSound = Reflector.callFloat(object, Reflector.PlaySoundAtEntityEvent_getVolume);
 +        }
 +
-+        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), p_108651_, soundsource, p_108652_, p_108653_, false);
++        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), p_108651_, soundsource, pSound, pVolume, false);
      }
  
      public void playNotifySound(SoundEvent p_108655_, SoundSource p_108656_, float p_108657_, float p_108658_)
@@ -389,15 +389,15 @@
          {
 @@ -1044,10 +1245,67 @@
  
-     public void move(MoverType p_108670_, Vec3 p_108671_)
+     public void move(MoverType p_108670_, Vec3 pType)
      {
 -        double d0 = this.getX();
 -        double d1 = this.getZ();
--        super.move(p_108670_, p_108671_);
+-        super.move(p_108670_, pType);
 -        this.updateAutoJump((float)(this.getX() - d0), (float)(this.getZ() - d1));
 +        this.moveMulIn = this.stuckSpeedMultiplier;
 +
-+        if (p_108671_.length() != 0.0D && !this.isPassenger())
++        if (pType.length() != 0.0D && !this.isPassenger())
 +        {
 +            boolean flag = VRPlayer.get().getFreeMove();
 +            boolean flag1 = flag || Minecraft.getInstance().vrSettings.simulateFalling && !this.onClimbable() && !this.isShiftKeyDown();
@@ -415,7 +415,7 @@
 +                double d1 = vec3.z - this.getZ();
 +                double d2 = this.getX();
 +                double d3 = this.getZ();
-+                super.move(p_108670_, p_108671_);
++                super.move(p_108670_, pType);
 +
 +                if (this.minecraft.vrSettings.walkUpBlocks)
 +                {
@@ -432,7 +432,7 @@
 +            }
 +            else if (flag1)
 +            {
-+                super.move(p_108670_, new Vec3(0.0D, p_108671_.y, 0.0D));
++                super.move(p_108670_, new Vec3(0.0D, pType.y, 0.0D));
 +                VRPlayer.get().setRoomOrigin(VRPlayer.get().roomOrigin.x, this.getY() + this.getRoomYOffsetFromPose(), VRPlayer.get().roomOrigin.z, false);
 +            }
 +            else
@@ -442,7 +442,7 @@
 +        }
 +        else
 +        {
-+            super.move(p_108670_, p_108671_);
++            super.move(p_108670_, pType);
 +        }
 +    }
 +
@@ -460,7 +460,7 @@
  
      public boolean isAutoJumpEnabled()
 @@ -1064,14 +1322,18 @@
-             Vec3 vec32 = new Vec3((double)p_108744_, 0.0D, (double)p_108745_);
+             Vec3 vec32 = new Vec3((double)p_108744_, 0.0D, (double)pMovementX);
              float f = this.getSpeed();
              float f1 = (float)vec32.lengthSqr();
 -
@@ -550,9 +550,9 @@
          this.minecraft.getTutorial().onInventoryAction(p_172532_, p_172533_, p_172534_);
      }
 +
-+    public void moveTo(double p_20108_, double p_20109_, double p_20110_, float p_20111_, float p_20112_)
++    public void moveTo(double p_20108_, double pX, double p_20110_, float pY, float p_20112_)
 +    {
-+        super.moveTo(p_20108_, p_20109_, p_20110_, p_20111_, p_20112_);
++        super.moveTo(p_20108_, pX, p_20110_, pY, p_20112_);
 +
 +        if (this.initFromServer)
 +        {
@@ -560,24 +560,24 @@
 +        }
 +    }
 +
-+    public void absMoveTo(double p_19891_, double p_19892_, double p_19893_, float p_19894_, float p_19895_)
++    public void absMoveTo(double p_19891_, double pX, double p_19893_, float pY, float p_19895_)
 +    {
-+        super.absMoveTo(p_19891_, p_19892_, p_19893_, p_19894_, p_19895_);
++        super.absMoveTo(p_19891_, pX, p_19893_, pY, p_19895_);
 +        this.minecraft.vrPlayer.snapRoomOriginToPlayerEntity(this, false, false);
 +
 +        if (!this.initFromServer)
 +        {
-+            this.moveTo(p_19891_, p_19892_, p_19893_, p_19894_, p_19895_);
++            this.moveTo(p_19891_, pX, p_19893_, pY, p_19895_);
 +            this.initFromServer = true;
 +        }
 +    }
 +
-+    public void setPos(double p_20210_, double p_20211_, double p_20212_)
++    public void setPos(double p_20210_, double pX, double p_20212_)
 +    {
 +        double d0 = this.getX();
 +        double d1 = this.getY();
 +        double d2 = this.getZ();
-+        super.setPos(p_20210_, p_20211_, p_20212_);
++        super.setPos(p_20210_, pX, p_20212_);
 +        double d3 = this.getX();
 +        double d4 = this.getY();
 +        double d5 = this.getZ();
@@ -588,14 +588,14 @@
 +            Vec3 vec3 = this.minecraft.vehicleTracker.Premount_Pos_Room;
 +            vec3 = vec3.yRot(this.minecraft.vrPlayer.vrdata_world_pre.rotation_radians);
 +            p_20210_ = p_20210_ - vec3.x;
-+            p_20211_ = this.minecraft.vehicleTracker.getVehicleFloor(entity, p_20211_);
++            pX = this.minecraft.vehicleTracker.getVehicleFloor(entity, pX);
 +            p_20212_ = p_20212_ - vec3.z;
-+            this.minecraft.vrPlayer.setRoomOrigin(p_20210_, p_20211_, p_20212_, p_20210_ + p_20211_ + p_20212_ == 0.0D);
++            this.minecraft.vrPlayer.setRoomOrigin(p_20210_, pX, p_20212_, p_20210_ + pX + p_20212_ == 0.0D);
 +        }
 +        else
 +        {
 +            Vec3 vec31 = Minecraft.getInstance().vrPlayer.roomOrigin;
-+            VRPlayer.get().setRoomOrigin(vec31.x + (d3 - d0), vec31.y + (d4 - d1), vec31.z + (d5 - d2), p_20210_ + p_20211_ + p_20212_ == 0.0D);
++            VRPlayer.get().setRoomOrigin(vec31.x + (d3 - d0), vec31.y + (d4 - d1), vec31.z + (d5 - d2), p_20210_ + pX + p_20212_ == 0.0D);
 +        }
 +    }
 +
@@ -629,11 +629,11 @@
 +        return orig >= -1.0E-6D && orig <= 1.0E-6D ? 1.0E-6D : orig;
 +    }
 +
-+    public void moveRelative(float p_19921_, Vec3 p_19922_)
++    public void moveRelative(float p_19921_, Vec3 pAmount)
 +    {
-+        double d0 = p_19922_.y;
-+        double d1 = p_19922_.x;
-+        double d2 = p_19922_.z;
++        double d0 = pAmount.y;
++        double d1 = pAmount.x;
++        double d2 = pAmount.z;
 +        VRPlayer vrplayer = this.minecraft.vrPlayer;
 +
 +        if (vrplayer.getFreeMove())
@@ -785,7 +785,7 @@
 +        return this == Minecraft.getInstance().player;
 +    }
 +
-+    protected void triggerItemUseEffects(ItemStack p_21138_, int p_21139_)
++    protected void triggerItemUseEffects(ItemStack p_21138_, int pStack)
 +    {
 +        if (!p_21138_.isEmpty() && this.isUsingItem())
 +        {
@@ -796,7 +796,7 @@
 +
 +            if (p_21138_.getUseAnimation() == UseAnim.EAT)
 +            {
-+                this.addItemParticles(p_21138_, p_21139_);
++                this.addItemParticles(p_21138_, pStack);
 +                this.playSound(this.getEatingSound(p_21138_), 0.5F + 0.5F * (float)this.random.nextInt(2), (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
 +            }
 +        }

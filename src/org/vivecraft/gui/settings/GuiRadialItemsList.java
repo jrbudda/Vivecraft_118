@@ -61,9 +61,9 @@ public class GuiRadialItemsList extends ObjectSelectionList
             this.labelWidth = GuiRadialItemsList.this.mc.font.width(this.labelText);
         }
 
-        public void render(PoseStack p_93523_, int p_93524_, int p_93525_, int p_93526_, int p_93527_, int p_93528_, int p_93529_, int p_93530_, boolean p_93531_, float p_93532_)
+        public void render(PoseStack p_93523_, int pMatrixStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, boolean pMouseY, float pIsMouseOver)
         {
-            GuiRadialItemsList.this.mc.font.draw(p_93523_, this.labelText, (float)(GuiRadialItemsList.this.mc.screen.width / 2 - this.labelWidth / 2), (float)(p_93525_ + p_93528_ - 9 - 1), 6777215);
+            GuiRadialItemsList.this.mc.font.draw(p_93523_, this.labelText, (float)(GuiRadialItemsList.this.mc.screen.width / 2 - this.labelWidth / 2), (float)(pIndex + pWidth - 9 - 1), 6777215);
         }
 
 		@Override
@@ -84,19 +84,19 @@ public class GuiRadialItemsList extends ObjectSelectionList
             this.parentScreen = parent;
         }
 
-        public void render(PoseStack p_93523_, int p_93524_, int p_93525_, int p_93526_, int p_93527_, int p_93528_, int p_93529_, int p_93530_, boolean p_93531_, float p_93532_)
+        public void render(PoseStack p_93523_, int pMatrixStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, boolean pMouseY, float pIsMouseOver)
         {
             ChatFormatting chatformatting = ChatFormatting.WHITE;
 
-            if (p_93531_)
+            if (pMouseY)
             {
                 chatformatting = ChatFormatting.GREEN;
             }
 
-            GuiRadialItemsList.this.mc.font.draw(p_93523_, chatformatting + I18n.m_118938_(this.myKey.getName()), (float)(GuiRadialItemsList.this.mc.screen.width / 2 - GuiRadialItemsList.this.maxListLabelWidth / 2), (float)(p_93525_ + p_93528_ / 2 - 9 / 2), 16777215);
+            GuiRadialItemsList.this.mc.font.draw(p_93523_, chatformatting + I18n.m_118938_(this.myKey.getName()), (float)(GuiRadialItemsList.this.mc.screen.width / 2 - GuiRadialItemsList.this.maxListLabelWidth / 2), (float)(pIndex + pWidth / 2 - 9 / 2), 16777215);
         }
 
-        public boolean mouseClicked(double p_94737_, double p_94738_, int p_94739_)
+        public boolean mouseClicked(double p_94737_, double pMouseX, int p_94739_)
         {
             this.parentScreen.setKey(this.myKey);
             return true;

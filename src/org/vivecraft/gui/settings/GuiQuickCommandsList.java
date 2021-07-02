@@ -45,73 +45,73 @@ public class GuiQuickCommandsList extends ObjectSelectionList<GuiQuickCommandsLi
             });
         }
 
-        public boolean mouseClicked(double p_94737_, double p_94738_, int p_94739_)
+        public boolean mouseClicked(double p_94737_, double pMouseX, int p_94739_)
         {
-            if (this.btnDelete.mouseClicked(p_94737_, p_94738_, p_94739_))
+            if (this.btnDelete.mouseClicked(p_94737_, pMouseX, p_94739_))
             {
                 return true;
             }
             else
             {
-                return this.txt.mouseClicked(p_94737_, p_94738_, p_94739_) ? true : super.mouseClicked(p_94737_, p_94738_, p_94739_);
+                return this.txt.mouseClicked(p_94737_, pMouseX, p_94739_) ? true : super.mouseClicked(p_94737_, pMouseX, p_94739_);
             }
         }
 
-        public boolean mouseDragged(double p_94740_, double p_94741_, int p_94742_, double p_94743_, double p_94744_)
+        public boolean mouseDragged(double p_94740_, double pMouseX, int p_94742_, double pMouseY, double p_94744_)
         {
-            if (this.btnDelete.mouseDragged(p_94740_, p_94741_, p_94742_, p_94743_, p_94744_))
+            if (this.btnDelete.mouseDragged(p_94740_, pMouseX, p_94742_, pMouseY, p_94744_))
             {
                 return true;
             }
             else
             {
-                return this.txt.mouseDragged(p_94740_, p_94741_, p_94742_, p_94743_, p_94744_) ? true : super.mouseDragged(p_94740_, p_94741_, p_94742_, p_94743_, p_94744_);
+                return this.txt.mouseDragged(p_94740_, pMouseX, p_94742_, pMouseY, p_94744_) ? true : super.mouseDragged(p_94740_, pMouseX, p_94742_, pMouseY, p_94744_);
             }
         }
 
-        public boolean mouseReleased(double p_94753_, double p_94754_, int p_94755_)
+        public boolean mouseReleased(double p_94753_, double pMouseX, int p_94755_)
         {
-            if (this.btnDelete.mouseReleased(p_94753_, p_94754_, p_94755_))
+            if (this.btnDelete.mouseReleased(p_94753_, pMouseX, p_94755_))
             {
                 return true;
             }
             else
             {
-                return this.txt.mouseReleased(p_94753_, p_94754_, p_94755_) ? true : super.mouseReleased(p_94753_, p_94754_, p_94755_);
+                return this.txt.mouseReleased(p_94753_, pMouseX, p_94755_) ? true : super.mouseReleased(p_94753_, pMouseX, p_94755_);
             }
         }
 
-        public boolean mouseScrolled(double p_94734_, double p_94735_, double p_94736_)
+        public boolean mouseScrolled(double p_94734_, double pMouseX, double p_94736_)
         {
-            if (this.btnDelete.mouseScrolled(p_94734_, p_94735_, p_94736_))
+            if (this.btnDelete.mouseScrolled(p_94734_, pMouseX, p_94736_))
             {
                 return true;
             }
             else
             {
-                return this.txt.mouseScrolled(p_94734_, p_94735_, p_94736_) ? true : super.mouseScrolled(p_94734_, p_94735_, p_94736_);
+                return this.txt.mouseScrolled(p_94734_, pMouseX, p_94736_) ? true : super.mouseScrolled(p_94734_, pMouseX, p_94736_);
             }
         }
 
-        public boolean charTyped(char p_94732_, int p_94733_)
+        public boolean charTyped(char p_94732_, int pCodePoint)
         {
-            return this.txt.isFocused() ? this.txt.charTyped(p_94732_, p_94733_) : super.charTyped(p_94732_, p_94733_);
+            return this.txt.isFocused() ? this.txt.charTyped(p_94732_, pCodePoint) : super.charTyped(p_94732_, pCodePoint);
         }
 
-        public boolean keyPressed(int p_94745_, int p_94746_, int p_94747_)
+        public boolean keyPressed(int p_94745_, int pKeyCode, int pScanCode)
         {
-            return this.txt.isFocused() ? this.txt.keyPressed(p_94745_, p_94746_, p_94747_) : super.keyPressed(p_94745_, p_94746_, p_94747_);
+            return this.txt.isFocused() ? this.txt.keyPressed(p_94745_, pKeyCode, pScanCode) : super.keyPressed(p_94745_, pKeyCode, pScanCode);
         }
 
-        public void render(PoseStack p_93523_, int p_93524_, int p_93525_, int p_93526_, int p_93527_, int p_93528_, int p_93529_, int p_93530_, boolean p_93531_, float p_93532_)
+        public void render(PoseStack p_93523_, int pMatrixStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, boolean pMouseY, float pIsMouseOver)
         {
-            this.txt.x = p_93526_;
-            this.txt.y = p_93525_;
-            this.txt.render(p_93523_, p_93529_, p_93530_, p_93532_);
+            this.txt.x = pTop;
+            this.txt.y = pIndex;
+            this.txt.render(p_93523_, pHeight, pMouseX, pIsMouseOver);
             this.btnDelete.x = this.txt.x + this.txt.getWidth() + 2;
             this.btnDelete.y = this.txt.y;
             this.btnDelete.visible = true;
-            this.btnDelete.render(p_93523_, p_93529_, p_93530_, p_93532_);
+            this.btnDelete.render(p_93523_, pHeight, pMouseX, pIsMouseOver);
         }
 
 		@Override

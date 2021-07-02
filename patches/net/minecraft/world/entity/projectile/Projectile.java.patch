@@ -25,12 +25,12 @@
                  if (entity1.getRootVehicle() == entity.getRootVehicle())
 @@ -148,12 +152,29 @@
  
-     public void shootFromRotation(Entity p_37252_, float p_37253_, float p_37254_, float p_37255_, float p_37256_, float p_37257_)
+     public void shootFromRotation(Entity p_37252_, float pProjectile, float pX, float pY, float pZ, float pVelocity)
      {
--        float f = -Mth.sin(p_37254_ * ((float)Math.PI / 180F)) * Mth.cos(p_37253_ * ((float)Math.PI / 180F));
--        float f1 = -Mth.sin((p_37253_ + p_37255_) * ((float)Math.PI / 180F));
--        float f2 = Mth.cos(p_37254_ * ((float)Math.PI / 180F)) * Mth.cos(p_37253_ * ((float)Math.PI / 180F));
--        this.shoot((double)f, (double)f1, (double)f2, p_37256_, p_37257_);
+-        float f = -Mth.sin(pX * ((float)Math.PI / 180F)) * Mth.cos(pProjectile * ((float)Math.PI / 180F));
+-        float f1 = -Mth.sin((pProjectile + pY) * ((float)Math.PI / 180F));
+-        float f2 = Mth.cos(pX * ((float)Math.PI / 180F)) * Mth.cos(pProjectile * ((float)Math.PI / 180F));
+-        this.shoot((double)f, (double)f1, (double)f2, pZ, pVelocity);
 -        Vec3 vec3 = p_37252_.getDeltaMovement();
 -        this.setDeltaMovement(this.getDeltaMovement().add(vec3.x, p_37252_.isOnGround() ? 0.0D : vec3.y, vec3.z));
 +        ServerVivePlayer serverviveplayer = NetworkHelper.vivePlayers.get(p_37252_.getUUID());
@@ -42,18 +42,18 @@
 +            if (this instanceof AbstractArrow && !(this instanceof ThrownTrident) && !serverviveplayer.isSeated() && serverviveplayer.getDraw() > 0.0F)
 +            {
 +                vec3 = serverviveplayer.getControllerPos(1, (Player)p_37252_).subtract(serverviveplayer.getControllerPos(0, (Player)p_37252_)).normalize();
-+                p_37256_ *= serverviveplayer.getDraw();
++                pZ *= serverviveplayer.getDraw();
 +                ((AbstractArrow)this).setBaseDamage(((AbstractArrow)this).getBaseDamage() * 2.0D);
 +            }
 +
-+            p_37253_ = -((float)Math.toDegrees(Math.asin(vec3.y / vec3.length())));
-+            p_37254_ = (float)Math.toDegrees(Math.atan2(-vec3.x, vec3.z));
++            pProjectile = -((float)Math.toDegrees(Math.asin(vec3.y / vec3.length())));
++            pX = (float)Math.toDegrees(Math.atan2(-vec3.x, vec3.z));
 +        }
 +
-+        float f2 = -Mth.sin(p_37254_ * ((float)Math.PI / 180F)) * Mth.cos(p_37253_ * ((float)Math.PI / 180F));
-+        float f = -Mth.sin((p_37253_ + p_37255_) * ((float)Math.PI / 180F));
-+        float f1 = Mth.cos(p_37254_ * ((float)Math.PI / 180F)) * Mth.cos(p_37253_ * ((float)Math.PI / 180F));
-+        this.shoot((double)f2, (double)f, (double)f1, p_37256_, p_37257_);
++        float f2 = -Mth.sin(pX * ((float)Math.PI / 180F)) * Mth.cos(pProjectile * ((float)Math.PI / 180F));
++        float f = -Mth.sin((pProjectile + pY) * ((float)Math.PI / 180F));
++        float f1 = Mth.cos(pX * ((float)Math.PI / 180F)) * Mth.cos(pProjectile * ((float)Math.PI / 180F));
++        this.shoot((double)f2, (double)f, (double)f1, pZ, pVelocity);
 +        Vec3 vec31 = p_37252_.getDeltaMovement();
 +        this.setDeltaMovement(this.getDeltaMovement().add(vec31.x, p_37252_.isOnGround() ? 0.0D : vec31.y, vec31.z));
      }

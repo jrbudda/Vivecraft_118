@@ -11,11 +11,11 @@ import org.vivecraft.api.VRData;
 
 public class VRActiveRenderInfo extends Camera
 {
-    public void setup(BlockGetter p_90576_, Entity p_90577_, boolean p_90578_, boolean p_90579_, float p_90580_)
+    public void setup(BlockGetter p_90576_, Entity pLevel, boolean pRenderViewEntity, boolean pThirdPerson, float pThirdPersonReverse)
     {
         this.initialized = true;
         this.level = p_90576_;
-        this.entity = p_90577_;
+        this.entity = pLevel;
         Minecraft minecraft = Minecraft.getInstance();
         RenderPass renderpass = minecraft.currentPass;
 

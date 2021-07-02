@@ -36,10 +36,10 @@ public class GuiVROptionSlider extends GuiVROptionButton
         return 0;
     }
 
-    protected void onDrag(double p_93636_, double p_93637_, double p_93638_, double p_93639_)
+    protected void onDrag(double p_93636_, double pMouseX, double p_93638_, double pMouseY)
     {
         this.setValueFromMouse(p_93636_);
-        super.onDrag(p_93636_, p_93637_, p_93638_, p_93639_);
+        super.onDrag(p_93636_, pMouseX, p_93638_, pMouseY);
     }
 
     private void setValueFromMouse(double p_setValueFromMouse_1_)
@@ -53,11 +53,11 @@ public class GuiVROptionSlider extends GuiVROptionButton
         this.setMessage(new TextComponent(minecraft.vrSettings.getButtonDisplayString(this.enumOptions)));
     }
 
-    protected void renderBg(PoseStack p_93661_, Minecraft p_93662_, int p_93663_, int p_93664_)
+    protected void renderBg(PoseStack p_93661_, Minecraft pMatrixStack, int pMinecraft, int pMouseX)
     {
         if (this.visible)
         {
-            p_93662_.getTextureManager().bindForSetup(WIDGETS_LOCATION);
+            pMatrixStack.getTextureManager().bindForSetup(WIDGETS_LOCATION);
             GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
             int i = (this.isHovered() ? 2 : 1) * 20;
             this.blit(p_93661_, this.x + (int)(this.sliderValue * (double)(this.width - 8)), this.y, 0, 46 + i, 4, 20);
@@ -65,7 +65,7 @@ public class GuiVROptionSlider extends GuiVROptionButton
         }
     }
 
-    public void onClick(double p_93634_, double p_93635_)
+    public void onClick(double p_93634_, double pMouseX)
     {
         this.sliderValue = (p_93634_ - (double)(this.x + 4)) / (double)(this.width - 8);
         this.sliderValue = Mth.clamp(this.sliderValue, 0.0D, 1.0D);
@@ -80,7 +80,7 @@ public class GuiVROptionSlider extends GuiVROptionButton
         return 0;
     }
 
-    public void onRelease(double p_93669_, double p_93670_)
+    public void onRelease(double p_93669_, double pMouseX)
     {
         this.dragging = false;
     }

@@ -137,10 +137,10 @@
 +        this.send(p_9830_, (GenericFutureListener)null);
      }
  
-     public void send(Packet<?> p_9832_, @Nullable GenericFutureListener <? extends Future <? super Void >> p_9833_)
+     public void send(Packet<?> p_9832_, @Nullable GenericFutureListener <? extends Future <? super Void >> pPacket)
 @@ -1340,9 +1383,9 @@
          {
-             this.connection.send(p_9832_, p_9833_);
+             this.connection.send(p_9832_, pPacket);
          }
 -        catch (Throwable throwable)
 +        catch (Throwable throwable1)

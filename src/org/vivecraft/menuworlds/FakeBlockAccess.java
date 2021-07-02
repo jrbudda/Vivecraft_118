@@ -156,13 +156,13 @@ public class FakeBlockAccess implements LevelReader
         return null;
     }
 
-    public int getBlockTint(BlockPos p_45520_, ColorResolver p_45521_)
+    public int getBlockTint(BlockPos p_45520_, ColorResolver pBlockPos)
     {
         int i = Minecraft.getInstance().options.biomeBlendRadius;
 
         if (i == 0)
         {
-            return p_45521_.getColor(this.getBiome(p_45520_), (double)p_45520_.getX(), (double)p_45520_.getZ());
+            return pBlockPos.getColor(this.getBiome(p_45520_), (double)p_45520_.getX(), (double)p_45520_.getZ());
         }
         else
         {
@@ -176,7 +176,7 @@ public class FakeBlockAccess implements LevelReader
             for (BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(); cursor3d.advance(); i1 += j1 & 255)
             {
                 blockpos$mutableblockpos.set(cursor3d.nextX(), cursor3d.nextY(), cursor3d.nextZ());
-                j1 = p_45521_.getColor(this.getBiome(blockpos$mutableblockpos), (double)blockpos$mutableblockpos.getX(), (double)blockpos$mutableblockpos.getZ());
+                j1 = pBlockPos.getColor(this.getBiome(blockpos$mutableblockpos), (double)blockpos$mutableblockpos.getX(), (double)blockpos$mutableblockpos.getZ());
                 k += (j1 & 16711680) >> 16;
                 l += (j1 & 65280) >> 8;
             }
@@ -185,17 +185,17 @@ public class FakeBlockAccess implements LevelReader
         }
     }
 
-    public int getBrightness(LightLayer p_45518_, BlockPos p_45519_)
+    public int getBrightness(LightLayer p_45518_, BlockPos pLightType)
     {
-        if (this.checkCoords(p_45519_))
+        if (this.checkCoords(pLightType))
         {
             if (p_45518_ == LightLayer.SKY)
             {
-                return this.dimensionType.hasSkyLight() ? this.skylightmap[this.encodeCoords(p_45519_)] : 0;
+                return this.dimensionType.hasSkyLight() ? this.skylightmap[this.encodeCoords(pLightType)] : 0;
             }
             else
             {
-                return p_45518_ == LightLayer.BLOCK ? this.blocklightmap[this.encodeCoords(p_45519_)] : p_45518_.surrounding;
+                return p_45518_ == LightLayer.BLOCK ? this.blocklightmap[this.encodeCoords(pLightType)] : p_45518_.surrounding;
             }
         }
         else
@@ -204,7 +204,7 @@ public class FakeBlockAccess implements LevelReader
         }
     }
 
-    public int getRawBrightness(BlockPos p_45525_, int p_45526_)
+    public int getRawBrightness(BlockPos p_45525_, int pBlockPos)
     {
         if (!this.checkCoords(p_45525_.getX(), 0, p_45525_.getZ()))
         {
@@ -216,7 +216,7 @@ public class FakeBlockAccess implements LevelReader
         }
         else if (p_45525_.getY() >= 256)
         {
-            int k = 15 - p_45526_;
+            int k = 15 - pBlockPos;
 
             if (k < 0)
             {
@@ -227,7 +227,7 @@ public class FakeBlockAccess implements LevelReader
         }
         else
         {
-            int i = (this.dimensionType.hasSkyLight() ? this.skylightmap[this.encodeCoords(p_45525_)] : 0) - p_45526_;
+            int i = (this.dimensionType.hasSkyLight() ? this.skylightmap[this.encodeCoords(p_45525_)] : 0) - pBlockPos;
             int j = this.blocklightmap[this.encodeCoords(p_45525_)];
 
             if (j > i)
@@ -271,22 +271,22 @@ public class FakeBlockAccess implements LevelReader
         }
     }
 
-    public boolean hasChunk(int p_46838_, int p_46839_)
+    public boolean hasChunk(int p_46838_, int pChunkX)
     {
-        return this.checkCoords(p_46838_ * 16, 0, p_46839_ * 16);
+        return this.checkCoords(p_46838_ * 16, 0, pChunkX * 16);
     }
 
-    public ChunkAccess getChunk(int p_46823_, int p_46824_, ChunkStatus p_46825_, boolean p_46826_)
+    public ChunkAccess getChunk(int p_46823_, int pX, ChunkStatus pZ, boolean pRequiredStatus)
     {
         return null;
     }
 
-    public int getHeight(Heightmap.Types p_46827_, int p_46828_, int p_46829_)
+    public int getHeight(Heightmap.Types p_46827_, int pHeightmapType, int pX)
     {
         return 0;
     }
 
-    public BlockPos getHeightmapPos(Heightmap.Types p_46830_, BlockPos p_46831_)
+    public BlockPos getHeightmapPos(Heightmap.Types p_46830_, BlockPos pHeightmapType)
     {
         return BlockPos.ZERO;
     }
@@ -301,7 +301,7 @@ public class FakeBlockAccess implements LevelReader
         return new WorldBorder();
     }
 
-    public boolean isUnobstructed(Entity p_45750_, VoxelShape p_45751_)
+    public boolean isUnobstructed(Entity p_45750_, VoxelShape pEntity)
     {
         return false;
     }
@@ -316,19 +316,19 @@ public class FakeBlockAccess implements LevelReader
         return this.getBlockState(p_46860_).isAir();
     }
 
-    public Biome getNoiseBiome(int p_46841_, int p_46842_, int p_46843_)
+    public Biome getNoiseBiome(int p_46841_, int pX, int pY)
     {
-        if (!this.checkCoords(p_46841_ * 4, p_46842_ * 4, p_46843_ * 4))
+        if (!this.checkCoords(p_46841_ * 4, pX * 4, pY * 4))
         {
             p_46841_ = Mth.clamp(p_46841_, 0, this.xSize / 4 - 1);
-            p_46842_ = Mth.clamp(p_46842_, 0, this.ySize / 4 - 1);
-            p_46843_ = Mth.clamp(p_46843_, 0, this.zSize / 4 - 1);
+            pX = Mth.clamp(pX, 0, this.ySize / 4 - 1);
+            pY = Mth.clamp(pY, 0, this.zSize / 4 - 1);
         }
 
-        return this.biomemap[(p_46842_ * (this.zSize / 4) + p_46843_) * (this.xSize / 4) + p_46841_];
+        return this.biomemap[(pX * (this.zSize / 4) + pY) * (this.xSize / 4) + p_46841_];
     }
 
-    public int getDirectSignal(BlockPos p_46853_, Direction p_46854_)
+    public int getDirectSignal(BlockPos p_46853_, Direction pPos)
     {
         return 0;
     }
@@ -353,7 +353,7 @@ public class FakeBlockAccess implements LevelReader
         return this.biomeManager;
     }
 
-    public Biome getUncachedNoiseBiome(int p_46809_, int p_46810_, int p_46811_)
+    public Biome getUncachedNoiseBiome(int p_46809_, int pX, int pY)
     {
         return null;
     }

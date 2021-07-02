@@ -27,14 +27,14 @@ public class VRArmRenderer extends PlayerRenderer
         super(p_117733_, p_117734_);
     }
 
-    public void renderRightHand(PoseStack p_117771_, MultiBufferSource p_117772_, int p_117773_, AbstractClientPlayer p_117774_)
+    public void renderRightHand(PoseStack p_117771_, MultiBufferSource pMatrixStack, int pBuffer, AbstractClientPlayer pCombinedLight)
     {
-        this.renderItem(ControllerType.RIGHT, p_117771_, p_117772_, p_117773_, p_117774_, (this.model).rightArm, (this.model).rightSleeve);
+        this.renderItem(ControllerType.RIGHT, p_117771_, pMatrixStack, pBuffer, pCombinedLight, (this.model).rightArm, (this.model).rightSleeve);
     }
 
-    public void renderLeftHand(PoseStack p_117814_, MultiBufferSource p_117815_, int p_117816_, AbstractClientPlayer p_117817_)
+    public void renderLeftHand(PoseStack p_117814_, MultiBufferSource pMatrixStack, int pBuffer, AbstractClientPlayer pCombinedLight)
     {
-        this.renderItem(ControllerType.LEFT, p_117814_, p_117815_, p_117816_, p_117817_, (this.model).leftArm, (this.model).leftSleeve);
+        this.renderItem(ControllerType.LEFT, p_117814_, pMatrixStack, pBuffer, pCombinedLight, (this.model).leftArm, (this.model).leftSleeve);
     }
 
     private void renderItem(ControllerType side, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, AbstractClientPlayer playerIn, ModelPart rendererArmIn, ModelPart rendererArmwearIn)

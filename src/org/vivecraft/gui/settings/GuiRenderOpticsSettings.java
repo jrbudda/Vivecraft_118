@@ -104,9 +104,9 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase
         });
     }
 
-    public void render(PoseStack p_96562_, int p_96563_, int p_96564_, float p_96565_)
+    public void render(PoseStack p_96562_, int pMatrixStack, int pMouseX, float pMouseY)
     {
-        super.render(p_96562_, p_96563_, p_96564_, p_96565_);
+        super.render(p_96562_, pMatrixStack, pMouseX, pMouseY);
     }
 
     protected void loadDefaults()
@@ -143,7 +143,7 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase
         }
     }
 
-    public boolean mouseReleased(double p_94753_, double p_94754_, int p_94755_)
+    public boolean mouseReleased(double p_94753_, double pMouseX, int p_94755_)
     {
         if (this.settings.renderScaleFactor != this.prevRenderScaleFactor || this.settings.handCameraResScale != this.prevHandCameraResScale)
         {
@@ -152,6 +152,6 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase
             this.minecraft.vrRenderer.reinitFrameBuffers("Render Setting Changed");
         }
 
-        return super.mouseReleased(p_94753_, p_94754_, p_94755_);
+        return super.mouseReleased(p_94753_, pMouseX, p_94755_);
     }
 }

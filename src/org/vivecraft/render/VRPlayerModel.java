@@ -56,9 +56,9 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T>
     }
     
 
-    public void setupAnim(T p_103395_, float p_103396_, float p_103397_, float p_103398_, float p_103399_, float p_103400_)
+    public void setupAnim(T p_103395_, float pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw)
     {
-    	super.setupAnim(p_103395_, p_103396_, p_103397_, p_103398_, p_103399_, p_103400_);
+    	super.setupAnim(p_103395_, pEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw);
     	this.rotInfo = PlayerModelController.getInstance().getRotationsForPlayer(((Player)p_103395_).getUUID());
     	PlayerModelController.RotInfo rotinfo = PlayerModelController.getInstance().getRotationsForPlayer(((Player)p_103395_).getUUID());
 

@@ -425,9 +425,9 @@
          NonNullList<ItemStack> nonnulllist = NonNullList.create();
  
 @@ -844,17 +1017,41 @@
-         if (p_91333_.getSaveFile() != null)
+         if (pReport.getSaveFile() != null)
          {
-             Bootstrap.realStdoutPrintln("#@!@# Game crashed! Crash report saved to: #@!@# " + p_91333_.getSaveFile());
+             Bootstrap.realStdoutPrintln("#@!@# Game crashed! Crash report saved to: #@!@# " + pReport.getSaveFile());
 -            System.exit(-1);
 +
 +            if (Reflector.ServerLifecycleHooks_handleExit.exists())
@@ -439,7 +439,7 @@
 +                System.exit(-1);
 +            }
          }
-         else if (p_91333_.saveToFile(file2))
+         else if (pReport.saveToFile(file2))
          {
              Bootstrap.realStdoutPrintln("#@!@# Game crashed! Crash report saved to: #@!@# " + file2.getAbsolutePath());
 -            System.exit(-1);
@@ -889,9 +889,9 @@
 +        }
 +    }
 +
-     private void renderFpsMeter(PoseStack p_91141_, ProfileResults p_91142_)
+     private void renderFpsMeter(PoseStack p_91141_, ProfileResults pMatrixStack)
      {
-         List<ResultField> list = p_91142_.getTimes(this.debugPath);
+         List<ResultField> list = pMatrixStack.getTimes(this.debugPath);
 @@ -1635,14 +2064,14 @@
              s1 = s1 + s + " ";
          }
@@ -1376,7 +1376,7 @@
 +        this.continueAttack(this.screen == null && this.options.keyAttack.isDown());
      }
  
-     public static DataPackConfig loadDataPacks(LevelStorageSource.LevelStorageAccess p_91134_)
+     public static DataPackConfig loadDataPacks(LevelStorageSource.LevelStorageAccess pLevelStorage)
 @@ -2457,10 +2989,10 @@
                              levelstoragesource$levelstorageaccess.close();
                          }
@@ -1384,9 +1384,9 @@
 -                    catch (IOException ioexception)
 +                    catch (IOException ioexception1)
                      {
-                         SystemToast.onWorldDeleteFailure(this, p_91145_);
--                        LOGGER.error("Failed to delete world {}", p_91145_, ioexception);
-+                        LOGGER.error("Failed to delete world {}", p_91145_, ioexception1);
+                         SystemToast.onWorldDeleteFailure(this, pSelectionType);
+-                        LOGGER.error("Failed to delete world {}", pSelectionType, ioexception);
++                        LOGGER.error("Failed to delete world {}", pSelectionType, ioexception1);
                      }
                  }
              }, new TranslatableComponent("selectWorld.backupQuestion.experimental"), new TranslatableComponent("selectWorld.backupWarning.experimental"), CommonComponents.GUI_PROCEED, CommonComponents.GUI_CANCEL));
@@ -1462,7 +1462,7 @@
 +        //this.physicalGuiManager.init(this.player);
      }
  
-     private ItemStack addCustomNbtData(ItemStack p_91123_, BlockEntity p_91124_)
+     private ItemStack addCustomNbtData(ItemStack p_91123_, BlockEntity pStack)
 @@ -3541,6 +4098,575 @@
          public abstract boolean isChatAllowed(boolean p_168035_);
      }

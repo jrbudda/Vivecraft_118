@@ -11,10 +11,10 @@
  public class CrossbowItem extends ProjectileWeaponItem implements Vanishable
  {
 @@ -270,14 +273,22 @@
-                 Vec3 vec31 = p_40896_.getUpVector(1.0F);
-                 Quaternion quaternion = new Quaternion(new Vector3f(vec31), p_40904_, true);
-                 Vec3 vec3 = p_40896_.getViewVector(1.0F);
-+                ServerVivePlayer serverviveplayer = NetworkHelper.vivePlayers.get(p_40896_.getUUID());
+                 Vec3 vec31 = pShooter.getUpVector(1.0F);
+                 Quaternion quaternion = new Quaternion(new Vector3f(vec31), pProjectileAngle, true);
+                 Vec3 vec3 = pShooter.getViewVector(1.0F);
++                ServerVivePlayer serverviveplayer = NetworkHelper.vivePlayers.get(pShooter.getUUID());
 +
 +                if (serverviveplayer != null && serverviveplayer.isVR())
 +                {
@@ -24,23 +24,23 @@
 +
                  Vector3f vector3f = new Vector3f(vec3);
                  vector3f.transform(quaternion);
-                 projectile.shoot((double)vector3f.x(), (double)vector3f.y(), (double)vector3f.z(), p_40902_, p_40903_);
+                 projectile.shoot((double)vector3f.x(), (double)vector3f.y(), (double)vector3f.z(), pVelocity, pInaccuracy);
              }
  
--            p_40898_.hurtAndBreak(flag ? 3 : 1, p_40896_, (p_40858_) ->
-+            p_40898_.hurtAndBreak(flag ? 3 : 1, p_40896_, (p_220017_1_) ->
+-            pCrossbow.hurtAndBreak(flag ? 3 : 1, pShooter, (p_40858_) ->
++            pCrossbow.hurtAndBreak(flag ? 3 : 1, pShooter, (p_220017_1_) ->
              {
--                p_40858_.broadcastBreakEvent(p_40897_);
-+                p_220017_1_.broadcastBreakEvent(p_40897_);
+-                p_40858_.broadcastBreakEvent(pHand);
++                p_220017_1_.broadcastBreakEvent(pHand);
              });
-             p_40895_.addFreshEntity(projectile);
-             p_40895_.playSound((Player)null, p_40896_.getX(), p_40896_.getY(), p_40896_.getZ(), SoundEvents.CROSSBOW_SHOOT, SoundSource.PLAYERS, 1.0F, p_40900_);
+             pLevel.addFreshEntity(projectile);
+             pLevel.playSound((Player)null, pShooter.getX(), pShooter.getY(), pShooter.getZ(), SoundEvents.CROSSBOW_SHOOT, SoundSource.PLAYERS, 1.0F, pSoundPitch);
 @@ -428,7 +439,7 @@
          }
      }
  
--    private static float getPowerForTime(int p_40854_, ItemStack p_40855_)
-+    public static float getPowerForTime(int p_40854_, ItemStack p_40855_)
+-    private static float getPowerForTime(int pUseTime, ItemStack pStack)
++    public static float getPowerForTime(int pUseTime, ItemStack pStack)
      {
-         float f = (float)p_40854_ / (float)getChargeDuration(p_40855_);
+         float f = (float)pUseTime / (float)getChargeDuration(pStack);
  

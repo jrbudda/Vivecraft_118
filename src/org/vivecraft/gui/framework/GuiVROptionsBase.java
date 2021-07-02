@@ -74,11 +74,11 @@ public abstract class GuiVROptionsBase extends Screen
             {
                 this.addRenderableWidget(new GuiVROptionSlider(vroptionlayout.getOrdinal(), vroptionlayout.getX(this.width), vroptionlayout.getY(this.height), vroptionlayout.getOption(), (double)vroptionlayout.getOption().getValueMin(), (double)vroptionlayout.getOption().getValueMax())
                 {
-                    public void onClick(double p_93634_, double p_93635_)
+                    public void onClick(double p_93634_, double pMouseX)
                     {
-                        if (vroptionlayout.getCustomHandler() == null || !vroptionlayout.getCustomHandler().apply(this, new Vec2((float)p_93634_, (float)p_93635_)))
+                        if (vroptionlayout.getCustomHandler() == null || !vroptionlayout.getCustomHandler().apply(this, new Vec2((float)p_93634_, (float)pMouseX)))
                         {
-                            super.onClick(p_93634_, p_93635_);
+                            super.onClick(p_93634_, pMouseX);
                         }
                     }
                 });
@@ -197,7 +197,7 @@ public abstract class GuiVROptionsBase extends Screen
         this.init(avroptionentry, clear);
     }
 
-    public void render(PoseStack p_96562_, int p_96563_, int p_96564_, float p_96565_)
+    public void render(PoseStack p_96562_, int pMatrixStack, int pMouseX, float pMouseY)
     {
         if (this.reinit)
         {
@@ -209,7 +209,7 @@ public abstract class GuiVROptionsBase extends Screen
 
         if (this.visibleList != null)
         {
-            this.visibleList.render(p_96562_, p_96563_, p_96564_, p_96565_);
+            this.visibleList.render(p_96562_, pMatrixStack, pMouseX, pMouseY);
         }
 
         drawCenteredString(p_96562_, this.font, Lang.get(this.vrTitle), this.width / 2, 15, 16777215);
@@ -224,8 +224,8 @@ public abstract class GuiVROptionsBase extends Screen
             this.btnDone.visible = this.drawDefaultButtons;
         }
 
-        super.render(p_96562_, p_96563_, p_96564_, p_96565_);
-        this.tooltipManager.drawTooltips(p_96562_, p_96563_, p_96564_, this.getButtonList());
+        super.render(p_96562_, pMatrixStack, pMouseX, pMouseY);
+        this.tooltipManager.drawTooltips(p_96562_, pMatrixStack, pMouseX, this.getButtonList());
     }
 
     protected void actionPerformed(AbstractWidget button)
@@ -236,10 +236,10 @@ public abstract class GuiVROptionsBase extends Screen
     {
     }
 
-    public boolean mouseClicked(double p_94737_, double p_94738_, int p_94739_)
+    public boolean mouseClicked(double p_94737_, double pMouseX, int p_94739_)
     {
-        boolean flag = super.mouseClicked(p_94737_, p_94738_, p_94739_);
-        AbstractWidget abstractwidget = getSelectedButton((int)p_94737_, (int)p_94738_, this.getButtonList());
+        boolean flag = super.mouseClicked(p_94737_, pMouseX, p_94739_);
+        AbstractWidget abstractwidget = getSelectedButton((int)p_94737_, (int)pMouseX, this.getButtonList());
 
         if (abstractwidget != null)
         {
@@ -259,33 +259,33 @@ public abstract class GuiVROptionsBase extends Screen
         }
         else if (this.visibleList != null)
         {
-            return this.visibleList.mouseClicked(p_94737_, p_94738_, p_94739_);
+            return this.visibleList.mouseClicked(p_94737_, pMouseX, p_94739_);
         }
 
         return flag;
     }
 
-    public boolean mouseReleased(double p_94753_, double p_94754_, int p_94755_)
+    public boolean mouseReleased(double p_94753_, double pMouseX, int p_94755_)
     {
-        return this.visibleList != null ? this.visibleList.mouseReleased(p_94753_, p_94754_, p_94755_) : super.mouseReleased(p_94753_, p_94754_, p_94755_);
+        return this.visibleList != null ? this.visibleList.mouseReleased(p_94753_, pMouseX, p_94755_) : super.mouseReleased(p_94753_, pMouseX, p_94755_);
     }
 
-    public boolean mouseDragged(double p_94740_, double p_94741_, int p_94742_, double p_94743_, double p_94744_)
+    public boolean mouseDragged(double p_94740_, double pMouseX, int p_94742_, double pMouseY, double p_94744_)
     {
-        return this.visibleList != null ? this.visibleList.mouseDragged(p_94740_, p_94741_, p_94742_, p_94743_, p_94744_) : super.mouseDragged(p_94740_, p_94741_, p_94742_, p_94743_, p_94744_);
+        return this.visibleList != null ? this.visibleList.mouseDragged(p_94740_, pMouseX, p_94742_, pMouseY, p_94744_) : super.mouseDragged(p_94740_, pMouseX, p_94742_, pMouseY, p_94744_);
     }
 
-    public boolean mouseScrolled(double p_94734_, double p_94735_, double p_94736_)
+    public boolean mouseScrolled(double p_94734_, double pMouseX, double p_94736_)
     {
         if (this.visibleList != null)
         {
-            this.visibleList.mouseScrolled(p_94734_, p_94735_, p_94736_);
+            this.visibleList.mouseScrolled(p_94734_, pMouseX, p_94736_);
         }
 
-        return super.mouseScrolled(p_94734_, p_94735_, p_94736_);
+        return super.mouseScrolled(p_94734_, pMouseX, p_94736_);
     }
 
-    public boolean keyPressed(int p_94745_, int p_94746_, int p_94747_)
+    public boolean keyPressed(int p_94745_, int pKeyCode, int pScanCode)
     {
         if (p_94745_ == 256)
         {
@@ -299,12 +299,12 @@ public abstract class GuiVROptionsBase extends Screen
         }
         else
         {
-            return this.visibleList != null && this.visibleList.keyPressed(p_94745_, p_94746_, p_94747_) ? true : super.keyPressed(p_94745_, p_94746_, p_94747_);
+            return this.visibleList != null && this.visibleList.keyPressed(p_94745_, pKeyCode, pScanCode) ? true : super.keyPressed(p_94745_, pKeyCode, pScanCode);
         }
     }
 
-    public boolean charTyped(char p_94732_, int p_94733_)
+    public boolean charTyped(char p_94732_, int pCodePoint)
     {
-        return this.visibleList != null && this.visibleList.charTyped(p_94732_, p_94733_) ? true : super.charTyped(p_94732_, p_94733_);
+        return this.visibleList != null && this.visibleList.charTyped(p_94732_, pCodePoint) ? true : super.charTyped(p_94732_, pCodePoint);
     }
 }

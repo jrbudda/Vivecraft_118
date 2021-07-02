@@ -1,13 +1,13 @@
 --- a/net/minecraft/client/renderer/entity/EntityRenderer.java
 +++ b/net/minecraft/client/renderer/entity/EntityRenderer.java
 @@ -133,7 +133,7 @@
-             int i = "deadmau5".equals(p_114499_.getString()) ? -10 : 0;
-             p_114500_.pushPose();
-             p_114500_.translate(0.0D, (double)f, 0.0D);
--            p_114500_.mulPose(this.entityRenderDispatcher.cameraOrientation());
-+            p_114500_.mulPose(this.entityRenderDispatcher.getCameraOrientationOffset(0.5F));
-             p_114500_.scale(-0.025F, -0.025F, 0.025F);
-             Matrix4f matrix4f = p_114500_.last().pose();
+             int i = "deadmau5".equals(pEntity.getString()) ? -10 : 0;
+             pDisplayName.pushPose();
+             pDisplayName.translate(0.0D, (double)f, 0.0D);
+-            pDisplayName.mulPose(this.entityRenderDispatcher.cameraOrientation());
++            pDisplayName.mulPose(this.entityRenderDispatcher.getCameraOrientationOffset(0.5F));
+             pDisplayName.scale(-0.025F, -0.025F, 0.025F);
+             Matrix4f matrix4f = pDisplayName.last().pose();
              float f1 = Minecraft.getInstance().options.getBackgroundOpacity(0.25F);
 @@ -156,9 +156,9 @@
          return this.entityType == null ? null : Either.makeLeft(this.entityType);

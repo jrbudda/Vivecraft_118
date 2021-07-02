@@ -2,19 +2,19 @@
 +++ b/net/minecraft/world/item/Item.java
 @@ -141,14 +141,14 @@
          {
-             ItemStack itemstack = p_41433_.getItemInHand(p_41434_);
+             ItemStack itemstack = pLevel.getItemInHand(pPlayer);
  
--            if (p_41433_.canEat(this.getFoodProperties().canAlwaysEat()))
-+            if (!p_41433_.canEat(this.getFoodProperties().canAlwaysEat()) && !itemstack.getHoverName().getString().equals("EAT ME"))
+-            if (pLevel.canEat(this.getFoodProperties().canAlwaysEat()))
++            if (!pLevel.canEat(this.getFoodProperties().canAlwaysEat()) && !itemstack.getHoverName().getString().equals("EAT ME"))
              {
--                p_41433_.startUsingItem(p_41434_);
+-                pLevel.startUsingItem(pPlayer);
 -                return InteractionResultHolder.consume(itemstack);
 +                return InteractionResultHolder.fail(itemstack);
              }
              else
              {
 -                return InteractionResultHolder.fail(itemstack);
-+                p_41433_.startUsingItem(p_41434_);
++                pLevel.startUsingItem(pPlayer);
 +                return InteractionResultHolder.consume(itemstack);
              }
          }

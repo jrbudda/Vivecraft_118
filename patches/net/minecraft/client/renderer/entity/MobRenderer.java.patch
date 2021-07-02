@@ -10,14 +10,14 @@
  import net.minecraft.client.renderer.MultiBufferSource;
 @@ -61,6 +62,12 @@
          {
-             p_115464_.pushPose();
-             Vec3 vec3 = p_115466_.getRopeHoldPosition(p_115463_);
+             pPartialTicks.pushPose();
+             Vec3 vec3 = pBuffer.getRopeHoldPosition(pEntityLiving);
 +
-+            if (p_115466_ == Minecraft.getInstance().player)
++            if (pBuffer == Minecraft.getInstance().player)
 +            {
 +                vec3 = Minecraft.getInstance().vrPlayer.vrdata_world_render.getController(0).getPosition();
 +            }
 +
-             double d0 = (double)(Mth.lerp(p_115463_, p_115462_.yBodyRot, p_115462_.yBodyRotO) * ((float)Math.PI / 180F)) + (Math.PI / 2D);
+             double d0 = (double)(Mth.lerp(pEntityLiving, p_115462_.yBodyRot, p_115462_.yBodyRotO) * ((float)Math.PI / 180F)) + (Math.PI / 2D);
              Vec3 vec31 = p_115462_.getLeashOffset();
              double d1 = Math.cos(d0) * vec31.z + Math.sin(d0) * vec31.x;

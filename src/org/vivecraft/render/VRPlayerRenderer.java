@@ -62,7 +62,7 @@ public class VRPlayerRenderer extends LivingEntityRenderer<AbstractClientPlayer,
         this.addLayer(new BeeStingerLayer<>(this));
     }
 
-    public void render(AbstractClientPlayer entityIn, float p_117789_, float p_117790_, PoseStack matrixStackIn, MultiBufferSource p_117792_, int p_117793_)
+    public void render(AbstractClientPlayer entityIn, float pEntity, float pEntityYaw, PoseStack matrixStackIn, MultiBufferSource pMatrixStack, int pBuffer)
     {
         if (Minecraft.getInstance().currentPass == RenderPass.GUI && entityIn.isLocalPlayer())
         {
@@ -81,16 +81,16 @@ public class VRPlayerRenderer extends LivingEntityRenderer<AbstractClientPlayer,
         {
             matrixStackIn.scale(playermodelcontroller$rotinfo.heightScale, playermodelcontroller$rotinfo.heightScale, playermodelcontroller$rotinfo.heightScale);
             this.setModelProperties(entityIn);
-            super.render(entityIn, p_117789_, p_117790_, matrixStackIn, p_117792_, p_117793_);
+            super.render(entityIn, pEntity, pEntityYaw, matrixStackIn, pMatrixStack, pBuffer);
             matrixStackIn.scale(1.0F, 1.0F / playermodelcontroller$rotinfo.heightScale, 1.0F);
         }
     }
 
-    public Vec3 getRenderOffset(AbstractClientPlayer p_117785_, float p_117786_)
+    public Vec3 getRenderOffset(AbstractClientPlayer p_117785_, float pEntity)
     {
     	//idk why we do this anymore
         return p_117785_.isVisuallySwimming() ? new Vec3(0.0D, -0.125D, 0.0D) : Vec3.ZERO;
-       // return p_117785_.isCrouching() ? new Vec3(0.0D, -0.125D, 0.0D) : super.getRenderOffset(p_117785_, p_117786_);
+       // return p_117785_.isCrouching() ? new Vec3(0.0D, -0.125D, 0.0D) : super.getRenderOffset(p_117785_, pEntity);
     }
 
     private void setModelProperties(AbstractClientPlayer p_117819_)
@@ -187,16 +187,16 @@ public class VRPlayerRenderer extends LivingEntityRenderer<AbstractClientPlayer,
         return p_117783_.getSkinTextureLocation();
     }
 
-    protected void scale(AbstractClientPlayer p_117798_, PoseStack p_117799_, float p_117800_)
+    protected void scale(AbstractClientPlayer p_117798_, PoseStack pLivingEntity, float pMatrixStack)
     {
         float f = 0.9375F;
-        p_117799_.scale(0.9375F, 0.9375F, 0.9375F);
+        pLivingEntity.scale(0.9375F, 0.9375F, 0.9375F);
     }
 
-    protected void renderNameTag(AbstractClientPlayer p_117808_, Component p_117809_, PoseStack p_117810_, MultiBufferSource p_117811_, int p_117812_)
+    protected void renderNameTag(AbstractClientPlayer p_117808_, Component pEntity, PoseStack pDisplayName, MultiBufferSource pMatrixStack, int pBuffer)
     {
         double d0 = this.entityRenderDispatcher.distanceToSqr(p_117808_);
-        p_117810_.pushPose();
+        pDisplayName.pushPose();
 
         if (d0 < 100.0D)
         {
@@ -206,69 +206,69 @@ public class VRPlayerRenderer extends LivingEntityRenderer<AbstractClientPlayer,
             if (objective != null)
             {
                 Score score = scoreboard.getOrCreatePlayerScore(p_117808_.getScoreboardName(), objective);
-                super.renderNameTag(p_117808_, (new TextComponent(Integer.toString(score.getScore()))).append(" ").append(objective.getDisplayName()), p_117810_, p_117811_, p_117812_);
-                p_117810_.translate(0.0D, (double)(9.0F * 1.15F * 0.025F), 0.0D);
+                super.renderNameTag(p_117808_, (new TextComponent(Integer.toString(score.getScore()))).append(" ").append(objective.getDisplayName()), pDisplayName, pMatrixStack, pBuffer);
+                pDisplayName.translate(0.0D, (double)(9.0F * 1.15F * 0.025F), 0.0D);
             }
         }
 
-        super.renderNameTag(p_117808_, p_117809_, p_117810_, p_117811_, p_117812_);
-        p_117810_.popPose();
+        super.renderNameTag(p_117808_, pEntity, pDisplayName, pMatrixStack, pBuffer);
+        pDisplayName.popPose();
     }
 
-    public void renderRightHand(PoseStack p_117771_, MultiBufferSource p_117772_, int p_117773_, AbstractClientPlayer p_117774_)
+    public void renderRightHand(PoseStack p_117771_, MultiBufferSource pMatrixStack, int pBuffer, AbstractClientPlayer pCombinedLight)
     {
-        this.renderHand(p_117771_, p_117772_, p_117773_, p_117774_, (this.model).rightArm, (this.model).rightSleeve);
+        this.renderHand(p_117771_, pMatrixStack, pBuffer, pCombinedLight, (this.model).rightArm, (this.model).rightSleeve);
     }
 
-    public void renderLeftHand(PoseStack p_117814_, MultiBufferSource p_117815_, int p_117816_, AbstractClientPlayer p_117817_)
+    public void renderLeftHand(PoseStack p_117814_, MultiBufferSource pMatrixStack, int pBuffer, AbstractClientPlayer pCombinedLight)
     {
-        this.renderHand(p_117814_, p_117815_, p_117816_, p_117817_, (this.model).leftArm, (this.model).leftSleeve);
+        this.renderHand(p_117814_, pMatrixStack, pBuffer, pCombinedLight, (this.model).leftArm, (this.model).leftSleeve);
     }
 
-    private void renderHand(PoseStack p_117776_, MultiBufferSource p_117777_, int p_117778_, AbstractClientPlayer p_117779_, ModelPart p_117780_, ModelPart p_117781_)
+    private void renderHand(PoseStack p_117776_, MultiBufferSource pMatrixStack, int pBuffer, AbstractClientPlayer pCombinedLight, ModelPart pPlayer, ModelPart pRendererArm)
     {
         VRPlayerModel<AbstractClientPlayer> playermodel = (VRPlayerModel<AbstractClientPlayer>) this.getModel();
-        this.setModelProperties(p_117779_);
+        this.setModelProperties(pCombinedLight);
         playermodel.attackTime = 0.0F;
         playermodel.crouching = false;
         playermodel.swimAmount = 0.0F;
-        playermodel.setupAnim(p_117779_, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
-        p_117780_.xRot = 0.0F;
-        p_117780_.render(p_117776_, p_117777_.getBuffer(RenderType.entitySolid(p_117779_.getSkinTextureLocation())), p_117778_, OverlayTexture.NO_OVERLAY);
-        p_117781_.xRot = 0.0F;
-        p_117781_.render(p_117776_, p_117777_.getBuffer(RenderType.entityTranslucent(p_117779_.getSkinTextureLocation())), p_117778_, OverlayTexture.NO_OVERLAY);
+        playermodel.setupAnim(pCombinedLight, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
+        pPlayer.xRot = 0.0F;
+        pPlayer.render(p_117776_, pMatrixStack.getBuffer(RenderType.entitySolid(pCombinedLight.getSkinTextureLocation())), pBuffer, OverlayTexture.NO_OVERLAY);
+        pRendererArm.xRot = 0.0F;
+        pRendererArm.render(p_117776_, pMatrixStack.getBuffer(RenderType.entityTranslucent(pCombinedLight.getSkinTextureLocation())), pBuffer, OverlayTexture.NO_OVERLAY);
     }
 
-    protected void setupRotations(AbstractClientPlayer p_117802_, PoseStack p_117803_, float p_117804_, float p_117805_, float p_117806_)
+    protected void setupRotations(AbstractClientPlayer p_117802_, PoseStack pEntityLiving, float pMatrixStack, float pAgeInTicks, float pRotationYaw)
     {
     	VRPlayerModel vrplayermodel = (VRPlayerModel) this.getModel();
-    	double d4 = p_117802_.xOld + (p_117802_.getX() - p_117802_.xOld) * (double)p_117806_;
-    	d4 = p_117802_.yOld + (p_117802_.getY() - p_117802_.yOld) * (double)p_117806_;
-    	d4 = p_117802_.zOld + (p_117802_.getZ() - p_117802_.zOld) * (double)p_117806_;
+    	double d4 = p_117802_.xOld + (p_117802_.getX() - p_117802_.xOld) * (double)pRotationYaw;
+    	d4 = p_117802_.yOld + (p_117802_.getY() - p_117802_.yOld) * (double)pRotationYaw;
+    	d4 = p_117802_.zOld + (p_117802_.getZ() - p_117802_.zOld) * (double)pRotationYaw;
     	
     	UUID uuid = p_117802_.getUUID();
     	if (PlayerModelController.getInstance().isTracked(uuid))
     	{
     		PlayerModelController.RotInfo playermodelcontroller$rotinfo = PlayerModelController.getInstance().getRotationsForPlayer(uuid);
-    		p_117805_ = (float)Math.toDegrees(playermodelcontroller$rotinfo.getBodyYawRadians());
+    		pAgeInTicks = (float)Math.toDegrees(playermodelcontroller$rotinfo.getBodyYawRadians());
     	}
         float wasyaw = p_117802_.getYRot();
 
         //vanilla below here
-        float f = p_117802_.getSwimAmount(p_117806_);
+        float f = p_117802_.getSwimAmount(pRotationYaw);
 
         if (p_117802_.isFallFlying())
         {
-            super.setupRotations(p_117802_, p_117803_, p_117804_, p_117805_, p_117806_);
-            float f1 = (float)p_117802_.getFallFlyingTicks() + p_117806_;
+            super.setupRotations(p_117802_, pEntityLiving, pMatrixStack, pAgeInTicks, pRotationYaw);
+            float f1 = (float)p_117802_.getFallFlyingTicks() + pRotationYaw;
             float f2 = Mth.clamp(f1 * f1 / 100.0F, 0.0F, 1.0F);
 
             if (!p_117802_.isAutoSpinAttack())
             {
-                p_117803_.mulPose(Vector3f.XP.rotationDegrees(f2 * (-90.0F - p_117802_.getXRot())));
+                pEntityLiving.mulPose(Vector3f.XP.rotationDegrees(f2 * (-90.0F - p_117802_.getXRot())));
             }
 
-            Vec3 vec3 = p_117802_.getViewVector(p_117806_);
+            Vec3 vec3 = p_117802_.getViewVector(pRotationYaw);
             Vec3 vec31 = p_117802_.getDeltaMovement();
             double d0 = vec31.horizontalDistanceSqr();
             double d1 = vec3.horizontalDistanceSqr();
@@ -277,24 +277,24 @@ public class VRPlayerRenderer extends LivingEntityRenderer<AbstractClientPlayer,
             {
                 double d2 = (vec31.x * vec3.x + vec31.z * vec3.z) / Math.sqrt(d0 * d1);
                 double d3 = vec31.x * vec3.z - vec31.z * vec3.x;
-                p_117803_.mulPose(Vector3f.YP.rotation((float)(Math.signum(d3) * Math.acos(d2))));
+                pEntityLiving.mulPose(Vector3f.YP.rotation((float)(Math.signum(d3) * Math.acos(d2))));
             }
         }
         else if (f > 0.0F)
         {
-            super.setupRotations(p_117802_, p_117803_, p_117804_, p_117805_, p_117806_);
+            super.setupRotations(p_117802_, pEntityLiving, pMatrixStack, pAgeInTicks, pRotationYaw);
             float f3 = p_117802_.isInWater() ? -90.0F - p_117802_.getXRot() : -90.0F;
             float f4 = Mth.lerp(f, 0.0F, f3);
-            p_117803_.mulPose(Vector3f.XP.rotationDegrees(f4));
+            pEntityLiving.mulPose(Vector3f.XP.rotationDegrees(f4));
 
             if (p_117802_.isVisuallySwimming())
             {
-                p_117803_.translate(0.0D, -1.0D, (double)0.3F);
+                pEntityLiving.translate(0.0D, -1.0D, (double)0.3F);
             }
         }
         else
         {
-            super.setupRotations(p_117802_, p_117803_, p_117804_, p_117805_, p_117806_);
+            super.setupRotations(p_117802_, pEntityLiving, pMatrixStack, pAgeInTicks, pRotationYaw);
         }
     }
 }
