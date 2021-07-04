@@ -445,7 +445,71 @@
          PoseStack posestack = new PoseStack();
          double d0 = this.getFov(camera, p_109090_, true);
          posestack.last().pose().multiply(this.getProjectionMatrix(d0));
-@@ -1488,26 +1638,13 @@
+@@ -1437,11 +1587,12 @@
+             posestack = pFinishTimeNano;
+         }
+ 
+-        this.bobHurt(posestack, p_109090_);
++        //no plz 
++        //this.bobHurt(posestack, p_109090_);
+ 
+         if (this.minecraft.options.bobView)
+-        {
+-            this.bobView(posestack, p_109090_);
++        { //no plz
++            //this.bobView(posestack, p_109090_);
+         }
+ 
+         float f = Mth.lerp(p_109090_, this.minecraft.player.oPortalTime, this.minecraft.player.portalTime) * this.minecraft.options.screenEffectScale * this.minecraft.options.screenEffectScale;
+@@ -1451,6 +1602,10 @@
+             int i = this.minecraft.player.hasEffect(MobEffects.CONFUSION) ? 7 : 20;
+             float f1 = 5.0F / (f * f + 5.0F) - f * 0.04F;
+             f1 = f1 * f1;
++            //Vivecraft tone that shit down
++            i = i / 5;
++            f1 = 1.1f;
++            //
+             Vector3f vector3f = new Vector3f(0.0F, Mth.SQRT_OF_TWO / 2.0F, Mth.SQRT_OF_TWO / 2.0F);
+             posestack.mulPose(vector3f.rotationDegrees(((float)this.tick + p_109090_) * (float)i));
+             posestack.scale(1.0F / f1, 1.0F, 1.0F);
+@@ -1466,19 +1621,25 @@
+         Matrix4f matrix4f = posestack.last().pose();
+         this.resetProjectionMatrix(matrix4f);
+         camera.setup(this.minecraft.level, (Entity)(this.minecraft.getCameraEntity() == null ? this.minecraft.player : this.minecraft.getCameraEntity()), !this.minecraft.options.getCameraType().isFirstPerson(), this.minecraft.options.getCameraType().isMirrored(), p_109090_);
+-
++        
+         if (Reflector.ForgeHooksClient_onCameraSetup.exists())
+         {
+-            Object object = Reflector.ForgeHooksClient_onCameraSetup.call(this, camera, p_109090_);
+-            float f4 = Reflector.callFloat(object, Reflector.EntityViewRenderEvent_CameraSetup_getYaw);
+-            float f5 = Reflector.callFloat(object, Reflector.EntityViewRenderEvent_CameraSetup_getPitch);
+-            float f3 = Reflector.callFloat(object, Reflector.EntityViewRenderEvent_CameraSetup_getRoll);
+-            camera.setAnglesInternal(f4, f5);
+-            pFinishTimeNano.mulPose(Vector3f.ZP.rotationDegrees(f3));
+-        }
+-
+-        pFinishTimeNano.mulPose(Vector3f.XP.rotationDegrees(camera.getXRot()));
+-        pFinishTimeNano.mulPose(Vector3f.YP.rotationDegrees(camera.getYRot() + 180.0F));
++        	if(minecraft.currentPass != RenderPass.LEFT && minecraft.currentPass != RenderPass.RIGHT) {
++        		//do what you want, mods, just dont do it to my eyeballs.
++	            Object object = Reflector.ForgeHooksClient_onCameraSetup.call(this, camera, p_109090_);
++	            float f4 = Reflector.callFloat(object, Reflector.EntityViewRenderEvent_CameraSetup_getYaw);
++	            float f5 = Reflector.callFloat(object, Reflector.EntityViewRenderEvent_CameraSetup_getPitch);
++	            float f3 = Reflector.callFloat(object, Reflector.EntityViewRenderEvent_CameraSetup_getRoll);
++	            camera.setAnglesInternal(f4, f5);
++	            pFinishTimeNano.mulPose(Vector3f.ZP.rotationDegrees(f3));
++        	}
++        }
++        
++        applyVRModelView(minecraft.currentPass, pFinishTimeNano); //this is just rotation.
++
++//        pFinishTimeNano.mulPose(Vector3f.XP.rotationDegrees(camera.getXRot()));
++//        pFinishTimeNano.mulPose(Vector3f.YP.rotationDegrees(camera.getYRot() + 180.0F));
++        
+         this.minecraft.levelRenderer.prepareCullFrustum(pFinishTimeNano, camera.getPosition(), this.getProjectionMatrix(Math.max(d0, this.minecraft.options.fov)));
+         this.minecraft.levelRenderer.renderLevel(pFinishTimeNano, p_109090_, pPartialTicks, flag1, camera, this, this.lightTexture, matrix4f);
+ 
+@@ -1488,26 +1649,13 @@
              Reflector.callVoid(Reflector.ForgeHooksClient_dispatchRenderLast, this.minecraft.levelRenderer, pFinishTimeNano, p_109090_, matrix4f, pPartialTicks);
          }
  
@@ -477,7 +541,7 @@
          }
  
          if (flag)
-@@ -1515,6 +1652,7 @@
+@@ -1515,6 +1663,7 @@
              Shaders.endRender();
          }
  
@@ -485,7 +549,7 @@
          this.minecraft.getProfiler().pop();
      }
  
-@@ -1626,8 +1764,6 @@
+@@ -1626,8 +1775,6 @@
  
          if (!this.initialized)
          {
@@ -494,7 +558,7 @@
              if (Config.getBitsOs() == 64 && Config.getBitsJre() == 32)
              {
                  Config.setNotify64BitJava(true);
-@@ -1698,7 +1834,7 @@
+@@ -1698,7 +1845,7 @@
          }
      }
  
@@ -503,7 +567,7 @@
      {
          try
          {
-@@ -1723,14 +1859,14 @@
+@@ -1723,14 +1870,14 @@
                  return;
              }
  
@@ -520,7 +584,7 @@
      {
          if (!GLX.isUsingFBOs())
          {
-@@ -1740,7 +1876,7 @@
+@@ -1740,7 +1887,7 @@
          {
              return true;
          }
@@ -529,7 +593,7 @@
          {
              if (this.postEffect == null)
              {
-@@ -1753,7 +1889,7 @@
+@@ -1753,7 +1900,7 @@
                  return true;
              }
          }
@@ -538,7 +602,7 @@
          {
              return true;
          }
-@@ -1763,8 +1899,8 @@
+@@ -1763,8 +1910,8 @@
          }
          else
          {
@@ -549,7 +613,7 @@
              return this.effectActive;
          }
      }
-@@ -1810,6 +1946,7 @@
+@@ -1810,6 +1957,7 @@
              multibuffersource$buffersource.endBatch();
              RenderSystem.enableCull();
              RenderSystem.disableDepthTest();
@@ -557,7 +621,7 @@
          }
      }
  
-@@ -2200,4 +2337,2326 @@
+@@ -2200,4 +2348,2326 @@
      {
          return rendertypeCrumblingShader;
      }
@@ -1562,7 +1626,7 @@
 +        }
 +
 +        GL43.glPopMatrix();
-+        //GlStateManager._disableFog();
++        FogRenderer.setupNoFog();
 +        RenderSystem.defaultBlendFunc();
 +    }
 +

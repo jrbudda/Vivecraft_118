@@ -525,7 +525,11 @@
              if (this.delayedCrash == null)
              {
                  System.exit(0);
-@@ -1121,7 +1353,6 @@
+@@ -1118,10 +1350,10 @@
+         }
+     }
+ 
++    //Mojang why would you name it this. This is runGameLoop
      private void runTick(boolean p_91384_)
      {
          this.window.setErrorSection("Pre render");
@@ -533,7 +537,7 @@
  
          if (this.window.shouldClose())
          {
-@@ -1147,79 +1378,265 @@
+@@ -1147,79 +1379,265 @@
  
          if (p_91384_)
          {
@@ -829,7 +833,7 @@
          {
              if (this.pause)
              {
-@@ -1230,12 +1647,12 @@
+@@ -1230,12 +1648,12 @@
                  this.timer.partialTick = this.pausePartialTick;
              }
  
@@ -846,7 +850,7 @@
          this.profiler.push("fpsUpdate");
  
          while (Util.getMillis() >= this.lastTime + 1000L)
-@@ -1313,14 +1730,16 @@
+@@ -1313,14 +1731,16 @@
          int i = this.window.calculateScale(this.options.guiScale, this.isEnforceUnicode());
          this.window.setGuiScale((double)i);
  
@@ -866,7 +870,7 @@
          this.mouseHandler.setIgnoreFirstMove();
      }
  
-@@ -1331,7 +1750,7 @@
+@@ -1331,7 +1751,7 @@
  
      private int getFramerateLimit()
      {
@@ -875,7 +879,7 @@
      }
  
      public void emergencySave()
-@@ -1548,6 +1967,16 @@
+@@ -1548,6 +1968,16 @@
          }
      }
  
@@ -892,7 +896,7 @@
      private void renderFpsMeter(PoseStack p_91141_, ProfileResults pMatrixStack)
      {
          List<ResultField> list = pMatrixStack.getTimes(this.debugPath);
-@@ -1635,14 +2064,14 @@
+@@ -1635,14 +2065,14 @@
              s1 = s1 + s + " ";
          }
  
@@ -910,7 +914,7 @@
              StringBuilder stringbuilder = new StringBuilder();
  
              if ("unspecified".equals(resultfield2.name))
-@@ -1651,15 +2080,15 @@
+@@ -1651,15 +2081,15 @@
              }
              else
              {
@@ -930,7 +934,7 @@
          }
      }
  
-@@ -1704,19 +2133,44 @@
+@@ -1704,19 +2134,44 @@
              {
                  BlockHitResult blockhitresult = (BlockHitResult)this.hitResult;
                  BlockPos blockpos = blockhitresult.getBlockPos();
@@ -979,7 +983,7 @@
              {
                  this.gameMode.stopDestroyBlock();
              }
-@@ -1738,39 +2192,48 @@
+@@ -1738,39 +2193,48 @@
              }
              else if (!this.player.isHandsBusy())
              {
@@ -1049,7 +1053,7 @@
          {
              this.rightClickDelay = 4;
  
-@@ -1783,74 +2246,102 @@
+@@ -1783,74 +2247,102 @@
  
                  for (InteractionHand interactionhand : InteractionHand.values())
                  {
@@ -1200,7 +1204,7 @@
                          }
                      }
                  }
-@@ -1865,12 +2356,15 @@
+@@ -1865,12 +2357,15 @@
  
      public void tick()
      {
@@ -1217,7 +1221,7 @@
  
          if (!this.pause)
          {
-@@ -1878,7 +2372,6 @@
+@@ -1878,7 +2373,6 @@
          }
  
          this.profiler.pop();
@@ -1225,7 +1229,7 @@
          this.tutorial.onLookAt(this.level, this.hitResult);
          this.profiler.push("gameMode");
  
-@@ -1888,11 +2381,7 @@
+@@ -1888,11 +2382,7 @@
          }
  
          this.profiler.popPush("textures");
@@ -1238,7 +1242,7 @@
  
          if (this.screen == null && this.player != null)
          {
-@@ -1928,6 +2417,10 @@
+@@ -1928,6 +2418,10 @@
              this.gui.clearCache();
          }
  
@@ -1249,7 +1253,7 @@
          if (this.overlay == null && (this.screen == null || this.screen.passEvents))
          {
              this.profiler.popPush("Keybindings");
-@@ -1939,8 +2432,30 @@
+@@ -1939,8 +2433,30 @@
              }
          }
  
@@ -1280,7 +1284,7 @@
              this.profiler.popPush("gameRenderer");
  
              if (!this.pause)
-@@ -1972,6 +2487,13 @@
+@@ -1972,6 +2488,13 @@
              this.gameRenderer.shutdownEffect();
          }
  
@@ -1294,7 +1298,7 @@
          if (!this.pause)
          {
              this.musicManager.tick();
-@@ -2043,24 +2565,21 @@
+@@ -2043,24 +2566,21 @@
          this.profiler.popPush("keyboard");
          this.keyboardHandler.tick();
          this.profiler.pop();
@@ -1325,7 +1329,7 @@
          }
  
          while (this.options.keySmoothCamera.consumeClick())
-@@ -2139,7 +2658,7 @@
+@@ -2139,7 +2659,7 @@
          {
              if (!this.player.isSpectator() && this.player.drop(Screen.hasControlDown()))
              {
@@ -1334,7 +1338,7 @@
              }
          }
  
-@@ -2155,8 +2674,9 @@
+@@ -2155,8 +2675,9 @@
  
          if (this.player.isUsingItem())
          {
@@ -1345,7 +1349,7 @@
                  this.gameMode.releaseUsingItem(this.player);
              }
  
-@@ -2174,9 +2694,21 @@
+@@ -2174,9 +2695,21 @@
          }
          else
          {
@@ -1368,7 +1372,7 @@
              }
  
              while (this.options.keyUse.consumeClick())
-@@ -2195,7 +2727,7 @@
+@@ -2195,7 +2728,7 @@
              this.startUseItem();
          }
  
@@ -1377,7 +1381,7 @@
      }
  
      public static DataPackConfig loadDataPacks(LevelStorageSource.LevelStorageAccess pLevelStorage)
-@@ -2457,10 +2989,10 @@
+@@ -2457,10 +2990,10 @@
                              levelstoragesource$levelstorageaccess.close();
                          }
                      }
@@ -1390,7 +1394,7 @@
                      }
                  }
              }, new TranslatableComponent("selectWorld.backupQuestion.experimental"), new TranslatableComponent("selectWorld.backupWarning.experimental"), CommonComponents.GUI_PROCEED, CommonComponents.GUI_CANCEL));
-@@ -2490,6 +3022,13 @@
+@@ -2490,6 +3023,13 @@
  
      public void setLevel(ClientLevel p_91157_)
      {
@@ -1404,7 +1408,7 @@
          ProgressScreen progressscreen = new ProgressScreen(true);
          progressscreen.progressStartNoAbort(new TranslatableComponent("connect.joining"));
          this.updateScreenAndTick(progressscreen);
-@@ -2527,12 +3066,15 @@
+@@ -2527,12 +3067,15 @@
          IntegratedServer integratedserver = this.singleplayerServer;
          this.singleplayerServer = null;
          this.gameRenderer.resetData();
@@ -1420,7 +1424,7 @@
              if (integratedserver != null)
              {
                  this.profiler.push("waitForServer");
-@@ -2549,6 +3091,7 @@
+@@ -2549,6 +3092,7 @@
              this.gui.onDisconnected();
              this.currentServer = null;
              this.isLocalServer = false;
@@ -1428,7 +1432,7 @@
              this.game.onLeaveGameSession();
          }
  
-@@ -2582,6 +3125,7 @@
+@@ -2582,6 +3126,7 @@
          this.particleEngine.setLevel(p_91325_);
          this.blockEntityRenderDispatcher.setLevel(p_91325_);
          this.updateTitle();
@@ -1436,7 +1440,7 @@
      }
  
      public boolean allowsMultiplayer()
-@@ -2657,6 +3201,17 @@
+@@ -2657,6 +3202,17 @@
      {
          if (this.hitResult != null && this.hitResult.getType() != HitResult.Type.MISS)
          {
@@ -1454,7 +1458,7 @@
              boolean flag = this.player.getAbilities().instabuild;
              BlockEntity blockentity = null;
              HitResult.Type hitresult$type = this.hitResult.getType();
-@@ -2745,6 +3300,8 @@
+@@ -2745,6 +3301,8 @@
                  }
              }
          }
@@ -1463,7 +1467,7 @@
      }
  
      private ItemStack addCustomNbtData(ItemStack p_91123_, BlockEntity pStack)
-@@ -3541,6 +4098,575 @@
+@@ -3541,6 +4099,575 @@
          public abstract boolean isChatAllowed(boolean p_168035_);
      }
  
@@ -1525,12 +1529,12 @@
 +
 +            if (rendertarget != null)
 +            {
-+                rendertarget.framebufferRenderExt(0, this.window.getScreenWidth() / 2, this.window.getScreenHeight(), 0, true, 0.0F, 0.0F, false);
++                rendertarget.blitToScreen(0, this.window.getScreenWidth() / 2, this.window.getScreenHeight(), 0, true, 0.0F, 0.0F, false);
 +            }
 +
 +            if (rendertarget1 != null)
 +            {
-+                rendertarget1.framebufferRenderExt(this.window.getScreenWidth() / 2, this.window.getScreenWidth() / 2, this.window.getScreenHeight(), 0, true, 0.0F, 0.0F, false);
++                rendertarget1.blitToScreen(this.window.getScreenWidth() / 2, this.window.getScreenWidth() / 2, this.window.getScreenHeight(), 0, true, 0.0F, 0.0F, false);
 +            }
 +        }
 +        else
@@ -1569,7 +1573,7 @@
 +
 +            if (rendertarget2 != null)
 +            {
-+                rendertarget2.framebufferRenderExt(0, this.window.getScreenWidth(), this.window.getScreenHeight(), 0, true, f, f1, flag);
++                rendertarget2.blitToScreen(0, this.window.getScreenWidth(), this.window.getScreenHeight(), 0, true, f, f1, flag);
 +            }
 +        }
 +    }
@@ -1647,7 +1651,7 @@
 +            ARBShaderObjects.glUniform2fARB(VRShaders._DepthMask_resolutionUniform, (float)j, (float)k);
 +            ARBShaderObjects.glUniform2fARB(VRShaders._DepthMask_positionUniform, (float)l, (float)i1);
 +            ARBShaderObjects.glUniform1iARB(VRShaders._DepthMask_passUniform, i);
-+            this.vrRenderer.framebufferMR.framebufferRenderExt(l, j, k, i1, true, 0.0F, 0.0F, false);
++            this.vrRenderer.framebufferMR.blitToScreen(l, j, k, i1, true, 0.0F, 0.0F, false);
 +        }
 +
 +        GlStateManager._glUseProgram(0);
@@ -1656,11 +1660,11 @@
 +        {
 +            if (this.vrSettings.mixedRealityMRPlusUndistorted)
 +            {
-+                this.vrRenderer.framebufferUndistorted.framebufferRenderExt(this.window.getScreenWidth() / 2, this.window.getScreenWidth() / 2, this.window.getScreenHeight() / 2, 0, true, 0.0F, 0.0F, false);
++                this.vrRenderer.framebufferUndistorted.blitToScreen(this.window.getScreenWidth() / 2, this.window.getScreenWidth() / 2, this.window.getScreenHeight() / 2, 0, true, 0.0F, 0.0F, false);
 +            }
 +            else
 +            {
-+                this.vrRenderer.framebufferEye0.framebufferRenderExt(this.window.getScreenWidth() / 2, this.window.getScreenWidth() / 2, this.window.getScreenHeight() / 2, 0, true, 0.0F, 0.0F, false);
++                this.vrRenderer.framebufferEye0.blitToScreen(this.window.getScreenWidth() / 2, this.window.getScreenWidth() / 2, this.window.getScreenHeight() / 2, 0, true, 0.0F, 0.0F, false);
 +            }
 +        }
 +    }
@@ -1826,7 +1830,7 @@
 +                this.fov = 1.0F;
 +            }
 +
-+            ARBShaderObjects.glUseProgramObjectARB(VRShaders._FOVReduction_shaderProgramId);
++            GlStateManager._glUseProgram(VRShaders._FOVReduction_shaderProgramId);
 +            ARBShaderObjects.glUniform1iARB(VRShaders._FOVReduction_TextureUniform, 0);
 +            ARBShaderObjects.glUniform1fARB(VRShaders._FOVReduction_OffsetUniform, this.vrSettings.fovRedutioncOffset);
 +            float f = 0.0F;
@@ -1941,7 +1945,7 @@
 +            RenderPass renderpass = this.currentPass;
 +            ARBShaderObjects.glUniform1iARB(VRShaders._Overlay_eye, this.currentPass == RenderPass.LEFT ? 1 : -1);
 +            rendertarget.blitToScreen(this.vrRenderer.framebufferEye0.viewWidth, this.vrRenderer.framebufferEye0.viewHeight);
-+            ARBShaderObjects.glUseProgramObjectARB(0);
++            GlStateManager._glUseProgram(0);
 +            this.checkGLError("post overlay" + eye);
 +            this.profiler.pop();
 +        }
@@ -1952,7 +1956,7 @@
 +            this.vrRenderer.cameraFramebuffer.bindWrite(true);
 +            GlStateManager._clearColor(0.0F, 0.0F, 0.0F, 1.0F);
 +            GlStateManager.clear(16640);
-+            this.vrRenderer.cameraRenderFramebuffer.framebufferRenderExt(0, this.vrRenderer.cameraFramebuffer.viewWidth, this.vrRenderer.cameraFramebuffer.viewHeight, 0, true, 0.0F, 0.0F, false);
++            this.vrRenderer.cameraRenderFramebuffer.blitToScreen(0, this.vrRenderer.cameraFramebuffer.viewWidth, this.vrRenderer.cameraFramebuffer.viewHeight, 0, true, 0.0F, 0.0F, false);
 +            this.profiler.pop();
 +        }
 +    }
@@ -2009,7 +2013,7 @@
 +            RenderSystem.clear(256, ON_OSX);
 +            //RenderSystem.fogMode(GlStateManager.FogMode.EXP2);
 +            //RenderSystem.fogDensity(0.0F);
-+            //RenderSystem.disableFog();
++            FogRenderer.setupNoFog();
 +
 +            if (this.mirrorNotifyClear)
 +            {

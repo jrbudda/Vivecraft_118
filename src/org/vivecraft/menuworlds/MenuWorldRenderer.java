@@ -395,7 +395,7 @@ public class MenuWorldRenderer
                 GlStateManager._disableClientState(32884);
             }
 
-            GlStateManager._disableFog();
+            FogRenderer.setupNoFog();
             GlStateManager.disableAlphaTest();
             GlStateManager._enableBlend();
             RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
@@ -543,7 +543,7 @@ public class MenuWorldRenderer
     {/*
         if (Config.isSkyEnabled())
         {
-            GlStateManager._disableFog();
+            FogRenderer.setupNoFog();
             GlStateManager.disableAlphaTest();
             GlStateManager._enableBlend();
             RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);

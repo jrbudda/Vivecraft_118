@@ -85,42 +85,81 @@
      public void renderItem(LivingEntity p_109323_, ItemStack pLivingEntity, ItemTransforms.TransformType pItemStack, boolean pTransformType, PoseStack pLeftHand, MultiBufferSource pMatrixStack, int pBuffer)
      {
          CustomItems.setRenderOffHand(pTransformType);
-@@ -257,6 +296,18 @@
-         p_109347_.mulPose(Vector3f.ZP.rotationDegrees(f * f5 * -20.0F));
+@@ -245,33 +284,48 @@
+     {
+         boolean flag = pSwingProgress != HumanoidArm.LEFT;
+         float f = flag ? 1.0F : -1.0F;
+-        float f1 = Mth.sqrt(pEquippedProgress);
+-        float f2 = -0.3F * Mth.sin(f1 * (float)Math.PI);
+-        float f3 = 0.4F * Mth.sin(f1 * ((float)Math.PI * 2F));
+-        float f4 = -0.4F * Mth.sin(pEquippedProgress * (float)Math.PI);
+-        p_109347_.translate((double)(f * (f2 + 0.64000005F)), (double)(f3 + -0.6F + pCombinedLight * -0.6F), (double)(f4 + -0.71999997F));
+-        p_109347_.mulPose(Vector3f.YP.rotationDegrees(f * 45.0F));
+-        float f5 = Mth.sin(pEquippedProgress * pEquippedProgress * (float)Math.PI);
+-        float f6 = Mth.sin(f1 * (float)Math.PI);
+-        p_109347_.mulPose(Vector3f.YP.rotationDegrees(f * f6 * 70.0F));
+-        p_109347_.mulPose(Vector3f.ZP.rotationDegrees(f * f5 * -20.0F));
++//        float f1 = Mth.sqrt(pEquippedProgress);
++//        float f2 = -0.3F * Mth.sin(f1 * (float)Math.PI);
++//        float f3 = 0.4F * Mth.sin(f1 * ((float)Math.PI * 2F));
++//        float f4 = -0.4F * Mth.sin(pEquippedProgress * (float)Math.PI);
++//        p_109347_.translate((double)(f * (f2 + 0.64000005F)), (double)(f3 + -0.6F + pCombinedLight * -0.6F), (double)(f4 + -0.71999997F));
++//        p_109347_.mulPose(Vector3f.YP.rotationDegrees(f * 45.0F));
++//        float f5 = Mth.sin(pEquippedProgress * pEquippedProgress * (float)Math.PI);
++//        float f6 = Mth.sin(f1 * (float)Math.PI);
++//        p_109347_.mulPose(Vector3f.YP.rotationDegrees(f * f6 * 70.0F));
++//        p_109347_.mulPose(Vector3f.ZP.rotationDegrees(f * f5 * -20.0F));
          AbstractClientPlayer abstractclientplayer = this.minecraft.player;
          RenderSystem.setShaderTexture(0, abstractclientplayer.getSkinTextureLocation());
+-        p_109347_.translate((double)(f * -1.0F), (double)3.6F, 3.5D);
+-        p_109347_.mulPose(Vector3f.ZP.rotationDegrees(f * 120.0F));
+-        p_109347_.mulPose(Vector3f.XP.rotationDegrees(200.0F));
+-        p_109347_.mulPose(Vector3f.YP.rotationDegrees(f * -135.0F));
+-        p_109347_.translate((double)(f * 5.6F), 0.0D, 0.0D);
+-        PlayerRenderer playerrenderer = (PlayerRenderer)this.entityRenderDispatcher.<AbstractClientPlayer>getRenderer(abstractclientplayer);
+-
+-        if (flag)
+-        {
+-            playerrenderer.renderRightHand(p_109347_, pMatrixStack, pBuffer, abstractclientplayer);
+-        }
+-        else
+-        {
+-            playerrenderer.renderLeftHand(p_109347_, pMatrixStack, pBuffer, abstractclientplayer);
+-        }
 +        VRArmRenderer vrarmrenderer = entityRenderDispatcher.armSkinMap.get(abstractclientplayer.getModelName());
 +        p_109347_.pushPose();
-+
-+        if (abstractclientplayer.swingingArm == InteractionHand.MAIN_HAND && flag)
-+        {
-+            this.transformFirstPersonVR(p_109347_, pSwingProgress, pEquippedProgress);
-+        }
-+
-+        if (abstractclientplayer.swingingArm == InteractionHand.OFF_HAND && !flag)
-+        {
-+            this.transformFirstPersonVR(p_109347_, pSwingProgress, pEquippedProgress);
-+        }
-         p_109347_.translate((double)(f * -1.0F), (double)3.6F, 3.5D);
-         p_109347_.mulPose(Vector3f.ZP.rotationDegrees(f * 120.0F));
-         p_109347_.mulPose(Vector3f.XP.rotationDegrees(200.0F));
-@@ -266,12 +317,13 @@
- 
-         if (flag)
-         {
--            playerrenderer.renderRightHand(p_109347_, pMatrixStack, pBuffer, abstractclientplayer);
-+            vrarmrenderer.renderRightHand(p_109347_, pMatrixStack, pBuffer, abstractclientplayer);
-         }
-         else
-         {
--            playerrenderer.renderLeftHand(p_109347_, pMatrixStack, pBuffer, abstractclientplayer);
-+            vrarmrenderer.renderLeftHand(p_109347_, pMatrixStack, pBuffer, abstractclientplayer);
-         }
++	        if (abstractclientplayer.swingingArm == InteractionHand.MAIN_HAND && flag)
++	        {
++	            this.transformFirstPersonVR(p_109347_, pSwingProgress, pEquippedProgress);
++	        }
++	
++	        if (abstractclientplayer.swingingArm == InteractionHand.OFF_HAND && !flag)
++	        {
++	            this.transformFirstPersonVR(p_109347_, pSwingProgress, pEquippedProgress);
++	        }
++//	        p_109347_.translate((double)(f * -1.0F), (double)3.6F, 3.5D);
++//	        p_109347_.mulPose(Vector3f.ZP.rotationDegrees(f * 120.0F));
++//	        p_109347_.mulPose(Vector3f.XP.rotationDegrees(200.0F));
++//	        p_109347_.mulPose(Vector3f.YP.rotationDegrees(f * -135.0F));
++//	        p_109347_.translate((double)(f * 5.6F), 0.0D, 0.0D);	
++	        p_109347_.scale(0.4f, 0.4F, 0.4F);
++	    	boolean slim = abstractclientplayer.getSkinTextureLocation().getPath().equals("slim");
++	    	p_109347_.translate(slim ? 0.345F * -f : 0.375F * -f, 0, slim ? 0.785F : 0.75F);
++	    	p_109347_.mulPose(Vector3f.XP.rotationDegrees(-90));
++	    	p_109347_.mulPose(Vector3f.YP.rotationDegrees(180));	
++	        if (flag)
++	        {
++	            vrarmrenderer.renderRightHand(p_109347_, pMatrixStack, pBuffer, abstractclientplayer);
++	        }
++	        else
++	        {
++	            vrarmrenderer.renderLeftHand(p_109347_, pMatrixStack, pBuffer, abstractclientplayer);
++	        }
 +       p_109347_.popPose();
      }
  
      private void applyEatTransform(PoseStack p_109331_, float pMatrixStack, HumanoidArm pPartialTicks, ItemStack pHand)
-@@ -304,6 +356,49 @@
+@@ -304,6 +358,49 @@
          p_109336_.mulPose(Vector3f.YP.rotationDegrees((float)i * -45.0F));
      }
  
@@ -170,7 +209,7 @@
      private void applyItemArmTransform(PoseStack p_109383_, HumanoidArm pMatrixStack, float pHand)
      {
          int i = pMatrixStack == HumanoidArm.RIGHT ? 1 : -1;
-@@ -380,188 +475,481 @@
+@@ -380,188 +477,481 @@
          return p_172913_.is(Items.CROSSBOW) && CrossbowItem.isCharged(p_172913_);
      }
  
@@ -783,7 +822,7 @@
          }
      }
  
-@@ -671,4 +1059,41 @@
+@@ -671,4 +1061,41 @@
              return p_172932_ == InteractionHand.MAIN_HAND ? RENDER_MAIN_HAND_ONLY : RENDER_OFF_HAND_ONLY;
          }
      }

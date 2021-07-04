@@ -119,38 +119,39 @@
          if (GLX.isUsingFBOs())
          {
              RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
-@@ -329,8 +366,8 @@
+@@ -329,8 +366,9 @@
      {
          this.blitToScreen(p_83939_, pWidth, true);
      }
 -
 -    public void blitToScreen(int p_83958_, int pWidth, boolean pHeight)
++    
 +	//Vivecraft add x/y offsets
-+    public void framebufferRenderExt(int left, int width, int height, int top, boolean disableBlend, float xCropFactor, float yCropFactor, boolean keepAspect)
++    public void blitToScreen(int left, int width, int height, int top, boolean disableBlend, float xCropFactor, float yCropFactor, boolean keepAspect)
      {
          RenderSystem.assertThread(RenderSystem::isOnGameThreadOrInit);
  
-@@ -338,16 +375,16 @@
+@@ -338,16 +376,16 @@
          {
              RenderSystem.recordRenderCall(() ->
              {
 -                this._blitToScreen(p_83958_, pWidth, pHeight);
-+                this.framebufferRenderExtRaw(left, width, height, top, disableBlend, xCropFactor, yCropFactor, keepAspect);
++                this._blitToScreen(left, width, height, top, disableBlend, xCropFactor, yCropFactor, keepAspect);
              });
          }
          else
          {
 -            this._blitToScreen(p_83958_, pWidth, pHeight);
-+            this.framebufferRenderExtRaw(left, width, height, top, disableBlend, xCropFactor, yCropFactor, keepAspect);
++            this._blitToScreen(left, width, height, top, disableBlend, xCropFactor, yCropFactor, keepAspect);
          }
      }
  
 -    private void _blitToScreen(int p_83972_, int pWidth, boolean pHeight)
-+    private void framebufferRenderExtRaw(int left, int width, int height, int top, boolean p_227588_3_, float xCropFactor, float yCropFactor, boolean keepAspect)
++    private void _blitToScreen(int left, int width, int height, int top, boolean p_227588_3_, float xCropFactor, float yCropFactor, boolean keepAspect)
      {
          if (GLX.isUsingFBOs())
          {
-@@ -355,9 +392,10 @@
+@@ -355,9 +393,10 @@
              GlStateManager._colorMask(true, true, true, false);
              GlStateManager._disableDepthTest();
              GlStateManager._depthMask(false);
@@ -163,7 +164,7 @@
              {
                  GlStateManager._disableBlend();
              }
-@@ -365,7 +403,7 @@
+@@ -365,7 +404,7 @@
              Minecraft minecraft = Minecraft.getInstance();
              ShaderInstance shaderinstance = minecraft.gameRenderer.blitShader;
              shaderinstance.setSampler("DiffuseSampler", this.colorTextureId);
@@ -172,7 +173,7 @@
              RenderSystem.setProjectionMatrix(matrix4f);
  
              if (shaderinstance.MODEL_VIEW_MATRIX != null)
-@@ -379,17 +417,44 @@
+@@ -379,17 +418,44 @@
              }
  
              shaderinstance.apply();
@@ -226,7 +227,7 @@
              bufferbuilder.end();
              BufferUploader._endInternal(bufferbuilder);
              shaderinstance.clear();
-@@ -425,17 +490,51 @@
+@@ -425,17 +491,53 @@
          return this.depthBufferId;
      }
  
@@ -250,9 +251,10 @@
 +        GL30.glGenerateMipmap(3553);
 +    }
 +
++    //Vivecraft - vanilla call
 +    public void blitToScreen(int p_83958_, int pWidth, boolean pHeight)
 +    {
-+        this.framebufferRenderExt(0, p_83958_, pWidth, 0, pHeight, 0.0F, 0.0F, false);
++        this.blitToScreen(0, p_83958_, pWidth, 0, pHeight, 0.0F, 0.0F, false);
 +    }
 +
 +    public String toString()
@@ -275,6 +277,7 @@
 +
 +    public void enableStencil()
 +    {
++    	//Vivecraft noop
      }
  
      public boolean isStencilEnabled()

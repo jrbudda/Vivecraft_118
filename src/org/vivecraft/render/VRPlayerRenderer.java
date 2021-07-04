@@ -11,6 +11,8 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.builders.CubeDeformation;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -45,11 +47,14 @@ import net.minecraft.world.scores.Scoreboard;
 
 public class VRPlayerRenderer extends LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>>
 {
+	static LayerDefinition VRLayerDef = LayerDefinition.create(VRPlayerModel.createMesh(CubeDeformation.NONE, false), 64, 64);
+	static LayerDefinition VRLayerDef_arms = LayerDefinition.create(VRPlayerModel_WithArms.createMesh(CubeDeformation.NONE, false), 64, 64);
+
     public VRPlayerRenderer(EntityRendererProvider.Context p_174557_, boolean p_174558_, boolean seated)
     {
         super(p_174557_, seated ? 
-        		new VRPlayerModel<AbstractClientPlayer>(p_174557_.bakeLayer(p_174558_ ? ModelLayers.PLAYER_SLIM : ModelLayers.PLAYER), p_174558_) : 
-        			new VRPlayerModel_WithArms<AbstractClientPlayer>(p_174557_.bakeLayer(p_174558_ ? ModelLayers.PLAYER_SLIM : ModelLayers.PLAYER), p_174558_), 0.5F);
+        		new VRPlayerModel<>(VRLayerDef.bakeRoot(), p_174558_) : 
+        			new VRPlayerModel_WithArms<>(VRLayerDef_arms.bakeRoot(), p_174558_), 0.5F);
         this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(p_174557_.bakeLayer(p_174558_ ? ModelLayers.PLAYER_SLIM_INNER_ARMOR : ModelLayers.PLAYER_INNER_ARMOR)), new HumanoidModel(p_174557_.bakeLayer(p_174558_ ? ModelLayers.PLAYER_SLIM_OUTER_ARMOR : ModelLayers.PLAYER_OUTER_ARMOR))));
         this.addLayer(new PlayerItemInHandLayer<>(this));
         this.addLayer(new ArrowLayer<>(p_174557_, this));

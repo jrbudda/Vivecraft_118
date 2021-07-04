@@ -24,14 +24,14 @@ public class VRActiveRenderInfo extends Camera
             renderpass = RenderPass.CENTER;
         }
 
-        VRData.VRDevicePose vrdata$vrdevicepose = minecraft.vrPlayer.vrdata_world_render.getEye(renderpass);
-        this.setPosition(vrdata$vrdevicepose.getPosition());
-        this.xRot = -vrdata$vrdevicepose.getPitch();
-        this.yRot = vrdata$vrdevicepose.getYaw();
-        this.forwards.set((float)vrdata$vrdevicepose.getDirection().x, (float)vrdata$vrdevicepose.getDirection().y, (float)vrdata$vrdevicepose.getDirection().z);
-        Vec3 vec3 = vrdata$vrdevicepose.getCustomVector(new Vec3(0.0D, 1.0D, 0.0D));
+        VRData.VRDevicePose eye = minecraft.vrPlayer.vrdata_world_render.getEye(renderpass);
+        this.setPosition(eye.getPosition());
+        this.xRot = -eye.getPitch();
+        this.yRot = eye.getYaw();
+        this.forwards.set((float)eye.getDirection().x, (float)eye.getDirection().y, (float)eye.getDirection().z);
+        Vec3 vec3 = eye.getCustomVector(new Vec3(0.0D, 1.0D, 0.0D));
         this.up.set((float)vec3.x, (float)vec3.y, (float)vec3.z);
-        vrdata$vrdevicepose.getCustomVector(new Vec3(1.0D, 0.0D, 0.0D));
+        eye.getCustomVector(new Vec3(1.0D, 0.0D, 0.0D));
         this.left.set((float)vec3.x, (float)vec3.y, (float)vec3.z);
         this.rotation.set(0.0F, 0.0F, 0.0F, 1.0F);
         this.rotation.mul(Vector3f.YP.rotationDegrees(-this.yRot));

@@ -1,26 +1,26 @@
-#version 110
+#version 150
 
-uniform sampler2D DiffuseSampler;
-uniform sampler2D DiffuseDepthSampler;
-uniform sampler2D TranslucentSampler;
-uniform sampler2D TranslucentDepthSampler;
-uniform sampler2D ItemEntitySampler;
-uniform sampler2D ItemEntityDepthSampler;
-uniform sampler2D ParticlesSampler;
-uniform sampler2D ParticlesDepthSampler;
-uniform sampler2D WeatherSampler;
-uniform sampler2D WeatherDepthSampler;
-uniform sampler2D CloudsSampler;
-uniform sampler2D CloudsDepthSampler;
+uniform sampler DiffuseSampler;
+uniform sampler DiffuseDepthSampler;
+uniform sampler TranslucentSampler;
+uniform sampler TranslucentDepthSampler;
+uniform sampler ItemEntitySampler;
+uniform sampler ItemEntityDepthSampler;
+uniform sampler ParticlesSampler;
+uniform sampler ParticlesDepthSampler;
+uniform sampler WeatherSampler;
+uniform sampler WeatherDepthSampler;
+uniform sampler CloudsSampler;
+uniform sampler CloudsDepthSampler;
 
-uniform sampler2D VrOccludedSampler;
-uniform sampler2D VrOccludedDepthSampler;
-uniform sampler2D VrUnoccludedSampler;
-uniform sampler2D VrUnoccludedDepthSampler;
-uniform sampler2D VrHandsSampler;
-uniform sampler2D VrHandsDepthSampler;
+uniform sampler VrOccludedSampler;
+uniform sampler VrOccludedDepthSampler;
+uniform sampler VrUnoccludedSampler;
+uniform sampler VrUnoccludedDepthSampler;
+uniform sampler VrHandsSampler;
+uniform sampler VrHandsDepthSampler;
 
-varying vec2 texCoord;
+in vec2 texCoord;
 
 #define NUM_LAYERS 9
 
@@ -29,6 +29,8 @@ float depth_layers[NUM_LAYERS];
 int active_layers = 0;
 float hdepth;
 float udepth;
+
+out vec4 fragColor;
 
 void try_insert( vec4 color, float depth ) {
     if ( color.a == 0.0 ) {
@@ -58,23 +60,23 @@ vec3 blend( vec3 dst, vec4 src ) {
 }
 
 void main() {
-    color_layers[0] = vec4( texture2D( DiffuseSampler, texCoord ).rgb, 1.0 );
-    depth_layers[0] = texture2D( DiffuseDepthSampler, texCoord ).r;
+    color_layers[0] = vec4( texture( DiffuseSampler, texCoord ).rgb, 1.0 );
+    depth_layers[0] = texture( DiffuseDepthSampler, texCoord ).r;
     active_layers = 1;
 
-    try_insert( texture2D( TranslucentSampler, texCoord ), texture2D( TranslucentDepthSampler, texCoord ).r );
-    try_insert( texture2D( ItemEntitySampler, texCoord ), texture2D( ItemEntityDepthSampler, texCoord ).r );
-    try_insert( texture2D( ParticlesSampler, texCoord ), texture2D( ParticlesDepthSampler, texCoord ).r );
-    try_insert( texture2D( WeatherSampler, texCoord ), texture2D( WeatherDepthSampler, texCoord ).r );
-    try_insert( texture2D( CloudsSampler, texCoord ), texture2D( CloudsDepthSampler, texCoord ).r );
-    try_insert( texture2D( VrOccludedSampler, texCoord ), texture2D( VrOccludedDepthSampler, texCoord ).r );
-	hdepth = texture2D( VrHandsDepthSampler, texCoord ).r;
-	udepth = texture2D( VrUnoccludedDepthSampler, texCoord ).r;
-	try_insert( texture2D( VrUnoccludedSampler, texCoord ), 0.0);
-	if (hdepth<udepth && udepth < 1.0)
-		try_insert( texture2D( VrHandsSampler, texCoord ), 0.0);
-	else
-		try_insert( texture2D( VrHandsSampler, texCoord ), hdepth);
+    try_insert( texture( TranslucentSampler, texCoord ), texture( TranslucentDepthSampler, texCoord ).r );
+    try_insert( texture( ItemEntitySampler, texCoord ), texture( ItemEntityDepthSampler, texCoord ).r );
+    try_insert( texture( ParticlesSampler, texCoord ), texture( ParticlesDepthSampler, texCoord ).r );
+    try_insert( texture( WeatherSampler, texCoord ), texture( WeatherDepthSampler, texCoord ).r );
+    try_insert( texture( CloudsSampler, texCoord ), texture( CloudsDepthSampler, texCoord ).r );
+    try_insert( texture( VrOccludedSampler, texCoord ), texture( VrOccludedDepthSampler, texCoord ).r );
+    hdepth = texture( VrHandsDepthSampler, texCoord ).r;
+    udepth = texture( VrUnoccludedDepthSampler, texCoord ).r;
+    try_insert( texture( VrUnoccludedSampler, texCoord ), 0.0);
+    if (hdepth<udepth && udepth < 1.0)
+        try_insert( texture( VrHandsSampler, texCoord ), 0.0);
+    else
+        try_insert( texture( VrHandsSampler, texCoord ), hdepth);
 
 
     vec3 texelAccum = color_layers[0].rgb;
@@ -82,5 +84,5 @@ void main() {
         texelAccum = blend( texelAccum, color_layers[ii] );
     }
 
-    gl_FragColor = vec4( texelAccum.rgb, 1.0 );
+    fragColor = vec4( texelAccum.rgb, 1.0 );
 }
