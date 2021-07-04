@@ -210,23 +210,23 @@
 +    boolean mirrorNotifyClear;
 +    long mirroNotifyLen;
  
-     public Minecraft(GameConfig p_91084_)
+     public Minecraft(GameConfig pGameConfig)
      {
          super("Client");
          instance = this;
 +        Reflector.call(Reflector.ForgeHooksClient_invalidateLog4jThreadCache);
-         this.gameDirectory = p_91084_.location.gameDirectory;
-         File file1 = p_91084_.location.assetDirectory;
-         this.resourcePackDirectory = p_91084_.location.resourcePackDirectory;
+         this.gameDirectory = pGameConfig.location.gameDirectory;
+         File file1 = pGameConfig.location.assetDirectory;
+         this.resourcePackDirectory = pGameConfig.location.resourcePackDirectory;
 @@ -403,8 +532,6 @@
          this.minecraftSessionService = yggdrasilauthenticationservice.createMinecraftSessionService();
-         this.socialInteractionsService = this.createSocialInteractions(yggdrasilauthenticationservice, p_91084_);
-         this.user = p_91084_.user.user;
+         this.socialInteractionsService = this.createSocialInteractions(yggdrasilauthenticationservice, pGameConfig);
+         this.user = pGameConfig.user.user;
 -        LOGGER.info("Setting user: {}", (Object)this.user.getName());
 -        LOGGER.debug("(Session ID is {})", (Object)this.user.getSessionId());
-         this.demo = p_91084_.game.demo;
-         this.allowsMultiplayer = !p_91084_.game.disableMultiplayer;
-         this.allowsChat = !p_91084_.game.disableChat;
+         this.demo = pGameConfig.game.demo;
+         this.allowsMultiplayer = !pGameConfig.game.disableMultiplayer;
+         this.allowsChat = !pGameConfig.game.disableChat;
 @@ -427,6 +554,23 @@
          KeybindComponent.setKeyResolver(KeyMapping::createNameSupplier);
          this.fixerUpper = DataFixers.getDataFixer();
@@ -391,7 +391,7 @@
  
 @@ -643,7 +813,10 @@
  
-     private void rollbackResourcePacks(Throwable p_91240_)
+     private void rollbackResourcePacks(Throwable pThrowable)
      {
 -        if (this.resourcePackRepository.getSelectedIds().size() > 1)
 +        if (this.resourcePackRepository.getSelectedPacks().stream().anyMatch((e) ->
@@ -497,7 +497,7 @@
          }
  
 +        Screen screen = this.screen;
-+        Object object = Reflector.newInstance(Reflector.GuiOpenEvent_Constructor, p_91153_);
++        Object object = Reflector.newInstance(Reflector.GuiOpenEvent_Constructor, pGuiScreen);
 +        if (object != null)
 +        {
 +            if (Reflector.postForgeBusEvent(object))
@@ -505,9 +505,9 @@
 +                return;
 +            }
 +
-+            p_91153_ = (Screen)Reflector.call(object, Reflector.GuiOpenEvent_getGui);
++            pGuiScreen = (Screen)Reflector.call(object, Reflector.GuiOpenEvent_getGui);
 +        }
-         this.screen = p_91153_;
+         this.screen = pGuiScreen;
          BufferUploader.reset();
  
 @@ -1082,6 +1306,14 @@
@@ -525,12 +525,14 @@
              if (this.delayedCrash == null)
              {
                  System.exit(0);
-@@ -1118,10 +1350,10 @@
+@@ -1117,11 +1349,11 @@
+             this.window.close();
          }
      }
- 
+-
++    
 +    //Mojang why would you name it this. This is runGameLoop
-     private void runTick(boolean p_91384_)
+     private void runTick(boolean pRenderLevel)
      {
          this.window.setErrorSection("Pre render");
 -        long i = Util.getNanos();
@@ -539,7 +541,7 @@
          {
 @@ -1147,79 +1379,265 @@
  
-         if (p_91384_)
+         if (pRenderLevel)
          {
 +            this.options.ofFastRender = false;
 +            ++this.frameIndex;
@@ -658,7 +660,7 @@
          if (!this.noRender)
          {
 -            this.profiler.popPush("gameRenderer");
--            this.gameRenderer.render(this.pause ? this.pausePartialTick : this.timer.partialTick, i, p_91384_);
+-            this.gameRenderer.render(this.pause ? this.pausePartialTick : this.timer.partialTick, i, pRenderLevel);
 -            this.profiler.popPush("toasts");
 -            this.toast.render(new PoseStack());
 -            this.profiler.pop();
@@ -670,7 +672,7 @@
 +        GlStateManager._colorMask(true, true, true, true);
 +        this.mainRenderTarget = GuiHandler.guiFramebuffer;
 +        this.mainRenderTarget.bindWrite(true);
-+        this.gameRenderer.drawFramebufferNEW(f, p_91384_, new PoseStack());
++        this.gameRenderer.drawFramebufferNEW(f, pRenderLevel, new PoseStack());
 +
 +        if (org.vivecraft.gameplay.screenhandlers.KeyboardHandler.Showing && !this.vrSettings.physicalKeyboard)
          {
@@ -749,7 +751,7 @@
 +                this.mainRenderTarget.bindWrite(true);
 +                this.profiler.pop();
 +                GL43.glLoadIdentity();
-+                this.renderSingleView(renderpass.ordinal(), f, p_91384_);
++                this.renderSingleView(renderpass.ordinal(), f, pRenderLevel);
 +                this.profiler.pop();
 +
 +                if (this.grabScreenShot)
@@ -786,7 +788,7 @@
 +                }
 +            }
 +
-+            if (p_91384_)
++            if (pRenderLevel)
 +            {
 +                this.vrPlayer.postRender(f);
 +                this.profiler.push("Display/Reproject");
@@ -893,18 +895,18 @@
 +        }
 +    }
 +
-     private void renderFpsMeter(PoseStack p_91141_, ProfileResults pMatrixStack)
+     private void renderFpsMeter(PoseStack pMatrixStack, ProfileResults pProfilerResult)
      {
-         List<ResultField> list = pMatrixStack.getTimes(this.debugPath);
+         List<ResultField> list = pProfilerResult.getTimes(this.debugPath);
 @@ -1635,14 +2065,14 @@
              s1 = s1 + s + " ";
          }
  
 -        int k2 = 16777215;
 +        int j2 = 16777215;
-         this.font.drawShadow(p_91141_, s1, (float)(j - 160), (float)(k - 80 - 16), 16777215);
+         this.font.drawShadow(pMatrixStack, s1, (float)(j - 160), (float)(k - 80 - 16), 16777215);
          s1 = decimalformat.format(resultfield.globalPercentage) + "%";
-         this.font.drawShadow(p_91141_, s1, (float)(j + 160 - this.font.width(s1)), (float)(k - 80 - 16), 16777215);
+         this.font.drawShadow(pMatrixStack, s1, (float)(j + 160 - this.font.width(s1)), (float)(k - 80 - 16), 16777215);
  
 -        for (int j2 = 0; j2 < list.size(); ++j2)
 +        for (int k2 = 0; k2 < list.size(); ++k2)
@@ -923,14 +925,14 @@
              }
  
              String s2 = stringbuilder.append(resultfield2.name).toString();
--            this.font.drawShadow(p_91141_, s2, (float)(j - 160), (float)(k + 80 + j2 * 8 + 20), resultfield2.getColor());
-+            this.font.drawShadow(p_91141_, s2, (float)(j - 160), (float)(k + 80 + k2 * 8 + 20), resultfield2.getColor());
+-            this.font.drawShadow(pMatrixStack, s2, (float)(j - 160), (float)(k + 80 + j2 * 8 + 20), resultfield2.getColor());
++            this.font.drawShadow(pMatrixStack, s2, (float)(j - 160), (float)(k + 80 + k2 * 8 + 20), resultfield2.getColor());
              s2 = decimalformat.format(resultfield2.percentage) + "%";
--            this.font.drawShadow(p_91141_, s2, (float)(j + 160 - 50 - this.font.width(s2)), (float)(k + 80 + j2 * 8 + 20), resultfield2.getColor());
-+            this.font.drawShadow(p_91141_, s2, (float)(j + 160 - 50 - this.font.width(s2)), (float)(k + 80 + k2 * 8 + 20), resultfield2.getColor());
+-            this.font.drawShadow(pMatrixStack, s2, (float)(j + 160 - 50 - this.font.width(s2)), (float)(k + 80 + j2 * 8 + 20), resultfield2.getColor());
++            this.font.drawShadow(pMatrixStack, s2, (float)(j + 160 - 50 - this.font.width(s2)), (float)(k + 80 + k2 * 8 + 20), resultfield2.getColor());
              s2 = decimalformat.format(resultfield2.globalPercentage) + "%";
--            this.font.drawShadow(p_91141_, s2, (float)(j + 160 - this.font.width(s2)), (float)(k + 80 + j2 * 8 + 20), resultfield2.getColor());
-+            this.font.drawShadow(p_91141_, s2, (float)(j + 160 - this.font.width(s2)), (float)(k + 80 + k2 * 8 + 20), resultfield2.getColor());
+-            this.font.drawShadow(pMatrixStack, s2, (float)(j + 160 - this.font.width(s2)), (float)(k + 80 + j2 * 8 + 20), resultfield2.getColor());
++            this.font.drawShadow(pMatrixStack, s2, (float)(j + 160 - this.font.width(s2)), (float)(k + 80 + k2 * 8 + 20), resultfield2.getColor());
          }
      }
  
@@ -1127,13 +1129,12 @@
 -                                            this.gameRenderer.itemInHandRenderer.itemUsed(interactionhand);
 +                                            this.player.swingArm(interactionhand, VRFirstPersonArmSwing.Use);
                                          }
-+
-+                                        return;
-                                     }
+-                                    }
  
 -                                    return;
 -                                }
-+                                    break;
++                                        return;
++                                    }
  
 -                                if (interactionresult1 == InteractionResult.FAIL)
 -                                {
@@ -1141,14 +1142,21 @@
 -                                }
 -                        }
 -                    }
++                                    break;
+ 
+-                    if (!itemstack.isEmpty())
+-                    {
+-                        InteractionResult interactionresult2 = this.gameMode.useItem(this.player, this.level, interactionhand);
 +                                case BLOCK:
 +                                    BlockHitResult blockhitresult = (BlockHitResult)this.hitResult;
 +                                    int i = itemstack.getCount();
 +                                    InteractionResult interactionresult1 = this.gameMode.useItemOn(this.player, this.level, interactionhand, blockhitresult);
  
--                    if (!itemstack.isEmpty())
--                    {
--                        InteractionResult interactionresult2 = this.gameMode.useItem(this.player, this.level, interactionhand);
+-                        if (interactionresult2.consumesAction())
+-                        {
+-                            if (interactionresult2.shouldSwing())
+-                            {
+-                                this.player.swing(interactionhand);
 +                                    if (interactionresult1.consumesAction())
 +                                    {
 +                                        if (interactionresult1.shouldSwing())
@@ -1163,8 +1171,7 @@
 +                                                this.gameRenderer.itemInHandRenderer.itemUsed(interactionhand);
 +                                            }
 +                                        }
- 
--                        if (interactionresult2.consumesAction())
++
 +                                        return;
 +                                    }
 +
@@ -1172,32 +1179,29 @@
 +                                    {
 +                                        return;
 +                                    }
-+                            }
+                             }
 +                        }
 +
 +                        //this.physicalGuiManager.preClickAction();
-+
+ 
+-                            this.gameRenderer.itemInHandRenderer.itemUsed(interactionhand);
+-                            return;
 +                        if (itemstack.isEmpty() && (this.hitResult == null || this.hitResult.getType() == HitResult.Type.MISS))
 +                        {
 +                            Reflector.call(Reflector.ForgeHooks_onEmptyClick, this.player, interactionhand);
 +                        }
 +
 +                        if (!itemstack.isEmpty())
-                         {
--                            if (interactionresult2.shouldSwing())
++                        {
 +                            InteractionResult interactionresult2 = this.gameMode.useItem(this.player, this.level, interactionhand);
 +
 +                            if (interactionresult2.consumesAction())
-                             {
--                                this.player.swing(interactionhand);
--                            }
++                            {
 +                                if (interactionresult2.shouldSwing())
 +                                {
 +                                    this.player.swingArm(interactionhand, VRFirstPersonArmSwing.Use);
 +                                }
- 
--                            this.gameRenderer.itemInHandRenderer.itemUsed(interactionhand);
--                            return;
++
 +                                this.gameRenderer.itemInHandRenderer.itemUsed(interactionhand);
 +                                return;
 +                            }
@@ -1388,15 +1392,15 @@
 -                    catch (IOException ioexception)
 +                    catch (IOException ioexception1)
                      {
-                         SystemToast.onWorldDeleteFailure(this, pSelectionType);
--                        LOGGER.error("Failed to delete world {}", pSelectionType, ioexception);
-+                        LOGGER.error("Failed to delete world {}", pSelectionType, ioexception1);
+                         SystemToast.onWorldDeleteFailure(this, pLevelName);
+-                        LOGGER.error("Failed to delete world {}", pLevelName, ioexception);
++                        LOGGER.error("Failed to delete world {}", pLevelName, ioexception1);
                      }
                  }
              }, new TranslatableComponent("selectWorld.backupQuestion.experimental"), new TranslatableComponent("selectWorld.backupWarning.experimental"), CommonComponents.GUI_PROCEED, CommonComponents.GUI_CANCEL));
 @@ -2490,6 +3023,13 @@
  
-     public void setLevel(ClientLevel p_91157_)
+     public void setLevel(ClientLevel pLevelClient)
      {
 +        this.vrPlayer.setRoomOrigin(0.0D, 0.0D, 0.0D, true);
 +
@@ -1415,7 +1419,7 @@
 +        Reflector.call(Reflector.ClientHooks_firePlayerLogout, this.gameMode, this.player);
          this.gameMode = null;
          NarratorChatListener.INSTANCE.clear();
-         this.updateScreenAndTick(p_91321_);
+         this.updateScreenAndTick(pScreen);
  
          if (this.level != null)
          {
@@ -1433,8 +1437,8 @@
          }
  
 @@ -2582,6 +3126,7 @@
-         this.particleEngine.setLevel(p_91325_);
-         this.blockEntityRenderDispatcher.setLevel(p_91325_);
+         this.particleEngine.setLevel(pLevel);
+         this.blockEntityRenderDispatcher.setLevel(pLevel);
          this.updateTitle();
 +        Reflector.call(Reflector.MinecraftForgeClient_clearRenderCache);
      }
@@ -1466,7 +1470,7 @@
 +        //this.physicalGuiManager.init(this.player);
      }
  
-     private ItemStack addCustomNbtData(ItemStack p_91123_, BlockEntity pStack)
+     private ItemStack addCustomNbtData(ItemStack pStack, BlockEntity pTe)
 @@ -3541,6 +4099,575 @@
          public abstract boolean isChatAllowed(boolean p_168035_);
      }

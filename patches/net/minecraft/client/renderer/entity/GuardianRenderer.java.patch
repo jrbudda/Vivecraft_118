@@ -17,15 +17,15 @@
  public class GuardianRenderer extends MobRenderer<Guardian, GuardianModel>
  {
 @@ -81,6 +83,12 @@
-             pPartialTicks.pushPose();
-             pPartialTicks.translate(0.0D, (double)f3, 0.0D);
-             Vec3 vec3 = this.getPosition(livingentity, (double)livingentity.getBbHeight() * 0.5D, pEntityYaw);
+             pMatrixStack.pushPose();
+             pMatrixStack.translate(0.0D, (double)f3, 0.0D);
+             Vec3 vec3 = this.getPosition(livingentity, (double)livingentity.getBbHeight() * 0.5D, pPartialTicks);
 +
 +            if (livingentity == Minecraft.getInstance().getCameraEntity())
 +            {
 +                vec3 = Minecraft.getInstance().vrPlayer.getVRDataWorld().getEye(RenderPass.CENTER).getPosition().subtract(0.0D, 0.3D * (double)Minecraft.getInstance().vrPlayer.worldScale, 0.0D);
 +            }
 +
-             Vec3 vec31 = this.getPosition(p_114829_, (double)f3, pEntityYaw);
+             Vec3 vec31 = this.getPosition(pEntity, (double)f3, pPartialTicks);
              Vec3 vec32 = vec3.subtract(vec31);
              float f4 = (float)(vec32.length() + 1.0D);

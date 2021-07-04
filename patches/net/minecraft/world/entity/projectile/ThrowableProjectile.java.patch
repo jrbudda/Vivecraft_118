@@ -32,7 +32,7 @@
 +        }
      }
  
-     public boolean shouldRenderAtSqrDistance(double p_37470_)
+     public boolean shouldRenderAtSqrDistance(double pDistance)
 @@ -76,7 +88,15 @@
  
          if (hitresult.getType() != HitResult.Type.MISS && !flag)

@@ -17,10 +17,10 @@
          this.menu.scrollTo(0.0F);
      }
 @@ -600,6 +602,7 @@
-         else if (p_98561_ != CreativeModeTab.TAB_SEARCH)
+         else if (pTab != CreativeModeTab.TAB_SEARCH)
          {
-             p_98561_.fillItemList((this.menu).items);
-+            ASMDelegator.addCreativeItems(p_98561_, (this.menu).items);
+             pTab.fillItemList((this.menu).items);
++            ASMDelegator.addCreativeItems(pTab, (this.menu).items);
          }
  
-         if (p_98561_ == CreativeModeTab.TAB_INVENTORY)
+         if (pTab == CreativeModeTab.TAB_INVENTORY)

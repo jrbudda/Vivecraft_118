@@ -30,7 +30,7 @@
              if (entity != null)
              {
                  Vec3 vec3 = entity.getLookAngle();
-+                ServerVivePlayer serverviveplayer = NetworkHelper.vivePlayers.get(p_36839_.getEntity().getUUID());
++                ServerVivePlayer serverviveplayer = NetworkHelper.vivePlayers.get(pSource.getEntity().getUUID());
 +
 +                if (serverviveplayer != null && serverviveplayer.isVR())
 +                {

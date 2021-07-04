@@ -71,12 +71,12 @@
      public void resetPosition()
 @@ -316,7 +347,7 @@
  
-     public void disconnect(Component p_9943_)
+     public void disconnect(Component pTextComponent)
      {
--        this.connection.send(new ClientboundDisconnectPacket(p_9943_), (p_9828_) ->
-+        this.connection.send(new ClientboundDisconnectPacket(p_9943_), (p_210161_2_) ->
+-        this.connection.send(new ClientboundDisconnectPacket(pTextComponent), (p_9828_) ->
++        this.connection.send(new ClientboundDisconnectPacket(pTextComponent), (p_210161_2_) ->
          {
-             this.connection.disconnect(p_9943_);
+             this.connection.disconnect(pTextComponent);
          });
 @@ -431,11 +462,13 @@
                  }
@@ -131,16 +131,16 @@
  
 @@ -1331,7 +1374,7 @@
  
-     public void send(Packet<?> p_9830_)
+     public void send(Packet<?> pPacket)
      {
--        this.send(p_9830_, (GenericFutureListener <? extends Future <? super Void >>)null);
-+        this.send(p_9830_, (GenericFutureListener)null);
+-        this.send(pPacket, (GenericFutureListener <? extends Future <? super Void >>)null);
++        this.send(pPacket, (GenericFutureListener)null);
      }
  
-     public void send(Packet<?> p_9832_, @Nullable GenericFutureListener <? extends Future <? super Void >> pPacket)
+     public void send(Packet<?> pPacket, @Nullable GenericFutureListener <? extends Future <? super Void >> pFutureListeners)
 @@ -1340,9 +1383,9 @@
          {
-             this.connection.send(p_9832_, pPacket);
+             this.connection.send(pPacket, pFutureListeners);
          }
 -        catch (Throwable throwable)
 +        catch (Throwable throwable1)
@@ -152,12 +152,12 @@
              {
 @@ -1805,6 +1848,128 @@
  
-     public void handleCustomPayload(ServerboundCustomPayloadPacket p_9860_)
+     public void handleCustomPayload(ServerboundCustomPayloadPacket pPacket)
      {
-+        PacketUtils.ensureRunningOnSameThread(p_9860_, this, this.player.getLevel());
-+        Reflector.call(Reflector.NetworkHooks_onCustomPayload, p_9860_, this.connection);
-+        FriendlyByteBuf friendlybytebuf = (FriendlyByteBuf)MCReflection.CCustomPayloadPacket_data.get(p_9860_);
-+        ResourceLocation resourcelocation = (ResourceLocation)MCReflection.CCustomPayloadPacket_channel.get(p_9860_);
++        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
++        Reflector.call(Reflector.NetworkHooks_onCustomPayload, pPacket, this.connection);
++        FriendlyByteBuf friendlybytebuf = (FriendlyByteBuf)MCReflection.CCustomPayloadPacket_data.get(pPacket);
++        ResourceLocation resourcelocation = (ResourceLocation)MCReflection.CCustomPayloadPacket_channel.get(pPacket);
 +        String s = resourcelocation.getNamespace();
 +        String s1 = resourcelocation.getPath();
 +

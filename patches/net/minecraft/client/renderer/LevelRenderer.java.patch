@@ -28,11 +28,11 @@
      {
 @@ -337,9 +347,16 @@
  
-             p_109704_.turnOnLightLayer();
+             pLightmap.turnOnLightLayer();
              Level level = this.minecraft.level;
--            int i = Mth.floor(pPartialTicks);
--            int j = Mth.floor(pX);
--            int k = Mth.floor(p_109708_);
+-            int i = Mth.floor(pX);
+-            int j = Mth.floor(p_109707_);
+-            int k = Mth.floor(pY);
 +            Vec3 vec3 = this.minecraft.vrPlayer.vrdata_world_render.getEye(RenderPass.CENTER).getPosition();
 +
 +            if (this.minecraft.currentPass == RenderPass.THIRD || this.minecraft.currentPass == RenderPass.CAMERA)
@@ -47,7 +47,7 @@
              BufferBuilder bufferbuilder = tesselator.getBuilder();
              RenderSystem.disableCull();
 @@ -563,7 +580,9 @@
-     public void onResourceManagerReload(ResourceManager p_109513_)
+     public void onResourceManagerReload(ResourceManager pResourceManager)
      {
          this.initOutline();
 -
@@ -114,8 +114,8 @@
          }
 @@ -1044,7 +1063,7 @@
          BlockPos blockpos1 = new BlockPos(Mth.floor(vec3.x / 16.0D) * 16, Mth.floor(vec3.y / 16.0D) * 16, Mth.floor(vec3.z / 16.0D) * 16);
-         float f = p_109696_.getXRot();
-         float f1 = p_109696_.getYRot();
+         float f = pActiveRenderInfo.getXRot();
+         float f1 = pActiveRenderInfo.getYRot();
 -        this.needsUpdate = this.needsUpdate || !this.chunksToCompile.isEmpty() || vec3.x != this.prevCamX || vec3.y != this.prevCamY || vec3.z != this.prevCamZ || (double)f != this.prevCamRotX || (double)f1 != this.prevCamRotY;
 +        this.needsUpdate = true;
          this.prevCamX = vec3.x;
@@ -154,8 +154,8 @@
  
                  if (k > this.renderDistanceSq)
 @@ -1440,8 +1459,14 @@
-         this.blockEntityRenderDispatcher.prepare(this.level, p_109604_, this.minecraft.hitResult);
-         this.entityRenderDispatcher.prepare(this.level, p_109604_, this.minecraft.crosshairPickEntity);
+         this.blockEntityRenderDispatcher.prepare(this.level, pDrawBlockOutline, this.minecraft.hitResult);
+         this.entityRenderDispatcher.prepare(this.level, pDrawBlockOutline, this.minecraft.crosshairPickEntity);
          ProfilerFiller profilerfiller = this.level.getProfiler();
 -        profilerfiller.popPush("light_updates");
 -        this.minecraft.level.getChunkSource().getLightEngine().runUpdates(Integer.MAX_VALUE, true, true);
@@ -167,7 +167,7 @@
 +        }
 +
 +        this.setShaderGroup();
-         Vec3 vec3 = p_109604_.getPosition();
+         Vec3 vec3 = pDrawBlockOutline.getPosition();
          double d0 = vec3.x();
          double d1 = vec3.y();
 @@ -1551,13 +1576,6 @@
@@ -193,17 +193,17 @@
  
          if (this.level.effects().constantAmbientLight())
          {
--            Lighting.setupNetherLevel(p_109600_.last().pose());
+-            Lighting.setupNetherLevel(pMatrixStack.last().pose());
 +            Lighting.setupNetherLevel(matrix4f1);
          }
          else
          {
--            Lighting.setupLevel(p_109600_.last().pose());
+-            Lighting.setupLevel(pMatrixStack.last().pose());
 +            Lighting.setupLevel(matrix4f1);
          }
  
 +        this.minecraft.getProfiler().popPush("stencil");
-+        pDrawBlockOutline.drawEyeStencil(flag1);
++        pActiveRenderInfo.drawEyeStencil(flag1);
 +
          if (flag1)
          {
@@ -225,8 +225,8 @@
 -                boolean flag4 = entity == this.minecraft.player && !this.minecraft.player.isSpectator();
 +                boolean flag5 = entity == this.minecraft.player && !this.minecraft.player.isSpectator();
  
--                if ((this.entityRenderDispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(this.minecraft.player)) && (entity != p_109604_.getEntity() || p_109604_.isDetached() || p_109604_.getEntity() instanceof LivingEntity && ((LivingEntity)p_109604_.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || p_109604_.getEntity() == entity || flag4))
-+                if ((this.entityRenderDispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(this.minecraft.player)) && (renderSelf || entity != p_109604_.getEntity() || p_109604_.isDetached() || p_109604_.getEntity() instanceof LivingEntity && ((LivingEntity)p_109604_.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || p_109604_.getEntity() == entity || flag5))
+-                if ((this.entityRenderDispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(this.minecraft.player)) && (entity != pDrawBlockOutline.getEntity() || pDrawBlockOutline.isDetached() || pDrawBlockOutline.getEntity() instanceof LivingEntity && ((LivingEntity)pDrawBlockOutline.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || pDrawBlockOutline.getEntity() == entity || flag4))
++                if ((this.entityRenderDispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(this.minecraft.player)) && (renderSelf || entity != pDrawBlockOutline.getEntity() || pDrawBlockOutline.isDetached() || pDrawBlockOutline.getEntity() instanceof LivingEntity && ((LivingEntity)pDrawBlockOutline.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || pDrawBlockOutline.getEntity() == entity || flag5))
                  {
                      String s = entity.getClass().getName();
                      List<Entity> list = this.mapEntityLists.get(s);
@@ -234,9 +234,9 @@
              {
                  ++this.renderedEntities;
  
-+                if (entity1 == p_109604_.getEntity())
++                if (entity1 == pDrawBlockOutline.getEntity())
 +                {
-+                    pDrawBlockOutline.restoreRVEPos((LivingEntity)entity1);
++                    pActiveRenderInfo.restoreRVEPos((LivingEntity)entity1);
 +                }
 +
                  if (entity1.tickCount == 0)
@@ -244,13 +244,13 @@
                      entity1.xOld = entity1.getX();
 @@ -1689,6 +1721,12 @@
  
-                 this.renderEntity(entity1, d0, d1, d2, pMatrixStack, p_109600_, multibuffersource);
+                 this.renderEntity(entity1, d0, d1, d2, pPartialTicks, pMatrixStack, multibuffersource);
                  this.renderedEntity = null;
 +
-+                if (entity1 == p_109604_.getEntity())
++                if (entity1 == pDrawBlockOutline.getEntity())
 +                {
-+                    pDrawBlockOutline.cacheRVEPos((LivingEntity)entity1);
-+                    pDrawBlockOutline.setupRVE();
++                    pActiveRenderInfo.cacheRVEPos((LivingEntity)entity1);
++                    pActiveRenderInfo.setupRVE();
 +                }
              }
  
@@ -260,15 +260,15 @@
              ShadersRender.endDebug();
              Shaders.preRenderHand();
 -            Matrix4f matrix4f1 = RenderSystem.getProjectionMatrix().copy();
--            ShadersRender.renderHand0(pDrawBlockOutline, p_109600_, p_109604_, pMatrixStack);
+-            ShadersRender.renderHand0(pActiveRenderInfo, pMatrixStack, pDrawBlockOutline, pPartialTicks);
 -            RenderSystem.setProjectionMatrix(matrix4f1);
 +//            Matrix4f matrix4f1 = RenderSystem.getProjectionMatrix().copy();
-+//            ShadersRender.renderHand0(pDrawBlockOutline, p_109600_, p_109604_, pMatrixStack);
++//            ShadersRender.renderHand0(pActiveRenderInfo, pMatrixStack, pDrawBlockOutline, pPartialTicks);
 +//            RenderSystem.setProjectionMatrix(matrix4f1);
              Shaders.preWater();
          }
 +        
-+        boolean menuHandleft = pDrawBlockOutline.isInMenuRoom() || this.minecraft.screen != null || KeyboardHandler.Showing;
++        boolean menuHandleft = pActiveRenderInfo.isInMenuRoom() || this.minecraft.screen != null || KeyboardHandler.Showing;
 +        boolean menuhandright = menuHandleft || this.minecraft.interactTracker.hotbar >= 0 && this.minecraft.vrSettings.vrTouchHotbar;
  
          if (this.transparencyChain != null)
@@ -277,11 +277,11 @@
              }
  
              RenderStateShard.PARTICLES_TARGET.clearRenderState();
-+            pDrawBlockOutline.renderVRFabulous(pMatrixStack, this, menuhandright, menuHandleft);
++            pActiveRenderInfo.renderVRFabulous(pPartialTicks, this, menuhandright, menuHandleft);
          }
          else
          {
-+            pDrawBlockOutline.renderVrFast(pMatrixStack, false, menuhandright, menuHandleft);
++            pActiveRenderInfo.renderVrFast(pPartialTicks, false, menuhandright, menuHandleft);
              profilerfiller.popPush("translucent");
  
              if (flag1)
@@ -331,15 +331,15 @@
                      d1 += d0;
 @@ -3439,7 +3482,7 @@
      {
-         if (!Config.isCustomEntityModels() || !CustomEntityModels.isCustomModel(p_109645_))
+         if (!Config.isCustomEntityModels() || !CustomEntityModels.isCustomModel(pZ))
          {
--            renderShape(p_109638_, pMatrixStack, p_109645_.getShape(this.level, pY, CollisionContext.of(pBuffer)), (double)pY.getX() - pEntity, (double)pY.getY() - pX, (double)pY.getZ() - p_109643_, 0.0F, 0.0F, 0.0F, 0.4F);
-+            renderShape(p_109638_, pMatrixStack, p_109645_.getShape(this.level, pY, CollisionContext.of(pBuffer)), (double)pY.getX() - pEntity, (double)pY.getY() - pX, (double)pY.getZ() - p_109643_, this.selR, this.selG, this.selB, 0.4F);
+-            renderShape(pMatrixStack, pBuffer, pZ.getShape(this.level, p_109644_, CollisionContext.of(pEntity)), (double)p_109644_.getX() - pX, (double)p_109644_.getY() - p_109642_, (double)p_109644_.getZ() - pY, 0.0F, 0.0F, 0.0F, 0.4F);
++            renderShape(pMatrixStack, pBuffer, pZ.getShape(this.level, p_109644_, CollisionContext.of(pEntity)), (double)p_109644_.getX() - pX, (double)p_109644_.getY() - p_109642_, (double)p_109644_.getZ() - pY, this.selR, this.selG, this.selB, 0.4F);
          }
      }
  
 @@ -3632,23 +3675,23 @@
-         this.playRecord(p_109515_, pSound, p_109515_ == null ? null : RecordItem.getBySound(p_109515_));
+         this.playRecord(pSound, pPos, pSound == null ? null : RecordItem.getBySound(pSound));
      }
  
 -    public void playRecord(@Nullable SoundEvent soundIn, BlockPos pos, @Nullable RecordItem musicDiscItem)
@@ -383,14 +383,14 @@
 +        this.notifyNearbyEntities(this.level, p_playRecord_2_, p_playRecord_1_ != null);
      }
  
-     private void notifyNearbyEntities(Level p_109551_, BlockPos pLevel, boolean pPos)
+     private void notifyNearbyEntities(Level pLevel, BlockPos pPos, boolean pIsPartying)
 @@ -3920,6 +3963,7 @@
-     public void levelEvent(Player p_109533_, int pPlayer, BlockPos pType, int pBlockPos)
+     public void levelEvent(Player pPlayer, int pType, BlockPos pBlockPos, int pData)
      {
          Random random = this.level.random;
-+        boolean flag = this.minecraft.player != null && this.minecraft.player.isAlive() && this.minecraft.player.blockPosition().distSqr(pType) < 25.0D;
++        boolean flag = this.minecraft.player != null && this.minecraft.player.isAlive() && this.minecraft.player.blockPosition().distSqr(pBlockPos) < 25.0D;
  
-         switch (pPlayer)
+         switch (pType)
          {
 @@ -3991,18 +4035,38 @@
                  break;
@@ -401,7 +401,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(0, 250);
 +                }
 +
-                 this.level.playLocalSound(pType, SoundEvents.IRON_DOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
+                 this.level.playLocalSound(pBlockPos, SoundEvents.IRON_DOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
              case 1012:
@@ -410,7 +410,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(0, 250);
 +                }
 +
-                 this.level.playLocalSound(pType, SoundEvents.WOODEN_DOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
+                 this.level.playLocalSound(pBlockPos, SoundEvents.WOODEN_DOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
              case 1013:
@@ -419,7 +419,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(0, 250);
 +                }
 +
-                 this.level.playLocalSound(pType, SoundEvents.WOODEN_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
+                 this.level.playLocalSound(pBlockPos, SoundEvents.WOODEN_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
              case 1014:
@@ -428,7 +428,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(0, 250);
 +                }
 +
-                 this.level.playLocalSound(pType, SoundEvents.FENCE_GATE_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
+                 this.level.playLocalSound(pBlockPos, SoundEvents.FENCE_GATE_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
 @@ -4023,14 +4087,32 @@
@@ -441,7 +441,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(1, 750);
 +                }
 +
-                 this.level.playLocalSound(pType, SoundEvents.ZOMBIE_ATTACK_WOODEN_DOOR, SoundSource.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
+                 this.level.playLocalSound(pBlockPos, SoundEvents.ZOMBIE_ATTACK_WOODEN_DOOR, SoundSource.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
                  break;
  
              case 1020:
@@ -451,7 +451,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(1, 750);
 +                }
 +
-                 this.level.playLocalSound(pType, SoundEvents.ZOMBIE_ATTACK_IRON_DOOR, SoundSource.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
+                 this.level.playLocalSound(pBlockPos, SoundEvents.ZOMBIE_ATTACK_IRON_DOOR, SoundSource.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
                  break;
  
              case 1021:
@@ -461,7 +461,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(1, 750);
 +                }
 +
-                 this.level.playLocalSound(pType, SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, SoundSource.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
+                 this.level.playLocalSound(pBlockPos, SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, SoundSource.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
                  break;
  
 @@ -4059,10 +4141,21 @@
@@ -473,7 +473,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(0, 500);
 +                }
 +
-                 this.level.playLocalSound(pType, SoundEvents.ANVIL_USE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
+                 this.level.playLocalSound(pBlockPos, SoundEvents.ANVIL_USE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
              case 1031:
@@ -483,7 +483,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(1, 1250);
 +                }
 +
-                 this.level.playLocalSound(pType, SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 0.3F, this.level.random.nextFloat() * 0.1F + 0.9F, false);
+                 this.level.playLocalSound(pBlockPos, SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 0.3F, this.level.random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
 @@ -4083,6 +4176,11 @@
@@ -495,7 +495,7 @@
 +                    this.minecraft.vr.triggerHapticPulse(0, 250);
 +                }
 +
-                 this.level.playLocalSound(pType, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
+                 this.level.playLocalSound(pBlockPos, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
 @@ -4442,9 +4540,9 @@

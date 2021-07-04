@@ -37,22 +37,22 @@
 +                KeyboardHandler.setOverlayShowing(true);
 +            }
 +
-             if (this.isFocused() && flag && p_94127_ == 0)
+             if (this.isFocused() && flag && pMouseY == 0)
              {
-                 int i = Mth.floor(p_94125_) - this.x;
+                 int i = Mth.floor(pMouseX) - this.x;
 @@ -519,6 +526,10 @@
                  String s1 = flag ? s.substring(0, j) : s;
-                 j1 = this.font.drawShadow(p_94160_, this.formatter.apply(s1, this.displayPos), (float)l, (float)i1, i2);
+                 j1 = this.font.drawShadow(pMatrixStack, this.formatter.apply(s1, this.displayPos), (float)l, (float)i1, i2);
              }
 +            else if (!Minecraft.getInstance().vrSettings.seated && !KeyboardHandler.Showing)
 +            {
-+                this.font.drawShadow(p_94160_, "Click to open keyboard", (float)l, (float)i1, this.textColorUneditable);
++                this.font.drawShadow(pMatrixStack, "Click to open keyboard", (float)l, (float)i1, this.textColorUneditable);
 +            }
  
              boolean flag2 = this.cursorPos < this.value.length() || this.value.length() >= this.getMaxLength();
              int k1 = j1;
 @@ -663,6 +674,16 @@
-         if (p_94170_)
+         if (pFocused)
          {
              this.frame = 0;
 +
@@ -70,9 +70,9 @@
  
 @@ -717,7 +738,7 @@
  
-     public void setCanLoseFocus(boolean p_94191_)
+     public void setCanLoseFocus(boolean pCanLoseFocus)
      {
--        this.canLoseFocus = p_94191_;
+-        this.canLoseFocus = pCanLoseFocus;
 +        this.canLoseFocus = false;
      }
  

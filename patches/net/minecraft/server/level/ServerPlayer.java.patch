@@ -60,14 +60,14 @@
      public ServerPlayer(MinecraftServer p_143384_, ServerLevel p_143385_, GameProfile p_143386_)
      {
 @@ -374,9 +388,9 @@
-             p_9197_.putInt("SpawnZ", this.respawnPosition.getZ());
-             p_9197_.putBoolean("SpawnForced", this.respawnForced);
-             p_9197_.putFloat("SpawnAngle", this.respawnAngle);
+             pCompound.putInt("SpawnZ", this.respawnPosition.getZ());
+             pCompound.putBoolean("SpawnForced", this.respawnForced);
+             pCompound.putFloat("SpawnAngle", this.respawnAngle);
 -            ResourceLocation.CODEC.encodeStart(NbtOps.INSTANCE, this.respawnDimension.location()).resultOrPartial(LOGGER::error).ifPresent((p_9134_) ->
 +            ResourceLocation.CODEC.encodeStart(NbtOps.INSTANCE, this.respawnDimension.location()).resultOrPartial(LOGGER::error).ifPresent((p_241148_1_) ->
              {
--                p_9197_.put("SpawnDimension", p_9134_);
-+                p_9197_.put("SpawnDimension", p_241148_1_);
+-                pCompound.put("SpawnDimension", p_9134_);
++                pCompound.put("SpawnDimension", p_241148_1_);
              });
          }
      }
@@ -133,13 +133,13 @@
  
 +    //Forge
      @Nullable
-     public Entity changeDimension(ServerLevel p_9180_)
+     public Entity changeDimension(ServerLevel pServer)
      {
 -        this.isChangingDimension = true;
 -        ServerLevel serverlevel = this.getLevel();
 -        ResourceKey<Level> resourcekey = serverlevel.dimension();
 -
--        if (resourcekey == Level.END && p_9180_.dimension() == Level.OVERWORLD)
+-        if (resourcekey == Level.END && pServer.dimension() == Level.OVERWORLD)
 -        {
 -            this.unRide();
 -            this.getLevel().removePlayerImmediately(this, Entity.RemovalReason.CHANGED_DIMENSION);
@@ -155,38 +155,38 @@
 -        }
 -        else
 -        {
--            LevelData leveldata = p_9180_.getLevelData();
--            this.connection.send(new ClientboundRespawnPacket(p_9180_.dimensionType(), p_9180_.dimension(), BiomeManager.obfuscateSeed(p_9180_.getSeed()), this.gameMode.getGameModeForPlayer(), this.gameMode.getPreviousGameModeForPlayer(), p_9180_.isDebug(), p_9180_.isFlat(), true));
+-            LevelData leveldata = pServer.getLevelData();
+-            this.connection.send(new ClientboundRespawnPacket(pServer.dimensionType(), pServer.dimension(), BiomeManager.obfuscateSeed(pServer.getSeed()), this.gameMode.getGameModeForPlayer(), this.gameMode.getPreviousGameModeForPlayer(), pServer.isDebug(), pServer.isFlat(), true));
 -            this.connection.send(new ClientboundChangeDifficultyPacket(leveldata.getDifficulty(), leveldata.isDifficultyLocked()));
 -            PlayerList playerlist = this.server.getPlayerList();
 -            playerlist.sendPlayerPermissionLevel(this);
 -            serverlevel.removePlayerImmediately(this, Entity.RemovalReason.CHANGED_DIMENSION);
 -            this.unsetRemoved();
--            PortalInfo portalinfo = this.findDimensionEntryPoint(p_9180_);
+-            PortalInfo portalinfo = this.findDimensionEntryPoint(pServer);
 -
 -            if (portalinfo != null)
 -            {
 -                serverlevel.getProfiler().push("moving");
 -
--                if (resourcekey == Level.OVERWORLD && p_9180_.dimension() == Level.NETHER)
+-                if (resourcekey == Level.OVERWORLD && pServer.dimension() == Level.NETHER)
 -                {
 -                    this.enteredNetherPosition = this.position();
 -                }
--                else if (p_9180_.dimension() == Level.END)
+-                else if (pServer.dimension() == Level.END)
 -                {
--                    this.createEndPlatform(p_9180_, new BlockPos(portalinfo.pos));
+-                    this.createEndPlatform(pServer, new BlockPos(portalinfo.pos));
 -                }
 -
 -                serverlevel.getProfiler().pop();
 -                serverlevel.getProfiler().push("placing");
--                this.setLevel(p_9180_);
--                p_9180_.addDuringPortalTeleport(this);
+-                this.setLevel(pServer);
+-                pServer.addDuringPortalTeleport(this);
 -                this.setRot(portalinfo.yRot, portalinfo.xRot);
 -                this.moveTo(portalinfo.pos.x, portalinfo.pos.y, portalinfo.pos.z);
 -                serverlevel.getProfiler().pop();
 -                this.triggerDimensionChangeTriggers(serverlevel);
 -                this.connection.send(new ClientboundPlayerAbilitiesPacket(this.getAbilities()));
--                playerlist.sendLevelInfo(this, p_9180_);
+-                playerlist.sendLevelInfo(this, pServer);
 -                playerlist.sendAllPlayerInfo(this);
 -
 -                for (MobEffectInstance mobeffectinstance : this.getActiveEffects())
@@ -202,7 +202,7 @@
 -
 -            return this;
 -        }
-+         return this.changeDimension(p_9180_, Reflector.ForgeHooks.exists() ? (ITeleporter)p_9180_.getPortalForcer() : null);
++         return this.changeDimension(pServer, Reflector.ForgeHooks.exists() ? (ITeleporter)pServer.getPortalForcer() : null);
 +     }
 +    
 +    @Nullable
@@ -307,9 +307,9 @@
      private void createEndPlatform(ServerLevel p_9007_, BlockPos p_9008_)
 @@ -942,6 +1016,18 @@
  
-     public Either<Player.BedSleepingProblem, Unit> startSleepInBed(BlockPos p_9115_)
+     public Either<Player.BedSleepingProblem, Unit> startSleepInBed(BlockPos pAt)
      {
-+        Optional<BlockPos> optional = Optional.of(p_9115_);
++        Optional<BlockPos> optional = Optional.of(pAt);
 +
 +        if (Reflector.ForgeEventFactory_onPlayerSleepInBed.exists())
 +        {
@@ -321,13 +321,13 @@
 +            }
 +        }
 +
-         Direction direction = this.level.getBlockState(p_9115_).getValue(HorizontalDirectionalBlock.FACING);
+         Direction direction = this.level.getBlockState(pAt).getValue(HorizontalDirectionalBlock.FACING);
  
          if (!this.isSleeping() && this.isAlive())
 @@ -961,8 +1047,14 @@
              else
              {
-                 this.setRespawnPosition(this.level.dimension(), p_9115_, this.getYRot(), false, true);
+                 this.setRespawnPosition(this.level.dimension(), pAt, this.getYRot(), false, true);
 -
 -                if (this.level.isDay())
 +                
@@ -344,7 +344,7 @@
 @@ -973,9 +1065,9 @@
                          double d0 = 8.0D;
                          double d1 = 5.0D;
-                         Vec3 vec3 = Vec3.atBottomCenterOf(p_9115_);
+                         Vec3 vec3 = Vec3.atBottomCenterOf(pAt);
 -                        List<Monster> list = this.level.getEntitiesOfClass(Monster.class, new AABB(vec3.x() - 8.0D, vec3.y() - 5.0D, vec3.z() - 8.0D, vec3.x() + 8.0D, vec3.y() + 5.0D, vec3.z() + 8.0D), (p_9062_) ->
 +                        List<Monster> list = this.level.getEntitiesOfClass(Monster.class, new AABB(vec3.x() - 8.0D, vec3.y() - 5.0D, vec3.z() - 8.0D, vec3.x() + 8.0D, vec3.y() + 5.0D, vec3.z() + 8.0D), (p_241146_1_) ->
                          {
@@ -357,8 +357,8 @@
                          }
                      }
  
--                    Either<Player.BedSleepingProblem, Unit> either = super.startSleepInBed(p_9115_).ifRight((p_9029_) ->
-+                    Either<Player.BedSleepingProblem, Unit> either = super.startSleepInBed(p_9115_).ifRight((p_241144_1_) ->
+-                    Either<Player.BedSleepingProblem, Unit> either = super.startSleepInBed(pAt).ifRight((p_9029_) ->
++                    Either<Player.BedSleepingProblem, Unit> either = super.startSleepInBed(pAt).ifRight((p_241144_1_) ->
                      {
                          this.awardStat(Stats.SLEEP_IN_BED);
                          CriteriaTriggers.SLEPT_IN_BED.trigger(this);
@@ -387,13 +387,13 @@
              }
          }
 @@ -1176,6 +1276,7 @@
-         this.connection.send(new ClientboundHorseScreenOpenPacket(this.containerCounter, pHorse.getContainerSize(), p_9059_.getId()));
-         this.containerMenu = new HorseInventoryMenu(this.containerCounter, this.getInventory(), pHorse, p_9059_);
+         this.connection.send(new ClientboundHorseScreenOpenPacket(this.containerCounter, pInventory.getContainerSize(), pHorse.getId()));
+         this.containerMenu = new HorseInventoryMenu(this.containerCounter, this.getInventory(), pInventory, pHorse);
          this.initMenu(this.containerMenu);
 +        Reflector.postForgeBusEvent(Reflector.newInstance(Reflector.PlayerContainerEvent_Open_Constructor, this, this.containerMenu));
      }
  
-     public void openItemGui(ItemStack p_9082_, InteractionHand pStack)
+     public void openItemGui(ItemStack pStack, InteractionHand pHand)
 @@ -1207,6 +1308,7 @@
      {
          this.containerMenu.removed(this);
@@ -403,40 +403,40 @@
      }
  
 @@ -1232,9 +1334,9 @@
-     public void awardStat(Stat<?> p_9026_, int pStat)
+     public void awardStat(Stat<?> pStat, int pAmount)
      {
-         this.stats.increment(this, p_9026_, pStat);
--        this.getScoreboard().forAllObjectives(p_9026_, this.getScoreboardName(), (p_8996_) ->
-+        this.getScoreboard().forAllObjectives(p_9026_, this.getScoreboardName(), (p_195396_1_) ->
+         this.stats.increment(this, pStat, pAmount);
+-        this.getScoreboard().forAllObjectives(pStat, this.getScoreboardName(), (p_8996_) ->
++        this.getScoreboard().forAllObjectives(pStat, this.getScoreboardName(), (p_195396_1_) ->
          {
--            p_8996_.add(pStat);
-+            p_195396_1_.add(pStat);
+-            p_8996_.add(pAmount);
++            p_195396_1_.add(pAmount);
          });
      }
  
 @@ -1356,6 +1458,14 @@
-         this.enteredNetherPosition = p_9016_.enteredNetherPosition;
-         this.setShoulderEntityLeft(p_9016_.getShoulderEntityLeft());
-         this.setShoulderEntityRight(p_9016_.getShoulderEntityRight());
-+        CompoundTag compoundtag = (CompoundTag)Reflector.call(p_9016_, Reflector.Entity_getPersistentData);
+         this.enteredNetherPosition = pThat.enteredNetherPosition;
+         this.setShoulderEntityLeft(pThat.getShoulderEntityLeft());
+         this.setShoulderEntityRight(pThat.getShoulderEntityRight());
++        CompoundTag compoundtag = (CompoundTag)Reflector.call(pThat, Reflector.Entity_getPersistentData);
 +
 +        if (compoundtag != null && compoundtag.contains("PlayerPersisted"))
 +        {
 +            ((CompoundTag)Reflector.call(this, Reflector.Entity_getPersistentData)).put("PlayerPersisted", compoundtag.getCompound("PlayerPersisted"));
 +        }
 +
-+        Reflector.callVoid(Reflector.ForgeEventFactory_onPlayerClone, this, p_9016_, !pThat);
++        Reflector.callVoid(Reflector.ForgeEventFactory_onPlayerClone, this, pThat, !pKeepEverything);
      }
  
      protected void onEffectAdded(MobEffectInstance p_143393_, @Nullable Entity p_143394_)
 @@ -1499,6 +1609,11 @@
-         this.textFilteringEnabled = p_9157_.isTextFilteringEnabled();
-         this.getEntityData().set(DATA_PLAYER_MODE_CUSTOMISATION, (byte)p_9157_.getModelCustomisation());
-         this.getEntityData().set(DATA_PLAYER_MAIN_HAND, (byte)(p_9157_.getMainHand() == HumanoidArm.LEFT ? 0 : 1));
+         this.textFilteringEnabled = pPacket.isTextFilteringEnabled();
+         this.getEntityData().set(DATA_PLAYER_MODE_CUSTOMISATION, (byte)pPacket.getModelCustomisation());
+         this.getEntityData().set(DATA_PLAYER_MAIN_HAND, (byte)(pPacket.getMainHand() == HumanoidArm.LEFT ? 0 : 1));
 +
 +        if (Reflector.ForgeHooks.exists())
 +        {
-+            this.language = Reflector.callString(p_9157_, Reflector.CClientSettingsPacket_getLanguage);
++            this.language = Reflector.callString(pPacket, Reflector.CClientSettingsPacket_getLanguage);
 +        }
      }
  
@@ -455,9 +455,9 @@
 +        return this.tabListDisplayName;
      }
  
-     public void swing(InteractionHand p_9031_)
+     public void swing(InteractionHand pHand)
 @@ -1650,8 +1771,20 @@
-             this.connection.send(new ClientboundRespawnPacket(p_9000_.dimensionType(), p_9000_.dimension(), BiomeManager.obfuscateSeed(p_9000_.getSeed()), this.gameMode.getGameModeForPlayer(), this.gameMode.getPreviousGameModeForPlayer(), p_9000_.isDebug(), p_9000_.isFlat(), true));
+             this.connection.send(new ClientboundRespawnPacket(pX.dimensionType(), pX.dimension(), BiomeManager.obfuscateSeed(pX.getSeed()), this.gameMode.getGameModeForPlayer(), this.gameMode.getPreviousGameModeForPlayer(), pX.isDebug(), pX.isFlat(), true));
              this.connection.send(new ClientboundChangeDifficultyPacket(leveldata.getDifficulty(), leveldata.isDifficultyLocked()));
              this.server.getPlayerList().sendPlayerPermissionLevel(this);
 -            serverlevel.removePlayerImmediately(this, Entity.RemovalReason.CHANGED_DIMENSION);
@@ -476,14 +476,14 @@
 +            }
 +            //
 +            
-             this.moveTo(pNewLevel, pX, p_9003_, pY, p_9005_);
-             this.setLevel(p_9000_);
-             p_9000_.addDuringCommandTeleport(this);
+             this.moveTo(p_9001_, pY, p_9003_, pZ, p_9005_);
+             this.setLevel(pX);
+             pX.addDuringCommandTeleport(this);
 @@ -1659,6 +1792,80 @@
-             this.connection.teleport(pNewLevel, pX, p_9003_, pY, p_9005_);
-             this.server.getPlayerList().sendLevelInfo(this, p_9000_);
+             this.connection.teleport(p_9001_, pY, p_9003_, pZ, p_9005_);
+             this.server.getPlayerList().sendLevelInfo(this, pX);
              this.server.getPlayerList().sendAllPlayerInfo(this);
-+            Reflector.call(Reflector.BasicEventHooks_firePlayerChangedDimensionEvent, this, serverlevel.dimension(), p_9000_.dimension());
++            Reflector.call(Reflector.BasicEventHooks_firePlayerChangedDimensionEvent, this, serverlevel.dimension(), pX.dimension());
 +        }
 +    }
 +
@@ -510,19 +510,19 @@
 +        }
 +    }
 +
-+    protected void triggerItemUseEffects(ItemStack p_21138_, int pStack)
++    protected void triggerItemUseEffects(ItemStack pStack, int pCount)
 +    {
-+        if (!p_21138_.isEmpty() && this.isUsingItem())
++        if (!pStack.isEmpty() && this.isUsingItem())
 +        {
-+            if (p_21138_.getUseAnimation() == UseAnim.DRINK)
++            if (pStack.getUseAnimation() == UseAnim.DRINK)
 +            {
-+                this.playSound(this.getDrinkingSound(p_21138_), 0.5F, this.level.random.nextFloat() * 0.1F + 0.9F);
++                this.playSound(this.getDrinkingSound(pStack), 0.5F, this.level.random.nextFloat() * 0.1F + 0.9F);
 +            }
 +
-+            if (p_21138_.getUseAnimation() == UseAnim.EAT)
++            if (pStack.getUseAnimation() == UseAnim.EAT)
 +            {
-+                this.addItemParticles(p_21138_, pStack);
-+                this.playSound(this.getEatingSound(p_21138_), 0.5F + 0.5F * (float)this.random.nextInt(2), (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
++                this.addItemParticles(pStack, pCount);
++                this.playSound(this.getEatingSound(pStack), 0.5F + 0.5F * (float)this.random.nextInt(2), (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
 +            }
 +        }
 +    }
@@ -613,7 +613,7 @@
 -            this.level.addFreshEntity(itementity);
 +            ServerVivePlayer serverviveplayer = NetworkHelper.vivePlayers.get(this.getUUID());
 +
-+            if (serverviveplayer != null && serverviveplayer.isVR() && !pDroppedItem)
++            if (serverviveplayer != null && serverviveplayer.isVR() && !pDropAround)
 +            {
 +                Vec3 vec3 = serverviveplayer.getControllerPos(0, this);
 +                Vec3 vec31 = serverviveplayer.getControllerDir(0);
@@ -635,7 +635,7 @@
 +
              ItemStack itemstack = itementity.getItem();
  
-             if (pDropAround)
+             if (pTraceItem)
 @@ -1843,4 +2074,21 @@
          CriteriaTriggers.USING_ITEM.trigger(this, p_143402_);
          super.updateUsingItem(p_143402_);

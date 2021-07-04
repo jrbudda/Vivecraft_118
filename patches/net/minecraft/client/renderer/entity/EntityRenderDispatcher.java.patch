@@ -33,17 +33,17 @@
 +    private VRArmRenderer armRenderer;
 +    public final Map<String, VRArmRenderer> armSkinMap = new HashMap<>();
 +    //
-     public <E extends Entity> int getPackedLightCoords(E p_114395_, float pEntity)
+     public <E extends Entity> int getPackedLightCoords(E pEntity, float pPartialTicks)
      {
-         int i = this.getRenderer(p_114395_).getPackedLightCoords(p_114395_, pEntity);
+         int i = this.getRenderer(pEntity).getPackedLightCoords(pEntity, pPartialTicks);
 @@ -103,8 +118,66 @@
-         if (p_114383_ instanceof AbstractClientPlayer)
+         if (pEntity instanceof AbstractClientPlayer)
          {
-             String s = ((AbstractClientPlayer)p_114383_).getModelName();
+             String s = ((AbstractClientPlayer)pEntity).getModelName();
 -            EntityRenderer <? extends Player > entityrenderer = this.playerRenderers.get(s);
 -            return entityrenderer != null ? (EntityRenderer <? super T >)entityrenderer : (EntityRenderer <? super T >)this.playerRenderers.get("default");
 +            PlayerRenderer playerrenderer = (PlayerRenderer) this.playerRenderers.get(s);
-+            PlayerModelController.RotInfo playermodelcontroller$rotinfo = PlayerModelController.getInstance().getRotationsForPlayer(p_114383_.getUUID());
++            PlayerModelController.RotInfo playermodelcontroller$rotinfo = PlayerModelController.getInstance().getRotationsForPlayer(pEntity.getUUID());
 +
 +            if (playermodelcontroller$rotinfo != null)
 +            {
@@ -107,7 +107,7 @@
          {
 @@ -217,9 +290,9 @@
  
-                 pZ.popPose();
+                 p_114391_.popPose();
              }
 -            catch (Throwable throwable1)
 +            catch (Throwable throwable)
@@ -115,7 +115,7 @@
 -                CrashReport crashreport = CrashReport.forThrowable(throwable1, "Rendering entity in world");
 +                CrashReport crashreport = CrashReport.forThrowable(throwable, "Rendering entity in world");
                  CrashReportCategory crashreportcategory = crashreport.addCategory("Entity being rendered");
-                 p_114385_.fillCrashReportCategory(crashreportcategory);
+                 pEntity.fillCrashReportCategory(crashreportcategory);
                  CrashReportCategory crashreportcategory1 = crashreport.addCategory("Renderer details");
 @@ -440,7 +513,66 @@
  

@@ -20,8 +20,8 @@
                  i = -i;
              }
 @@ -80,6 +80,19 @@
-                 d5 = Mth.lerp((double)pEntityYaw, player.yo, player.getY()) + vec3.y;
-                 d6 = Mth.lerp((double)pEntityYaw, player.zo, player.getZ()) + vec3.z;
+                 d5 = Mth.lerp((double)pPartialTicks, player.yo, player.getY()) + vec3.y;
+                 d6 = Mth.lerp((double)pPartialTicks, player.zo, player.getZ()) + vec3.z;
                  f3 = player.getEyeHeight();
 +                int j = 1;
 +

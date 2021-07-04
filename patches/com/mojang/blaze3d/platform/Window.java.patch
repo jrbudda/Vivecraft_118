@@ -31,25 +31,25 @@
 @@ -374,7 +374,7 @@
      {
          RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
-         this.vsync = p_85410_;
--        GLFW.glfwSwapInterval(p_85410_ ? 1 : 0);
+         this.vsync = pVsyncEnabled;
+-        GLFW.glfwSwapInterval(pVsyncEnabled ? 1 : 0);
 +        GLFW.glfwSwapInterval(0);
      }
  
      public void close()
 @@ -397,15 +397,15 @@
      {
-         if (p_85416_ == this.window)
+         if (pWindowPointer == this.window)
          {
 -            int i = this.getWidth();
 -            int j = this.getHeight();
 +            int i = this.getScreenWidth();
 +            int j = this.getScreenHeight();
  
-             if (pWindowPointer != 0 && p_85418_ != 0)
+             if (p_85417_ != 0 && pFramebufferWidth != 0)
              {
-                 this.framebufferWidth = pWindowPointer;
-                 this.framebufferHeight = p_85418_;
+                 this.framebufferWidth = p_85417_;
+                 this.framebufferHeight = pFramebufferWidth;
  
 -                if (this.getWidth() != i || this.getHeight() != j)
 +                if (this.getScreenWidth() != i || this.getScreenHeight() != j)
@@ -74,49 +74,49 @@
          }
      }
  
-     private void onResize(long p_85428_, int pWindowPointer, int p_85430_)
+     private void onResize(long pWindowPointer, int p_85429_, int pWindowWidth)
      {
--        this.width = pWindowPointer;
--        this.height = p_85430_;
-+        if (p_85430_ * pWindowPointer != 0)
+-        this.width = p_85429_;
+-        this.height = pWindowWidth;
++        if (pWindowWidth * p_85429_ != 0)
 +        {
-+            this.width = pWindowPointer;
-+            this.height = p_85430_;
++            this.width = p_85429_;
++            this.height = pWindowWidth;
 +            this.eventHandler.resizeDisplay();
 +        }
      }
  
-     private void onFocus(long p_85393_, boolean pWindowPointer)
+     private void onFocus(long pWindowPointer, boolean p_85394_)
 @@ -580,13 +584,12 @@
      {
          int i;
  
--        for (i = 1; i != p_85386_ && i < this.framebufferWidth && i < this.framebufferHeight && this.framebufferWidth / (i + 1) >= 320 && this.framebufferHeight / (i + 1) >= 240; ++i)
-+        for (i = 1; i != p_85386_ && i < this.width && i < this.height && this.width / (i + 1) >= 320 && this.height / (i + 1) >= 240; ++i)
+-        for (i = 1; i != pGuiScale && i < this.framebufferWidth && i < this.framebufferHeight && this.framebufferWidth / (i + 1) >= 320 && this.framebufferHeight / (i + 1) >= 240; ++i)
++        for (i = 1; i != pGuiScale && i < this.width && i < this.height && this.width / (i + 1) >= 320 && this.height / (i + 1) >= 240; ++i)
          {
          }
  
-         if (pGuiScale && i % 2 != 0)
+         if (pForceUnicode && i % 2 != 0)
          {
 -            ++i;
          }
  
          return i;
 @@ -595,10 +598,10 @@
-     public void setGuiScale(double p_85379_)
+     public void setGuiScale(double pScaleFactor)
      {
-         this.guiScale = p_85379_;
--        int i = (int)((double)this.framebufferWidth / p_85379_);
--        this.guiScaledWidth = (double)this.framebufferWidth / p_85379_ > (double)i ? i + 1 : i;
--        int j = (int)((double)this.framebufferHeight / p_85379_);
--        this.guiScaledHeight = (double)this.framebufferHeight / p_85379_ > (double)j ? j + 1 : j;
-+        int i = (int)((double)this.width / p_85379_);
-+        this.guiScaledWidth = (double)this.width / p_85379_ > (double)i ? i + 1 : i;
-+        int j = (int)((double)this.height / p_85379_);
-+        this.guiScaledHeight = (double)this.height / p_85379_ > (double)j ? j + 1 : j;
+         this.guiScale = pScaleFactor;
+-        int i = (int)((double)this.framebufferWidth / pScaleFactor);
+-        this.guiScaledWidth = (double)this.framebufferWidth / pScaleFactor > (double)i ? i + 1 : i;
+-        int j = (int)((double)this.framebufferHeight / pScaleFactor);
+-        this.guiScaledHeight = (double)this.framebufferHeight / pScaleFactor > (double)j ? j + 1 : j;
++        int i = (int)((double)this.width / pScaleFactor);
++        this.guiScaledWidth = (double)this.width / pScaleFactor > (double)i ? i + 1 : i;
++        int j = (int)((double)this.height / pScaleFactor);
++        this.guiScaledHeight = (double)this.height / pScaleFactor > (double)j ? j + 1 : j;
      }
  
-     public void setTitle(String p_85423_)
+     public void setTitle(String pTitle)
 @@ -618,12 +621,12 @@
  
      public int getWidth()
@@ -133,7 +133,7 @@
  
      public void setWidth(int p_166451_)
 @@ -682,9 +685,9 @@
-         InputConstants.updateRawMouseInput(this.window, p_85425_);
+         InputConstants.updateRawMouseInput(this.window, pValue);
      }
  
 -    public void resizeFramebuffer(int width, int height)

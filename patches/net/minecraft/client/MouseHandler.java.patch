@@ -19,16 +19,16 @@
          this.minecraft = p_91522_;
      }
  
--    private void onPress(long p_91531_, int pHandle, int p_91533_, int pButton)
-+    public void onPress(long p_91531_, int pHandle, int p_91533_, int pButton)
+-    private void onPress(long pHandle, int p_91532_, int pButton, int pAction)
++    public void onPress(long pHandle, int p_91532_, int pButton, int pAction)
      {
-         if (p_91531_ == this.minecraft.getWindow().getWindow())
+         if (pHandle == this.minecraft.getWindow().getWindow())
          {
 @@ -82,6 +84,11 @@
                  this.activeButton = -1;
              }
  
-+            if (Reflector.callBoolean(Reflector.ForgeHooksClient_onRawMouseClicked, pHandle, p_91533_, pButton))
++            if (Reflector.callBoolean(Reflector.ForgeHooksClient_onRawMouseClicked, p_91532_, pButton, pAction))
 +            {
 +                return;
 +            }
@@ -102,14 +102,14 @@
                  }
              }
 +
-+            Reflector.call(Reflector.ForgeHooksClient_fireMouseInput, pHandle, p_91533_, pButton);
++            Reflector.call(Reflector.ForgeHooksClient_fireMouseInput, p_91532_, pButton, pAction);
          }
      }
  
--    private void onScroll(long p_91527_, double pHandle, double p_91529_)
-+    public void onScroll(long p_91527_, double pHandle, double p_91529_)
+-    private void onScroll(long pHandle, double p_91528_, double pXoffset)
++    public void onScroll(long pHandle, double p_91528_, double pXoffset)
      {
-         if (p_91527_ == Minecraft.getInstance().getWindow().getWindow())
+         if (pHandle == Minecraft.getInstance().getWindow().getWindow())
          {
 @@ -161,6 +202,19 @@
                  {
@@ -145,27 +145,27 @@
                          if (this.minecraft.gui.getSpectatorGui().isMenuActive())
 @@ -212,37 +271,37 @@
  
-     public void setup(long p_91525_)
+     public void setup(long pHandle)
      {
--        InputConstants.setupMouseCallbacks(p_91525_, (p_91591_, pHandle, p_91593_) ->
-+        InputConstants.setupMouseCallbacks(p_91525_, (handle1, xPos, yPos) ->
+-        InputConstants.setupMouseCallbacks(pHandle, (p_91591_, p_91592_, p_91593_) ->
++        InputConstants.setupMouseCallbacks(pHandle, (handle1, xPos, yPos) ->
          {
              this.minecraft.execute(() -> {
--                this.onMove(p_91591_, pHandle, p_91593_);
+-                this.onMove(p_91591_, p_91592_, p_91593_);
 +                this.onMove(handle1, xPos, yPos);
              });
--        }, (p_91566_, pHandle, p_91568_, pButton) ->
+-        }, (p_91566_, p_91567_, p_91568_, p_91569_) ->
 +        }, (handle1, button, action, modifiers) ->
          {
              this.minecraft.execute(() -> {
--                this.onPress(p_91566_, pHandle, p_91568_, pButton);
+-                this.onPress(p_91566_, p_91567_, p_91568_, p_91569_);
 +                this.onPress(handle1, button, action, modifiers);
              });
--        }, (p_91576_, pHandle, p_91578_) ->
+-        }, (p_91576_, p_91577_, p_91578_) ->
 +        }, (handle1, xOffset, yOffset) ->
          {
              this.minecraft.execute(() -> {
--                this.onScroll(p_91576_, pHandle, p_91578_);
+-                this.onScroll(p_91576_, p_91577_, p_91578_);
 +                this.onScroll(handle1, xOffset, yOffset);
              });
 -        }, (p_91536_, p_91537_, p_91538_) ->
@@ -188,13 +188,13 @@
          });
      }
  
--    private void onMove(long p_91562_, double pHandle, double p_91564_)
-+    public void onMove(long p_91562_, double pHandle, double p_91564_)
+-    private void onMove(long pHandle, double p_91563_, double pXpos)
++    public void onMove(long pHandle, double p_91563_, double pXpos)
      {
-         if (p_91562_ == Minecraft.getInstance().getWindow().getWindow())
+         if (pHandle == Minecraft.getInstance().getWindow().getWindow())
          {
 @@ -270,7 +329,13 @@
-                     double d3 = (p_91564_ - this.ypos) * (double)this.minecraft.getWindow().getGuiScaledHeight() / (double)this.minecraft.getWindow().getScreenHeight();
+                     double d3 = (pXpos - this.ypos) * (double)this.minecraft.getWindow().getGuiScaledHeight() / (double)this.minecraft.getWindow().getScreenHeight();
                      Screen.wrapScreenError(() ->
                      {
 -                        screen.mouseDragged(d0, d1, this.activeButton, d2, d3);

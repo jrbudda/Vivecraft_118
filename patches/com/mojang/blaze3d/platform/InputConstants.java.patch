@@ -76,10 +76,10 @@
          private final Int2ObjectMap<InputConstants.Key> map = new Int2ObjectOpenHashMap<>();
 @@ -366,17 +373,17 @@
  
-         public InputConstants.Key getOrCreate(int p_84896_)
+         public InputConstants.Key getOrCreate(int pKeyCode)
          {
--            return this.map.computeIfAbsent(p_84896_, (p_84907_) ->
-+            return this.map.computeIfAbsent(p_84896_, (p_237525_1_) ->
+-            return this.map.computeIfAbsent(pKeyCode, (p_84907_) ->
++            return this.map.computeIfAbsent(pKeyCode, (p_237525_1_) ->
              {
 -                int i = p_84907_;
 +                int i = p_237525_1_;

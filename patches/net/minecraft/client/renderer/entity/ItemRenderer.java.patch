@@ -35,24 +35,24 @@
 @@ -166,6 +177,16 @@
              }
  
-             pLeftHand.translate(-0.5D, -0.5D, -0.5D);
+             pMatrixStack.translate(-0.5D, -0.5D, -0.5D);
 +            LocalPlayer localplayer = Minecraft.getInstance().player;
 +
 +            if (localplayer != null && isfphand)
 +            {
-+                this.fade = SwingTracker.getItemFade(localplayer, p_115144_);
++                this.fade = SwingTracker.getItemFade(localplayer, pItemStack);
 +            }
 +            else
 +            {
 +                this.fade = this.manualFade;
 +            }
  
-             if (!pCombinedOverlay.isCustomRenderer() && (!p_115144_.is(Items.TRIDENT) || flag))
+             if (!pModel.isCustomRenderer() && (!pItemStack.is(Items.TRIDENT) || flag))
              {
 @@ -188,6 +209,12 @@
                  else
                  {
-                     RenderType rendertype = ItemBlockRenderTypes.getRenderType(p_115144_, flag1);
+                     RenderType rendertype = ItemBlockRenderTypes.getRenderType(pItemStack, flag1);
 +
 +                    if (isfphand && this.fade < 1.0F)
 +                    {
@@ -61,20 +61,20 @@
 +
                      VertexConsumer vertexconsumer;
  
-                     if (p_115144_.is(Items.COMPASS) && p_115144_.hasFoil())
+                     if (pItemStack.is(Items.COMPASS) && pItemStack.hasFoil())
 @@ -360,6 +387,19 @@
                  }
              }
  
-+            if (Minecraft.getInstance().jumpTracker.isBoots(pQuads))
++            if (Minecraft.getInstance().jumpTracker.isBoots(pItemStack))
 +            {
 +                k = this.makeColor(1, 0, 255, 0);
 +            }
-+            else if (Minecraft.getInstance().climbTracker.isClaws(pQuads))
++            else if (Minecraft.getInstance().climbTracker.isClaws(pItemStack))
 +            {
 +                k = this.makeColor(1, 130, 0, 75);
 +            }
-+            else if (TelescopeTracker.isTelescope(pQuads))
++            else if (TelescopeTracker.isTelescope(pItemStack))
 +            {
 +                k = this.makeColor(1, 190, 110, 135);
 +            }
@@ -86,8 +86,8 @@
              }
              else
              {
--                pMatrixStack.putBulkData(posestack$pose, bakedquad, f, f1, f2, pItemStack, pCombinedLight);
-+                SpecialItemRenderer.addQuad(pMatrixStack, posestack$pose, bakedquad, f, f1, f2, this.fade, pItemStack, pCombinedLight);
+-                pBuffer.putBulkData(posestack$pose, bakedquad, f, f1, f2, pCombinedLight, pCombinedOverlay);
++                SpecialItemRenderer.addQuad(pBuffer, posestack$pose, bakedquad, f, f1, f2, this.fade, pCombinedLight, pCombinedOverlay);
              }
          }
      }
@@ -101,7 +101,7 @@
 +        //
          PoseStack posestack = RenderSystem.getModelViewStack();
          posestack.pushPose();
-         posestack.translate((double)pStack, (double)pX, (double)(100.0F + this.blitOffset));
+         posestack.translate((double)pX, (double)pY, (double)(100.0F + this.blitOffset));
 @@ -635,4 +679,24 @@
      {
          return VanillaResourceType.MODELS;

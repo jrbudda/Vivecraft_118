@@ -38,72 +38,72 @@
      private URI clickedLink;
 @@ -183,7 +189,20 @@
  
-     protected void renderTooltip(PoseStack p_96566_, ItemStack pMatrixStack, int pItemStack, int pMouseX)
+     protected void renderTooltip(PoseStack pMatrixStack, ItemStack pTooltips, int pMouseX, int pMouseY)
      {
--        this.renderTooltip(p_96566_, this.getTooltipFromItem(pMatrixStack), pMatrixStack.getTooltipImage(), pItemStack, pMouseX);
+-        this.renderTooltip(pMatrixStack, this.getTooltipFromItem(pTooltips), pTooltips.getTooltipImage(), pMouseX, pMouseY);
 +    	//TODO: fix
 +    	if (Reflector.GuiUtils.exists())
 +    	{
-+//    		Reflector.call(Reflector.GuiUtils_preItemToolTip, pMatrixStack);
-+//    		Font font = (Font)Reflector.call(pMatrixStack.getItem(), Reflector.IForgeItem_getFontRenderer, pMatrixStack);
-+//    		this.renderTooltip(p_96566_, Lists.transform(this.getTooltipFromItem(pMatrixStack), Component::getVisualOrderText), pItemStack, pMouseX, font == null ? this.font : font);
++//    		Reflector.call(Reflector.GuiUtils_preItemToolTip, pTooltips);
++//    		Font font = (Font)Reflector.call(pTooltips.getItem(), Reflector.IForgeItem_getFontRenderer, pTooltips);
++//    		this.renderTooltip(pMatrixStack, Lists.transform(this.getTooltipFromItem(pTooltips), Component::getVisualOrderText), pMouseX, pMouseY, font == null ? this.font : font);
 +//    		Reflector.call(Reflector.GuiUtils_postItemToolTip);
 +    	}
 +    	else
 +    	{
-+    	//	this.renderComponentTooltip(p_96566_, this.getTooltipFromItem(pMatrixStack), pItemStack, pMouseX);
++    	//	this.renderComponentTooltip(pMatrixStack, this.getTooltipFromItem(pTooltips), pMouseX, pMouseY);
 +    	}
 +    	
-+    	this.renderTooltip(p_96566_, this.getTooltipFromItem(pMatrixStack), pMatrixStack.getTooltipImage(), pItemStack, pMouseX);
++    	this.renderTooltip(pMatrixStack, this.getTooltipFromItem(pTooltips), pTooltips.getTooltipImage(), pMouseX, pMouseY);
      }
  
-     public void renderTooltip(PoseStack p_169389_, List<Component> p_169390_, Optional<TooltipComponent> p_169391_, int p_169392_, int p_169393_)
+     public void renderTooltip(PoseStack pMatrixStack, List<Component> pTooltips, Optional<TooltipComponent> pMouseX, int pMouseY, int p_169393_)
 @@ -208,7 +227,16 @@
  
-     public void renderComponentTooltip(PoseStack p_96598_, List<Component> pMatrixStack, int pTooltips, int pMouseX)
+     public void renderComponentTooltip(PoseStack p_96598_, List<Component> p_96599_, int p_96600_, int p_96601_)
      {
--        this.renderTooltip(p_96598_, Lists.transform(pMatrixStack, Component::getVisualOrderText), pTooltips, pMouseX);
+-        this.renderTooltip(p_96598_, Lists.transform(p_96599_, Component::getVisualOrderText), p_96600_, p_96601_);
 +    	if (Reflector.GuiUtils.exists())
 +    	{
-+    		//this.renderWrappedToolTip(p_96598_, pMatrixStack, pTooltips, pMouseX, this.font);
++    		//this.renderWrappedToolTip(p_96598_, p_96599_, p_96600_, p_96601_, this.font);
 +    	}
 +    	else
 +    	{
-+    		this.renderTooltip(p_96598_, Lists.transform(pMatrixStack, Component::getVisualOrderText), pTooltips, pMouseX);
++    		this.renderTooltip(p_96598_, Lists.transform(p_96599_, Component::getVisualOrderText), p_96600_, p_96601_);
 +    	}
 +    	
-+        //this.renderTooltip(p_96598_, Lists.transform(pMatrixStack, Component::getVisualOrderText), pTooltips, pMouseX);
++        //this.renderTooltip(p_96598_, Lists.transform(p_96599_, Component::getVisualOrderText), p_96600_, p_96601_);
      }
  
-     public void renderTooltip(PoseStack p_96618_, List <? extends FormattedCharSequence > pMatrixStack, int pTooltips, int pMouseX)
+     public void renderTooltip(PoseStack pMatrixStack, List <? extends FormattedCharSequence > pTooltips, int pMouseX, int pMouseY)
 @@ -434,12 +462,20 @@
  
-     public void sendMessage(String p_96613_, boolean pText)
+     public void sendMessage(String pText, boolean p_96614_)
      {
--        if (pText)
+-        if (p_96614_)
 +        if (Reflector.ForgeEventFactory_onClientSendMessage.exists())
          {
--            this.minecraft.gui.getChat().addRecentChat(p_96613_);
-+            p_96613_ = Reflector.callString(Reflector.ForgeEventFactory_onClientSendMessage, p_96613_);
+-            this.minecraft.gui.getChat().addRecentChat(pText);
++            pText = Reflector.callString(Reflector.ForgeEventFactory_onClientSendMessage, pText);
          }
  
--        this.minecraft.player.chat(p_96613_);
-+        if (!p_96613_.isEmpty())
+-        this.minecraft.player.chat(pText);
++        if (!pText.isEmpty())
 +        {
-+            if (pText)
++            if (p_96614_)
 +            {
-+                this.minecraft.gui.getChat().addRecentChat(p_96613_);
++                this.minecraft.gui.getChat().addRecentChat(pText);
 +            }
 +
-+            this.minecraft.player.chat(p_96613_);
++            this.minecraft.player.chat(pText);
 +        }
      }
  
-     public final void init(Minecraft p_96607_, int pMinecraft, int pWidth)
+     public final void init(Minecraft pMinecraft, int pWidth, int pHeight)
 @@ -449,9 +485,14 @@
-         this.font = p_96607_.font;
-         this.width = pMinecraft;
-         this.height = pWidth;
+         this.font = pMinecraft.font;
+         this.width = pWidth;
+         this.height = pHeight;
 -        this.clearWidgets();
 -        this.setFocused((GuiEventListener)null);
 -        this.init();
@@ -122,23 +122,23 @@
      {
          if (this.minecraft.level != null)
          {
--            this.fillGradient(p_96559_, 0, 0, this.width, this.height, -1072689136, -804253680);
+-            this.fillGradient(pMatrixStack, 0, 0, this.width, this.height, -1072689136, -804253680);
 +            if (this.minecraft.vrSettings != null && !this.minecraft.vrSettings.menuBackground)
 +            {
-+                this.fillGradient(p_96559_, 0, 0, this.width, this.height, 0, 0);
++                this.fillGradient(pMatrixStack, 0, 0, this.width, this.height, 0, 0);
 +            }
 +            else
 +            {
-+                this.fillGradient(p_96559_, 0, 0, this.width, this.height, -1072689136, -804253680);
++                this.fillGradient(pMatrixStack, 0, 0, this.width, this.height, -1072689136, -804253680);
 +            }
 +
-+            Reflector.postForgeBusEvent(Reflector.BackgroundDrawnEvent_Constructor, this, p_96559_);
++            Reflector.postForgeBusEvent(Reflector.BackgroundDrawnEvent_Constructor, this, pMatrixStack);
          }
          else
          {
 @@ -504,6 +554,7 @@
-         bufferbuilder.vertex((double)this.width, 0.0D, 0.0D).uv((float)this.width / 32.0F, (float)p_96627_).color(64, 64, 64, 255).endVertex();
-         bufferbuilder.vertex(0.0D, 0.0D, 0.0D).uv(0.0F, (float)p_96627_).color(64, 64, 64, 255).endVertex();
+         bufferbuilder.vertex((double)this.width, 0.0D, 0.0D).uv((float)this.width / 32.0F, (float)pVOffset).color(64, 64, 64, 255).endVertex();
+         bufferbuilder.vertex(0.0D, 0.0D, 0.0D).uv(0.0F, (float)pVOffset).color(64, 64, 64, 255).endVertex();
          tesselator.end();
 +        Reflector.postForgeBusEvent(Reflector.BackgroundDrawnEvent_Constructor, this, new PoseStack());
      }

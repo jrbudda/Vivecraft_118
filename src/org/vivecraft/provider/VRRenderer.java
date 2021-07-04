@@ -211,7 +211,7 @@ public abstract class VRRenderer
             GlStateManager._clearDepth(1.0D);
             GlStateManager.clear(16640);
             GlStateManager._viewport(0, 0, this.fsaaFirstPassResultFBO.viewWidth, this.fsaaFirstPassResultFBO.viewHeight);
-            ARBShaderObjects.glUseProgramObjectARB(VRShaders._Lanczos_shaderProgramId);
+            GlStateManager._glUseProgram(VRShaders._Lanczos_shaderProgramId);
             ARBShaderObjects.glUniform1fARB(VRShaders._Lanczos_texelWidthOffsetUniform, 1.0F / (3.0F * (float)this.fsaaFirstPassResultFBO.viewWidth));
             ARBShaderObjects.glUniform1fARB(VRShaders._Lanczos_texelHeightOffsetUniform, 0.0F);
             ARBShaderObjects.glUniform1iARB(VRShaders._Lanczos_inputImageTextureUniform, 1);
@@ -238,7 +238,7 @@ public abstract class VRRenderer
             ARBShaderObjects.glUniform1iARB(VRShaders._Lanczos_inputDepthTextureUniform, 2);
             this.drawQuad();
             this.checkGLError("postdraw");
-            ARBShaderObjects.glUseProgramObjectARB(0);
+            GlStateManager._glUseProgram(0);
             GlStateManager.enableAlphaTest();
             GlStateManager._enableBlend();
             GL43.glMatrixMode(5889);

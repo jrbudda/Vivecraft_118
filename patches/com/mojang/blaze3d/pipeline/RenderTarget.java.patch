@@ -101,84 +101,83 @@
          {
              RenderSystem.recordRenderCall(() ->
              {
--                this._bindWrite(p_83948_);
+-                this._bindWrite(pSetViewport);
 +                this._bindWrite(true);
              });
          }
          else
          {
--            this._bindWrite(p_83948_);
+-            this._bindWrite(pSetViewport);
 +            this._bindWrite(true);
          }
      }
  
-     private void _bindWrite(boolean p_83962_)
+     private void _bindWrite(boolean pSetViewport)
      {
 +    	//vivecraft its easier to just always set the viewport.
-+    	p_83962_ = true;
++    	pSetViewport = true;
          if (GLX.isUsingFBOs())
          {
              RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
-@@ -329,8 +366,9 @@
+@@ -329,8 +366,8 @@
      {
-         this.blitToScreen(p_83939_, pWidth, true);
+         this.blitToScreen(pWidth, pHeight, true);
      }
 -
--    public void blitToScreen(int p_83958_, int pWidth, boolean pHeight)
-+    
+-    public void blitToScreen(int pWidth, int pHeight, boolean p_83960_)
 +	//Vivecraft add x/y offsets
 +    public void blitToScreen(int left, int width, int height, int top, boolean disableBlend, float xCropFactor, float yCropFactor, boolean keepAspect)
      {
          RenderSystem.assertThread(RenderSystem::isOnGameThreadOrInit);
  
-@@ -338,16 +376,16 @@
+@@ -338,16 +375,16 @@
          {
              RenderSystem.recordRenderCall(() ->
              {
--                this._blitToScreen(p_83958_, pWidth, pHeight);
+-                this._blitToScreen(pWidth, pHeight, p_83960_);
 +                this._blitToScreen(left, width, height, top, disableBlend, xCropFactor, yCropFactor, keepAspect);
              });
          }
          else
          {
--            this._blitToScreen(p_83958_, pWidth, pHeight);
+-            this._blitToScreen(pWidth, pHeight, p_83960_);
 +            this._blitToScreen(left, width, height, top, disableBlend, xCropFactor, yCropFactor, keepAspect);
          }
      }
  
--    private void _blitToScreen(int p_83972_, int pWidth, boolean pHeight)
+-    private void _blitToScreen(int pWidth, int pHeight, boolean p_83974_)
 +    private void _blitToScreen(int left, int width, int height, int top, boolean p_227588_3_, float xCropFactor, float yCropFactor, boolean keepAspect)
      {
          if (GLX.isUsingFBOs())
          {
-@@ -355,9 +393,10 @@
+@@ -355,9 +392,10 @@
              GlStateManager._colorMask(true, true, true, false);
              GlStateManager._disableDepthTest();
              GlStateManager._depthMask(false);
--            GlStateManager._viewport(0, 0, p_83972_, pWidth);
+-            GlStateManager._viewport(0, 0, pWidth, pHeight);
 +            
 +            GlStateManager._viewport(left, top, width, height);
  
--            if (pHeight)
+-            if (p_83974_)
 +            if (p_227588_3_)
              {
                  GlStateManager._disableBlend();
              }
-@@ -365,7 +404,7 @@
+@@ -365,7 +403,7 @@
              Minecraft minecraft = Minecraft.getInstance();
              ShaderInstance shaderinstance = minecraft.gameRenderer.blitShader;
              shaderinstance.setSampler("DiffuseSampler", this.colorTextureId);
--            Matrix4f matrix4f = Matrix4f.orthographic((float)p_83972_, (float)(-pWidth), 1000.0F, 3000.0F);
+-            Matrix4f matrix4f = Matrix4f.orthographic((float)pWidth, (float)(-pHeight), 1000.0F, 3000.0F);
 +            Matrix4f matrix4f = Matrix4f.orthographic((float)width, (float)(-height), 1000.0F, 3000.0F);
              RenderSystem.setProjectionMatrix(matrix4f);
  
              if (shaderinstance.MODEL_VIEW_MATRIX != null)
-@@ -379,17 +418,44 @@
+@@ -379,17 +417,44 @@
              }
  
              shaderinstance.apply();
--            float f = (float)p_83972_;
--            float f1 = (float)pWidth;
+-            float f = (float)pWidth;
+-            float f1 = (float)pHeight;
 -            float f2 = (float)this.viewWidth / (float)this.width;
 -            float f3 = (float)this.viewHeight / (float)this.height;
 +            float f = (float)width / (float)height;
@@ -227,7 +226,7 @@
              bufferbuilder.end();
              BufferUploader._endInternal(bufferbuilder);
              shaderinstance.clear();
-@@ -425,17 +491,53 @@
+@@ -425,17 +490,52 @@
          return this.depthBufferId;
      }
  
@@ -251,10 +250,9 @@
 +        GL30.glGenerateMipmap(3553);
 +    }
 +
-+    //Vivecraft - vanilla call
-+    public void blitToScreen(int p_83958_, int pWidth, boolean pHeight)
++    public void blitToScreen(int pWidth, int pHeight, boolean p_83960_)
 +    {
-+        this.blitToScreen(0, p_83958_, pWidth, 0, pHeight, 0.0F, 0.0F, false);
++        this.blitToScreen(0, pWidth, pHeight, 0, p_83960_, 0.0F, 0.0F, false);
 +    }
 +
 +    public String toString()

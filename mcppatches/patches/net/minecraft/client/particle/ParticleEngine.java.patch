@@ -2,11 +2,11 @@
 +++ b/net/minecraft/client/particle/ParticleEngine.java
 @@ -346,7 +346,7 @@
      @Nullable
-     private <T extends ParticleOptions> Particle makeParticle(T p_107396_, double pParticleData, double pX, double p_107399_, double pY, double p_107401_, double pZ)
+     private <T extends ParticleOptions> Particle makeParticle(T pParticleData, double pX, double p_107398_, double pY, double p_107400_, double pZ, double p_107402_)
      {
--        ParticleProvider<T> particleprovider = this.providers.get(Registry.PARTICLE_TYPE.getKey(p_107396_.getType()));
-+        ParticleProvider<T> particleprovider = (ParticleProvider<T>) this.providers.get(Registry.PARTICLE_TYPE.getKey(p_107396_.getType()));
-         return particleprovider == null ? null : particleprovider.createParticle(p_107396_, this.level, pParticleData, pX, p_107399_, pY, p_107401_, pZ);
+-        ParticleProvider<T> particleprovider = this.providers.get(Registry.PARTICLE_TYPE.getKey(pParticleData.getType()));
++        ParticleProvider<T> particleprovider = (ParticleProvider<T>) this.providers.get(Registry.PARTICLE_TYPE.getKey(pParticleData.getType()));
+         return particleprovider == null ? null : particleprovider.createParticle(pParticleData, this.level, pX, p_107398_, pY, p_107400_, pZ, p_107402_);
      }
  
 @@ -676,8 +676,14 @@

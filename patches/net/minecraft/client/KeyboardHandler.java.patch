@@ -12,9 +12,9 @@
  {
 @@ -411,6 +414,26 @@
      {
-         if (p_90894_ == this.minecraft.getWindow().getWindow())
+         if (pWindowPointer == this.minecraft.getWindow().getWindow())
          {
-+            if (pWindowPointer == 256 && pKey == 1)
++            if (p_90895_ == 256 && pScanCode == 1)
 +            {
 +                if (org.vivecraft.gameplay.screenhandlers.KeyboardHandler.Showing)
 +                {
@@ -29,7 +29,7 @@
 +                }
 +            }
 +
-+            if (VRHotkeys.handleKeyboardInputs(pWindowPointer, p_90896_, pKey, pScanCode))
++            if (VRHotkeys.handleKeyboardInputs(p_90895_, pKey, pScanCode, pAction))
 +            {
 +                return;
 +            }
@@ -39,7 +39,7 @@
                  if (!InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 67) || !InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 292))
 @@ -442,16 +465,17 @@
  
-                     if (this.minecraft.options.keyScreenshot.matches(pWindowPointer, p_90896_))
+                     if (this.minecraft.options.keyScreenshot.matches(p_90895_, pKey))
                      {
 -                        if (Screen.hasControlDown())
 -                        {
@@ -72,10 +72,10 @@
 -            if (this.minecraft.screen == null || this.minecraft.screen.passEvents)
 +            if ((this.minecraft.screen == null || this.minecraft.screen.passEvents) && !InputConstants.isKeyDown(345))
              {
-                 InputConstants.Key inputconstants$key = InputConstants.getKey(pWindowPointer, p_90896_);
+                 InputConstants.Key inputconstants$key = InputConstants.getKey(p_90895_, pKey);
  
 @@ -595,6 +619,7 @@
-                         if (pWindowPointer == 290)
+                         if (p_90895_ == 290)
                          {
                              this.minecraft.options.hideGui = !this.minecraft.options.hideGui;
 +                            this.minecraft.vrSettings.saveOptions();
@@ -86,8 +86,8 @@
          }
      }
  
--    private void charTyped(long p_90890_, int pWindowPointer, int p_90892_)
-+    public void charTyped(long p_90890_, int pWindowPointer, int p_90892_)
+-    private void charTyped(long pWindowPointer, int p_90891_, int pCodePoint)
++    public void charTyped(long pWindowPointer, int p_90891_, int pCodePoint)
      {
-         if (p_90890_ == this.minecraft.getWindow().getWindow())
+         if (pWindowPointer == this.minecraft.getWindow().getWindow())
          {

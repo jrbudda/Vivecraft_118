@@ -57,9 +57,9 @@
          return new ItemStack(this.getDropItem());
      }
  
-+    protected void addPassenger(Entity p_20349_)
++    protected void addPassenger(Entity pPassenger)
 +    {
-+        super.addPassenger(p_20349_);
++        super.addPassenger(pPassenger);
 +
 +        if (this.isControlledByLocalInstance() && this.lerpSteps > 0)
 +        {

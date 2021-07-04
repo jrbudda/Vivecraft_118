@@ -200,14 +200,14 @@
 +        }
 +    }
 +
-     public boolean hurt(DamageSource p_108662_, float pSource)
+     public boolean hurt(DamageSource pSource, float pAmount)
      {
          return false;
 @@ -167,6 +300,8 @@
-                 this.setYHeadRot(p_108667_.getYRot());
+                 this.setYHeadRot(pEntity.getYRot());
              }
  
-+            this.minecraft.vehicleTracker.onStartRiding(p_108667_, this);
++            this.minecraft.vehicleTracker.onStartRiding(pEntity, this);
 +            this.snapReq = true;
              return true;
          }
@@ -219,7 +219,7 @@
 +        this.minecraft.vehicleTracker.onStopRiding(this);
      }
  
-     public float getViewXRot(float p_108742_)
+     public float getViewXRot(float pPartialTicks)
 @@ -192,6 +328,8 @@
          if (this.level.hasChunkAt(this.getBlockX(), this.getBlockZ()))
          {
@@ -265,10 +265,10 @@
          }
      }
 @@ -312,10 +469,29 @@
-     public void chat(String p_108740_)
+     public void chat(String pMessage)
      {
-         this.connection.send(new ServerboundChatPacket(p_108740_));
-+        this.lastMsg = p_108740_;
+         this.connection.send(new ServerboundChatPacket(pMessage));
++        this.lastMsg = pMessage;
 +    }
 +
 +    public void swingArm(InteractionHand hand, VRFirstPersonArmSwing animation)
@@ -277,13 +277,13 @@
 +        this.swing(hand);
      }
  
-     public void swing(InteractionHand p_108660_)
+     public void swing(InteractionHand pHand)
      {
 +        if (!this.swinging)
 +        {
 +            if (this.minecraft.hitResult != null && this.minecraft.hitResult.getType() != net.minecraft.world.phys.HitResult.Type.MISS)
 +            {
-+                this.minecraft.getItemInHandRenderer().xdist = (float)this.minecraft.hitResult.getLocation().subtract(this.minecraft.vrPlayer.vrdata_world_pre.getController(p_108660_.ordinal()).getPosition()).length();
++                this.minecraft.getItemInHandRenderer().xdist = (float)this.minecraft.hitResult.getLocation().subtract(this.minecraft.vrPlayer.vrdata_world_pre.getController(pHand.ordinal()).getPosition()).length();
 +            }
 +            else
 +            {
@@ -291,31 +291,31 @@
 +            }
 +        }
 +
-         super.swing(p_108660_);
-         this.connection.send(new ServerboundSwingPacket(p_108660_));
+         super.swing(pHand);
+         this.connection.send(new ServerboundSwingPacket(pHand));
      }
 @@ -554,7 +730,23 @@
  
-     public void playSound(SoundEvent p_108651_, float pSound, float pVolume)
+     public void playSound(SoundEvent pSound, float pVolume, float pPitch)
      {
--        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), p_108651_, this.getSoundSource(), pSound, pVolume, false);
+-        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), pSound, this.getSoundSource(), pVolume, pPitch, false);
 +        SoundSource soundsource = this.getSoundSource();
 +
 +        if (Reflector.ForgeEventFactory_onPlaySoundAtEntity.exists())
 +        {
-+            Object object = Reflector.ForgeEventFactory_onPlaySoundAtEntity.call(this, p_108651_, this.getSoundSource(), pSound, pVolume);
++            Object object = Reflector.ForgeEventFactory_onPlaySoundAtEntity.call(this, pSound, this.getSoundSource(), pVolume, pPitch);
 +
 +            if (Reflector.callBoolean(object, Reflector.Event_isCanceled) || Reflector.call(object, Reflector.PlaySoundAtEntityEvent_getSound) == null)
 +            {
 +                return;
 +            }
 +
-+            p_108651_ = (SoundEvent)Reflector.call(object, Reflector.PlaySoundAtEntityEvent_getSound);
++            pSound = (SoundEvent)Reflector.call(object, Reflector.PlaySoundAtEntityEvent_getSound);
 +            soundsource = (SoundSource)Reflector.call(object, Reflector.PlaySoundAtEntityEvent_getCategory);
-+            pSound = Reflector.callFloat(object, Reflector.PlaySoundAtEntityEvent_getVolume);
++            pVolume = Reflector.callFloat(object, Reflector.PlaySoundAtEntityEvent_getVolume);
 +        }
 +
-+        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), p_108651_, soundsource, pSound, pVolume, false);
++        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), pSound, soundsource, pVolume, pPitch, false);
      }
  
      public void playNotifySound(SoundEvent p_108655_, SoundSource p_108656_, float p_108657_, float p_108658_)
@@ -389,15 +389,15 @@
          {
 @@ -1044,10 +1245,67 @@
  
-     public void move(MoverType p_108670_, Vec3 pType)
+     public void move(MoverType pType, Vec3 pPos)
      {
 -        double d0 = this.getX();
 -        double d1 = this.getZ();
--        super.move(p_108670_, pType);
+-        super.move(pType, pPos);
 -        this.updateAutoJump((float)(this.getX() - d0), (float)(this.getZ() - d1));
 +        this.moveMulIn = this.stuckSpeedMultiplier;
 +
-+        if (pType.length() != 0.0D && !this.isPassenger())
++        if (pPos.length() != 0.0D && !this.isPassenger())
 +        {
 +            boolean flag = VRPlayer.get().getFreeMove();
 +            boolean flag1 = flag || Minecraft.getInstance().vrSettings.simulateFalling && !this.onClimbable() && !this.isShiftKeyDown();
@@ -415,7 +415,7 @@
 +                double d1 = vec3.z - this.getZ();
 +                double d2 = this.getX();
 +                double d3 = this.getZ();
-+                super.move(p_108670_, pType);
++                super.move(pType, pPos);
 +
 +                if (this.minecraft.vrSettings.walkUpBlocks)
 +                {
@@ -432,7 +432,7 @@
 +            }
 +            else if (flag1)
 +            {
-+                super.move(p_108670_, new Vec3(0.0D, pType.y, 0.0D));
++                super.move(pType, new Vec3(0.0D, pPos.y, 0.0D));
 +                VRPlayer.get().setRoomOrigin(VRPlayer.get().roomOrigin.x, this.getY() + this.getRoomYOffsetFromPose(), VRPlayer.get().roomOrigin.z, false);
 +            }
 +            else
@@ -442,7 +442,7 @@
 +        }
 +        else
 +        {
-+            super.move(p_108670_, pType);
++            super.move(pType, pPos);
 +        }
 +    }
 +
@@ -460,7 +460,7 @@
  
      public boolean isAutoJumpEnabled()
 @@ -1064,14 +1322,18 @@
-             Vec3 vec32 = new Vec3((double)p_108744_, 0.0D, (double)pMovementX);
+             Vec3 vec32 = new Vec3((double)pMovementX, 0.0D, (double)pMovementZ);
              float f = this.getSpeed();
              float f1 = (float)vec32.lengthSqr();
 -
@@ -550,9 +550,9 @@
          this.minecraft.getTutorial().onInventoryAction(p_172532_, p_172533_, p_172534_);
      }
 +
-+    public void moveTo(double p_20108_, double pX, double p_20110_, float pY, float p_20112_)
++    public void moveTo(double pX, double p_20109_, double pY, float p_20111_, float pZ)
 +    {
-+        super.moveTo(p_20108_, pX, p_20110_, pY, p_20112_);
++        super.moveTo(pX, p_20109_, pY, p_20111_, pZ);
 +
 +        if (this.initFromServer)
 +        {
@@ -560,24 +560,24 @@
 +        }
 +    }
 +
-+    public void absMoveTo(double p_19891_, double pX, double p_19893_, float pY, float p_19895_)
++    public void absMoveTo(double pX, double p_19892_, double pY, float p_19894_, float pZ)
 +    {
-+        super.absMoveTo(p_19891_, pX, p_19893_, pY, p_19895_);
++        super.absMoveTo(pX, p_19892_, pY, p_19894_, pZ);
 +        this.minecraft.vrPlayer.snapRoomOriginToPlayerEntity(this, false, false);
 +
 +        if (!this.initFromServer)
 +        {
-+            this.moveTo(p_19891_, pX, p_19893_, pY, p_19895_);
++            this.moveTo(pX, p_19892_, pY, p_19894_, pZ);
 +            this.initFromServer = true;
 +        }
 +    }
 +
-+    public void setPos(double p_20210_, double pX, double p_20212_)
++    public void setPos(double pX, double p_20211_, double pY)
 +    {
 +        double d0 = this.getX();
 +        double d1 = this.getY();
 +        double d2 = this.getZ();
-+        super.setPos(p_20210_, pX, p_20212_);
++        super.setPos(pX, p_20211_, pY);
 +        double d3 = this.getX();
 +        double d4 = this.getY();
 +        double d5 = this.getZ();
@@ -587,15 +587,15 @@
 +        {
 +            Vec3 vec3 = this.minecraft.vehicleTracker.Premount_Pos_Room;
 +            vec3 = vec3.yRot(this.minecraft.vrPlayer.vrdata_world_pre.rotation_radians);
-+            p_20210_ = p_20210_ - vec3.x;
-+            pX = this.minecraft.vehicleTracker.getVehicleFloor(entity, pX);
-+            p_20212_ = p_20212_ - vec3.z;
-+            this.minecraft.vrPlayer.setRoomOrigin(p_20210_, pX, p_20212_, p_20210_ + pX + p_20212_ == 0.0D);
++            pX = pX - vec3.x;
++            p_20211_ = this.minecraft.vehicleTracker.getVehicleFloor(entity, p_20211_);
++            pY = pY - vec3.z;
++            this.minecraft.vrPlayer.setRoomOrigin(pX, p_20211_, pY, pX + p_20211_ + pY == 0.0D);
 +        }
 +        else
 +        {
 +            Vec3 vec31 = Minecraft.getInstance().vrPlayer.roomOrigin;
-+            VRPlayer.get().setRoomOrigin(vec31.x + (d3 - d0), vec31.y + (d4 - d1), vec31.z + (d5 - d2), p_20210_ + pX + p_20212_ == 0.0D);
++            VRPlayer.get().setRoomOrigin(vec31.x + (d3 - d0), vec31.y + (d4 - d1), vec31.z + (d5 - d2), pX + p_20211_ + pY == 0.0D);
 +        }
 +    }
 +
@@ -629,11 +629,11 @@
 +        return orig >= -1.0E-6D && orig <= 1.0E-6D ? 1.0E-6D : orig;
 +    }
 +
-+    public void moveRelative(float p_19921_, Vec3 pAmount)
++    public void moveRelative(float pAmount, Vec3 pRelative)
 +    {
-+        double d0 = pAmount.y;
-+        double d1 = pAmount.x;
-+        double d2 = pAmount.z;
++        double d0 = pRelative.y;
++        double d1 = pRelative.x;
++        double d2 = pRelative.z;
 +        VRPlayer vrplayer = this.minecraft.vrPlayer;
 +
 +        if (vrplayer.getFreeMove())
@@ -654,7 +654,7 @@
 +                    d3 = 1.0D;
 +                }
 +
-+                d3 = (double)p_19921_ / d3;
++                d3 = (double)pAmount / d3;
 +                d1 = d1 * d3;
 +                d2 = d2 * d3;
 +                Vec3 vec3 = new Vec3(d1, 0.0D, d2);
@@ -785,19 +785,19 @@
 +        return this == Minecraft.getInstance().player;
 +    }
 +
-+    protected void triggerItemUseEffects(ItemStack p_21138_, int pStack)
++    protected void triggerItemUseEffects(ItemStack pStack, int pCount)
 +    {
-+        if (!p_21138_.isEmpty() && this.isUsingItem())
++        if (!pStack.isEmpty() && this.isUsingItem())
 +        {
-+            if (p_21138_.getUseAnimation() == UseAnim.DRINK)
++            if (pStack.getUseAnimation() == UseAnim.DRINK)
 +            {
-+                this.playSound(this.getDrinkingSound(p_21138_), 0.5F, this.level.random.nextFloat() * 0.1F + 0.9F);
++                this.playSound(this.getDrinkingSound(pStack), 0.5F, this.level.random.nextFloat() * 0.1F + 0.9F);
 +            }
 +
-+            if (p_21138_.getUseAnimation() == UseAnim.EAT)
++            if (pStack.getUseAnimation() == UseAnim.EAT)
 +            {
-+                this.addItemParticles(p_21138_, pStack);
-+                this.playSound(this.getEatingSound(p_21138_), 0.5F + 0.5F * (float)this.random.nextInt(2), (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
++                this.addItemParticles(pStack, pCount);
++                this.playSound(this.getEatingSound(pStack), 0.5F + 0.5F * (float)this.random.nextInt(2), (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
 +            }
 +        }
 +    }
@@ -844,9 +844,9 @@
 +        }
 +    }
 +
-+    public void die(DamageSource p_36152_)
++    public void die(DamageSource pCause)
 +    {
-+        super.die(p_36152_);
++        super.die(pCause);
 +        this.minecraft.vr.triggerHapticPulse(0, 2000);
 +        this.minecraft.vr.triggerHapticPulse(1, 2000);
 +    }

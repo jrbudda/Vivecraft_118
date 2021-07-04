@@ -21,13 +21,13 @@
  
 @@ -135,25 +139,25 @@
  
-     public Optional <? extends Recipe<? >> byKey(ResourceLocation p_44044_)
+     public Optional <? extends Recipe<? >> byKey(ResourceLocation pRecipeId)
      {
 -        return this.recipes.values().stream().map((p_44050_) ->
 +        return this.recipes.values().stream().map((recipeMap) ->
          {
--            return p_44050_.get(p_44044_);
-+            return recipeMap.get(p_44044_);
+-            return p_44050_.get(pRecipeId);
++            return recipeMap.get(pRecipeId);
          }).filter(Objects::nonNull).findFirst();
      }
  

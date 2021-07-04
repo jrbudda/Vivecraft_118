@@ -11,34 +11,34 @@
      private static final GlStateManager.PolygonOffsetState POLY_OFFSET = new GlStateManager.PolygonOffsetState();
 @@ -223,22 +223,19 @@
          {
-             blendLockState.setFactors(pProgram, pShader);
+             blendLockState.setFactors(pSrcFactor, pDstFactor);
          }
 -        else
-+        else if (pProgram != BLEND.srcRgb || pShader != BLEND.dstRgb || pProgram != BLEND.srcAlpha || pShader != BLEND.dstAlpha)
++        else if (pSrcFactor != BLEND.srcRgb || pDstFactor != BLEND.dstRgb || pSrcFactor != BLEND.srcAlpha || pDstFactor != BLEND.dstAlpha)
          {
--            if (pProgram != BLEND.srcRgb || pShader != BLEND.dstRgb || pProgram != BLEND.srcAlpha || pShader != BLEND.dstAlpha)
+-            if (pSrcFactor != BLEND.srcRgb || pDstFactor != BLEND.dstRgb || pSrcFactor != BLEND.srcAlpha || pDstFactor != BLEND.dstAlpha)
 -            {
--                BLEND.srcRgb = pProgram;
--                BLEND.dstRgb = pShader;
--                BLEND.srcAlpha = pProgram;
--                BLEND.dstAlpha = pShader;
+-                BLEND.srcRgb = pSrcFactor;
+-                BLEND.dstRgb = pDstFactor;
+-                BLEND.srcAlpha = pSrcFactor;
+-                BLEND.dstAlpha = pDstFactor;
 -
 -                if (Config.isShaders())
 -                {
--                    Shaders.uniform_blendFunc.setValue(pProgram, pShader, pProgram, pShader);
+-                    Shaders.uniform_blendFunc.setValue(pSrcFactor, pDstFactor, pSrcFactor, pDstFactor);
 -                }
-+            BLEND.srcRgb = pProgram;
-+            BLEND.dstRgb = pShader;
-+            BLEND.srcAlpha = pProgram;
-+            BLEND.dstAlpha = pShader;
++            BLEND.srcRgb = pSrcFactor;
++            BLEND.dstRgb = pDstFactor;
++            BLEND.srcAlpha = pSrcFactor;
++            BLEND.dstAlpha = pDstFactor;
  
--                GL11.glBlendFunc(pProgram, pShader);
+-                GL11.glBlendFunc(pSrcFactor, pDstFactor);
 +            if (Config.isShaders())
 +            {
-+                Shaders.uniform_blendFunc.setValue(pProgram, pShader, pProgram, pShader);
++                Shaders.uniform_blendFunc.setValue(pSrcFactor, pDstFactor, pSrcFactor, pDstFactor);
              }
 +
-+            GL11.glBlendFunc(pProgram, pShader);
++            GL11.glBlendFunc(pSrcFactor, pDstFactor);
          }
      }
  
@@ -46,62 +46,62 @@
      {
          RenderSystem.assertThread(RenderSystem::isOnRenderThread);
  
-+        if (pSFactorRGB == GlStateManager.SourceFactor.SRC_ALPHA.value && pDFactorRGB == GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA.value && pSFactorAlpha == GlStateManager.SourceFactor.ONE.value && pDFactorAlpha == GlStateManager.DestFactor.ZERO.value)
++        if (pSrcFactor == GlStateManager.SourceFactor.SRC_ALPHA.value && pDstFactor == GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA.value && pSrcFactorAlpha == GlStateManager.SourceFactor.ONE.value && pDstFactorAlpha == GlStateManager.DestFactor.ZERO.value)
 +        {
-+            pDFactorAlpha = GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA.value;
++            pDstFactorAlpha = GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA.value;
 +        }
 +
          if (blendLock.isLocked())
          {
-             blendLockState.setFactors(pSFactorRGB, pDFactorRGB, pSFactorAlpha, pDFactorAlpha);
+             blendLockState.setFactors(pSrcFactor, pDstFactor, pSrcFactorAlpha, pDstFactorAlpha);
          }
 -        else
-+        else if (pSFactorRGB != BLEND.srcRgb || pDFactorRGB != BLEND.dstRgb || pSFactorAlpha != BLEND.srcAlpha || pDFactorAlpha != BLEND.dstAlpha)
++        else if (pSrcFactor != BLEND.srcRgb || pDstFactor != BLEND.dstRgb || pSrcFactorAlpha != BLEND.srcAlpha || pDstFactorAlpha != BLEND.dstAlpha)
          {
--            if (pSFactorRGB != BLEND.srcRgb || pDFactorRGB != BLEND.dstRgb || pSFactorAlpha != BLEND.srcAlpha || pDFactorAlpha != BLEND.dstAlpha)
+-            if (pSrcFactor != BLEND.srcRgb || pDstFactor != BLEND.dstRgb || pSrcFactorAlpha != BLEND.srcAlpha || pDstFactorAlpha != BLEND.dstAlpha)
 -            {
--                BLEND.srcRgb = pSFactorRGB;
--                BLEND.dstRgb = pDFactorRGB;
--                BLEND.srcAlpha = pSFactorAlpha;
--                BLEND.dstAlpha = pDFactorAlpha;
-+            BLEND.srcRgb = pSFactorRGB;
-+            BLEND.dstRgb = pDFactorRGB;
-+            BLEND.srcAlpha = pSFactorAlpha;
-+            BLEND.dstAlpha = pDFactorAlpha;
+-                BLEND.srcRgb = pSrcFactor;
+-                BLEND.dstRgb = pDstFactor;
+-                BLEND.srcAlpha = pSrcFactorAlpha;
+-                BLEND.dstAlpha = pDstFactorAlpha;
++            BLEND.srcRgb = pSrcFactor;
++            BLEND.dstRgb = pDstFactor;
++            BLEND.srcAlpha = pSrcFactorAlpha;
++            BLEND.dstAlpha = pDstFactorAlpha;
  
 -                if (Config.isShaders())
 -                {
--                    Shaders.uniform_blendFunc.setValue(pSFactorRGB, pDFactorRGB, pSFactorAlpha, pDFactorAlpha);
+-                    Shaders.uniform_blendFunc.setValue(pSrcFactor, pDstFactor, pSrcFactorAlpha, pDstFactorAlpha);
 -                }
 -
--                glBlendFuncSeparate(pSFactorRGB, pDFactorRGB, pSFactorAlpha, pDFactorAlpha);
+-                glBlendFuncSeparate(pSrcFactor, pDstFactor, pSrcFactorAlpha, pDstFactorAlpha);
 +            if (Config.isShaders())
 +            {
-+                Shaders.uniform_blendFunc.setValue(pSFactorRGB, pDFactorRGB, pSFactorAlpha, pDFactorAlpha);
++                Shaders.uniform_blendFunc.setValue(pSrcFactor, pDstFactor, pSrcFactorAlpha, pDstFactorAlpha);
              }
 +
-+            glBlendFuncSeparate(pSFactorRGB, pDFactorRGB, pSFactorAlpha, pDFactorAlpha);
++            glBlendFuncSeparate(pSrcFactor, pDstFactor, pSrcFactorAlpha, pDstFactorAlpha);
          }
      }
  
 @@ -640,6 +639,8 @@
-     public static void _glDeleteFramebuffers(int pProgram)
+     public static void _glDeleteFramebuffers(int pFrameBuffer)
      {
          RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
-+        if(pProgram == framebufferDraw) framebufferDraw = 0;
-+        if(pProgram == framebufferRead) framebufferRead = 0;
-         GL30.glDeleteFramebuffers(pProgram);
++        if(pFrameBuffer == framebufferDraw) framebufferDraw = 0;
++        if(pFrameBuffer == framebufferRead) framebufferRead = 0;
+         GL30.glDeleteFramebuffers(pFrameBuffer);
      }
  
 @@ -892,11 +893,11 @@
  
-             GL11.glDeleteTextures(pProgram);
+             GL11.glDeleteTextures(pTexture);
  
 -            for (GlStateManager.TextureState glstatemanager$texturestate : TEXTURES)
 +            for (GlStateManager.TextureState GlStateManager$texturestate : TEXTURES)
              {
--                if (glstatemanager$texturestate.binding == pProgram)
-+                if (GlStateManager$texturestate.binding == pProgram)
+-                if (glstatemanager$texturestate.binding == pTexture)
++                if (GlStateManager$texturestate.binding == pTexture)
                  {
 -                    glstatemanager$texturestate.binding = 0;
 +                    GlStateManager$texturestate.binding = 0;
@@ -115,7 +115,7 @@
 -        for (GlStateManager.TextureState glstatemanager$texturestate : TEXTURES)
 +        for (GlStateManager.TextureState GlStateManager$texturestate : TEXTURES)
          {
-             for (int i : pTextures)
+             for (int i : p_84366_)
              {
 -                if (glstatemanager$texturestate.binding == i)
 +                if (GlStateManager$texturestate.binding == i)

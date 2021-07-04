@@ -6,25 +6,25 @@
      }
 -
 +    public static boolean skipStupidGoddamnChunkBoundaryClipping;
-     public boolean tesselate(BlockAndTintGetter p_110955_, BlockPos pLightReader, VertexConsumer pPos, FluidState pVertexBuilder)
+     public boolean tesselate(BlockAndTintGetter pLightReader, BlockPos pPos, VertexConsumer pVertexBuilder, FluidState pFluidState)
      {
-         BlockState blockstate = pVertexBuilder.createLegacyBlock();
+         BlockState blockstate = pFluidState.createLegacyBlock();
 @@ -150,11 +150,13 @@
-                 float f8 = this.getWaterHeight(p_110955_, pLightReader.south(), pVertexBuilder.getType());
-                 float f9 = this.getWaterHeight(p_110955_, pLightReader.east().south(), pVertexBuilder.getType());
-                 float f10 = this.getWaterHeight(p_110955_, pLightReader.east(), pVertexBuilder.getType());
--                double d0 = (double)(pLightReader.getX() & 15);
--                double d1 = (double)(pLightReader.getY() & 15);
--                double d2 = (double)(pLightReader.getZ() & 15);
+                 float f8 = this.getWaterHeight(pLightReader, pPos.south(), pFluidState.getType());
+                 float f9 = this.getWaterHeight(pLightReader, pPos.east().south(), pFluidState.getType());
+                 float f10 = this.getWaterHeight(pLightReader, pPos.east(), pFluidState.getType());
+-                double d0 = (double)(pPos.getX() & 15);
+-                double d1 = (double)(pPos.getY() & 15);
+-                double d2 = (double)(pPos.getZ() & 15);
 -
 -                if (Config.isRenderRegions())
-+                //double d0 = (double)(pLightReader.getX() & 15);
-+                //double d1 = (double)(pLightReader.getY() & 15);
-+                //double d2 = (double)(pLightReader.getZ() & 15);
-+                double d0 = skipStupidGoddamnChunkBoundaryClipping ? pLightReader.getX() : (double)(pLightReader.getX() & 15);
-+                double d1 = skipStupidGoddamnChunkBoundaryClipping ? pLightReader.getY() : (double)(pLightReader.getY() & 15);
-+                double d2 = skipStupidGoddamnChunkBoundaryClipping ? pLightReader.getZ() : (double)(pLightReader.getZ() & 15);
++                //double d0 = (double)(pPos.getX() & 15);
++                //double d1 = (double)(pPos.getY() & 15);
++                //double d2 = (double)(pPos.getZ() & 15);
++                double d0 = skipStupidGoddamnChunkBoundaryClipping ? pPos.getX() : (double)(pPos.getX() & 15);
++                double d1 = skipStupidGoddamnChunkBoundaryClipping ? pPos.getY() : (double)(pPos.getY() & 15);
++                double d2 = skipStupidGoddamnChunkBoundaryClipping ? pPos.getZ() : (double)(pPos.getZ() & 15);
 +                if (Config.isRenderRegions() && !skipStupidGoddamnChunkBoundaryClipping)
                  {
-                     int j = pLightReader.getX() >> 4 << 4;
-                     int k = pLightReader.getY() >> 4 << 4;
+                     int j = pPos.getX() >> 4 << 4;
+                     int k = pPos.getY() >> 4 << 4;

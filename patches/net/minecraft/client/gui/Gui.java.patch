@@ -38,7 +38,7 @@
  
 +    boolean nope = false;
 +    boolean yup = false;
-     public void render(PoseStack p_93031_, float pMatrixStack)
+     public void render(PoseStack pMatrixStack, float pPartialTicks)
      {
          this.screenWidth = this.minecraft.getWindow().getGuiScaledWidth();
          this.screenHeight = this.minecraft.getWindow().getGuiScaledHeight();
@@ -71,7 +71,7 @@
              this.renderTextureOverlay(POWDER_SNOW_OUTLINE_LOCATION, this.minecraft.player.getPercentFrozen());
          }
  
-         float f2 = Mth.lerp(pMatrixStack, this.minecraft.player.oPortalTime, this.minecraft.player.portalTime);
+         float f2 = Mth.lerp(pPartialTicks, this.minecraft.player.oPortalTime, this.minecraft.player.portalTime);
  
 -        if (f2 > 0.0F && !this.minecraft.player.hasEffect(MobEffects.CONFUSION))
 +        if (nope)
@@ -82,18 +82,18 @@
              RenderSystem.setShader(GameRenderer::getPositionTexShader);
              RenderSystem.setShaderTexture(0, GUI_ICONS_LOCATION);
              RenderSystem.enableBlend();
--            this.renderCrosshair(p_93031_);
-+            if(nope)this.renderCrosshair(p_93031_); //nope
+-            this.renderCrosshair(pMatrixStack);
++            if(nope)this.renderCrosshair(pMatrixStack); //nope
              RenderSystem.setShader(GameRenderer::getPositionTexShader);
              GlStateManager.enableAlphaTest();
 -            RenderSystem.defaultBlendFunc();
 +            RenderSystem.defaultBlendFunc(); //TODO: check if this should still be overridden here.
              this.minecraft.getProfiler().push("bossHealth");
-             this.bossOverlay.render(p_93031_);
+             this.bossOverlay.render(pMatrixStack);
              this.minecraft.getProfiler().pop();
 @@ -409,7 +417,27 @@
              {
-                 this.displayScoreboardSidebar(p_93031_, objective1);
+                 this.displayScoreboardSidebar(pMatrixStack, objective1);
              }
 -
 +            
@@ -119,29 +119,29 @@
 +			
              RenderSystem.enableBlend();
              RenderSystem.defaultBlendFunc();
-             p_93031_.pushPose();
+             pMatrixStack.pushPose();
 @@ -420,14 +448,14 @@
-             p_93031_.popPose();
+             pMatrixStack.popPose();
              objective1 = scoreboard.getDisplayObjective(0);
  
 -            if (this.minecraft.options.keyPlayerList.isDown() && (!this.minecraft.isLocalServer() || this.minecraft.player.connection.getOnlinePlayers().size() > 1 || objective1 != null))
 +            if (!this.minecraft.options.keyPlayerList.isDown() && !this.showPlayerList || this.minecraft.isLocalServer() && this.minecraft.player.connection.getOnlinePlayers().size() <= 1 && objective1 == null)
              {
 -                this.tabList.setVisible(true);
--                this.tabList.render(p_93031_, this.screenWidth, scoreboard, objective1);
+-                this.tabList.render(pMatrixStack, this.screenWidth, scoreboard, objective1);
 +                this.tabList.setVisible(false);
              }
              else
              {
 -                this.tabList.setVisible(false);
 +                this.tabList.setVisible(true);
-+                this.tabList.render(p_93031_, this.screenWidth, scoreboard, objective1);
++                this.tabList.render(pMatrixStack, this.screenWidth, scoreboard, objective1);
              }
          }
  
 @@ -447,6 +475,7 @@
  
-     private void renderCrosshair(PoseStack p_93081_)
+     private void renderCrosshair(PoseStack pMatrixStack)
      {
 +    	if (nope) return;
          Options options = this.minecraft.options;
@@ -149,8 +149,8 @@
          if (options.getCameraType().isFirstPerson() && (this.minecraft.gameMode.getPlayerMode() != GameType.SPECTATOR || this.canRenderCrosshairForSpectator(this.minecraft.hitResult)))
 @@ -643,12 +672,36 @@
              this.setBlitOffset(-90);
-             this.blit(pPartialTicks, i - 91, this.screenHeight - 22, 0, 0, 182, 22);
-             this.blit(pPartialTicks, i - 91 - 1 + player.getInventory().selected * 20, this.screenHeight - 22 - 1, 0, 22, 24, 22);
+             this.blit(pMatrixStack, i - 91, this.screenHeight - 22, 0, 0, 182, 22);
+             this.blit(pMatrixStack, i - 91 - 1 + player.getInventory().selected * 20, this.screenHeight - 22 - 1, 0, 22, 24, 22);
 -
 -            if (!itemstack.isEmpty())
 +            
@@ -158,7 +158,7 @@
 +            if (this.minecraft.interactTracker.hotbar >= 0 && this.minecraft.interactTracker.hotbar < 9 && player.getInventory().selected != this.minecraft.interactTracker.hotbar)
 +            {
 +                RenderSystem.setShaderColor(0.0F, 1.0F, 0.0F, 1.0F);
-+                this.blit(pPartialTicks, i - 91 - 1 + this.minecraft.interactTracker.hotbar * 20, this.screenHeight - 22 - 1, 0, 22, 24, 22);
++                this.blit(pMatrixStack, i - 91 - 1 + this.minecraft.interactTracker.hotbar * 20, this.screenHeight - 22 - 1, 0, 22, 24, 22);
 +                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 +            }
 +            
@@ -167,22 +167,22 @@
              {
                  if (humanoidarm == HumanoidArm.LEFT)
                  {
--                    this.blit(pPartialTicks, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
+-                    this.blit(pMatrixStack, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
 +                    if (this.minecraft.interactTracker.hotbar == 9)
 +                    {
 +                        RenderSystem.setShaderColor(0.0F, 0.0F, 1.0F, 1.0F);
-+                        this.blit(pPartialTicks, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
++                        this.blit(pMatrixStack, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
 +                        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 +                    }
 +                    else
 +                    {
-+                        this.blit(pPartialTicks, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
++                        this.blit(pMatrixStack, i - 91 - 29, this.screenHeight - 23, 24, 22, 29, 24);
 +                    }
 +                }
 +                else if (this.minecraft.interactTracker.hotbar == 9)
 +                {
 +                    RenderSystem.setShaderColor(0.0F, 0.0F, 1.0F, 1.0F);
-+                    this.blit(pPartialTicks, i + 91, this.screenHeight - 23, 53, 22, 29, 24);
++                    this.blit(pMatrixStack, i + 91, this.screenHeight - 23, 53, 22, 29, 24);
 +                    RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                  }
                  else
@@ -191,7 +191,7 @@
              }
  
              RenderSystem.disableBlend();
-+            this.renderViveHudIcons(pPartialTicks);
++            this.renderViveHudIcons(pMatrixStack);
          }
      }
  
@@ -213,7 +213,7 @@
          RenderSystem.defaultBlendFunc();
 @@ -1302,6 +1358,7 @@
  
-     private void renderVignette(Entity p_93068_)
+     private void renderVignette(Entity pEntity)
      {
 +    	if (yup) return;
          if (!Config.isVignetteEnabled())
@@ -221,12 +221,12 @@
              RenderSystem.enableDepthTest();
 @@ -1358,6 +1415,7 @@
  
-     private void renderPortalOverlay(float p_93008_)
+     private void renderPortalOverlay(float pTimeInPortal)
      {
 +    	if (yup) return;
-         if (p_93008_ < 1.0F)
+         if (pTimeInPortal < 1.0F)
          {
-             p_93008_ = p_93008_ * p_93008_;
+             pTimeInPortal = pTimeInPortal * pTimeInPortal;
 @@ -1657,4 +1715,99 @@
              return gui$hearttype;
          }

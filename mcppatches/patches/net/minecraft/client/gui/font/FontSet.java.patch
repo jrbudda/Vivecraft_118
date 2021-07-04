@@ -7,5 +7,5 @@
 -        intset.forEach((p_95073_3_) ->
 +        intset.forEach((int p_95073_3_) ->
          {
-             for (GlyphProvider glyphprovider1 : p_95072_)
+             for (GlyphProvider glyphprovider1 : pGlyphProviders)
              {

@@ -28,22 +28,22 @@
 -            catch (PrivilegedActionException | IOException ioexception)
 +            catch (IOException | PrivilegedActionException privilegedactionexception)
              {
--                Util.LOGGER.error("Couldn't open url '{}'", p_137651_, ioexception);
+-                Util.LOGGER.error("Couldn't open url '{}'", pUrl, ioexception);
 -                Util.exceptionOpenUrl = ioexception;
-+                Util.LOGGER.error("Couldn't open url '{}'", p_137651_, privilegedactionexception);
++                Util.LOGGER.error("Couldn't open url '{}'", pUrl, privilegedactionexception);
 +                Util.exceptionOpenUrl = privilegedactionexception;
              }
          }
  
 @@ -931,9 +931,9 @@
              {
-                 this.openUrl((new URI(p_137647_)).toURL());
+                 this.openUrl((new URI(pUri)).toURL());
              }
 -            catch (IllegalArgumentException | URISyntaxException | MalformedURLException malformedurlexception)
 +            catch (URISyntaxException | MalformedURLException | IllegalArgumentException illegalargumentexception)
              {
--                Util.LOGGER.error("Couldn't open uri '{}'", p_137647_, malformedurlexception);
-+                Util.LOGGER.error("Couldn't open uri '{}'", p_137647_, illegalargumentexception);
+-                Util.LOGGER.error("Couldn't open uri '{}'", pUri, malformedurlexception);
++                Util.LOGGER.error("Couldn't open uri '{}'", pUri, illegalargumentexception);
              }
          }
      }
