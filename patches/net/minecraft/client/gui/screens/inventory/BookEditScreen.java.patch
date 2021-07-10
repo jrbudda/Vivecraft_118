@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/gui/screens/inventory/BookEditScreen.java
 +++ b/net/minecraft/client/gui/screens/inventory/BookEditScreen.java
-@@ -43,6 +43,7 @@
+@@ -44,6 +44,7 @@
  import org.apache.commons.lang3.StringUtils;
  import org.apache.commons.lang3.mutable.MutableBoolean;
  import org.apache.commons.lang3.mutable.MutableInt;
@@ -8,7 +8,7 @@
  
  public class BookEditScreen extends Screen
  {
-@@ -63,19 +64,19 @@
+@@ -64,19 +65,19 @@
      private int currentPage;
      private final List<String> pages = Lists.newArrayList();
      private String title = "";
@@ -34,7 +34,7 @@
      });
      private long lastClickTime;
      private int lastIndex = -1;
-@@ -177,6 +178,9 @@
+@@ -178,6 +179,9 @@
          {
              this.pageBack();
          }, true));
@@ -44,7 +44,7 @@
          this.updateButtonVisibility();
      }
  
-@@ -682,16 +686,16 @@
+@@ -687,16 +691,16 @@
              MutableInt mutableint = new MutableInt();
              MutableBoolean mutableboolean = new MutableBoolean();
              StringSplitter stringsplitter = this.font.getSplitter();

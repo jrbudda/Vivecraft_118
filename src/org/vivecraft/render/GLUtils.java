@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL12;
 
 public class GLUtils
 {
-    private static FloatBuffer matrixBuffer = MemoryTracker.createFloatBuffer(16);
+    private static FloatBuffer matrixBuffer = MemoryTracker.m_182527_(16).asFloatBuffer();
 
     public static synchronized ByteBuffer createByteBuffer(int size)
     {

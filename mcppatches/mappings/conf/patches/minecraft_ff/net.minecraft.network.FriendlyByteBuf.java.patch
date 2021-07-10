@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\network\FriendlyByteBuf.java minecraft_patched\net\minecraft\network\FriendlyByteBuf.java
 --- minecraft\net\minecraft\network\FriendlyByteBuf.java
 +++ minecraft_patched\net\minecraft\network\FriendlyByteBuf.java
-@@ -137,7 +137,7 @@
+@@ -148,7 +148,7 @@
  
     public void m_178345_(IntList p_178346_) {
        this.m_130130_(p_178346_.size());

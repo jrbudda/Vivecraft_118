@@ -870,7 +870,7 @@ public class Utils
     public static void takeScreenshot(RenderTarget fb)
     {
         Minecraft minecraft = Minecraft.getInstance();
-        Screenshot.grab(minecraft.gameDirectory, fb.viewWidth, fb.viewHeight, fb, (text) ->
+        Screenshot.grab(minecraft.gameDirectory, fb, (text) ->
         {
             minecraft.execute(() -> {
                 minecraft.gui.getChat().addMessage(text);

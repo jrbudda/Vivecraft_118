@@ -82,16 +82,16 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
         return ImmutableList.of(this.body, this.leftHand, this.rightHand,this.leftShoulder, this.rightShoulder, this.rightLeg, this.leftLeg, this.hat, this.leftPants, this.rightPants, this.leftSleeve, this.rightSleeve, this.jacket);
 	}
 
-	public void setupAnim(T p_103395_, float pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw)
+	public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch)
 	{
-		super.setupAnim(p_103395_, pEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw);
-		this.rotInfo = PlayerModelController.getInstance().getRotationsForPlayer(((Player)p_103395_).getUUID());
-		PlayerModelController.RotInfo rotinfo = PlayerModelController.getInstance().getRotationsForPlayer(((Player)p_103395_).getUUID());
+		super.setupAnim(pEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch);
+		this.rotInfo = PlayerModelController.getInstance().getRotationsForPlayer(((Player)pEntity).getUUID());
+		PlayerModelController.RotInfo rotinfo = PlayerModelController.getInstance().getRotationsForPlayer(((Player)pEntity).getUUID());
 
 		if (rotinfo == null) return;
 
 		double d0 = (double)(-1.501F * rotinfo.heightScale);
-		float f = (float)Math.toRadians((double)p_103395_.getYRot());
+		float f = (float)Math.toRadians((double)pEntity.getYRot());
 		float f1 = (float)Math.atan2(-rotinfo.headRot.x, -rotinfo.headRot.z);
 		float f2 = (float)Math.asin(rotinfo.headRot.y / rotinfo.headRot.length());
 		float f3 = (float)Math.atan2(-rotinfo.leftArmRot.x, -rotinfo.leftArmRot.z);
@@ -100,7 +100,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 		float f6 = (float)Math.asin(rotinfo.rightArmRot.y / rotinfo.rightArmRot.length());
 		double d1 = rotinfo.getBodyYawRadians();
 
-		this.laying = this.swimAmount > 0.0F || p_103395_.isFallFlying() && !p_103395_.isAutoSpinAttack();
+		this.laying = this.swimAmount > 0.0F || pEntity.isFallFlying() && !pEntity.isAutoSpinAttack();
 
 		this.rightShoulder.visible = true;
 		this.leftShoulder.visible = true;
@@ -188,72 +188,72 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 
 	}
 
-	public void setAllVisible(boolean p_103419_)
+	public void setAllVisible(boolean pVisible)
 	{
-		super.setAllVisible(p_103419_);
+		super.setAllVisible(pVisible);
 
-		this.rightShoulder.visible = p_103419_;
-		this.leftShoulder.visible = p_103419_;
-		this.rightHand.visible = p_103419_;
-		this.leftHand.visible = p_103419_;
+		this.rightShoulder.visible = pVisible;
+		this.leftShoulder.visible = pVisible;
+		this.rightHand.visible = pVisible;
+		this.leftHand.visible = pVisible;
 		this.leftArm.visible = false;
 		this.rightArm.visible = false;
 
 	}
 
-	protected ModelPart getArm(HumanoidArm p_102852_)
+	protected ModelPart getArm(HumanoidArm pSide)
 	{
-		return p_102852_ == HumanoidArm.LEFT ? this.leftHand : this.rightHand;
+		return pSide == HumanoidArm.LEFT ? this.leftHand : this.rightHand;
 	}
 
-	public void translateToHand(HumanoidArm p_103392_, PoseStack pSide)
+	public void translateToHand(HumanoidArm pSide, PoseStack pMatrixStack)
 	{
-		ModelPart modelpart = this.getArm(p_103392_);
+		ModelPart modelpart = this.getArm(pSide);
 
 		if (this.laying)
 		{
-			pSide.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
+			pMatrixStack.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
 		}
 
-		modelpart.translateAndRotate(pSide);
-		pSide.mulPose(Vector3f.XP.rotation((float)Math.sin((double)this.attackTime * Math.PI)));
-		pSide.translate(0.0D, -0.5D, 0.0D);
+		modelpart.translateAndRotate(pMatrixStack);
+		pMatrixStack.mulPose(Vector3f.XP.rotation((float)Math.sin((double)this.attackTime * Math.PI)));
+		pMatrixStack.translate(0.0D, -0.5D, 0.0D);
 	}
 
-//	public void renderToBuffer(PoseStack p_103111_, VertexConsumer pMatrixStack, int pBuffer, int pPackedLight, float pPackedOverlay, float pRed, float pGreen, float pBlue)
+//	public void renderToBuffer(PoseStack pMatrixStack, VertexConsumer pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha)
 //	{
-//		this.body.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
-//		this.jacket.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
-//		this.leftLeg.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
-//		this.rightLeg.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
-//		this.leftPants.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
-//		this.rightPants.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
-//		p_103111_.pushPose();
-//		this.head.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
-//		this.hat.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
-//		this.vrHMD.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//		this.body.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+//		this.jacket.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+//		this.leftLeg.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+//		this.rightLeg.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+//		this.leftPants.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+//		this.rightPants.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+//		pMatrixStack.pushPose();
+//		this.head.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+//		this.hat.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+//		this.vrHMD.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
 //
 //		if (this.seated)
 //		{
-//			this.leftArm.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
-//			this.rightArm.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//			this.leftArm.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+//			this.rightArm.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
 //		}
 //		else
 //		{
-//			this.leftShoulder.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
-//			this.rightShoulder.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//			this.leftShoulder.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+//			this.rightShoulder.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
 //
 //			if (this.laying)
 //			{
-//				p_103111_.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
+//				pMatrixStack.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
 //			}
 //
-//			this.rightHand.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
-//			this.leftHand.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
+//			this.rightHand.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+//			this.leftHand.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
 //		}
 //
-//		this.leftSleeve.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
-//		this.rightSleeve.render(p_103111_, pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue);
-//		p_103111_.popPose();
+//		this.leftSleeve.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+//		this.rightSleeve.render(pMatrixStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+//		pMatrixStack.popPose();
 //	}
 }

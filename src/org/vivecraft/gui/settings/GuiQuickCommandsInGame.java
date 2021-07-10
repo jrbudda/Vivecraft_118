@@ -46,10 +46,10 @@ public class GuiQuickCommandsInGame extends Screen
         }));
     }
 
-    public void render(PoseStack p_96562_, int pMatrixStack, int pMouseX, float pMouseY)
+    public void render(PoseStack pMatrixStack, int pMouseX, int pMouseY, float pPartialTicks)
     {
-        this.renderBackground(p_96562_);
-        drawCenteredString(p_96562_, this.font, "Quick Commands", this.width / 2, 16, 16777215);
-        super.render(p_96562_, pMatrixStack, pMouseX, pMouseY);
+        this.renderBackground(pMatrixStack);
+        drawCenteredString(pMatrixStack, this.font, "Quick Commands", this.width / 2, 16, 16777215);
+        super.render(pMatrixStack, pMouseX, pMouseY, pPartialTicks);
     }
 }

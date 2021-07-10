@@ -3,6 +3,8 @@ package org.vivecraft.gameplay.screenhandlers;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.ChatScreen;
@@ -412,7 +414,7 @@ public class GuiHandler
         }
     }
 
-    public static Vec3 applyGUIModelView(RenderPass currentPass)
+    public static Vec3 applyGUIModelView(RenderPass currentPass, PoseStack pMatrixStack)
     {
         mc.getProfiler().push("applyGUIModelView");
         Vec3 vec3 = mc.vrPlayer.vrdata_world_render.getEye(currentPass).getPosition();
@@ -531,13 +533,14 @@ public class GuiHandler
             guiPos_room = vec310;
         }
 
-        GL11.glMultMatrixf(mc.vrPlayer.vrdata_world_render.getEye(currentPass).getMatrix().toFloatBuffer());
+        //GL11.glMultMatrixf(mc.vrPlayer.vrdata_world_render.getEye(currentPass).getMatrix().toFloatBuffer());
+        
         Vec3 vec36 = vec31.subtract(vec3);
-        GL43.glTranslated(vec36.x, vec36.y, vec36.z);
-        GL11.glMultMatrixf(matrix4f.transposed().toFloatBuffer());
-        GL11.glTranslatef((float)vec32.x, (float)vec32.y, (float)vec32.z);
+        pMatrixStack.translate(vec36.x, vec36.y, vec36.z);
+        pMatrixStack.mulPoseMatrix(matrix4f.toMCMatrix());
+        pMatrixStack.translate(vec32.x, vec32.y, vec32.z);
         float f2 = f * mc.vrPlayer.vrdata_world_render.worldScale;
-        GL43.glScalef(f2, f2, f2);
+        pMatrixStack.scale(f2, f2, f2);
         guiScaleApplied = f2;
         mc.getProfiler().pop();
         return vec31;

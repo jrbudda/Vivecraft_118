@@ -23,9 +23,9 @@ public abstract class TwoHandedScreen extends Screen
         super(new TextComponent(""));
     }
 
-    public boolean mouseClicked(double p_94737_, double pMouseX, int p_94739_)
+    public boolean mouseClicked(double pMouseX, double p_94738_, int pMouseY)
     {
-        if (super.mouseClicked(p_94737_, pMouseX, p_94739_))
+        if (super.mouseClicked(pMouseX, p_94738_, pMouseY))
         {
             double d0 = (double)Math.min(Math.max((int)this.cursorX2, 0), this.minecraft.getWindow().getScreenWidth()) * (double)this.minecraft.getWindow().getGuiScaledWidth() / (double)this.minecraft.getWindow().getScreenWidth();
             return true;
@@ -36,7 +36,7 @@ public abstract class TwoHandedScreen extends Screen
         }
     }
 
-    public void render(PoseStack p_96562_, int pMatrixStack, int pMouseX, float pMouseY)
+    public void render(PoseStack pMatrixStack, int pMouseX, int pMouseY, float pPartialTicks)
     {
         if (this.reinit)
         {
@@ -59,11 +59,11 @@ public abstract class TwoHandedScreen extends Screen
 
             if (flag)
             {
-                abstractwidget2.render(p_96562_, (int)d0, (int)d1, pMouseY);
+                abstractwidget2.render(pMatrixStack, (int)d0, (int)d1, pPartialTicks);
             }
             else
             {
-                abstractwidget2.render(p_96562_, (int)d2, (int)d3, pMouseY);
+                abstractwidget2.render(pMatrixStack, (int)d2, (int)d3, pPartialTicks);
             }
 
             if (flag)

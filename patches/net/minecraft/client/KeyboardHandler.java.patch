@@ -37,35 +37,30 @@
              if (this.debugCrashKeyTime > 0L)
              {
                  if (!InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 67) || !InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 292))
-@@ -442,16 +465,17 @@
- 
-                     if (this.minecraft.options.keyScreenshot.matches(p_90895_, pKey))
-                     {
--                        if (Screen.hasControlDown())
--                        {
--                        }
+@@ -445,13 +468,15 @@
+                         if (Screen.hasControlDown())
+                         {
+                         }
 -
--                        Screenshot.grab(this.minecraft.gameDirectory, this.minecraft.getWindow().getWidth(), this.minecraft.getWindow().getHeight(), this.minecraft.getMainRenderTarget(), (p_90916_1_) ->
+-                        Screenshot.grab(this.minecraft.gameDirectory, this.minecraft.getMainRenderTarget(), (p_90916_1_) ->
 -                        {
 -                            this.minecraft.execute(() -> {
 -                                this.minecraft.gui.getChat().addMessage(p_90916_1_);
 -                            });
 -                        });
-+//                        if (Screen.hasControlDown())
-+//                        {
-+//                        }
-+//
-+//                        Screenshot.grab(this.minecraft.gameDirectory, this.minecraft.getWindow().getWidth(), this.minecraft.getWindow().getHeight(), this.minecraft.getMainRenderTarget(), (p_90916_1_) ->
++                        //Vivecraft dont do this here
++//                        Screenshot.grab(this.minecraft.gameDirectory, this.minecraft.getMainRenderTarget(), (p_90916_1_) ->
 +//                        {
 +//                            this.minecraft.execute(() -> {
 +//                                this.minecraft.gui.getChat().addMessage(p_90916_1_);
 +//                            });
 +//                        });
-+                    	this.minecraft.grabScreenShot = true;
++                        this.minecraft.grabScreenShot = true;
++                        //
                          return;
                      }
                  }
-@@ -537,7 +561,7 @@
+@@ -537,7 +562,7 @@
                  }
              }
  
@@ -74,7 +69,7 @@
              {
                  InputConstants.Key inputconstants$key = InputConstants.getKey(p_90895_, pKey);
  
-@@ -595,6 +619,7 @@
+@@ -595,6 +620,7 @@
                          if (p_90895_ == 290)
                          {
                              this.minecraft.options.hideGui = !this.minecraft.options.hideGui;
@@ -82,7 +77,7 @@
                          }
                      }
  
-@@ -619,7 +644,7 @@
+@@ -619,7 +645,7 @@
          }
      }
  

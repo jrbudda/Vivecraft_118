@@ -264,7 +264,7 @@
              this.autoJumpEnabled = this.minecraft.options.autoJump;
          }
      }
-@@ -312,10 +469,29 @@
+@@ -313,10 +470,29 @@
      public void chat(String pMessage)
      {
          this.connection.send(new ServerboundChatPacket(pMessage));
@@ -294,7 +294,7 @@
          super.swing(pHand);
          this.connection.send(new ServerboundSwingPacket(pHand));
      }
-@@ -554,7 +730,23 @@
+@@ -555,7 +731,23 @@
  
      public void playSound(SoundEvent pSound, float pVolume, float pPitch)
      {
@@ -319,7 +319,7 @@
      }
  
      public void playNotifySound(SoundEvent p_108655_, SoundSource p_108656_, float p_108657_, float p_108658_)
-@@ -749,6 +941,7 @@
+@@ -750,6 +942,7 @@
          boolean flag2 = this.hasEnoughImpulseToStartSprinting();
          this.crouching = !this.getAbilities().flying && !this.isSwimming() && this.canEnterPose(Pose.CROUCHING) && (this.isShiftKeyDown() || !this.isSleeping() && !this.canEnterPose(Pose.STANDING));
          this.input.tick(this.isMovingSlowly());
@@ -327,7 +327,7 @@
          this.minecraft.getTutorial().onInput(this.input);
  
          if (this.isUsingItem() && !this.isPassenger())
-@@ -817,7 +1010,7 @@
+@@ -818,7 +1011,7 @@
              }
          }
  
@@ -336,7 +336,7 @@
  
          if (this.getAbilities().mayfly)
          {
-@@ -826,7 +1019,7 @@
+@@ -827,7 +1020,7 @@
                  if (!this.getAbilities().flying)
                  {
                      this.getAbilities().flying = true;
@@ -345,7 +345,7 @@
                      this.onUpdateAbilities();
                  }
              }
-@@ -839,21 +1032,28 @@
+@@ -840,21 +1033,28 @@
                  else if (!this.isSwimming())
                  {
                      this.getAbilities().flying = !this.getAbilities().flying;
@@ -379,7 +379,7 @@
          }
  
          this.wasFallFlying = this.isFallFlying();
-@@ -939,6 +1139,7 @@
+@@ -940,6 +1140,7 @@
          }
  
          super.aiStep();
@@ -387,7 +387,7 @@
  
          if (this.onGround && this.getAbilities().flying && !this.minecraft.gameMode.isAlwaysFlying())
          {
-@@ -1044,10 +1245,67 @@
+@@ -1045,10 +1246,67 @@
  
      public void move(MoverType pType, Vec3 pPos)
      {
@@ -459,7 +459,7 @@
      }
  
      public boolean isAutoJumpEnabled()
-@@ -1064,14 +1322,18 @@
+@@ -1065,14 +1323,18 @@
              Vec3 vec32 = new Vec3((double)pMovementX, 0.0D, (double)pMovementZ);
              float f = this.getSpeed();
              float f1 = (float)vec32.lengthSqr();
@@ -481,7 +481,7 @@
                  vec32 = new Vec3((double)(f2 * f5 - f3 * f4), vec32.y, (double)(f3 * f5 + f2 * f4));
                  f1 = (float)vec32.lengthSqr();
  
-@@ -1081,12 +1343,12 @@
+@@ -1082,12 +1344,12 @@
                  }
              }
  
@@ -498,7 +498,7 @@
              {
                  CollisionContext collisioncontext = CollisionContext.of(this);
                  BlockPos blockpos = new BlockPos(this.getX(), this.getBoundingBox().maxY, this.getZ());
-@@ -1107,7 +1369,7 @@
+@@ -1108,7 +1370,7 @@
                              f7 += (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1) * 0.75F;
                          }
  
@@ -507,7 +507,7 @@
                          Vec3 vec34 = vec31.add(vec312.scale((double)f8));
                          float f9 = this.getBbWidth();
                          float f10 = this.getBbHeight();
-@@ -1135,11 +1397,11 @@
+@@ -1136,11 +1398,11 @@
  
                              if (aabb1.intersects(vec37, vec38) || aabb1.intersects(vec39, vec310))
                              {
@@ -521,7 +521,7 @@
                                  {
                                      BlockPos blockpos2 = blockpos1.above(i);
                                      BlockState blockstate2 = this.level.getBlockState(blockpos2);
-@@ -1147,9 +1409,9 @@
+@@ -1148,9 +1410,9 @@
  
                                      if (!(voxelshape = blockstate2.getCollisionShape(this.level, blockpos2, collisioncontext)).isEmpty())
                                      {
@@ -533,7 +533,7 @@
                                          {
                                              return;
                                          }
-@@ -1173,9 +1435,9 @@
+@@ -1174,9 +1436,9 @@
  
                          if (f11 != Float.MIN_VALUE)
                          {
@@ -545,7 +545,7 @@
                              {
                                  this.autoJumpTime = 1;
                              }
-@@ -1278,4 +1540,367 @@
+@@ -1279,4 +1541,367 @@
      {
          this.minecraft.getTutorial().onInventoryAction(p_172532_, p_172533_, p_172534_);
      }

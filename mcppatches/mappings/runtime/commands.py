@@ -2453,3 +2453,16 @@ class Commands(object):
             if not os.path.exists(dst):
                 self.logger.info('> Copying %s to Libraries' % f)
                 shutil.copy2(os.path.join('runtime/bin/', f), dst)
+        self.setupobjc()
+                
+    def setupobjc(self):
+        artifact = ['ca/weblite', 'java-objc-bridge', '1.0.0']
+        dir = os.path.join(self.dirjars, 'libraries/%s/%s/%s/' % (artifact[0], artifact[1], artifact[2]))
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+            
+        for f in ['%s-%s.jar' % (artifact[1], artifact[2]), '%s-%s-sources.jar' % (artifact[1], artifact[2])]:
+            dst = os.path.join(dir, f)
+            if not os.path.exists(dst):
+                self.logger.info('> Copying %s to Libraries' % f)
+                shutil.copy2(os.path.join('runtime/bin/', f), dst)

@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\world\entity\animal\axolotl\Axolotl.java minecraft_patched\net\minecraft\world\entity\animal\axolotl\Axolotl.java
 --- minecraft\net\minecraft\world\entity\animal\axolotl\Axolotl.java
 +++ minecraft_patched\net\minecraft\world\entity\animal\axolotl\Axolotl.java
-@@ -413,7 +413,7 @@
+@@ -409,7 +409,7 @@
     }
  
     public Brain<Axolotl> m_6274_() {

@@ -1,6 +1,6 @@
 --- a/net/optifine/shaders/config/ShaderPackParser.java
 +++ b/net/optifine/shaders/config/ShaderPackParser.java
-@@ -255,7 +255,7 @@
+@@ -256,7 +256,7 @@
          String s = "profile.";
          List<ShaderProfile> list = new ArrayList<>();
  
@@ -9,7 +9,7 @@
          {
              if (s1.startsWith(s))
              {
-@@ -288,7 +288,7 @@
+@@ -289,7 +289,7 @@
          Pattern pattern = Pattern.compile("program\\.([^.]+)\\.enabled");
          Map<String, IExpressionBool> map = new HashMap<>();
  
@@ -18,7 +18,7 @@
          {
              Matcher matcher = pattern.matcher(s1);
  
-@@ -775,7 +775,7 @@
+@@ -818,7 +818,7 @@
          Map<String, IExpression> map = new HashMap<>();
          List<CustomUniform> list = new ArrayList<>();
  
@@ -27,7 +27,7 @@
          {
              String[] astring = Config.tokenize(s4, ".");
  
-@@ -870,7 +870,7 @@
+@@ -913,7 +913,7 @@
  
      public static void parseAlphaStates(Properties props)
      {
@@ -36,7 +36,7 @@
          {
              String[] astring = Config.tokenize(s, ".");
  
-@@ -941,7 +941,7 @@
+@@ -984,7 +984,7 @@
  
      public static void parseBlendStates(Properties props)
      {
@@ -45,7 +45,7 @@
          {
              String[] astring = Config.tokenize(s, ".");
  
-@@ -1042,7 +1042,7 @@
+@@ -1085,7 +1085,7 @@
  
      public static void parseRenderScales(Properties props)
      {
@@ -54,7 +54,7 @@
          {
              String[] astring = Config.tokenize(s, ".");
  
-@@ -1113,7 +1113,7 @@
+@@ -1156,7 +1156,7 @@
  
      public static void parseBuffersFlip(Properties props)
      {
@@ -63,7 +63,7 @@
          {
              String[] astring = Config.tokenize(s, ".");
  
-@@ -1199,7 +1199,7 @@
+@@ -1242,7 +1242,7 @@
      {
          DynamicDimension[] adynamicdimension = new DynamicDimension[countBuffers];
  

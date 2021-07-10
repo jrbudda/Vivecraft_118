@@ -128,9 +128,9 @@ public class GuiRadial extends TwoHandedScreen
         }
     }
 
-    public void render(PoseStack p_96562_, int pMatrixStack, int pMouseX, float pMouseY)
+    public void render(PoseStack pMatrixStack, int pMouseX, int pMouseY, float pPartialTicks)
     {
-        this.renderBackground(p_96562_);
-        super.render(p_96562_, 0, 0, pMouseY);
+        this.renderBackground(pMatrixStack);
+        super.render(pMatrixStack, 0, 0, pPartialTicks);
     }
 }

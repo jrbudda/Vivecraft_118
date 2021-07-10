@@ -56,22 +56,22 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T>
     }
     
 
-    public void setupAnim(T p_103395_, float pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw)
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch)
     {
-    	super.setupAnim(p_103395_, pEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw);
-    	this.rotInfo = PlayerModelController.getInstance().getRotationsForPlayer(((Player)p_103395_).getUUID());
-    	PlayerModelController.RotInfo rotinfo = PlayerModelController.getInstance().getRotationsForPlayer(((Player)p_103395_).getUUID());
+    	super.setupAnim(pEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch);
+    	this.rotInfo = PlayerModelController.getInstance().getRotationsForPlayer(((Player)pEntity).getUUID());
+    	PlayerModelController.RotInfo rotinfo = PlayerModelController.getInstance().getRotationsForPlayer(((Player)pEntity).getUUID());
 
     	if (rotinfo == null) return; //how
 
     	double d0 = (double)(-1.501F * rotinfo.heightScale);
-    	float f = (float)Math.toRadians((double)p_103395_.getYRot());
+    	float f = (float)Math.toRadians((double)pEntity.getYRot());
         float f1 = (float)Math.atan2(-rotinfo.headRot.x, -rotinfo.headRot.z);
         float f2 = (float)Math.asin(rotinfo.headRot.y / rotinfo.headRot.length());
     	double d1 = rotinfo.getBodyYawRadians();
     	this.head.xRot = -f2;
     	this.head.yRot = (float)(Math.PI - (double)f1 - d1);
-    	this.laying = this.swimAmount > 0.0F || p_103395_.isFallFlying() && !p_103395_.isAutoSpinAttack();
+    	this.laying = this.swimAmount > 0.0F || pEntity.isFallFlying() && !pEntity.isAutoSpinAttack();
 
     	if (this.laying)
     	{

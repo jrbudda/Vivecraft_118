@@ -1,0 +1,13 @@
+﻿diff -r -U 3 minecraft\com\mojang\blaze3d\platform\MacosUtil.java minecraft_patched\com\mojang\blaze3d\platform\MacosUtil.java
+--- minecraft\com\mojang\blaze3d\platform\MacosUtil.java
++++ minecraft_patched\com\mojang\blaze3d\platform\MacosUtil.java
+@@ -18,7 +18,7 @@
+    }
+ 
+    private static boolean m_182519_(NSObject p_182520_) {
+-      return (p_182520_.sendRaw("styleMask", new Object[0]) & 16384L) == 16384L;
++      return (((Number)p_182520_.sendRaw("styleMask", new Object[0])).longValue() & 16384L) == 16384L;
+    }
+ 
+    private static void m_182523_(NSObject p_182524_) {
+

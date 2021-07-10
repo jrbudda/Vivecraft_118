@@ -1,14 +1,6 @@
 --- a/com/mojang/blaze3d/platform/Window.java
 +++ b/com/mojang/blaze3d/platform/Window.java
-@@ -12,6 +12,7 @@
- import java.util.function.LongSupplier;
- import java.util.function.Supplier;
- import javax.annotation.Nullable;
-+import net.minecraft.client.Minecraft;
- import net.minecraft.client.main.SilentInitException;
- import net.minecraftforge.fml.loading.progress.EarlyProgressVisualization;
- import net.optifine.Config;
-@@ -164,7 +165,6 @@
+@@ -165,7 +165,6 @@
          GL.createCapabilities();
          this.setMode();
          this.refreshFramebufferSize();
@@ -16,7 +8,7 @@
          GLFW.glfwSetWindowPosCallback(this.window, this::onMove);
          GLFW.glfwSetWindowSizeCallback(this.window, this::onResize);
          GLFW.glfwSetWindowFocusCallback(this.window, this::onFocus);
-@@ -295,9 +295,9 @@
+@@ -296,9 +295,9 @@
                  memorystack.close();
              }
          }
@@ -28,7 +20,7 @@
          }
      }
  
-@@ -374,7 +374,7 @@
+@@ -375,7 +374,7 @@
      {
          RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
          this.vsync = pVsyncEnabled;
@@ -37,7 +29,7 @@
      }
  
      public void close()
-@@ -397,15 +397,15 @@
+@@ -398,15 +397,15 @@
      {
          if (pWindowPointer == this.window)
          {
@@ -56,7 +48,7 @@
                  {
                      this.eventHandler.resizeDisplay();
                  }
-@@ -424,20 +424,24 @@
+@@ -425,20 +424,24 @@
  
          if (this.framebufferHeight == 0 || this.framebufferWidth == 0)
          {
@@ -87,7 +79,7 @@
      }
  
      private void onFocus(long pWindowPointer, boolean p_85394_)
-@@ -580,13 +584,12 @@
+@@ -586,13 +589,12 @@
      {
          int i;
  
@@ -102,7 +94,7 @@
          }
  
          return i;
-@@ -595,10 +598,10 @@
+@@ -601,10 +603,10 @@
      public void setGuiScale(double pScaleFactor)
      {
          this.guiScale = pScaleFactor;
@@ -117,7 +109,7 @@
      }
  
      public void setTitle(String pTitle)
-@@ -618,12 +621,12 @@
+@@ -624,12 +626,12 @@
  
      public int getWidth()
      {
@@ -132,7 +124,7 @@
      }
  
      public void setWidth(int p_166451_)
-@@ -682,9 +685,9 @@
+@@ -688,9 +690,9 @@
          InputConstants.updateRawMouseInput(this.window, pValue);
      }
  

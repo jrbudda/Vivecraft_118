@@ -1,6 +1,6 @@
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-@@ -33,6 +33,7 @@
+@@ -34,6 +34,7 @@
  import net.minecraft.nbt.ListTag;
  import net.minecraft.nbt.StringTag;
  import net.minecraft.network.Connection;
@@ -8,7 +8,7 @@
  import net.minecraft.network.chat.ChatType;
  import net.minecraft.network.chat.Component;
  import net.minecraft.network.chat.TextComponent;
-@@ -109,6 +110,8 @@
+@@ -110,6 +111,8 @@
  import net.minecraft.world.entity.ExperienceOrb;
  import net.minecraft.world.entity.MoverType;
  import net.minecraft.world.entity.PlayerRideableJumping;
@@ -92,7 +92,7 @@
                      this.connection.send(new ClientboundMoveVehiclePacket(entity));
                      return;
                  }
-@@ -1101,14 +1134,14 @@
+@@ -1080,14 +1113,14 @@
  
      private boolean isPlayerCollidingWithAnythingNew(LevelReader p_9796_, AABB p_9797_)
      {
@@ -110,7 +110,7 @@
          });
      }
  
-@@ -1224,7 +1257,17 @@
+@@ -1203,7 +1236,17 @@
  
          if (blockpos.getY() < i)
          {
@@ -129,7 +129,7 @@
              {
                  InteractionResult interactionresult = this.player.gameMode.useItemOn(this.player, serverlevel, itemstack, interactionhand, blockhitresult);
  
-@@ -1331,7 +1374,7 @@
+@@ -1310,7 +1353,7 @@
  
      public void send(Packet<?> pPacket)
      {
@@ -138,7 +138,7 @@
      }
  
      public void send(Packet<?> pPacket, @Nullable GenericFutureListener <? extends Future <? super Void >> pFutureListeners)
-@@ -1340,9 +1383,9 @@
+@@ -1319,9 +1362,9 @@
          {
              this.connection.send(pPacket, pFutureListeners);
          }
@@ -150,7 +150,7 @@
              CrashReportCategory crashreportcategory = crashreport.addCategory("Packet being sent");
              crashreportcategory.setDetail("Packet class", () ->
              {
-@@ -1805,6 +1848,128 @@
+@@ -1785,6 +1828,128 @@
  
      public void handleCustomPayload(ServerboundCustomPayloadPacket pPacket)
      {

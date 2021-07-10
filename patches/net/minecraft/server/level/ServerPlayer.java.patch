@@ -25,7 +25,7 @@
  import net.minecraft.network.protocol.game.ClientboundPlayerLookAtPacket;
  import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
  import net.minecraft.network.protocol.game.ClientboundResourcePackPacket;
-@@ -108,7 +112,10 @@
+@@ -109,7 +113,10 @@
  import net.minecraft.world.item.ItemStack;
  import net.minecraft.world.item.Items;
  import net.minecraft.world.item.ServerItemCooldowns;
@@ -36,7 +36,7 @@
  import net.minecraft.world.item.crafting.Recipe;
  import net.minecraft.world.item.trading.MerchantOffers;
  import net.minecraft.world.level.ChunkPos;
-@@ -131,8 +138,12 @@
+@@ -132,8 +139,12 @@
  import net.minecraft.world.scores.Score;
  import net.minecraft.world.scores.Team;
  import net.minecraft.world.scores.criteria.ObjectiveCriteria;
@@ -49,7 +49,7 @@
  
  public class ServerPlayer extends Player
  {
-@@ -229,6 +240,9 @@
+@@ -225,6 +236,9 @@
      private int containerCounter;
      public int latency;
      public boolean wonGame;
@@ -59,7 +59,7 @@
  
      public ServerPlayer(MinecraftServer p_143384_, ServerLevel p_143385_, GameProfile p_143386_)
      {
-@@ -374,9 +388,9 @@
+@@ -370,9 +384,9 @@
              pCompound.putInt("SpawnZ", this.respawnPosition.getZ());
              pCompound.putBoolean("SpawnForced", this.respawnForced);
              pCompound.putFloat("SpawnAngle", this.respawnAngle);
@@ -71,7 +71,7 @@
              });
          }
      }
-@@ -409,8 +423,33 @@
+@@ -405,8 +419,33 @@
  
      private void initMenu(AbstractContainerMenu p_143400_)
      {
@@ -107,7 +107,7 @@
      }
  
      public void initInventoryMenu()
-@@ -495,6 +534,7 @@
+@@ -491,6 +530,7 @@
              if (!this.isSpectator() || !this.touchingUnloadedChunk())
              {
                  super.tick();
@@ -115,7 +115,7 @@
              }
  
              for (int i = 0; i < this.getInventory().getContainerSize(); ++i)
-@@ -567,9 +607,9 @@
+@@ -563,9 +603,9 @@
                  CriteriaTriggers.LOCATION.trigger(this);
              }
          }
@@ -127,7 +127,7 @@
              CrashReportCategory crashreportcategory = crashreport.addCategory("Player being ticked");
              this.fillCrashReportCategory(crashreportcategory);
              throw new ReportedException(crashreport);
-@@ -781,76 +821,110 @@
+@@ -777,76 +817,110 @@
          }
      }
  
@@ -305,7 +305,7 @@
      }
  
      private void createEndPlatform(ServerLevel p_9007_, BlockPos p_9008_)
-@@ -942,6 +1016,18 @@
+@@ -938,6 +1012,18 @@
  
      public Either<Player.BedSleepingProblem, Unit> startSleepInBed(BlockPos pAt)
      {
@@ -324,7 +324,7 @@
          Direction direction = this.level.getBlockState(pAt).getValue(HorizontalDirectionalBlock.FACING);
  
          if (!this.isSleeping() && this.isAlive())
-@@ -961,8 +1047,14 @@
+@@ -957,8 +1043,14 @@
              else
              {
                  this.setRespawnPosition(this.level.dimension(), pAt, this.getYRot(), false, true);
@@ -341,7 +341,7 @@
                  {
                      return Either.left(Player.BedSleepingProblem.NOT_POSSIBLE_NOW);
                  }
-@@ -973,9 +1065,9 @@
+@@ -969,9 +1061,9 @@
                          double d0 = 8.0D;
                          double d1 = 5.0D;
                          Vec3 vec3 = Vec3.atBottomCenterOf(pAt);
@@ -353,7 +353,7 @@
                          });
  
                          if (!list.isEmpty())
-@@ -984,7 +1076,7 @@
+@@ -980,7 +1072,7 @@
                          }
                      }
  
@@ -362,7 +362,7 @@
                      {
                          this.awardStat(Stats.SLEEP_IN_BED);
                          CriteriaTriggers.SLEPT_IN_BED.trigger(this);
-@@ -1014,7 +1106,14 @@
+@@ -1010,7 +1102,14 @@
  
      private boolean bedInRange(BlockPos p_9117_, Direction p_9118_)
      {
@@ -378,7 +378,7 @@
      }
  
      private boolean isReachableBedBlock(BlockPos p_9223_)
-@@ -1155,6 +1254,7 @@
+@@ -1151,6 +1250,7 @@
                  this.connection.send(new ClientboundOpenScreenPacket(abstractcontainermenu.containerId, abstractcontainermenu.getType(), p_9033_.getDisplayName()));
                  this.initMenu(abstractcontainermenu);
                  this.containerMenu = abstractcontainermenu;
@@ -386,7 +386,7 @@
                  return OptionalInt.of(this.containerCounter);
              }
          }
-@@ -1176,6 +1276,7 @@
+@@ -1172,6 +1272,7 @@
          this.connection.send(new ClientboundHorseScreenOpenPacket(this.containerCounter, pInventory.getContainerSize(), pHorse.getId()));
          this.containerMenu = new HorseInventoryMenu(this.containerCounter, this.getInventory(), pInventory, pHorse);
          this.initMenu(this.containerMenu);
@@ -394,7 +394,7 @@
      }
  
      public void openItemGui(ItemStack pStack, InteractionHand pHand)
-@@ -1207,6 +1308,7 @@
+@@ -1203,6 +1304,7 @@
      {
          this.containerMenu.removed(this);
          this.inventoryMenu.transferState(this.containerMenu);
@@ -402,7 +402,7 @@
          this.containerMenu = this.inventoryMenu;
      }
  
-@@ -1232,9 +1334,9 @@
+@@ -1228,9 +1330,9 @@
      public void awardStat(Stat<?> pStat, int pAmount)
      {
          this.stats.increment(this, pStat, pAmount);
@@ -414,7 +414,7 @@
          });
      }
  
-@@ -1356,6 +1458,14 @@
+@@ -1352,6 +1454,14 @@
          this.enteredNetherPosition = pThat.enteredNetherPosition;
          this.setShoulderEntityLeft(pThat.getShoulderEntityLeft());
          this.setShoulderEntityRight(pThat.getShoulderEntityRight());
@@ -429,7 +429,7 @@
      }
  
      protected void onEffectAdded(MobEffectInstance p_143393_, @Nullable Entity p_143394_)
-@@ -1499,6 +1609,11 @@
+@@ -1495,6 +1605,11 @@
          this.textFilteringEnabled = pPacket.isTextFilteringEnabled();
          this.getEntityData().set(DATA_PLAYER_MODE_CUSTOMISATION, (byte)pPacket.getModelCustomisation());
          this.getEntityData().set(DATA_PLAYER_MAIN_HAND, (byte)(pPacket.getMainHand() == HumanoidArm.LEFT ? 0 : 1));
@@ -441,7 +441,7 @@
      }
  
      public boolean canChatInColor()
-@@ -1610,7 +1725,13 @@
+@@ -1606,7 +1721,13 @@
      @Nullable
      public Component getTabListDisplayName()
      {
@@ -456,7 +456,7 @@
      }
  
      public void swing(InteractionHand pHand)
-@@ -1650,8 +1771,20 @@
+@@ -1646,8 +1767,20 @@
              this.connection.send(new ClientboundRespawnPacket(pX.dimensionType(), pX.dimension(), BiomeManager.obfuscateSeed(pX.getSeed()), this.gameMode.getGameModeForPlayer(), this.gameMode.getPreviousGameModeForPlayer(), pX.isDebug(), pX.isFlat(), true));
              this.connection.send(new ClientboundChangeDifficultyPacket(leveldata.getDifficulty(), leveldata.isDifficultyLocked()));
              this.server.getPlayerList().sendPlayerPermissionLevel(this);
@@ -479,7 +479,7 @@
              this.moveTo(p_9001_, pY, p_9003_, pZ, p_9005_);
              this.setLevel(pX);
              pX.addDuringCommandTeleport(this);
-@@ -1659,6 +1792,80 @@
+@@ -1655,6 +1788,80 @@
              this.connection.teleport(p_9001_, pY, p_9003_, pZ, p_9005_);
              this.server.getPlayerList().sendLevelInfo(this, pX);
              this.server.getPlayerList().sendAllPlayerInfo(this);
@@ -560,7 +560,7 @@
          }
      }
  
-@@ -1685,26 +1892,29 @@
+@@ -1681,26 +1888,29 @@
  
      public void setRespawnPosition(ResourceKey<Level> p_9159_, @Nullable BlockPos p_9160_, float p_9161_, boolean p_9162_, boolean p_9163_)
      {
@@ -606,7 +606,7 @@
          }
      }
  
-@@ -1752,7 +1962,28 @@
+@@ -1748,7 +1958,28 @@
          }
          else
          {
@@ -636,9 +636,9 @@
              ItemStack itemstack = itementity.getItem();
  
              if (pTraceItem)
-@@ -1843,4 +2074,21 @@
-         CriteriaTriggers.USING_ITEM.trigger(this, p_143402_);
-         super.updateUsingItem(p_143402_);
+@@ -1850,4 +2081,21 @@
+         });
+         return this.drop(itemstack, false, true) != null;
      }
 +
 +    public String getLanguage()

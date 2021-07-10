@@ -133,36 +133,36 @@ public class FakeBlockAccess implements LevelReader
         return this.isFlat ? 0.0D : 63.0D;
     }
 
-    public BlockState getBlockState(BlockPos p_45571_)
+    public BlockState getBlockState(BlockPos pPos)
     {
-        if (!this.checkCoords(p_45571_))
+        if (!this.checkCoords(pPos))
         {
             return Blocks.BEDROCK.defaultBlockState();
         }
         else
         {
-            BlockState blockstate = this.blocks[this.encodeCoords(p_45571_)];
+            BlockState blockstate = this.blocks[this.encodeCoords(pPos)];
             return blockstate != null ? blockstate : Blocks.AIR.defaultBlockState();
         }
     }
 
-    public FluidState getFluidState(BlockPos p_45569_)
+    public FluidState getFluidState(BlockPos pPos)
     {
-        return this.getBlockState(p_45569_).getFluidState();
+        return this.getBlockState(pPos).getFluidState();
     }
 
-    public BlockEntity getBlockEntity(BlockPos p_45570_)
+    public BlockEntity getBlockEntity(BlockPos pPos)
     {
         return null;
     }
 
-    public int getBlockTint(BlockPos p_45520_, ColorResolver pBlockPos)
+    public int getBlockTint(BlockPos pBlockPos, ColorResolver pColorResolver)
     {
         int i = Minecraft.getInstance().options.biomeBlendRadius;
 
         if (i == 0)
         {
-            return pBlockPos.getColor(this.getBiome(p_45520_), (double)p_45520_.getX(), (double)p_45520_.getZ());
+            return pColorResolver.getColor(this.getBiome(pBlockPos), (double)pBlockPos.getX(), (double)pBlockPos.getZ());
         }
         else
         {
@@ -170,13 +170,13 @@ public class FakeBlockAccess implements LevelReader
             int k = 0;
             int l = 0;
             int i1 = 0;
-            Cursor3D cursor3d = new Cursor3D(p_45520_.getX() - i, p_45520_.getY(), p_45520_.getZ() - i, p_45520_.getX() + i, p_45520_.getY(), p_45520_.getZ() + i);
+            Cursor3D cursor3d = new Cursor3D(pBlockPos.getX() - i, pBlockPos.getY(), pBlockPos.getZ() - i, pBlockPos.getX() + i, pBlockPos.getY(), pBlockPos.getZ() + i);
             int j1;
 
             for (BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(); cursor3d.advance(); i1 += j1 & 255)
             {
                 blockpos$mutableblockpos.set(cursor3d.nextX(), cursor3d.nextY(), cursor3d.nextZ());
-                j1 = pBlockPos.getColor(this.getBiome(blockpos$mutableblockpos), (double)blockpos$mutableblockpos.getX(), (double)blockpos$mutableblockpos.getZ());
+                j1 = pColorResolver.getColor(this.getBiome(blockpos$mutableblockpos), (double)blockpos$mutableblockpos.getX(), (double)blockpos$mutableblockpos.getZ());
                 k += (j1 & 16711680) >> 16;
                 l += (j1 & 65280) >> 8;
             }
@@ -185,38 +185,38 @@ public class FakeBlockAccess implements LevelReader
         }
     }
 
-    public int getBrightness(LightLayer p_45518_, BlockPos pLightType)
+    public int getBrightness(LightLayer pLightType, BlockPos pBlockPos)
     {
-        if (this.checkCoords(pLightType))
+        if (this.checkCoords(pBlockPos))
         {
-            if (p_45518_ == LightLayer.SKY)
+            if (pLightType == LightLayer.SKY)
             {
-                return this.dimensionType.hasSkyLight() ? this.skylightmap[this.encodeCoords(pLightType)] : 0;
+                return this.dimensionType.hasSkyLight() ? this.skylightmap[this.encodeCoords(pBlockPos)] : 0;
             }
             else
             {
-                return p_45518_ == LightLayer.BLOCK ? this.blocklightmap[this.encodeCoords(pLightType)] : p_45518_.surrounding;
+                return pLightType == LightLayer.BLOCK ? this.blocklightmap[this.encodeCoords(pBlockPos)] : pLightType.surrounding;
             }
         }
         else
         {
-            return (p_45518_ != LightLayer.SKY || !this.dimensionType.hasSkyLight()) && p_45518_ != LightLayer.BLOCK ? 0 : p_45518_.surrounding;
+            return (pLightType != LightLayer.SKY || !this.dimensionType.hasSkyLight()) && pLightType != LightLayer.BLOCK ? 0 : pLightType.surrounding;
         }
     }
 
-    public int getRawBrightness(BlockPos p_45525_, int pBlockPos)
+    public int getRawBrightness(BlockPos pBlockPos, int pAmount)
     {
-        if (!this.checkCoords(p_45525_.getX(), 0, p_45525_.getZ()))
+        if (!this.checkCoords(pBlockPos.getX(), 0, pBlockPos.getZ()))
         {
             return 0;
         }
-        else if (p_45525_.getY() < 0)
+        else if (pBlockPos.getY() < 0)
         {
             return 0;
         }
-        else if (p_45525_.getY() >= 256)
+        else if (pBlockPos.getY() >= 256)
         {
-            int k = 15 - pBlockPos;
+            int k = 15 - pAmount;
 
             if (k < 0)
             {
@@ -227,8 +227,8 @@ public class FakeBlockAccess implements LevelReader
         }
         else
         {
-            int i = (this.dimensionType.hasSkyLight() ? this.skylightmap[this.encodeCoords(p_45525_)] : 0) - pBlockPos;
-            int j = this.blocklightmap[this.encodeCoords(p_45525_)];
+            int i = (this.dimensionType.hasSkyLight() ? this.skylightmap[this.encodeCoords(pBlockPos)] : 0) - pAmount;
+            int j = this.blocklightmap[this.encodeCoords(pBlockPos)];
 
             if (j > i)
             {
@@ -271,22 +271,22 @@ public class FakeBlockAccess implements LevelReader
         }
     }
 
-    public boolean hasChunk(int p_46838_, int pChunkX)
+    public boolean hasChunk(int pChunkX, int pChunkZ)
     {
-        return this.checkCoords(p_46838_ * 16, 0, pChunkX * 16);
+        return this.checkCoords(pChunkX * 16, 0, pChunkZ * 16);
     }
 
-    public ChunkAccess getChunk(int p_46823_, int pX, ChunkStatus pZ, boolean pRequiredStatus)
+    public ChunkAccess getChunk(int pChunkX, int pChunkZ, ChunkStatus p_46825_, boolean p_46826_)
     {
         return null;
     }
 
-    public int getHeight(Heightmap.Types p_46827_, int pHeightmapType, int pX)
+    public int getHeight(Heightmap.Types pHeightmapType, int pX, int pZ)
     {
         return 0;
     }
 
-    public BlockPos getHeightmapPos(Heightmap.Types p_46830_, BlockPos pHeightmapType)
+    public BlockPos getHeightmapPos(Heightmap.Types pHeightmapType, BlockPos pPos)
     {
         return BlockPos.ZERO;
     }
@@ -301,7 +301,7 @@ public class FakeBlockAccess implements LevelReader
         return new WorldBorder();
     }
 
-    public boolean isUnobstructed(Entity p_45750_, VoxelShape pEntity)
+    public boolean isUnobstructed(Entity pEntity, VoxelShape p_45751_)
     {
         return false;
     }
@@ -311,24 +311,24 @@ public class FakeBlockAccess implements LevelReader
         return null;
     }
 
-    public boolean isEmptyBlock(BlockPos p_46860_)
+    public boolean isEmptyBlock(BlockPos pPos)
     {
-        return this.getBlockState(p_46860_).isAir();
+        return this.getBlockState(pPos).isAir();
     }
 
-    public Biome getNoiseBiome(int p_46841_, int pX, int pY)
+    public Biome getNoiseBiome(int pX, int pY, int pZ)
     {
-        if (!this.checkCoords(p_46841_ * 4, pX * 4, pY * 4))
+        if (!this.checkCoords(pX * 4, pY * 4, pZ * 4))
         {
-            p_46841_ = Mth.clamp(p_46841_, 0, this.xSize / 4 - 1);
-            pX = Mth.clamp(pX, 0, this.ySize / 4 - 1);
-            pY = Mth.clamp(pY, 0, this.zSize / 4 - 1);
+            pX = Mth.clamp(pX, 0, this.xSize / 4 - 1);
+            pY = Mth.clamp(pY, 0, this.ySize / 4 - 1);
+            pZ = Mth.clamp(pZ, 0, this.zSize / 4 - 1);
         }
 
-        return this.biomemap[(pX * (this.zSize / 4) + pY) * (this.xSize / 4) + p_46841_];
+        return this.biomemap[(pY * (this.zSize / 4) + pZ) * (this.xSize / 4) + pX];
     }
 
-    public int getDirectSignal(BlockPos p_46853_, Direction pPos)
+    public int getDirectSignal(BlockPos pPos, Direction pDirection)
     {
         return 0;
     }
@@ -353,7 +353,7 @@ public class FakeBlockAccess implements LevelReader
         return this.biomeManager;
     }
 
-    public Biome getUncachedNoiseBiome(int p_46809_, int pX, int pY)
+    public Biome getUncachedNoiseBiome(int pX, int pY, int pZ)
     {
         return null;
     }

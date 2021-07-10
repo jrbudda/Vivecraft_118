@@ -206,18 +206,18 @@ public class GuiRadialConfiguration extends GuiVROptionsBase
         }
     }
 
-    public void render(PoseStack p_96562_, int pMatrixStack, int pMouseX, float pMouseY)
+    public void render(PoseStack pMatrixStack, int pMouseX, int pMouseY, float pPartialTicks)
     {
-        super.render(p_96562_, pMatrixStack, pMouseX, pMouseY);
+        super.render(pMatrixStack, pMouseX, pMouseY, pPartialTicks);
 
         if (this.visibleList == null)
         {
-            drawCenteredString(p_96562_, this.minecraft.font, Lang.get("vivecraft.messages.radialmenubind.1"), this.width / 2, this.height - 50, 5635925);
+            drawCenteredString(pMatrixStack, this.minecraft.font, Lang.get("vivecraft.messages.radialmenubind.1"), this.width / 2, this.height - 50, 5635925);
         }
 
         if (this.isShift)
         {
-            drawCenteredString(p_96562_, this.minecraft.font, Lang.get("vivecraft.messages.radialmenubind.2"), this.width / 2, this.height - 36, 13777015);
+            drawCenteredString(pMatrixStack, this.minecraft.font, Lang.get("vivecraft.messages.radialmenubind.2"), this.width / 2, this.height - 36, 13777015);
         }
     }
 }

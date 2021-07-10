@@ -395,7 +395,7 @@ public class MenuWorldRenderer
                 GlStateManager._disableClientState(32884);
             }
 
-            FogRenderer.setupNoFog();
+            GlStateManager._disableFog();
             GlStateManager.disableAlphaTest();
             GlStateManager._enableBlend();
             RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
@@ -543,7 +543,7 @@ public class MenuWorldRenderer
     {/*
         if (Config.isSkyEnabled())
         {
-            FogRenderer.setupNoFog();
+            GlStateManager._disableFog();
             GlStateManager.disableAlphaTest();
             GlStateManager._enableBlend();
             RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
@@ -1230,15 +1230,15 @@ public class MenuWorldRenderer
             this.fluidState = fluidState;
         }
 
-        public boolean is(Tag<Fluid> p_76154_)
+        public boolean is(Tag<Fluid> pTag)
         {
-            if (p_76154_ == FluidTags.WATER)
+            if (pTag == FluidTags.WATER)
             {
                 return this.getType() == Fluids.WATER || this.getType() == Fluids.FLOWING_WATER;
             }
-            else if (p_76154_ != FluidTags.LAVA)
+            else if (pTag != FluidTags.LAVA)
             {
-                return this.fluidState.is(p_76154_);
+                return this.fluidState.is(pTag);
             }
             else
             {

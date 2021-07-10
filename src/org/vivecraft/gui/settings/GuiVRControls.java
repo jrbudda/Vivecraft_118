@@ -23,12 +23,12 @@ public class GuiVRControls extends GuiVROptionsBase
         super.addDefaultButtons();
     }
 
-    public void render(PoseStack p_96562_, int pMatrixStack, int pMouseX, float pMouseY)
+    public void render(PoseStack pMatrixStack, int pMouseX, int pMouseY, float pPartialTicks)
     {
-        super.render(p_96562_, pMatrixStack, pMouseX, pMouseY);
-        drawCenteredString(p_96562_, this.minecraft.font, Lang.get("vivecraft.messages.controls.1"), this.width / 2, this.height / 2 - 9 / 2 - 9 - 3, 16777215);
-        drawCenteredString(p_96562_, this.minecraft.font, Lang.get("vivecraft.messages.controls.2"), this.width / 2, this.height / 2 - 9 / 2, 16777215);
-        drawCenteredString(p_96562_, this.minecraft.font, Lang.get("vivecraft.messages.controls.3"), this.width / 2, this.height / 2 - 9 / 2 + 9 + 3, 16777215);
+        super.render(pMatrixStack, pMouseX, pMouseY, pPartialTicks);
+        drawCenteredString(pMatrixStack, this.minecraft.font, Lang.get("vivecraft.messages.controls.1"), this.width / 2, this.height / 2 - 9 / 2 - 9 - 3, 16777215);
+        drawCenteredString(pMatrixStack, this.minecraft.font, Lang.get("vivecraft.messages.controls.2"), this.width / 2, this.height / 2 - 9 / 2, 16777215);
+        drawCenteredString(pMatrixStack, this.minecraft.font, Lang.get("vivecraft.messages.controls.3"), this.width / 2, this.height / 2 - 9 / 2 + 9 + 3, 16777215);
     }
 
     protected void loadDefaults()

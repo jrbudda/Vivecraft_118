@@ -21,7 +21,7 @@ public class StaticTexture extends SimpleTexture
         super(p_118133_);
     }
 
-    public void load(ResourceManager p_118135_) throws IOException
+    public void load(ResourceManager pManager) throws IOException
     {
         this.releaseId();
         Resource resource = null;

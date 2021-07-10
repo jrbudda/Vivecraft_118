@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\client\renderer\blockentity\BlockEntityRenderDispatcher.java minecraft_patched\net\minecraft\client\renderer\blockentity\BlockEntityRenderDispatcher.java
 --- minecraft\net\minecraft\client\renderer\blockentity\BlockEntityRenderDispatcher.java
 +++ minecraft_patched\net\minecraft\client\renderer\blockentity\BlockEntityRenderDispatcher.java
-@@ -44,7 +44,7 @@
+@@ -42,7 +42,7 @@
  
     @Nullable
     public <E extends BlockEntity> BlockEntityRenderer<E> m_112265_(E p_112266_) {

@@ -137,10 +137,10 @@ public class GuiKeyboard extends TwoHandedScreen
         }
     }
 
-    public void render(PoseStack p_96562_, int pMatrixStack, int pMouseX, float pMouseY)
+    public void render(PoseStack pMatrixStack, int pMouseX, int pMouseY, float pPartialTicks)
     {
-        this.renderBackground(p_96562_);
-        drawCenteredString(p_96562_, this.font, "Keyboard", this.width / 2, 2, 16777215);
-        super.render(p_96562_, 0, 0, pMouseY);
+        this.renderBackground(pMatrixStack);
+        drawCenteredString(pMatrixStack, this.font, "Keyboard", this.width / 2, 2, 16777215);
+        super.render(pMatrixStack, 0, 0, pPartialTicks);
     }
 }
