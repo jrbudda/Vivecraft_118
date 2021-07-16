@@ -41,7 +41,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static final boolean DEFAULT_FORGE_INSTALL= false;
     private static final boolean ALLOW_KATVR_INSTALL  = true;
     private static final boolean ALLOW_KIOSK_INSTALL  = true;
-    private static final boolean ALLOW_ZGC_INSTALL    = true;
     private static final boolean ALLOW_HRTF_INSTALL   = false;
     private static final boolean PROMPT_REMOVE_HRTF   = false;
     private static final String MINECRAFT_VERSION     = "1.16.5";
@@ -87,7 +86,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
 	private JCheckBox katvr;
 	private JCheckBox kiosk;
 	private JCheckBox optCustomForgeVersion;
-	private JCheckBox useZGC;
 	private JTextField txtCustomForgeVersion;
 	private JComboBox ramAllocation;
 	private final boolean QUIET_DEV = false;
@@ -407,36 +405,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
 						"If checked, disables use of in-game menu via controller" +
 						"</html>");
 		kiosk.setAlignmentX(LEFT_ALIGNMENT);
-
-		useZGC = new JCheckBox();
-		AbstractAction zgcAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (useZGC.isSelected()) {
-					JPanel panel = new JPanel();
-					panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-					panel.add(new JLabel(
-							"<html>ZGC is an experimental garbage collector available in Java 14+.<br>" +
-									"It can significantly reduce GC stutter, but may have stability issues as it is still in development.<br>" +
-									"Your launcher profile must be configured to use Java 14 or the game will crash with this option enabled.<br>" +
-									"The installer will prompt you to locate the Java 14 runtime and do this for you, however it must be installed before proceeding.<html>"
-					));
-					panel.add(linkify("You can download the latest release of Java 14 at AdoptOpenJDK.", "https://adoptopenjdk.net/archive.html?variant=openjdk14&jvmVariant=hotspot", "AdoptOpenJDK"));
-					panel.add(new JLabel("<html><br>Do you wish to continue installation with this option enabled?</html>"));
-					int res = JOptionPane.showOptionDialog(
-							null, panel, "Warning!",
-							JOptionPane.YES_NO_OPTION,
-							JOptionPane.WARNING_MESSAGE, null, new String[]{"Yes", "No"}, "No"
-					);
-					if (res == JOptionPane.NO_OPTION)
-						useZGC.setSelected(false);
-				}
-			}
-		};
-		zgcAction.putValue(AbstractAction.NAME, "Enable ZGC");
-		useZGC.setAction(zgcAction);
-		useZGC.setToolTipText("<html>Enables stutter-free Java 14+ garbage collector.</html>");
-		useZGC.setAlignmentX(LEFT_ALIGNMENT);
 		
 		this.add(forgePanel);
 		this.add(createProfile);
@@ -445,8 +413,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		this.add(gameDirPanel);
 		if(ALLOW_HRTF_INSTALL)this.add(useHrtf);
 		this.add(new JLabel("         "));
-		if(ALLOW_KATVR_INSTALL||ALLOW_KIOSK_INSTALL||ALLOW_ZGC_INSTALL) this.add(new JLabel("Advanced Options"));
-		if(ALLOW_ZGC_INSTALL) this.add(useZGC);
+		if(ALLOW_KATVR_INSTALL||ALLOW_KIOSK_INSTALL) this.add(new JLabel("Advanced Options"));
 		if(ALLOW_KIOSK_INSTALL) this.add(kiosk);
 		if(ALLOW_KATVR_INSTALL) this.add(katvr);
 
@@ -517,6 +484,20 @@ public class Installer extends JPanel  implements PropertyChangeListener
 				if(f.getName().equalsIgnoreCase("multimc.exe") || (f.getName().equalsIgnoreCase("multimc") && f.isFile()) || f.getName().equalsIgnoreCase("multimc.cfg")){
 					ArrayList<File> ilist = new ArrayList<File>();
 					File insts = new File(targetDir, "instances");
+					try (BufferedReader br = new BufferedReader(new FileReader(new File(targetDir, "multimc.cfg")))) {
+						String line;
+						while ((line = br.readLine()) != null) {
+							String[] split = line.split("=", 2);
+							if (split[0].equals("InstanceDir")) {
+								insts = new File(split[1]);
+								if (!insts.isAbsolute())
+									insts = new File(targetDir, split[1]);
+								break;
+							}
+						}
+					} catch (IOException ex) {
+						ex.printStackTrace();
+					}
 					if (!insts.exists()) {
 						JOptionPane.showMessageDialog(null, "MultiMC files were detected in the install path, but the instances directory is missing, so we're going to assume it isn't MultiMC.\nIf it actually is MultiMC, set up an instance for Vivecraft first, then run this installer again.", "MultiMC Detection Failed", JOptionPane.WARNING_MESSAGE);
 						break;
@@ -1222,11 +1203,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		}
 
 		private String getGCOptions() {
-			if (useZGC.isSelected()) {
-				return "-XX:+UnlockExperimentalVMOptions -XX:+UseZGC";
-			} else {
-				return "-XX:+UseParallelGC -XX:ParallelGCThreads=3 -XX:MaxGCPauseMillis=3 -Xmn256M";
-			}
+			// ZGC all the way baby
+			return "-XX:+UseZGC";
 		}
 
 		private int[] getRamAlloc() {
@@ -1266,29 +1244,33 @@ public class Installer extends JPanel  implements PropertyChangeListener
 				return 0;
 			}
 		}
+		
+		private boolean isSuitableJavaVersion(int version) {
+			return version >= 16;
+		}
 
 		/*
 		* If the user decides to not select the Java runtime at installation, this function will
 		* return the same value that was passed to it. In this case, the profile should not be changed.
 		 */
-		private String checkForJava14(String path) {
+		private String checkForRequiredJava(String path) {
 			String newPath = path;
 			boolean first = true;
 			while (true) {
 				String ver = !newPath.isEmpty() ? getJavaVersionFromPath(newPath) : "0.0.0";
-				if (parseJavaVersion(ver) >= 14 && parseJavaVersion(ver) <= 15)
+				if (isSuitableJavaVersion(parseJavaVersion(ver)))
 					break;
 
 				if (first) {
 					String javaHome = System.getProperty("java.home") + (isWindows ? "\\bin\\javaw.exe" : "/bin/java");
 					String homeVer = getJavaVersionFromPath(javaHome);
-					if (parseJavaVersion(homeVer) >= 14 && parseJavaVersion(homeVer) <= 15)
+					if (isSuitableJavaVersion(parseJavaVersion(homeVer)))
 						return javaHome;
 					first = false;
 				}
 
 				int res = JOptionPane.showConfirmDialog(null,
-						"The currently selected Java executable is not Java 14 or Java 15.\n" +
+						"The currently selected Java executable is not Java 16 or newer. At least Java 16 is required to run the game.\n" +
 						"Would you like to select the correct one now?",
 						"Wrong Java Version",
 						JOptionPane.YES_NO_OPTION,
@@ -1365,7 +1347,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
 					prof.remove("gameDir");
 				}
 
-				if (useZGC.isSelected()) {
+				// Mojang takes care of this already
+				/*if (useZGC.isSelected()) {
 					String javaExe;
 					if (prof.has("javaDir"))
 						javaExe = prof.getString("javaDir");
@@ -1376,7 +1359,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 					javaExe = checkForJava14(javaExe);
 					if (!javaExe.isEmpty())
 						prof.put("javaDir", javaExe);
-				}
+				}*/
 
 				FileWriter fwJson = new FileWriter(fileJson);
 				fwJson.write(root.toString(jsonIndentSpaces));
@@ -1400,21 +1383,27 @@ public class Installer extends JPanel  implements PropertyChangeListener
 				File cfg = new File(mcBaseDirFile, "instance.cfg");
 				if(!cfg.exists()) return result;
 
-				boolean setupJavaPath = useZGC.isSelected();
+				boolean setupJavaPath = true;
 
 				String javaPath = "javaw";
+				boolean requiredJavaSetGlobally = false;
 				if (setupJavaPath) {
-					try (BufferedReader br = new BufferedReader(new FileReader(new File(mcBaseDirFile, "../../multimc.cfg")))) {
+					try (BufferedReader br = new BufferedReader(new FileReader(new File(targetDir, "multimc.cfg")))) {
 						String line;
 						while ((line = br.readLine()) != null) {
 							String[] split = line.split("=", 2);
 							if (split[0].equals("JavaPath")) {
 								javaPath = split[1];
+								String javaVer = getJavaVersionFromPath(javaPath.replace("\\\\", "\\"));
+								if (isSuitableJavaVersion(parseJavaVersion(javaVer)))
+									requiredJavaSetGlobally = true;
 								break;
 							}
 						}
 					}
 				}
+				
+				boolean hadJavaOverride = false;
 
 				BufferedReader r = new BufferedReader(new FileReader(cfg));
 				java.util.List<String> lines = new ArrayList<String>();
@@ -1436,8 +1425,10 @@ public class Installer extends JPanel  implements PropertyChangeListener
 					if(l.startsWith("OverrideMemory"))
 						continue;
 					
-					if(l.startsWith("OverrideJavaLocation") && setupJavaPath)
+					if(l.startsWith("OverrideJavaLocation") && setupJavaPath) {
+						hadJavaOverride = true;
 						continue;
+					}
 
 					if (l.startsWith("JavaPath") && setupJavaPath) {
 						javaPath = l.split("=", 2)[1];
@@ -1454,12 +1445,15 @@ public class Installer extends JPanel  implements PropertyChangeListener
 				lines.add("OverrideMemory=true");
 				lines.add("JvmArgs=" + getGCOptions());
 
-				if (setupJavaPath) {
+				if (setupJavaPath && (!requiredJavaSetGlobally || hadJavaOverride)) {
+					String javaPathOld = javaPath;
 					javaPath = javaPath.replace("\\\\", "\\");
-					javaPath = checkForJava14(javaPath);
+					javaPath = checkForRequiredJava(javaPath);
 					javaPath = javaPath.replace("\\", "\\\\");
-					lines.add("JavaPath=" + javaPath);
-					lines.add("OverrideJavaLocation=true");
+					if (hadJavaOverride || !javaPath.equals(javaPathOld)) {
+						lines.add("JavaPath=" + javaPath);
+						lines.add("OverrideJavaLocation=true");
+					}
 				}
 
 				r.close();

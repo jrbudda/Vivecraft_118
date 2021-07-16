@@ -193,7 +193,6 @@ def create_install(mcp_dir):
     replacelineinfile( installer_java_file, "private static final boolean DEFAULT_FORGE_INSTALL","    private static final boolean DEFAULT_FORGE_INSTALL= %s;\n" % str(forge_default).lower() );
     replacelineinfile( installer_java_file, "private static final boolean ALLOW_KATVR_INSTALL",  "    private static final boolean ALLOW_KATVR_INSTALL  = %s;\n" % str(allow_katvr).lower() );
     replacelineinfile( installer_java_file, "private static final boolean ALLOW_KIOSK_INSTALL",  "    private static final boolean ALLOW_KIOSK_INSTALL  = %s;\n" % str(allow_kiosk).lower() );
-    replacelineinfile( installer_java_file, "private static final boolean ALLOW_ZGC_INSTALL",    "    private static final boolean ALLOW_ZGC_INSTALL    = %s;\n" % str(allow_zgc).lower() );
     replacelineinfile( installer_java_file, "private static final boolean ALLOW_HRTF_INSTALL",   "    private static final boolean ALLOW_HRTF_INSTALL   = %s;\n" % str(allow_hrtf).lower() );
     replacelineinfile( installer_java_file, "private static final boolean PROMPT_REMOVE_HRTF",   "    private static final boolean PROMPT_REMOVE_HRTF   = %s;\n" % str(allow_remove_hrtf).lower() );
 

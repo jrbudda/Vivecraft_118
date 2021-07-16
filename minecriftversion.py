@@ -15,7 +15,6 @@ allow_forge = True
 forge_default = False
 allow_katvr = True
 allow_kiosk = True
-allow_zgc = True
 allow_hrtf = False
 allow_remove_hrtf = False
 allow_steamvr = True
