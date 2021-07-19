@@ -1,13 +1,12 @@
 --- a/net/minecraft/client/renderer/ItemInHandRenderer.java
 +++ b/net/minecraft/client/renderer/ItemInHandRenderer.java
-@@ -6,8 +6,15 @@
+@@ -6,8 +6,14 @@
  import com.mojang.blaze3d.vertex.PoseStack;
  import com.mojang.blaze3d.vertex.VertexConsumer;
  import com.mojang.math.Matrix4f;
 +import com.mojang.math.Quaternion;
  import com.mojang.math.Vector3f;
-+import java.util.HashMap;
-+import java.util.Map;
++
  import java.util.Objects;
 +import java.util.Optional;
 +import java.util.stream.Stream;
@@ -16,7 +15,7 @@
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.player.AbstractClientPlayer;
  import net.minecraft.client.player.LocalPlayer;
-@@ -16,21 +23,50 @@
+@@ -16,21 +22,48 @@
  import net.minecraft.client.renderer.entity.ItemRenderer;
  import net.minecraft.client.renderer.entity.player.PlayerRenderer;
  import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -37,7 +36,6 @@
  import net.minecraft.world.item.ItemStack;
  import net.minecraft.world.item.Items;
  import net.minecraft.world.item.MapItem;
-+import net.minecraft.world.item.ProjectileWeaponItem;
 +import net.minecraft.world.item.ShieldItem;
 +import net.minecraft.world.item.SwordItem;
 +import net.minecraft.world.item.TridentItem;
@@ -62,13 +60,12 @@
 +import org.vivecraft.render.RenderPass;
 +import org.vivecraft.render.VRArmRenderer;
 +import org.vivecraft.render.VRFirstPersonArmSwing;
-+import org.vivecraft.render.VRRenderType;
 +import org.vivecraft.render.VivecraftItemRendering;
 +//TODO: this needs a lot of work
  public class ItemInHandRenderer
  {
      private static final RenderType MAP_BACKGROUND = RenderType.text(new ResourceLocation("textures/map/map_background.png"));
-@@ -115,6 +151,8 @@
+@@ -115,6 +148,8 @@
      private final EntityRenderDispatcher entityRenderDispatcher;
      private final ItemRenderer itemRenderer;
      private static boolean renderItemHand = false;
@@ -77,7 +74,7 @@
  
      public ItemInHandRenderer(Minecraft p_109310_)
      {
-@@ -123,6 +161,7 @@
+@@ -123,6 +158,7 @@
          this.itemRenderer = p_109310_.getItemRenderer();
      }
  
@@ -85,7 +82,7 @@
      public void renderItem(LivingEntity pLivingEntity, ItemStack pItemStack, ItemTransforms.TransformType pTransformType, boolean pLeftHand, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pCombinedLight)
      {
          CustomItems.setRenderOffHand(pLeftHand);
-@@ -245,33 +284,49 @@
+@@ -245,33 +281,49 @@
      {
          boolean flag = pSide != HumanoidArm.LEFT;
          float f = flag ? 1.0F : -1.0F;
@@ -160,7 +157,7 @@
      }
  
      private void applyEatTransform(PoseStack pMatrixStack, float pPartialTicks, HumanoidArm pHand, ItemStack pStack)
-@@ -304,6 +359,49 @@
+@@ -304,6 +356,49 @@
          pMatrixStack.mulPose(Vector3f.YP.rotationDegrees((float)i * -45.0F));
      }
  
@@ -210,7 +207,7 @@
      private void applyItemArmTransform(PoseStack pMatrixStack, HumanoidArm pHand, float pEquippedProg)
      {
          int i = pHand == HumanoidArm.RIGHT ? 1 : -1;
-@@ -380,188 +478,481 @@
+@@ -380,188 +475,481 @@
          return p_172913_.is(Items.CROSSBOW) && CrossbowItem.isCharged(p_172913_);
      }
  
@@ -253,20 +250,19 @@
 +            {
 +                this.renderPlayerArm(pMatrixStack, pBuffer, pCombinedLight, pEquippedProgress, pSwingProgress, humanoidarm);
 +            }
-+
+ 
+-                if (pStack.isEmpty())
 +            if (!pStack.isEmpty())
 +            {
 +                Item item = pStack.getItem();
 +                boolean flag2 = false;
 +                VivecraftItemRendering vivecraftitemrendering = VivecraftItemRendering.Item;
- 
--                if (pStack.isEmpty())
++
 +                if (pStack.getUseAnimation() != UseAnim.EAT && pStack.getUseAnimation() != UseAnim.DRINK)
                  {
 -                    if (flag && !pPlayer.isInvisible())
 +                    if (item instanceof BlockItem)
-                     {
--                        this.renderPlayerArm(pMatrixStack, pBuffer, pCombinedLight, pEquippedProgress, pSwingProgress, humanoidarm);
++                    {
 +                        Block block = ((BlockItem)item).getBlock();
 +
 +                        if (block instanceof TorchBlock)
@@ -286,15 +282,16 @@
 +                                vivecraftitemrendering = VivecraftItemRendering.Block_Item;
 +                            }
 +                        }
++                    }
++                    else if (item instanceof MapItem)
+                     {
+-                        this.renderPlayerArm(pMatrixStack, pBuffer, pCombinedLight, pEquippedProgress, pSwingProgress, humanoidarm);
++                        vivecraftitemrendering = VivecraftItemRendering.Map;
                      }
 -                }
 -                else if (pStack.getItem() instanceof MapItem)
 -                {
 -                    if (flag && this.offHandItem.isEmpty())
-+                    else if (item instanceof MapItem)
-+                    {
-+                        vivecraftitemrendering = VivecraftItemRendering.Map;
-+                    }
 +                    else if (pStack.getUseAnimation() == UseAnim.BOW)
 +                    {
 +                        vivecraftitemrendering = VivecraftItemRendering.Bow_Seated;
@@ -316,7 +313,8 @@
 +                        vivecraftitemrendering = VivecraftItemRendering.Sword;
 +                    }
 +                    else if (item instanceof ShieldItem)
-+                    {
+                     {
+-                        this.renderTwoHandedMap(pMatrixStack, pBuffer, pCombinedLight, pPitch, pEquippedProgress, pSwingProgress);
 +                        vivecraftitemrendering = VivecraftItemRendering.Shield;
 +                    }
 +                    else if (item instanceof TridentItem)
@@ -324,8 +322,7 @@
 +                        vivecraftitemrendering = VivecraftItemRendering.Spear;
 +                    }
 +                    else if (item instanceof CrossbowItem)
-                     {
--                        this.renderTwoHandedMap(pMatrixStack, pBuffer, pCombinedLight, pPitch, pEquippedProgress, pSwingProgress);
++                    {
 +                        vivecraftitemrendering = VivecraftItemRendering.Crossbow;
 +                    }
 +                    else if (!(item instanceof CompassItem) && item != Items.CLOCK)
@@ -358,8 +355,7 @@
 -                    int l = flag3 ? 1 : -1;
 +                    vivecraftitemrendering = VivecraftItemRendering.Noms;
 +                }
- 
--                    if (pPlayer.isUsingItem() && pPlayer.getUseItemRemainingTicks() > 0 && pPlayer.getUsedItemHand() == pHand)
++
 +                int k = flag ? 1 : -1;
 +                double d8 = 0.7D;
 +                double d0 = -0.05D;
@@ -371,7 +367,8 @@
 +                quaternion.mul(Vector3f.XP.rotationDegrees((float)(-110.0D + d3)));
 +                pMatrixStack.pushPose();
 +                boolean flag3 = false;
-+
+ 
+-                    if (pPlayer.isUsingItem() && pPlayer.getUseItemRemainingTicks() > 0 && pPlayer.getUsedItemHand() == pHand)
 +                if (vivecraftitemrendering == VivecraftItemRendering.Bow_Seated)
 +                {
 +                    d1 += -0.1D;
@@ -394,7 +391,7 @@
 +                    d8 = 1.0D;
 +                    int i = 0;
 +
-+                    if (this.minecraft.vrSettings.vrReverseShootingEye)
++                    if (this.minecraft.vrSettings.reverseShootingEye)
                      {
 -                        this.applyItemArmTransform(pMatrixStack, humanoidarm, pEquippedProgress);
 -                        pMatrixStack.translate((double)((float)l * -0.4785682F), (double) - 0.094387F, (double)0.05731531F);
@@ -434,16 +431,16 @@
 +                    {
 +                        vec36 = vec35.scale(d5);
 +                    }
- 
--                        pMatrixStack.translate((double)(f14 * 0.0F), (double)(f14 * 0.0F), (double)(f14 * 0.04F));
--                        pMatrixStack.scale(1.0F, 1.0F, 1.0F + f14 * 0.2F);
--                        pMatrixStack.mulPose(Vector3f.YN.rotationDegrees((float)l * 45.0F));
++
 +                    double d6 = 0.0D;
 +                    Vec3 vec37 = vec33.subtract(vec36).normalize();
 +                    d6 = vec37.dot(vec34);
 +                    double d7 = vec35.dot(vec37.cross(vec34));
 +                    float f2;
-+
+ 
+-                        pMatrixStack.translate((double)(f14 * 0.0F), (double)(f14 * 0.0F), (double)(f14 * 0.04F));
+-                        pMatrixStack.scale(1.0F, 1.0F, 1.0F + f14 * 0.2F);
+-                        pMatrixStack.mulPose(Vector3f.YN.rotationDegrees((float)l * 45.0F));
 +                    if (d7 < 0.0D)
 +                    {
 +                        f2 = -((float)Math.acos(d6));
@@ -553,8 +550,7 @@
 +                        {
 +                            d0 += -0.015D;
 +                        }
- 
--                    if (pPlayer.isUsingItem() && pPlayer.getUseItemRemainingTicks() > 0 && pPlayer.getUsedItemHand() == pHand)
++
 +                        d2 += (double) - 0.01F;
 +                        quaternion.mul(Vector3f.XP.rotationDegrees((float)(105.0D - d3)));
 +
@@ -574,7 +570,8 @@
 +                                quaternion.mul(Vector3f.YP.rotationDegrees((1.0F - pEquippedProgress) * (float)k * 90.0F));
 +                            }
 +                        }
-+
+ 
+-                    if (pPlayer.isUsingItem() && pPlayer.getUseItemRemainingTicks() > 0 && pPlayer.getUsedItemHand() == pHand)
 +                        quaternion.mul(Vector3f.YP.rotationDegrees((float)k * -90.0F));
 +                    }
 +                    else if (vivecraftitemrendering == VivecraftItemRendering.Spear)
@@ -707,7 +704,7 @@
 +                                d0 += (double)0.03F;
  
 -                                if (f2 > 0.1F)
-+                                if (this.minecraft.vr.keyClimbeyGrab.isKeyDown(ControllerType.RIGHT) && flag || this.minecraft.vr.keyClimbeyGrab.isKeyDown(ControllerType.LEFT) && !flag)
++                                if (this.minecraft.vr.keyClimbeyGrab.isDown(ControllerType.RIGHT) && flag || this.minecraft.vr.keyClimbeyGrab.isDown(ControllerType.LEFT) && !flag)
                                  {
 -                                    float f3 = Mth.sin((f11 - 0.1F) * 1.3F);
 -                                    float f4 = f2 - 0.1F;
@@ -823,7 +820,7 @@
          }
      }
  
-@@ -671,4 +1062,41 @@
+@@ -671,4 +1059,41 @@
              return p_172932_ == InteractionHand.MAIN_HAND ? RENDER_MAIN_HAND_ONLY : RENDER_OFF_HAND_ONLY;
          }
      }

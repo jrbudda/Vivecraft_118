@@ -1,8 +1,6 @@
 package org.vivecraft.gameplay.screenhandlers;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.KeyMapping;
@@ -26,8 +24,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL43;
+
 import org.vivecraft.api.VRData;
 import org.vivecraft.gameplay.VRPlayer;
 import org.vivecraft.provider.ControllerType;
@@ -36,6 +33,7 @@ import org.vivecraft.provider.InputSimulator;
 import org.vivecraft.provider.MCVR;
 import org.vivecraft.provider.openvr_jna.OpenVRUtil;
 import org.vivecraft.render.RenderPass;
+import org.vivecraft.settings.VRSettings;
 import org.vivecraft.utils.Utils;
 import org.vivecraft.utils.math.Matrix4f;
 import org.vivecraft.utils.math.Quaternion;
@@ -321,16 +319,16 @@ public class GuiHandler
 
         if (mc.level != null && !(newScreen instanceof WinScreen))
         {
-            if (mc.vrSettings.vrWorldRotationCached != 0.0F)
+            if (mc.vrSettings.worldRotationCached != 0.0F)
             {
-                mc.vrSettings.vrWorldRotation = mc.vrSettings.vrWorldRotationCached;
-                mc.vrSettings.vrWorldRotationCached = 0.0F;
+                mc.vrSettings.worldRotation = mc.vrSettings.worldRotationCached;
+                mc.vrSettings.worldRotationCached = 0.0F;
             }
         }
         else
         {
-            mc.vrSettings.vrWorldRotationCached = mc.vrSettings.vrWorldRotation;
-            mc.vrSettings.vrWorldRotation = 0.0F;
+            mc.vrSettings.worldRotationCached = mc.vrSettings.worldRotation;
+            mc.vrSettings.worldRotation = 0.0F;
         }
 
         boolean flag = mc.gameRenderer == null || mc.gameRenderer.isInMenuRoom();
@@ -421,55 +419,56 @@ public class GuiHandler
 
         if (mc.screen != null && guiPos_room == null)
         {
+  			//naughty mods!
             onScreenChanged((Screen)null, mc.screen, false);
         }
 
-        Vec3 vec31 = guiPos_room;
-        Matrix4f matrix4f = guiRotation_room;
-        Vec3 vec32 = new Vec3(0.0D, 0.0D, 0.0D);
-        float f = guiScale;
+        Vec3 guipos = guiPos_room;
+        Matrix4f guirot = guiRotation_room;
+        Vec3 guilocal = new Vec3(0.0D, 0.0D, 0.0D);
+        float scale = guiScale;
 
-        if (vec31 == null)
+        if (guipos == null)
         {
-            matrix4f = null;
-            f = 1.0F;
+            guirot = null;
+            scale = 1.0F;
 
             if (mc.level != null && (mc.screen == null || !mc.vrSettings.floatInventory))
             {
                 int i = 1;
 
-                if (mc.vrSettings.vrReverseHands)
+                if (mc.vrSettings.reverseHands)
                 {
                     i = -1;
                 }
 
-                if (!mc.vrSettings.seated && mc.vrSettings.vrHudLockMode != 1)
+                if (!mc.vrSettings.seated && mc.vrSettings.vrHudLockMode != VRSettings.HUDLock.HEAD)
                 {
-                    if (mc.vrSettings.vrHudLockMode == 2)
+                    if (mc.vrSettings.vrHudLockMode == VRSettings.HUDLock.HAND)
                     {
                         Matrix4f matrix4f5 = mc.vr.getAimRotation(1);
                         Matrix4f matrix4f7 = Matrix4f.rotationY(mc.vrPlayer.vrdata_world_render.rotation_radians);
                         Matrix4f matrix4f9 = Matrix4f.multiply(matrix4f7, matrix4f5);
-                        matrix4f = Matrix4f.multiply(matrix4f9, Utils.rotationXMatrix((-(float)Math.PI / 5F)));
-                        matrix4f = Matrix4f.multiply(matrix4f, Matrix4f.rotationY(((float)Math.PI / 10F) * (float)i));
-                        f = 0.58823526F;
-                        vec32 = new Vec3(vec32.x, 0.32D * (double)mc.vrPlayer.vrdata_world_render.worldScale, vec32.z);
-                        vec31 = mc.gameRenderer.getControllerRenderPos(1);
+                        guirot = Matrix4f.multiply(matrix4f9, Utils.rotationXMatrix((-(float)Math.PI / 5F)));
+                        guirot = Matrix4f.multiply(guirot, Matrix4f.rotationY(((float)Math.PI / 10F) * (float)i));
+                        scale = 0.58823526F;
+                        guilocal = new Vec3(guilocal.x, 0.32D * (double)mc.vrPlayer.vrdata_world_render.worldScale, guilocal.z);
+                        guipos = mc.gameRenderer.getControllerRenderPos(1);
                         mc.vr.hudPopup = true;
                     }
-                    else if (mc.vrSettings.vrHudLockMode == 3)
+                    else if (mc.vrSettings.vrHudLockMode == VRSettings.HUDLock.WRIST)
                     {
                         Matrix4f matrix4f6 = mc.vr.getAimRotation(1);
                         Matrix4f matrix4f8 = Matrix4f.rotationY(mc.vrPlayer.vrdata_world_render.rotation_radians);
-                        matrix4f = Matrix4f.multiply(matrix4f8, matrix4f6);
-                        matrix4f = Matrix4f.multiply(matrix4f, Utils.rotationZMatrix(((float)Math.PI / 2F) * (float)i));
-                        matrix4f = Matrix4f.multiply(matrix4f, Matrix4f.rotationY(0.9424779F * (float)i));
-                        vec31 = mc.gameRenderer.getControllerRenderPos(1);
+                        guirot = Matrix4f.multiply(matrix4f8, matrix4f6);
+                        guirot = Matrix4f.multiply(guirot, Utils.rotationZMatrix(((float)Math.PI / 2F) * (float)i));
+                        guirot = Matrix4f.multiply(guirot, Matrix4f.rotationY(0.9424779F * (float)i));
+                        guipos = mc.gameRenderer.getControllerRenderPos(1);
                         mc.vr.hudPopup = true;
                         boolean flag = mc.player.getModelName().equals("slim");
-                        f = 0.4F;
-                        vec32 = new Vec3((double)((float)i * -0.136F * mc.vrPlayer.vrdata_world_render.worldScale), (flag ? 0.13D : 0.12D) * (double)mc.vrPlayer.vrdata_world_render.worldScale, 0.06D * (double)mc.vrPlayer.vrdata_world_render.worldScale);
-                        matrix4f = Matrix4f.multiply(matrix4f, Matrix4f.rotationY(((float)Math.PI / 5F) * (float)i));
+                        scale = 0.4F;
+                        guilocal = new Vec3((double)((float)i * -0.136F * mc.vrPlayer.vrdata_world_render.worldScale), (flag ? 0.13D : 0.12D) * (double)mc.vrPlayer.vrdata_world_render.worldScale, 0.06D * (double)mc.vrPlayer.vrdata_world_render.worldScale);
+                        guirot = Matrix4f.multiply(guirot, Matrix4f.rotationY(((float)Math.PI / 5F) * (float)i));
                     }
                 }
                 else
@@ -485,24 +484,24 @@ public class GuiHandler
                         matrix4f2 = Matrix4f.multiply(matrix4f1, mc.vr.getAimRotation(0));
                     }
 
-                    vec31 = new Vec3(vec33.x + vec34.x * (double)mc.vrPlayer.vrdata_world_render.worldScale * (double)mc.vrSettings.hudDistance, vec33.y + vec34.y * (double)mc.vrPlayer.vrdata_world_render.worldScale * (double)mc.vrSettings.hudDistance, vec33.z + vec34.z * (double)mc.vrPlayer.vrdata_world_render.worldScale * (double)mc.vrSettings.hudDistance);
+                    guipos = new Vec3(vec33.x + vec34.x * (double)mc.vrPlayer.vrdata_world_render.worldScale * (double)mc.vrSettings.hudDistance, vec33.y + vec34.y * (double)mc.vrPlayer.vrdata_world_render.worldScale * (double)mc.vrSettings.hudDistance, vec33.z + vec34.z * (double)mc.vrPlayer.vrdata_world_render.worldScale * (double)mc.vrSettings.hudDistance);
                     Quaternion quaternion = OpenVRUtil.convertMatrix4ftoRotationQuat(matrix4f2);
-                    matrix4f = new Matrix4f(quaternion);
-                    f = mc.vrSettings.hudScale;
+                    guirot = new Matrix4f(quaternion);
+                    scale = mc.vrSettings.hudScale;
                 }
             }
         }
         else
         {
             VRPlayer vrplayer1 = mc.vrPlayer;
-            vec31 = VRPlayer.room_to_world_pos(vec31, mc.vrPlayer.vrdata_world_render);
+            guipos = VRPlayer.room_to_world_pos(guipos, mc.vrPlayer.vrdata_world_render);
             Matrix4f matrix4f4 = Matrix4f.rotationY(mc.vrPlayer.vrdata_world_render.rotation_radians);
-            matrix4f = Matrix4f.multiply(matrix4f4, matrix4f);
+            guirot = Matrix4f.multiply(matrix4f4, guirot);
         }
 
         if ((mc.vrSettings.seated || mc.vrSettings.menuAlwaysFollowFace) && mc.gameRenderer.isInMenuRoom())
         {
-            f = 2.0F;
+            scale = 2.0F;
             Vec3 vec35 = new Vec3(0.0D, 0.0D, 0.0D);
 
             for (Vec3 vec37 : mc.vr.hmdPosSamples)
@@ -525,9 +524,9 @@ public class GuiHandler
             Vec3 vec39 = vec35.add(new Vec3(vec38.x * (double)f4, vec38.y * (double)f4, vec38.z * (double)f4));
             Vec3 vec310 = new Vec3(vec39.x, vec39.y, vec39.z);
             Matrix4f matrix4f3 = Matrix4f.rotationY(135.0F - f1);
-            matrix4f = Matrix4f.multiply(matrix4f3, Matrix4f.rotationY(mc.vrPlayer.vrdata_world_render.rotation_radians));
+            guirot = Matrix4f.multiply(matrix4f3, Matrix4f.rotationY(mc.vrPlayer.vrdata_world_render.rotation_radians));
             VRPlayer vrplayer = mc.vrPlayer;
-            vec31 = VRPlayer.room_to_world_pos(vec310, mc.vrPlayer.vrdata_world_render);
+            guipos = VRPlayer.room_to_world_pos(vec310, mc.vrPlayer.vrdata_world_render);
             guiRotation_room = matrix4f3;
             guiScale = 2.0F;
             guiPos_room = vec310;
@@ -535,14 +534,14 @@ public class GuiHandler
 
         //GL11.glMultMatrixf(mc.vrPlayer.vrdata_world_render.getEye(currentPass).getMatrix().toFloatBuffer());
         
-        Vec3 vec36 = vec31.subtract(vec3);
+        Vec3 vec36 = guipos.subtract(vec3);
         pMatrixStack.translate(vec36.x, vec36.y, vec36.z);
-        pMatrixStack.mulPoseMatrix(matrix4f.toMCMatrix());
-        pMatrixStack.translate(vec32.x, vec32.y, vec32.z);
-        float f2 = f * mc.vrPlayer.vrdata_world_render.worldScale;
+        pMatrixStack.mulPoseMatrix(guirot.toMCMatrix());
+        pMatrixStack.translate(guilocal.x, guilocal.y, guilocal.z);
+        float f2 = scale * mc.vrPlayer.vrdata_world_render.worldScale;
         pMatrixStack.scale(f2, f2, f2);
         guiScaleApplied = f2;
         mc.getProfiler().pop();
-        return vec31;
+        return guipos;
     }
 }

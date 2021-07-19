@@ -103,7 +103,7 @@ public class VRPlayer
     public void preTick()
     {
         this.onTick = true;
-        this.vrdata_world_pre = new VRData(this.roomOrigin, this.mc.vrSettings.walkMultiplier, this.worldScale, (float)Math.toRadians((double)this.mc.vrSettings.vrWorldRotation));
+        this.vrdata_world_pre = new VRData(this.roomOrigin, this.mc.vrSettings.walkMultiplier, this.worldScale, (float)Math.toRadians((double)this.mc.vrSettings.worldRotation));
         float f = this.mc.vrSettings.overrides.getSetting(VRSettings.VrOptions.WORLD_SCALE).getFloat();
 
         if (this.mc.gameRenderer.isInMenuRoom())
@@ -154,7 +154,7 @@ public class VRPlayer
 
         if (this.mc.vrSettings.seated && !this.mc.gameRenderer.isInMenuRoom())
         {
-            this.mc.vrSettings.vrWorldRotation = this.mc.vr.seatedRot;
+            this.mc.vrSettings.worldRotation = this.mc.vr.seatedRot;
         }
     }
 
@@ -166,11 +166,11 @@ public class VRPlayer
         Vec3 vec3 = vrdata1.hmd.getPosition().subtract(vrdata.hmd.getPosition());
         this.roomOrigin = this.roomOrigin.subtract(vec3);
         VRData vrdata2 = new VRData(this.roomOrigin, minecraft.vrSettings.walkMultiplier, this.worldScale, this.vrdata_world_pre.rotation_radians);
-        float f = minecraft.vrSettings.vrWorldRotation;
+        float f = minecraft.vrSettings.worldRotation;
         float f1 = (float)Math.toDegrees((double)this.vrdata_world_pre.rotation_radians);
         this.rotateOriginAround(-f + f1, vrdata2.getHeadPivot());
         this.vrdata_room_post = new VRData(new Vec3(0.0D, 0.0D, 0.0D), minecraft.vrSettings.walkMultiplier, 1.0F, 0.0F);
-        this.vrdata_world_post = new VRData(this.roomOrigin, minecraft.vrSettings.walkMultiplier, this.worldScale, (float)Math.toRadians((double)minecraft.vrSettings.vrWorldRotation));
+        this.vrdata_world_post = new VRData(this.roomOrigin, minecraft.vrSettings.walkMultiplier, this.worldScale, (float)Math.toRadians((double)minecraft.vrSettings.worldRotation));
         this.doPermanantLookOverride(minecraft.player, this.vrdata_world_post);
         NetworkHelper.sendVRPlayerPositions(this);
         this.onTick = false;
@@ -246,7 +246,7 @@ public class VRPlayer
 
                     if (instant)
                     {
-                        vrdata = new VRData(this.roomOrigin, minecraft.vrSettings.walkMultiplier, this.worldScale, (float)Math.toRadians((double)minecraft.vrSettings.vrWorldRotation));
+                        vrdata = new VRData(this.roomOrigin, minecraft.vrSettings.walkMultiplier, this.worldScale, (float)Math.toRadians((double)minecraft.vrSettings.worldRotation));
                     }
 
                     Vec3 vec3 = vrdata.getHeadPivot().subtract(vrdata.origin);
@@ -506,7 +506,7 @@ public class VRPlayer
 
     public String toString()
     {
-        return "VRPlayer: \r\n \t origin: " + this.roomOrigin + "\r\n \t rotation: " + String.format("%.3f", Minecraft.getInstance().vrSettings.vrWorldRotation) + "\r\n \t scale: " + String.format("%.3f", this.worldScale) + "\r\n \t room_pre " + this.vrdata_room_pre + "\r\n \t world_pre " + this.vrdata_world_pre + "\r\n \t world_post " + this.vrdata_world_post + "\r\n \t world_render " + this.vrdata_world_render;
+        return "VRPlayer: \r\n \t origin: " + this.roomOrigin + "\r\n \t rotation: " + String.format("%.3f", Minecraft.getInstance().vrSettings.worldRotation) + "\r\n \t scale: " + String.format("%.3f", this.worldScale) + "\r\n \t room_pre " + this.vrdata_room_pre + "\r\n \t world_pre " + this.vrdata_world_pre + "\r\n \t world_post " + this.vrdata_world_post + "\r\n \t world_render " + this.vrdata_world_render;
     }
 
     public Vec3 getRightClickLookOverride(Player entity, int c)
@@ -571,7 +571,7 @@ public class VRPlayer
             {
                 VRSettings vrsettings = this.mc.vrSettings;
 
-                if (this.mc.vrSettings.vrFreeMoveMode == 1)
+                if (this.mc.vrSettings.vrFreeMoveMode == VRSettings.FreeMove.CONTROLLER)
                 {
                     entity.setYRot(data.getController(1).getYaw());
                     entity.setYHeadRot(entity.getYRot());

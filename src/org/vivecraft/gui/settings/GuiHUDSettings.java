@@ -10,19 +10,32 @@ import org.vivecraft.settings.VRSettings;
 
 public class GuiHUDSettings extends GuiVROptionsBase
 {
-    private VROptionEntry[] hudOptions = new VROptionEntry[] {new VROptionEntry(VRSettings.VrOptions.HUD_HIDE), new VROptionEntry(VRSettings.VrOptions.HUD_LOCK_TO), new VROptionEntry(VRSettings.VrOptions.HUD_SCALE), new VROptionEntry(VRSettings.VrOptions.HUD_DISTANCE), new VROptionEntry(VRSettings.VrOptions.HUD_OCCLUSION), new VROptionEntry(VRSettings.VrOptions.HUD_OPACITY), new VROptionEntry(VRSettings.VrOptions.RENDER_MENU_BACKGROUND), new VROptionEntry(VRSettings.VrOptions.TOUCH_HOTBAR), new VROptionEntry(VRSettings.VrOptions.AUTO_OPEN_KEYBOARD), new VROptionEntry(VRSettings.VrOptions.MENU_ALWAYS_FOLLOW_FACE, (button, mousePos) -> {
-            GuiHandler.onScreenChanged(Minecraft.getInstance().screen, Minecraft.getInstance().screen, false);
-            return false;
-        }), new VROptionEntry(VRSettings.VrOptions.PHYSICAL_KEYBOARD, (button, mousePos) -> {
-            KeyboardHandler.setOverlayShowing(false);
-            return false;
-        }), new VROptionEntry(VRSettings.VrOptions.GUI_APPEAR_OVER_BLOCK), new VROptionEntry(VRSettings.VrOptions.PHYSICAL_KEYBOARD_SCALE, (button, mousePos) -> {
-            KeyboardHandler.physicalKeyboard.setScale(Minecraft.getInstance().vrSettings.physicalKeyboardScale);
-            return false;
-        }), new VROptionEntry("vivecraft.options.screen.menuworld.button", (button, mousePos) -> {
-            Minecraft.getInstance().setScreen(new GuiMenuWorldSettings(this));
-            return true;
-        })
+    private VROptionEntry[] hudOptions = new VROptionEntry[] {
+            new VROptionEntry(VRSettings.VrOptions.HUD_HIDE),
+            new VROptionEntry(VRSettings.VrOptions.HUD_LOCK_TO),
+            new VROptionEntry(VRSettings.VrOptions.HUD_SCALE),
+            new VROptionEntry(VRSettings.VrOptions.HUD_DISTANCE),
+            new VROptionEntry(VRSettings.VrOptions.HUD_OCCLUSION),
+            new VROptionEntry(VRSettings.VrOptions.HUD_OPACITY),
+            new VROptionEntry(VRSettings.VrOptions.RENDER_MENU_BACKGROUND),
+            new VROptionEntry(VRSettings.VrOptions.TOUCH_HOTBAR),
+            new VROptionEntry(VRSettings.VrOptions.AUTO_OPEN_KEYBOARD),
+            new VROptionEntry(VRSettings.VrOptions.MENU_ALWAYS_FOLLOW_FACE, (button, mousePos) -> {
+                GuiHandler.onScreenChanged(Minecraft.getInstance().screen, Minecraft.getInstance().screen, false);
+                return false;
+            }),
+            new VROptionEntry(VRSettings.VrOptions.PHYSICAL_KEYBOARD, (button, mousePos) -> {
+                KeyboardHandler.setOverlayShowing(false);
+                return false;
+            }),
+            new VROptionEntry(VRSettings.VrOptions.GUI_APPEAR_OVER_BLOCK), new VROptionEntry(VRSettings.VrOptions.PHYSICAL_KEYBOARD_SCALE, (button, mousePos) -> {
+                KeyboardHandler.physicalKeyboard.setScale(Minecraft.getInstance().vrSettings.physicalKeyboardScale);
+                return false;
+            }),
+            new VROptionEntry("vivecraft.options.screen.menuworld.button", (button, mousePos) -> {
+                Minecraft.getInstance().setScreen(new GuiMenuWorldSettings(this));
+                return true;
+            })
     };
 
     public GuiHUDSettings(Screen guiScreen)
@@ -39,21 +52,7 @@ public class GuiHUDSettings extends GuiVROptionsBase
 
     protected void loadDefaults()
     {
-        this.settings.hudDistance = 1.25F;
-        this.settings.hudScale = 1.0F;
-        this.settings.hudPitchOffset = -2.0F;
-        this.settings.hudYawOffset = 0.0F;
-        this.settings.hudOpacity = 1.0F;
-        this.settings.menuBackground = false;
-        VRSettings vrsettings = this.settings;
-        this.settings.vrHudLockMode = 2;
-        this.settings.hudOcclusion = true;
-        this.settings.menuAlwaysFollowFace = false;
-        this.settings.autoOpenKeyboard = false;
-        this.settings.physicalKeyboard = true;
-        this.settings.physicalKeyboardScale = 1.0F;
-        this.settings.guiAppearOverBlock = true;
-        this.settings.vrTouchHotbar = true;
+        super.loadDefaults();
         this.minecraft.options.hideGui = false;
     }
 }

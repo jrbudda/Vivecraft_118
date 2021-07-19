@@ -80,7 +80,7 @@ public class VehicleTracker extends Tracker
         {
             VRSettings vrsettings = minecraft.vrSettings;
 
-            if (minecraft.vrSettings.vrFreeMoveMode == 2)
+            if (minecraft.vrSettings.vrFreeMoveMode == VRSettings.FreeMove.HMD)
             {
                 return minecraft.vrPlayer.vrdata_world_pre.hmd.getDirection();
             }
@@ -181,9 +181,9 @@ public class VehicleTracker extends Tracker
                     }
                 }
 
-                this.mc.vrSettings.vrWorldRotation += f1;
-                this.mc.vrSettings.vrWorldRotation %= 360.0F;
-                this.mc.vr.seatedRot = this.mc.vrSettings.vrWorldRotation;
+                this.mc.vrSettings.worldRotation += f1;
+                this.mc.vrSettings.worldRotation %= 360.0F;
+                this.mc.vr.seatedRot = this.mc.vrSettings.worldRotation;
                 this.vehicleInitialRotation -= f1;
                 this.vehicleInitialRotation %= 360.0F;
             }
@@ -211,7 +211,7 @@ public class VehicleTracker extends Tracker
         {
             float f = minecraft.vrPlayer.vrdata_world_pre.hmd.getYaw();
             float f1 = vehicle.getYRot() % 360.0F;
-            this.vehicleInitialRotation = minecraft.vrSettings.vrWorldRotation;
+            this.vehicleInitialRotation = minecraft.vrSettings.worldRotation;
             this.rotationCooldown = 2;
 
             if (vehicle instanceof Minecart)
@@ -220,9 +220,9 @@ public class VehicleTracker extends Tracker
             }
 
             float f2 = minecraft.vrPlayer.rotDiff_Degrees(f1, f);
-            minecraft.vrSettings.vrWorldRotation = (float)(Math.toDegrees((double)minecraft.vrPlayer.vrdata_world_pre.rotation_radians) + (double)f2);
-            minecraft.vrSettings.vrWorldRotation %= 360.0F;
-            minecraft.vr.seatedRot = minecraft.vrSettings.vrWorldRotation;
+            minecraft.vrSettings.worldRotation = (float)(Math.toDegrees((double)minecraft.vrPlayer.vrdata_world_pre.rotation_radians) + (double)f2);
+            minecraft.vrSettings.worldRotation %= 360.0F;
+            minecraft.vr.seatedRot = minecraft.vrSettings.worldRotation;
         }
     }
 

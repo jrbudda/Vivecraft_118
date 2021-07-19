@@ -222,13 +222,13 @@ public class KeyboardHandler
             double d0 = (double)Math.min(Math.max((int)UI.cursorX1, 0), mc.getWindow().getScreenWidth()) * (double)mc.getWindow().getGuiScaledWidth() / (double)mc.getWindow().getScreenWidth();
             double d1 = (double)Math.min(Math.max((int)UI.cursorY1, 0), mc.getWindow().getScreenWidth()) * (double)mc.getWindow().getGuiScaledHeight() / (double)mc.getWindow().getScreenHeight();
 
-            if (PointedL && GuiHandler.keyKeyboardClick.isPressed(ControllerType.LEFT))
+            if (PointedL && GuiHandler.keyKeyboardClick.consumeClick(ControllerType.LEFT))
             {
                 UI.mouseClicked((double)((int)d0), (double)((int)d1), 0);
                 lastPressedClickL = true;
             }
 
-            if (!GuiHandler.keyKeyboardClick.isKeyDown(ControllerType.LEFT) && lastPressedClickL)
+            if (!GuiHandler.keyKeyboardClick.isDown(ControllerType.LEFT) && lastPressedClickL)
             {
                 UI.mouseReleased((double)((int)d0), (double)((int)d1), 0);
                 lastPressedClickL = false;
@@ -237,13 +237,13 @@ public class KeyboardHandler
             d0 = (double)Math.min(Math.max((int)UI.cursorX2, 0), mc.getWindow().getScreenWidth()) * (double)mc.getWindow().getGuiScaledWidth() / (double)mc.getWindow().getScreenWidth();
             d1 = (double)Math.min(Math.max((int)UI.cursorY2, 0), mc.getWindow().getScreenWidth()) * (double)mc.getWindow().getGuiScaledHeight() / (double)mc.getWindow().getScreenHeight();
 
-            if (PointedR && GuiHandler.keyKeyboardClick.isPressed(ControllerType.RIGHT))
+            if (PointedR && GuiHandler.keyKeyboardClick.consumeClick(ControllerType.RIGHT))
             {
                 UI.mouseClicked((double)((int)d0), (double)((int)d1), 0);
                 lastPressedClickR = true;
             }
 
-            if (!GuiHandler.keyKeyboardClick.isKeyDown(ControllerType.RIGHT) && lastPressedClickR)
+            if (!GuiHandler.keyKeyboardClick.isDown(ControllerType.RIGHT) && lastPressedClickR)
             {
                 UI.mouseReleased((double)((int)d0), (double)((int)d1), 0);
                 lastPressedClickR = false;

@@ -34,10 +34,6 @@
 	{
 		"name": "net.minecraft:launchwrapper:2.2",
 		"url": "http://vivecraft.org/jar/"
-	}, 
-	{
-		"url": "http://vivecraft.org/jar/", 
-		"name": "com.sun:jna:4.2.1"
 	},
 	{
 		"url": "https://repo1.maven.org/maven2/",

@@ -9,6 +9,11 @@ import org.apache.commons.lang3.StringEscapeUtils;
 
 public class LangHelper
 {
+    public static final String YES_KEY = "vivecraft.options.yes";
+    public static final String NO_KEY = "vivecraft.options.no";
+    public static final String ON_KEY = "options.on";
+    public static final String OFF_KEY = "options.off";
+
     public static void loadLocaleData(String code, Map<String, String> map)
     {
         String s = "lang/" + code + ".lang";
@@ -77,11 +82,11 @@ public class LangHelper
 
     public static String getYes()
     {
-        return I18n.m_118938_("vivecraft.options.yes");
+        return I18n.m_118938_(YES_KEY);
     }
 
     public static String getNo()
     {
-        return I18n.m_118938_("vivecraft.options.no");
+        return I18n.m_118938_(NO_KEY);
     }
 }

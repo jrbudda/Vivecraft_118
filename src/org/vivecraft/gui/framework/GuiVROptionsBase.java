@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -133,6 +134,13 @@ public abstract class GuiVROptionsBase extends Screen
 
     protected void loadDefaults()
     {
+        for (Widget widget : this.renderables) {
+            if (!(widget instanceof GuiVROptionButton))
+                continue;
+
+            GuiVROptionButton optionButton = (GuiVROptionButton)widget;
+            this.settings.loadDefault(optionButton.enumOptions);
+        }
     }
 
     protected void init(VROptionEntry[] settings, boolean clear)

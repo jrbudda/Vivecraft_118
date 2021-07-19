@@ -151,7 +151,7 @@ public class NetworkHelper
                     matrix4f1.load(floatbuffer1);
                     Quaternion quaternion1 = new Quaternion(matrix4f1);
                     ByteBuf bytebuf3 = Unpooled.buffer();
-                    bytebuf3.writeBoolean(Minecraft.getInstance().vrSettings.vrReverseHands);
+                    bytebuf3.writeBoolean(Minecraft.getInstance().vrSettings.reverseHands);
                     bytebuf3.writeFloat((float)vec31.x);
                     bytebuf3.writeFloat((float)vec31.y);
                     bytebuf3.writeFloat((float)vec31.z);

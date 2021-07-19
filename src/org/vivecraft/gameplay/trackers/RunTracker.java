@@ -1,5 +1,7 @@
 package org.vivecraft.gameplay.trackers;
 
+import org.vivecraft.settings.VRSettings;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.phys.Vec3;
@@ -19,7 +21,7 @@ public class RunTracker extends Tracker
     {
         if (Minecraft.getInstance().vrPlayer.getFreeMove() && !Minecraft.getInstance().vrSettings.seated)
         {
-            if (Minecraft.getInstance().vrSettings.vrFreeMoveMode != 3)
+            if (Minecraft.getInstance().vrSettings.vrFreeMoveMode != VRSettings.FreeMove.RUN_IN_PLACE)
             {
                 return false;
             }

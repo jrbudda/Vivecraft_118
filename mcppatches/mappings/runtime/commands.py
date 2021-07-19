@@ -387,7 +387,7 @@ class Commands(object):
         self.cmdrg = self.config.get('COMMANDS', 'CmdRG', raw=1) % self.cmdjava
         self.cmdrgreobf = self.config.get('COMMANDS', 'CmdRGReobf', raw=1) % self.cmdjava
         self.cmdss = self.config.get('COMMANDS', 'CmdSS', raw=1) % (self.cmdjava, self.specialsource)
-        self.cmdssreobf = self.config.get('COMMANDS', 'CmdSSReobf', raw=1) % (self.cmdjava, self.specialsource, ','.join(self.ignorepkg))
+        self.cmdssreobf = self.config.get('COMMANDS', 'CmdSSReobf', raw=1) % (self.cmdjava, self.specialsource)
         self.cmdjadretro = self.config.get('COMMANDS', 'CmdJadretro', raw=1) % (self.cmdjava, self.jadretro)
         self.cmdfernflower = self.config.get('COMMANDS', 'CmdFernflower', raw=1) % (self.cmdjava, self.fernflower)
         self.cmdexceptor = self.config.get('COMMANDS', 'CmdExceptor', raw=1) % (self.cmdjava, self.exceptor)
@@ -757,6 +757,7 @@ class Commands(object):
         return True
 
     def creatergcfg(self, reobf=False, keep_lvt=False, keep_generics=False, rg_update=False, srg_names=False, joined_jar=False):
+        return
         """Create the files necessary for RetroGuard"""
         if reobf:
             rgconfig_file = self.rgreobconfig
@@ -861,6 +862,7 @@ class Commands(object):
                 self.logger.error('!! srgs not found !!')
                 sys.exit(1)
             shutil.copyfile(srglk[side], sidelk[side])
+            shutil.copyfile(srglk[side].replace(".srg", ".tsrg"), sidelk[side].replace(".srg", ".tsrg"))
             if rg_update:
                 self.logger.info('> Adding SideOnly to SRGs')
                 #Add SideOnly stuff, cuz i'm tired of it getting new names!
@@ -889,7 +891,26 @@ class Commands(object):
                 fixes.append(self.fixsound)
             writesrgsfromcsvs(self.csvclasses, self.csvmethods, self.csvfields, sidelk[side],
                               side, fixes)
+                              
+    def load_srg_arrays(self, file):
+        if  not os.path.isfile(file):
+            return None
+        srg_types = {'PK:': ['', ''], 'CL:': ['', ''], 'FD:': ['', ''], 'MD:': ['', '', '', '']}
+        parsed_dict = {'PK': [], 'CL': [], 'FD': [], 'MD': []}
 
+        def get_parsed_line(keyword, buf):
+            return [value[1] for value in zip(srg_types[keyword], [i.strip() for i in buf])]
+
+        with open(file, 'r') as srg_file:
+            for buf in srg_file:
+                buf = buf.strip()
+                if  '#' in buf: buf = buf[:buf.find('#')]
+                if buf == '' or buf[0] == '#':
+                    continue
+                buf = buf.split()
+                parsed_dict[buf[0][:2]].append(get_parsed_line(buf[0], buf[1:]))
+        return parsed_dict
+        
     def checkjava(self):
         """Check for java and setup the proper directory if needed"""
         results = []
@@ -1177,19 +1198,20 @@ class Commands(object):
         else:
             cmd = self.cmdss
             identifier = None
-            srg = cfgsrg[side]
+            srg = cfgsrg[side].replace(".srg", ".tsrg")
 
         # add specialsource.jar to copy of client or server classpath
         sscp = [self.specialsource] + cplk[side]
         sscp = os.pathsep.join(sscp)
         
         forkcmd = cmd.format(classpath=sscp, injar=in_jar, outjar=out_jar, identifier=identifier, mapfile=srg)
-        if not keep_lvt:
-            forkcmd += ' --kill-lvt'
-        if not keep_generics:
-            forkcmd += ' --kill-generics'
+        #if not keep_lvt:
+        #    forkcmd += ' --kill-lvt'
+        #if not keep_generics:
+        #    forkcmd += ' --kill-generics'
         
         try:
+            print "SS: " + in_jar + " > " + out_jar + " with " + srg
             self.runcmd(forkcmd)
             if not reobf:
                 shutil.copyfile(cfgsrg[side], deobsrg[side])
@@ -1262,17 +1284,12 @@ class Commands(object):
             if '=CL_00' in line:
                 columns = line.split("=")
                 renames[columns[0]] = columns[1] + '_' # This is added here just to make sure our numbers don't run on to anything else
-                
-        #def stripTuple(srg):
-        #    for a in srg:
-        #        for l in srg[a]:
-        #            srg[a][l] = [v[1] for v in l]
-                
-        srg = self.parse_tsrg2_array(reobsrg[side])
+        
+        srg = self.load_srg_arrays(reobsrg[side])
         os.remove(reobsrg[side])
         
         fixed = {'PK': [], 'CL': [], 'FD': [], 'MD': []}
-        fixed['PK'] = [v[1] for v in srg['PK']]
+        fixed['PK'] = [v for v in srg['PK']]
         def rename(match):
             return 'L' + renames.get(match.group(1), match.group(1)) + ';'        
         for v in srg['CL']:
@@ -1425,6 +1442,7 @@ class Commands(object):
         
         # HINT: We pass in the exec output jar, this skips the need to extract the jar, and copy classes to there own folder
         forkcmd = self.cmdfernflower.format(indir=ffinput[side], outdir=pathsrclk[side], extra=extra)
+        print "FF: " + ffinput[side] + " > " + pathsrclk[side]
         self.runcmd(forkcmd)
         
         #HINT: For debugging purposes we backup the decompiled jar file before we do anymore processing.
@@ -1674,6 +1692,7 @@ class Commands(object):
         forkcmd = self.cmdrecomp.format(classpath=classpath, sourcepath=pathsrclk[side], outpath=pathbinlk[side],
                                         javasrc=javasrc[side])
         try:
+            print "RECOMP: " + pathsrclk[side] + " > " + pathbinlk[side] + " with " + javasrc[side]
             self.runcmd(forkcmd, log_file=pathlog[side])
         except CalledProcessError as ex:
             self.logger.error('')
@@ -2134,6 +2153,7 @@ class Commands(object):
                 ignore_files.append(self.fixsound + '.class')
 
         # HINT: We create the zipfile and add all the files from the bin directory
+        print "PACK: " + pathbinlk[side] + " > " + jarlk[side]
         with closing(zipfile.ZipFile(jarlk[side], 'w')) as zipjar:
             for path, _, filelist in os.walk(pathbinlk[side]):
                 class_path = os.path.relpath(path, pathbinlk[side]).replace(os.sep, '/')
@@ -2237,6 +2257,7 @@ class Commands(object):
         reserved = ['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9']
             
         # HINT: We extract the modified class files
+        print "UNPACK: " + jarlk[side]+ " > " + outpathlk[side]
         with closing(zipfile.ZipFile(jarlk[side])) as zipjar:
             for in_class in trgclasses:
                 parent_class, sep, inner_class = in_class.partition('$')
@@ -2268,7 +2289,7 @@ class Commands(object):
                     continue
                 try:
                     zipjar.extract(out_class, outpathlk[side])
-                    self.logger.info('> Outputted %s to %s as %s', in_class.ljust(35), outpathlk[side], out_class)
+                    #self.logger.info('> Outputted %s to %s as %s', in_class.ljust(35), outpathlk[side], out_class)
                 except KeyError:
                     self.logger.error('* File %s not found for %s', out_class, in_class)
                 except IOError:
@@ -2402,6 +2423,7 @@ class Commands(object):
         for side in [CLIENT, SERVER]:
             if not os.path.isfile(reobsrg[side]):
                 continue
+
             deob = self.loadsrg(deobsrg[side], reverse=True)
             reob = self.loadsrg(reobsrg[side], reverse=False)
             out = {'CL:': {}, 'MD:': {}, 'FD:': {}, 'PK:': {}}

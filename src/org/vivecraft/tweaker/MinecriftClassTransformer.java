@@ -16,7 +16,7 @@ import org.vivecraft.utils.Utils;
 
 public class MinecriftClassTransformer implements IClassTransformer
 {
-    private static final boolean DEBUG = Boolean.parseBoolean(System.getProperty("legacy.debugClassLoading", "false"));
+    private static final boolean DEBUG = true;//Boolean.parseBoolean(System.getProperty("legacy.debugClassLoading", "false"));
     private ZipFile mcZipFile = null;
     private final MinecriftClassTransformer.Stage stage;
     private final Map<String, byte[]> cache;

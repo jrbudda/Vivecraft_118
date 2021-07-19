@@ -83,11 +83,11 @@ public class SwingTracker extends Tracker
             {
                 return false;
             }
-            else if (minecraft.vrSettings.weaponCollision == 0)
+            else if (minecraft.vrSettings.weaponCollision == VRSettings.WeaponCollision.OFF)
             {
                 return false;
             }
-            else if (minecraft.vrSettings.weaponCollision == 2)
+            else if (minecraft.vrSettings.weaponCollision == VRSettings.WeaponCollision.AUTO)
             {
                 return !p.isCreative();
             }
@@ -99,7 +99,7 @@ public class SwingTracker extends Tracker
             {
                 VRSettings vrsettings = minecraft.vrSettings;
 
-                if (minecraft.vrSettings.vrFreeMoveMode == 3 && p.zza > 0.0F)
+                if (minecraft.vrSettings.vrFreeMoveMode == VRSettings.FreeMove.RUN_IN_PLACE && p.zza > 0.0F)
                 {
                     return false;
                 }
@@ -235,7 +235,7 @@ public class SwingTracker extends Tracker
 
                 this.canact[i] = this.canact[i] && !flag1 && !flag2;
 
-                if (!this.mc.climbTracker.isClimbeyClimb() || (i != 0 || !this.mc.vr.keyClimbeyGrab.isKeyDown(ControllerType.RIGHT)) && flag && (i != 1 || !this.mc.vr.keyClimbeyGrab.isKeyDown(ControllerType.LEFT)) && flag)
+                if (!this.mc.climbTracker.isClimbeyClimb() || (i != 0 || !this.mc.vr.keyClimbeyGrab.isDown(ControllerType.RIGHT)) && flag && (i != 1 || !this.mc.vr.keyClimbeyGrab.isDown(ControllerType.LEFT)) && flag)
                 {
                     BlockPos blockpos = new BlockPos(this.miningPoint[i]);
                     BlockState blockstate = this.mc.level.getBlockState(blockpos);

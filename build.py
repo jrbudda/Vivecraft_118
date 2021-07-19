@@ -69,6 +69,15 @@ def parse_srg_classnames(srgfile):
             if split[0] == "CL:":
                 classnames["%s.class" % (split[1])] = split[2].strip()
     return classnames
+    
+def parse_tsrg_classnames(srgfile):
+    classnames = {}
+    with open(srgfile) as f:
+        for line in f:
+            split = line.split(" ")
+            if not line.startswith('\t'):
+                classnames["%s.class" % (split[0])] = split[1].strip()
+    return classnames
 
 def create_install(mcp_dir):
     print "Creating Installer..."
@@ -89,7 +98,7 @@ def create_install(mcp_dir):
     
     in_mem_zip = StringIO.StringIO()
     with zipfile.ZipFile( in_mem_zip,'w', zipfile.ZIP_DEFLATED) as zipout:
-        vanilla = parse_srg_classnames(os.path.join(mcp_dir, "conf", "joined.srg"))
+        vanilla = parse_tsrg_classnames(os.path.join(mcp_dir, "conf", "joined.tsrg"))
         for abs_path, _, filelist in os.walk(obf, followlinks=True):
             arc_path = os.path.relpath( abs_path, obf ).replace('\\','/').replace('.','') + '/'
             for cur_file in fnmatch.filter(filelist, '*.class'):
@@ -106,7 +115,7 @@ def create_install(mcp_dir):
                         for patch in fnmatch.filter(patchlist, '*.patch'):
                             p = patch_path + '\\' + patch
                             if v in p:
-                                #print 'Found ' + v + ' ' + p
+                                print 'Found ' + v + ' ' + p
                                 ok = True
                                 break
                     if not ok:
@@ -151,7 +160,6 @@ def create_install(mcp_dir):
                 zipout.write(in_file, arcname.strip('.'))
         print "Checking Resources..."
         for a, b, c in os.walk(resources):
-            print a
             arc_path = os.path.relpath(a,resources).replace('\\','/').replace('.','')+'/'
             for cur_file in c:
                 print "Adding resource %s..." % cur_file
@@ -287,17 +295,17 @@ def main(mcp_dir):
     recompile_side( commands, CLIENT)
 
     print("Reobfuscating...")
-    commands.creatergcfg(reobf=True, keep_lvt=True, keep_generics=True, srg_names=True)
-    reobfuscate_side( commands, CLIENT , srg_names=True)
+    #commands.creatergcfg(reobf=True, keep_lvt=True, keep_generics=True, srg_names=True)
+    #reobfuscate_side( commands, CLIENT , srg_names=True)
   
 
-    try:   
-        pass
-        shutil.move(reobf, srg)
-    except OSError:
-        quit
+    #try:   
+    #    pass
+    #    shutil.move(reobf, srg)
+    #except OSError:
+    #    quit
    
-    commands.creatergcfg(reobf=True, keep_lvt=True, keep_generics=True, srg_names=False)
+    #commands.creatergcfg(reobf=True, keep_lvt=True, keep_generics=True, srg_names=False)
     reobfuscate_side( commands, CLIENT )
     
     try:   

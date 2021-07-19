@@ -9,7 +9,17 @@ import org.vivecraft.settings.VRSettings;
 
 public class GuiVRControls extends GuiVROptionsBase
 {
-    private static VROptionEntry[] controlsSettings = new VROptionEntry[] {new VROptionEntry(VRSettings.VrOptions.DUMMY, true), new VROptionEntry(VRSettings.VrOptions.DUMMY, true), new VROptionEntry(VRSettings.VrOptions.DUMMY, true), new VROptionEntry(VRSettings.VrOptions.DUMMY, true), new VROptionEntry(VRSettings.VrOptions.DUMMY, true), new VROptionEntry(VRSettings.VrOptions.DUMMY, true), new VROptionEntry(VRSettings.VrOptions.REVERSE_HANDS), new VROptionEntry(VRSettings.VrOptions.RIGHT_CLICK_DELAY), new VROptionEntry(VRSettings.VrOptions.ALLOW_ADVANCED_BINDINGS, true)};
+    private static VROptionEntry[] controlsSettings = new VROptionEntry[] {
+            new VROptionEntry(VRSettings.VrOptions.DUMMY, true),
+            new VROptionEntry(VRSettings.VrOptions.DUMMY, true),
+            new VROptionEntry(VRSettings.VrOptions.DUMMY, true),
+            new VROptionEntry(VRSettings.VrOptions.DUMMY, true),
+            new VROptionEntry(VRSettings.VrOptions.DUMMY, true),
+            new VROptionEntry(VRSettings.VrOptions.DUMMY, true),
+            new VROptionEntry(VRSettings.VrOptions.REVERSE_HANDS),
+            //new VROptionEntry(VRSettings.VrOptions.RIGHT_CLICK_DELAY),
+            new VROptionEntry(VRSettings.VrOptions.ALLOW_ADVANCED_BINDINGS)
+    };
 
     public GuiVRControls(Screen par1GuiScreen)
     {
@@ -29,13 +39,5 @@ public class GuiVRControls extends GuiVROptionsBase
         drawCenteredString(pMatrixStack, this.minecraft.font, Lang.get("vivecraft.messages.controls.1"), this.width / 2, this.height / 2 - 9 / 2 - 9 - 3, 16777215);
         drawCenteredString(pMatrixStack, this.minecraft.font, Lang.get("vivecraft.messages.controls.2"), this.width / 2, this.height / 2 - 9 / 2, 16777215);
         drawCenteredString(pMatrixStack, this.minecraft.font, Lang.get("vivecraft.messages.controls.3"), this.width / 2, this.height / 2 - 9 / 2 + 9 + 3, 16777215);
-    }
-
-    protected void loadDefaults()
-    {
-        VRSettings vrsettings = this.minecraft.vrSettings;
-        vrsettings.vrReverseHands = false;
-        vrsettings.allowAdvancedBindings = false;
-        vrsettings.rightclickDelay = 6;
     }
 }

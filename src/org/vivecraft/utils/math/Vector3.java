@@ -6,9 +6,9 @@ import org.vivecraft.utils.lwjgl.Vector3f;
 
 public class Vector3
 {
-    protected float x;
-    protected float y;
-    protected float z;
+    public float x;
+    public float y;
+    public float z;
 
     public Vector3()
     {

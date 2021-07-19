@@ -13,7 +13,15 @@
  import com.mojang.datafixers.util.Pair;
  import com.mojang.math.Vector3f;
  import java.util.Collection;
-@@ -66,6 +68,7 @@
+@@ -37,6 +39,7 @@
+ import net.minecraft.client.gui.components.PlayerTabOverlay;
+ import net.minecraft.client.gui.components.SubtitleOverlay;
+ import net.minecraft.client.gui.components.spectator.SpectatorGui;
++import net.minecraft.client.gui.screens.Screen;
+ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+ import net.minecraft.client.renderer.GameRenderer;
+ import net.minecraft.client.renderer.entity.ItemRenderer;
+@@ -66,6 +69,7 @@
  import net.minecraft.world.entity.player.Player;
  import net.minecraft.world.food.FoodData;
  import net.minecraft.world.item.ItemStack;
@@ -21,7 +29,7 @@
  import net.minecraft.world.level.GameType;
  import net.minecraft.world.level.Level;
  import net.minecraft.world.level.block.Blocks;
-@@ -133,7 +136,9 @@
+@@ -133,7 +137,9 @@
      private int screenHeight;
      private final Map<ChatType, List<ChatListener>> chatListeners = Maps.newHashMap();
      private float scopeScale;
@@ -32,7 +40,7 @@
      public Gui(Minecraft p_93005_)
      {
          this.minecraft = p_93005_;
-@@ -166,14 +171,16 @@
+@@ -166,14 +172,16 @@
          this.titleFadeOutTime = 20;
      }
  
@@ -51,7 +59,7 @@
          {
              this.renderVignette(this.minecraft.getCameraEntity());
          }
-@@ -187,7 +194,7 @@
+@@ -187,7 +195,7 @@
          float f = this.minecraft.getDeltaFrameTime();
          this.scopeScale = Mth.lerp(0.5F * f, this.scopeScale, 1.125F);
  
@@ -60,7 +68,7 @@
          {
              if (this.minecraft.player.isScoping())
              {
-@@ -205,14 +212,15 @@
+@@ -205,14 +213,15 @@
              }
          }
  
@@ -78,7 +86,7 @@
          {
              this.renderPortalOverlay(f2);
          }
-@@ -232,10 +240,10 @@
+@@ -232,10 +241,10 @@
              RenderSystem.setShader(GameRenderer::getPositionTexShader);
              RenderSystem.setShaderTexture(0, GUI_ICONS_LOCATION);
              RenderSystem.enableBlend();
@@ -91,7 +99,7 @@
              this.minecraft.getProfiler().push("bossHealth");
              this.bossOverlay.render(pMatrixStack);
              this.minecraft.getProfiler().pop();
-@@ -409,7 +417,27 @@
+@@ -409,7 +418,27 @@
              {
                  this.displayScoreboardSidebar(pMatrixStack, objective1);
              }
@@ -120,7 +128,7 @@
              RenderSystem.enableBlend();
              RenderSystem.defaultBlendFunc();
              pMatrixStack.pushPose();
-@@ -420,14 +448,14 @@
+@@ -420,14 +449,14 @@
              pMatrixStack.popPose();
              objective1 = scoreboard.getDisplayObjective(0);
  
@@ -139,7 +147,7 @@
              }
          }
  
-@@ -447,6 +475,7 @@
+@@ -447,6 +476,7 @@
  
      private void renderCrosshair(PoseStack pMatrixStack)
      {
@@ -147,7 +155,7 @@
          Options options = this.minecraft.options;
  
          if (options.getCameraType().isFirstPerson() && (this.minecraft.gameMode.getPlayerMode() != GameType.SPECTATOR || this.canRenderCrosshairForSpectator(this.minecraft.hitResult)))
-@@ -643,12 +672,36 @@
+@@ -643,12 +673,36 @@
              this.setBlitOffset(-90);
              this.blit(pMatrixStack, i - 91, this.screenHeight - 22, 0, 0, 182, 22);
              this.blit(pMatrixStack, i - 91 - 1 + player.getInventory().selected * 20, this.screenHeight - 22 - 1, 0, 22, 24, 22);
@@ -187,7 +195,7 @@
                  }
                  else
                  {
-@@ -709,6 +762,7 @@
+@@ -709,6 +763,7 @@
              }
  
              RenderSystem.disableBlend();
@@ -195,7 +203,7 @@
          }
      }
  
-@@ -1223,6 +1277,7 @@
+@@ -1223,6 +1278,7 @@
  
      private void renderTextureOverlay(ResourceLocation p_168709_, float p_168710_)
      {
@@ -203,7 +211,7 @@
          RenderSystem.disableDepthTest();
          RenderSystem.depthMask(false);
          RenderSystem.defaultBlendFunc();
-@@ -1244,6 +1299,7 @@
+@@ -1244,6 +1300,7 @@
  
      private void renderSpyglassOverlay(float p_168676_)
      {
@@ -211,7 +219,7 @@
          RenderSystem.disableDepthTest();
          RenderSystem.depthMask(false);
          RenderSystem.defaultBlendFunc();
-@@ -1302,6 +1358,7 @@
+@@ -1302,6 +1359,7 @@
  
      private void renderVignette(Entity pEntity)
      {
@@ -219,7 +227,7 @@
          if (!Config.isVignetteEnabled())
          {
              RenderSystem.enableDepthTest();
-@@ -1358,6 +1415,7 @@
+@@ -1358,6 +1416,7 @@
  
      private void renderPortalOverlay(float pTimeInPortal)
      {
@@ -227,7 +235,7 @@
          if (pTimeInPortal < 1.0F)
          {
              pTimeInPortal = pTimeInPortal * pTimeInPortal;
-@@ -1657,4 +1715,99 @@
+@@ -1657,4 +1716,101 @@
              return gui$hearttype;
          }
      }
@@ -294,7 +302,7 @@
 +            {
 +                TextureAtlasSprite textureatlassprite = this.minecraft.getMobEffectTextures().get(mobeffect);
 +                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-+                this.minecraft.getTextureManager().bindForSetup(textureatlassprite.atlas().location());
++                RenderSystem.setShaderTexture(0, textureatlassprite.atlas().location());
 +                GuiComponent.blit(matrixstack, l, i1, 0, 18, 18, textureatlassprite);
 +            }
 +        }
@@ -306,11 +314,13 @@
 +        GlStateManager.enableAlphaTest();
 +        RenderSystem.disableDepthTest();
 +        //uhhhh //RenderSystem.disableLighting();
++        RenderSystem.setShader(GameRenderer::getPositionTexShader);
 +        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-+        this.minecraft.getTextureManager().bindForSetup(GUI_ICONS_LOCATION);
++        RenderSystem.setShaderTexture(0, Screen.GUI_ICONS_LOCATION);
 +        float f = 16.0F * this.minecraft.vrSettings.menuCrosshairScale;
 +        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR, GlStateManager.DestFactor.ZERO, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
 +        this.drawCentredTexturedModalRect(mouseX, mouseY, f, f, 0, 0, 15, 15);
++        RenderSystem.disableBlend();
 +    }
 +
 +    public void drawCentredTexturedModalRect(int centreX, int centreY, float width, float height, int u, int v, int texWidth, int texHeight)

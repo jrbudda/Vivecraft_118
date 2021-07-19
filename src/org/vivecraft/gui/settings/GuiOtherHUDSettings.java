@@ -8,8 +8,18 @@ import org.vivecraft.settings.VRSettings;
 
 public class GuiOtherHUDSettings extends GuiVROptionsBase
 {
-    static VRSettings.VrOptions[] hudOptions = new VRSettings.VrOptions[] {VRSettings.VrOptions.CROSSHAIR_SCALE, VRSettings.VrOptions.RENDER_CROSSHAIR_MODE, VRSettings.VrOptions.RENDER_BLOCK_OUTLINE_MODE, VRSettings.VrOptions.MENU_CROSSHAIR_SCALE, VRSettings.VrOptions.CROSSHAIR_OCCLUSION, VRSettings.VrOptions.CROSSHAIR_SCALES_WITH_DISTANCE, VRSettings.VrOptions.CHAT_NOTIFICATIONS};
-    static VRSettings.VrOptions[] chat = new VRSettings.VrOptions[] {VRSettings.VrOptions.CHAT_NOTIFICATION_SOUND};
+    static VRSettings.VrOptions[] hudOptions = new VRSettings.VrOptions[] {
+            VRSettings.VrOptions.CROSSHAIR_SCALE,
+            VRSettings.VrOptions.RENDER_CROSSHAIR_MODE,
+            VRSettings.VrOptions.RENDER_BLOCK_OUTLINE_MODE,
+            VRSettings.VrOptions.MENU_CROSSHAIR_SCALE,
+            VRSettings.VrOptions.CROSSHAIR_OCCLUSION,
+            VRSettings.VrOptions.CROSSHAIR_SCALES_WITH_DISTANCE,
+            VRSettings.VrOptions.CHAT_NOTIFICATIONS
+    };
+    static VRSettings.VrOptions[] chat = new VRSettings.VrOptions[] {
+            VRSettings.VrOptions.CHAT_NOTIFICATION_SOUND
+    };
 
     public GuiOtherHUDSettings(Screen guiScreen)
     {
@@ -21,24 +31,12 @@ public class GuiOtherHUDSettings extends GuiVROptionsBase
         this.vrTitle = "vivecraft.options.screen.guiother";
         super.init(hudOptions, true);
 
-        if (this.minecraft.vrSettings.chatNotifications > 1)
+        if (this.minecraft.vrSettings.chatNotifications == VRSettings.ChatNotifications.SOUND || this.minecraft.vrSettings.chatNotifications == VRSettings.ChatNotifications.BOTH)
         {
             super.init(chat, false);
         }
 
         super.addDefaultButtons();
-    }
-
-    protected void loadDefaults()
-    {
-        this.settings.crosshairScale = 1.0F;
-        this.settings.renderBlockOutlineMode = 0;
-        this.settings.renderInGameCrosshairMode = 0;
-        this.settings.menuCrosshairScale = 1.0F;
-        this.settings.useCrosshairOcclusion = true;
-        this.settings.crosshairScalesWithDistance = false;
-        this.settings.chatNotifications = 0;
-        this.settings.chatNotificationSound = "block.note_block.bell";
     }
 
     protected void actionPerformed(AbstractWidget widget)

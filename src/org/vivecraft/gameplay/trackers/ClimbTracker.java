@@ -389,11 +389,11 @@ public class ClimbTracker extends Tracker
 
                 if (i == 0)
                 {
-                    aboolean[i] = this.mc.vr.keyClimbeyGrab.isKeyDown(ControllerType.RIGHT);
+                    aboolean[i] = this.mc.vr.keyClimbeyGrab.isDown(ControllerType.RIGHT);
                 }
                 else
                 {
-                    aboolean[i] = this.mc.vr.keyClimbeyGrab.isKeyDown(ControllerType.LEFT);
+                    aboolean[i] = this.mc.vr.keyClimbeyGrab.isDown(ControllerType.LEFT);
                 }
 
                 this.inblock[i] = this.box[i] != null && this.box[i].move(blockpos).contains(avec3[i]);

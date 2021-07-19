@@ -12,11 +12,38 @@ import org.vivecraft.settings.VRSettings;
 
 public class GuiRenderOpticsSettings extends GuiVROptionsBase
 {
-    static VRSettings.VrOptions[] monoDisplayOptions = new VRSettings.VrOptions[] {VRSettings.VrOptions.MONO_FOV, VRSettings.VrOptions.DUMMY, VRSettings.VrOptions.FSAA};
-    static VRSettings.VrOptions[] openVRDisplayOptions = new VRSettings.VrOptions[] {VRSettings.VrOptions.RENDER_SCALEFACTOR, VRSettings.VrOptions.MIRROR_DISPLAY, VRSettings.VrOptions.FSAA, VRSettings.VrOptions.STENCIL_ON, VRSettings.VrOptions.HANDHELD_CAMERA_RENDER_SCALE, VRSettings.VrOptions.HANDHELD_CAMERA_FOV, VRSettings.VrOptions.RELOAD_EXTERNAL_CAMERA, VRSettings.VrOptions.MIRROR_EYE};
-    static VRSettings.VrOptions[] MROptions = new VRSettings.VrOptions[] {VRSettings.VrOptions.MIXED_REALITY_UNITY_LIKE, VRSettings.VrOptions.MIXED_REALITY_RENDER_HANDS, VRSettings.VrOptions.MIXED_REALITY_KEY_COLOR, VRSettings.VrOptions.MIXED_REALITY_FOV, VRSettings.VrOptions.MIXED_REALITY_UNDISTORTED, VRSettings.VrOptions.MONO_FOV, VRSettings.VrOptions.MIXED_REALITY_ALPHA_MASK, VRSettings.VrOptions.MIXED_REALITY_RENDER_CAMERA_MODEL};
-    static VRSettings.VrOptions[] UDOptions = new VRSettings.VrOptions[] {VRSettings.VrOptions.MONO_FOV};
-    static VRSettings.VrOptions[] TUDOptions = new VRSettings.VrOptions[] {VRSettings.VrOptions.MIXED_REALITY_FOV, VRSettings.VrOptions.MIXED_REALITY_RENDER_CAMERA_MODEL};
+    static VRSettings.VrOptions[] monoDisplayOptions = new VRSettings.VrOptions[] {
+            VRSettings.VrOptions.MONO_FOV,
+            VRSettings.VrOptions.DUMMY,
+            VRSettings.VrOptions.FSAA
+    };
+    static VRSettings.VrOptions[] openVRDisplayOptions = new VRSettings.VrOptions[] {
+            VRSettings.VrOptions.RENDER_SCALEFACTOR,
+            VRSettings.VrOptions.MIRROR_DISPLAY,
+            VRSettings.VrOptions.FSAA,
+            VRSettings.VrOptions.STENCIL_ON,
+            VRSettings.VrOptions.HANDHELD_CAMERA_RENDER_SCALE,
+            VRSettings.VrOptions.HANDHELD_CAMERA_FOV,
+            VRSettings.VrOptions.RELOAD_EXTERNAL_CAMERA,
+            VRSettings.VrOptions.MIRROR_EYE
+    };
+    static VRSettings.VrOptions[] MROptions = new VRSettings.VrOptions[] {
+            VRSettings.VrOptions.MIXED_REALITY_UNITY_LIKE,
+            VRSettings.VrOptions.MIXED_REALITY_RENDER_HANDS,
+            VRSettings.VrOptions.MIXED_REALITY_KEY_COLOR,
+            VRSettings.VrOptions.MIXED_REALITY_FOV,
+            VRSettings.VrOptions.MIXED_REALITY_UNDISTORTED,
+            VRSettings.VrOptions.MONO_FOV,
+            VRSettings.VrOptions.MIXED_REALITY_ALPHA_MASK,
+            VRSettings.VrOptions.MIXED_REALITY_RENDER_CAMERA_MODEL
+    };
+    static VRSettings.VrOptions[] UDOptions = new VRSettings.VrOptions[] {
+            VRSettings.VrOptions.MONO_FOV
+    };
+    static VRSettings.VrOptions[] TUDOptions = new VRSettings.VrOptions[] {
+            VRSettings.VrOptions.MIXED_REALITY_FOV,
+            VRSettings.VrOptions.MIXED_REALITY_RENDER_CAMERA_MODEL
+    };
     private float prevRenderScaleFactor = this.settings.renderScaleFactor;
     private float prevHandCameraResScale = this.settings.handCameraResScale;
 
@@ -35,12 +62,12 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase
         {
             VRSettings.VrOptions vrsettings$vroptions = avrsettings$vroptions[i];
 
-            if (vrsettings$vroptions == VRSettings.VrOptions.RELOAD_EXTERNAL_CAMERA && (!VRHotkeys.hasExternalCameraConfig() || this.minecraft.vrSettings.displayMirrorMode != 15 && this.minecraft.vrSettings.displayMirrorMode != 14))
+            if (vrsettings$vroptions == VRSettings.VrOptions.RELOAD_EXTERNAL_CAMERA && (!VRHotkeys.hasExternalCameraConfig() || this.minecraft.vrSettings.displayMirrorMode != VRSettings.MirrorMode.MIXED_REALITY && this.minecraft.vrSettings.displayMirrorMode != VRSettings.MirrorMode.THIRD_PERSON))
             {
                 avrsettings$vroptions[i] = VRSettings.VrOptions.DUMMY;
             }
 
-            if (vrsettings$vroptions == VRSettings.VrOptions.MIRROR_EYE && this.minecraft.vrSettings.displayMirrorMode != 16 && this.minecraft.vrSettings.displayMirrorMode != 12)
+            if (vrsettings$vroptions == VRSettings.VrOptions.MIRROR_EYE && this.minecraft.vrSettings.displayMirrorMode != VRSettings.MirrorMode.CROPPED && this.minecraft.vrSettings.displayMirrorMode != VRSettings.MirrorMode.SINGLE)
             {
                 avrsettings$vroptions[i] = VRSettings.VrOptions.DUMMY;
             }
@@ -48,7 +75,7 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase
 
         super.init(avrsettings$vroptions, true);
 
-        if (this.minecraft.vrSettings.displayMirrorMode == 15)
+        if (this.minecraft.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY)
         {
             avrsettings$vroptions = new VRSettings.VrOptions[MROptions.length];
             System.arraycopy(MROptions, 0, avrsettings$vroptions, 0, MROptions.length);
@@ -57,7 +84,7 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase
             {
                 VRSettings.VrOptions vrsettings$vroptions1 = avrsettings$vroptions[j];
 
-                if (vrsettings$vroptions1 == VRSettings.VrOptions.MONO_FOV && (!this.minecraft.vrSettings.mixedRealityMRPlusUndistorted || !this.minecraft.vrSettings.mixedRealityUnityLike))
+                if (vrsettings$vroptions1 == VRSettings.VrOptions.MONO_FOV && (!this.minecraft.vrSettings.mixedRealityUndistorted || !this.minecraft.vrSettings.mixedRealityUnityLike))
                 {
                     avrsettings$vroptions[j] = VRSettings.VrOptions.DUMMY;
                 }
@@ -80,11 +107,11 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase
 
             super.init(avrsettings$vroptions, false);
         }
-        else if (this.minecraft.vrSettings.displayMirrorMode == 13)
+        else if (this.minecraft.vrSettings.displayMirrorMode == VRSettings.MirrorMode.FIRST_PERSON)
         {
             super.init(UDOptions, false);
         }
-        else if (this.minecraft.vrSettings.displayMirrorMode == 14)
+        else if (this.minecraft.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON)
         {
             super.init(TUDOptions, false);
         }
@@ -111,22 +138,8 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase
 
     protected void loadDefaults()
     {
-        this.settings.renderScaleFactor = 1.0F;
-        this.settings.displayMirrorMode = 16;
-        this.settings.displayMirrorLeftEye = false;
-        this.settings.mixedRealityKeyColor = new Color(0, 0, 0);
-        this.settings.mixedRealityRenderHands = false;
-        this.settings.insideBlockSolidColor = false;
-        this.settings.mixedRealityUnityLike = true;
-        this.settings.mixedRealityMRPlusUndistorted = true;
-        this.settings.mixedRealityAlphaMask = false;
-        this.settings.mixedRealityFov = 40.0F;
-        this.settings.mixedRealityRenderCameraModel = true;
+        super.loadDefaults();
         this.minecraft.options.fov = 70.0D;
-        this.settings.handCameraFov = 70.0F;
-        this.settings.handCameraResScale = 1.0F;
-        this.settings.useFsaa = true;
-        this.settings.vrUseStencil = true;
         this.minecraft.vrRenderer.reinitFrameBuffers("Defaults Loaded");
     }
 
@@ -139,6 +152,10 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase
             if (guivroptionbutton.id == VRSettings.VrOptions.MIRROR_DISPLAY.ordinal() || guivroptionbutton.id == VRSettings.VrOptions.FSAA.ordinal())
             {
                 this.minecraft.vrRenderer.reinitFrameBuffers("Render Setting Changed");
+            }
+            if (guivroptionbutton.id == VRSettings.VrOptions.RELOAD_EXTERNAL_CAMERA.ordinal())
+            {
+                VRHotkeys.loadExternalCameraConfig();
             }
         }
     }

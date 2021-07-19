@@ -15,6 +15,7 @@ import net.minecraft.world.phys.Vec3;
 import org.vivecraft.api.NetworkHelper;
 import org.vivecraft.api.VRData;
 import org.vivecraft.gameplay.VRPlayer;
+import org.vivecraft.settings.VRSettings;
 import org.vivecraft.utils.math.Vector3;
 
 public class BowTracker extends Tracker
@@ -65,11 +66,11 @@ public class BowTracker extends Tracker
         {
             return false;
         }
-        else if (Minecraft.getInstance().vrSettings.bowMode == 0)
+        else if (Minecraft.getInstance().vrSettings.bowMode == VRSettings.BowMode.OFF)
         {
             return false;
         }
-        else if (Minecraft.getInstance().vrSettings.bowMode == 1)
+        else if (Minecraft.getInstance().vrSettings.bowMode == VRSettings.BowMode.VANILLA)
         {
             return itemStack.getItem() == Items.BOW;
         }

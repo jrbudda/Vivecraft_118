@@ -8,8 +8,15 @@ import org.vivecraft.settings.VRSettings;
 
 public class GuiTeleportSettings extends GuiVROptionsBase
 {
-    private static VRSettings.VrOptions[] teleportSettings = new VRSettings.VrOptions[] {VRSettings.VrOptions.SIMULATE_FALLING, VRSettings.VrOptions.LIMIT_TELEPORT};
-    private static VRSettings.VrOptions[] limitedTeleportSettings = new VRSettings.VrOptions[] {VRSettings.VrOptions.TELEPORT_UP_LIMIT, VRSettings.VrOptions.TELEPORT_DOWN_LIMIT, VRSettings.VrOptions.TELEPORT_HORIZ_LIMIT};
+    private static VRSettings.VrOptions[] teleportSettings = new VRSettings.VrOptions[] {
+            VRSettings.VrOptions.SIMULATE_FALLING,
+            VRSettings.VrOptions.LIMIT_TELEPORT
+    };
+    private static VRSettings.VrOptions[] limitedTeleportSettings = new VRSettings.VrOptions[] {
+            VRSettings.VrOptions.TELEPORT_UP_LIMIT,
+            VRSettings.VrOptions.TELEPORT_DOWN_LIMIT,
+            VRSettings.VrOptions.TELEPORT_HORIZ_LIMIT
+    };
 
     public GuiTeleportSettings(Screen guiScreen)
     {
@@ -27,18 +34,6 @@ public class GuiTeleportSettings extends GuiVROptionsBase
         }
 
         super.addDefaultButtons();
-    }
-
-    protected void loadDefaults()
-    {
-        VRSettings vrsettings = this.minecraft.vrSettings;
-        vrsettings.vrLimitedSurvivalTeleport = true;
-        vrsettings.simulateFalling = true;
-        vrsettings.vrTeleportDownLimit = 4;
-        vrsettings.vrTeleportUpLimit = 1;
-        vrsettings.vrTeleportHorizLimit = 16;
-        vrsettings.saveOptions();
-        this.reinit = true;
     }
 
     protected void actionPerformed(AbstractWidget widget)

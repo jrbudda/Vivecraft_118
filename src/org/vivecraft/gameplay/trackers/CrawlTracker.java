@@ -23,7 +23,7 @@ public class CrawlTracker extends Tracker
         {
             return false;
         }
-        else if (!this.mc.vrSettings.vrAllowCrawling)
+        else if (!this.mc.vrSettings.allowCrawling)
         {
             return false;
         }

@@ -62,7 +62,7 @@ public class HorseTracker extends Tracker
         Vec3 vec32 = quaternion.multiply(new Vec3(0.0D, 0.0D, -1.0D));
         Vec3 vec33 = quaternion.multiply(new Vec3(1.0D, 0.0D, 0.0D));
         Vec3 vec34 = quaternion.multiply(new Vec3(-1.0D, 0.0D, 0.0D));
-        Quaternion quaternion1 = new Quaternion(0.0F, VRSettings.inst.vrWorldRotation, 0.0F);
+        Quaternion quaternion1 = new Quaternion(0.0F, VRSettings.inst.worldRotation, 0.0F);
         Vec3 vec35 = VRPlayer.get().roomOrigin.add(quaternion1.multiply(this.mc.vr.controllerHistory[1].latest()));
         Vec3 vec36 = VRPlayer.get().roomOrigin.add(quaternion1.multiply(this.mc.vr.controllerHistory[0].latest()));
         double d1 = vec35.subtract(this.info.leftReinPos).dot(vec32) + vec35.subtract(this.info.leftReinPos).dot(vec33);

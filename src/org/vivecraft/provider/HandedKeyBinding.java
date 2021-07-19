@@ -13,27 +13,23 @@ public class HandedKeyBinding extends KeyMapping
         super(p_90821_, p_90822_, p_90823_);
     }
 
+    @Override
     public boolean consumeClick()
     {
-        return Arrays.stream(ControllerType.values()).map(this::isPressed).reduce(false, (a, b) ->
-        {
-            return a || b;
-        });
+        return Arrays.stream(ControllerType.values()).map(this::consumeClick).reduce(false, (a, b) -> a || b);
     }
 
+    @Override
     public boolean isDown()
     {
-        return Arrays.stream(ControllerType.values()).map(this::isKeyDown).reduce(false, (a, b) ->
-        {
-            return a || b;
-        });
+        return Arrays.stream(ControllerType.values()).map(this::isDown).reduce(false, (a, b) -> a || b);
     }
 
-    public boolean isPressed(ControllerType hand)
+    public boolean consumeClick(ControllerType hand)
     {
         if (this.pressTime[hand.ordinal()] > 0)
         {
-            int i = this.pressTime[hand.ordinal()]--;
+            this.pressTime[hand.ordinal()]--;
             return true;
         }
         else
@@ -42,7 +38,7 @@ public class HandedKeyBinding extends KeyMapping
         }
     }
 
-    public boolean isKeyDown(ControllerType hand)
+    public boolean isDown(ControllerType hand)
     {
         return this.pressed[hand.ordinal()];
     }
@@ -50,7 +46,7 @@ public class HandedKeyBinding extends KeyMapping
     public void pressKey(ControllerType hand)
     {
         this.pressed[hand.ordinal()] = true;
-        int i = this.pressTime[hand.ordinal()]++;
+        this.pressTime[hand.ordinal()]++;
     }
 
     public void unpressKey(ControllerType hand)

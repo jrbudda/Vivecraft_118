@@ -48,6 +48,7 @@ import org.vivecraft.provider.openvr_jna.control.VivecraftMovementInput;
 import org.vivecraft.reflection.MCReflection;
 import org.vivecraft.render.RenderPass;
 import org.vivecraft.settings.VRHotkeys;
+import org.vivecraft.settings.VRSettings;
 import org.vivecraft.utils.LangHelper;
 import org.vivecraft.utils.Utils;
 import org.vivecraft.utils.lwjgl.Vector3f;
@@ -82,7 +83,6 @@ public abstract class MCVR
     protected Matrix4f[] poseMatrices;
     protected Vec3[] deviceVelocity;
     protected Vec3[] aimSource = new Vec3[3];
-    public Vector3 offset = new Vector3(0.0F, 0.0F, 0.0F);
     public Vector3 forward = new Vector3(0.0F, 0.0F, -1.0F);
     public Vector3 up = new Vector3(0.0F, 1.0F, 0.0F);
     public int hmdAvgLength = 90;
@@ -240,7 +240,7 @@ public abstract class MCVR
 
         if (!this.mc.vrSettings.seated && this.mc.vrSettings.allowStandingOriginOffset)
         {
-            vec3 = vec3.add((double)this.offset.getX(), (double)this.offset.getY(), (double)this.offset.getZ());
+            vec3 = vec3.add((double)this.mc.vrSettings.originOffset.getX(), (double)this.mc.vrSettings.originOffset.getY(), (double)this.mc.vrSettings.originOffset.getZ());
         }
 
         return vec3;
@@ -261,7 +261,7 @@ public abstract class MCVR
     {
         if (!this.mc.vrSettings.seated)
         {
-            if (this.mc.vrSettings.vrReverseHands)
+            if (this.mc.vrSettings.reverseHands)
             {
                 if (controller == ControllerType.RIGHT)
                 {
@@ -314,7 +314,7 @@ public abstract class MCVR
 
         if (this.mc.vrSettings.seated || this.mc.vrSettings.allowStandingOriginOffset)
         {
-            vector3 = vector3.add(this.offset);
+            vector3 = vector3.add(this.mc.vrSettings.originOffset);
         }
 
         return vector3.toVector3d();
@@ -344,7 +344,7 @@ public abstract class MCVR
 
             if (this.mc.vrSettings.seated || this.mc.vrSettings.allowStandingOriginOffset)
             {
-                vector31 = vector31.add(this.offset);
+                vector31 = vector31.add(this.mc.vrSettings.originOffset);
             }
 
             return vector31.toVector3d();
@@ -356,7 +356,7 @@ public abstract class MCVR
 
             if (this.mc.vrSettings.seated || this.mc.vrSettings.allowStandingOriginOffset)
             {
-                vector3 = vector3.add(this.offset);
+                vector3 = vector3.add(this.mc.vrSettings.originOffset);
             }
 
             return vector3.toVector3d();
@@ -483,13 +483,13 @@ public abstract class MCVR
 
     public void resetPosition()
     {
-        Vec3 vec3 = this.getCenterEyePosition().scale(-1.0D).add((double)this.offset.getX(), (double)this.offset.getY(), (double)this.offset.getZ());
-        this.offset = new Vector3((float)vec3.x, (float)vec3.y + 1.62F, (float)vec3.z);
+        Vec3 vec3 = this.getCenterEyePosition().scale(-1.0D).add((double)this.mc.vrSettings.originOffset.getX(), (double)this.mc.vrSettings.originOffset.getY(), (double)this.mc.vrSettings.originOffset.getZ());
+        this.mc.vrSettings.originOffset = new Vector3((float)vec3.x, (float)vec3.y + 1.62F, (float)vec3.z);
     }
 
     public void clearOffset()
     {
-        this.offset = new Vector3(0.0F, 0.0F, 0.0F);
+        this.mc.vrSettings.originOffset = new Vector3(0.0F, 0.0F, 0.0F);
     }
 
     public void setVanillaBindings(KeyMapping[] bindings)
@@ -505,97 +505,66 @@ public abstract class MCVR
     protected void processHotbar()
     {
         this.mc.interactTracker.hotbar = -1;
+        if(mc.player == null) return;
+        if(mc.player.getInventory() == null) return;
 
-        if (this.mc.player != null)
-        {
-            if (this.mc.player.getInventory() != null)
-            {
-                if (!this.mc.climbTracker.isGrabbingLadder() || !this.mc.climbTracker.isClaws(this.mc.player.getMainHandItem()))
-                {
-                    if (this.mc.interactTracker.isActive(this.mc.player))
-                    {
-                        Vec3 vec3 = this.getAimSource(0);
-                        Vec3 vec31 = this.getAimSource(1);
-                        Vec3 vec32 = null;
-                        Vec3 vec33 = null;
-                        int i = 1;
+        if(mc.climbTracker.isGrabbingLadder() &&
+                mc.climbTracker.isClaws(mc.player.getMainHandItem())) return;
+        if(!mc.interactTracker.isActive(mc.player)) return;
 
-                        if (this.mc.vrSettings.vrReverseHands)
-                        {
-                            i = -1;
-                        }
+        Vec3 main = this.getAimSource(0);
+        Vec3 off = this.getAimSource(1);
+        Vec3 barStartos = null, barEndos = null;
 
-                        if (this.mc.vrSettings.vrHudLockMode == 3)
-                        {
-                            vec32 = this.getAimRotation(1).transform(new Vector3((float)i * 0.02F, 0.05F, 0.26F)).toVector3d();
-                            vec33 = this.getAimRotation(1).transform(new Vector3((float)i * 0.02F, 0.05F, 0.01F)).toVector3d();
-                        }
-                        else
-                        {
-                            if (this.mc.vrSettings.vrHudLockMode != 2)
-                            {
-                                return;
-                            }
+        int i = 1;
+        if (this.mc.vrSettings.reverseHands)
+            i = -1;
 
-                            vec32 = this.getAimRotation(1).transform(new Vector3((float)i * -0.18F, 0.08F, -0.01F)).toVector3d();
-                            vec33 = this.getAimRotation(1).transform(new Vector3((float)i * 0.19F, 0.04F, -0.08F)).toVector3d();
-                        }
+        if (this.mc.vrSettings.vrHudLockMode == VRSettings.HUDLock.WRIST) {
+            barStartos = this.getAimRotation(1).transform(new Vector3((float)i * 0.02F, 0.05F, 0.26F)).toVector3d();
+            barEndos = this.getAimRotation(1).transform(new Vector3((float)i * 0.02F, 0.05F, 0.01F)).toVector3d();
+        } else if (this.mc.vrSettings.vrHudLockMode == VRSettings.HUDLock.HAND) {
+            barStartos = this.getAimRotation(1).transform(new Vector3((float)i * -0.18F, 0.08F, -0.01F)).toVector3d();
+            barEndos = this.getAimRotation(1).transform(new Vector3((float)i * 0.19F, 0.04F, -0.08F)).toVector3d();
+        } else return; //how did u get here
 
-                        Vec3 vec34 = vec31.add(vec32.x, vec32.y, vec32.z);
-                        Vec3 vec35 = vec31.add(vec33.x, vec33.y, vec33.z);
-                        Vec3 vec36 = vec34.subtract(vec35);
-                        Vec3 vec37 = vec34.subtract(vec3);
-                        float f = (float)(vec37.cross(vec36).length() / vec36.length());
 
-                        if (!((double)f > 0.06D))
-                        {
-                            float f1 = (float)(vec37.dot(vec36) / (vec36.x * vec36.x + vec36.y * vec36.y + vec36.z * vec36.z));
+        Vec3 barStart = off.add(barStartos.x, barStartos.y, barStartos.z);
+        Vec3 barEnd = off.add(barEndos.x, barEndos.y, barEndos.z);
 
-                            if (!(f1 < -1.0F))
-                            {
-                                Vec3 vec38 = vec36.scale((double)f1).subtract(vec37);
-                                Vec3 vec39 = vec3.subtract(vec38);
-                                float f2 = (float)vec36.length();
-                                float f3 = (float)vec34.subtract(vec39).length();
+        Vec3 u = barStart.subtract(barEnd);
+        Vec3 pq = barStart.subtract(main);
+        float dist = (float) (pq.cross(u).length() / u.length());
 
-                                if (f1 < 0.0F)
-                                {
-                                    f3 *= -1.0F;
-                                }
+        if(dist > 0.06) return;
 
-                                float f4 = f3 / f2 * 9.0F;
+        float fact = (float) (pq.dot(u) / (u.x*u.x + u.y*u.y + u.z*u.z));
 
-                                if (this.mc.vrSettings.vrReverseHands)
-                                {
-                                    f4 = 9.0F - f4;
-                                }
+        if(fact < -1) return;
 
-                                int j = (int)Math.floor((double)f4);
+        Vec3 w2 = u.scale(fact).subtract(pq);
 
-                                if (j <= 8)
-                                {
-                                    if (j < 0)
-                                    {
-                                        if (!((double)f4 <= -0.5D) || !((double)f4 >= -1.5D))
-                                        {
-                                            return;
-                                        }
+        Vec3 point = main.subtract(w2);
+        float linelen = (float) u.length();
+        float ilen = (float) barStart.subtract(point).length();
+        if(fact < 0) ilen *= -1;
+        float pos = ilen / linelen * 9;
 
-                                        j = 9;
-                                    }
+        if(mc.vrSettings.reverseHands) pos = 9 - pos;
 
-                                    this.mc.interactTracker.hotbar = j;
+        int box = (int) Math.floor(pos);
 
-                                    if (j != this.mc.interactTracker.hotbar)
-                                    {
-                                        this.triggerHapticPulse(0, 750);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        if(box > 8) return;
+        if(box < 0) {
+            if(pos <= -0.5 && pos >= -1.5) //TODO fix reversed hands situation.
+                box = 9;
+            else
+                return;
+        }
+        //all that maths for this.
+        mc.interactTracker.hotbar = box;
+        if(box != mc.interactTracker.hotbar){
+            triggerHapticPulse(0, 750);
         }
     }
 
@@ -911,7 +880,7 @@ public abstract class MCVR
             this.controllerRotation[2].M[3][2] = 0.0F;
             this.controllerRotation[2].M[3][3] = 1.0F;
 
-            if ((!this.hasThirdController() || this.mc.vrSettings.displayMirrorMode != 15 && this.mc.vrSettings.displayMirrorMode != 14) && !flag)
+            if ((!this.hasThirdController() || this.mc.vrSettings.displayMirrorMode != VRSettings.MirrorMode.MIXED_REALITY && this.mc.vrSettings.displayMirrorMode != VRSettings.MirrorMode.THIRD_PERSON) && !flag)
             {
                 this.mrMovingCamActive = false;
                 this.aimSource[2] = new Vec3((double)this.mc.vrSettings.vrFixedCamposX, (double)this.mc.vrSettings.vrFixedCamposY, (double)this.mc.vrSettings.vrFixedCamposZ);
@@ -981,12 +950,12 @@ public abstract class MCVR
                     if (!this.isWalkingAbout)
                     {
                         this.isWalkingAbout = true;
-                        this.walkaboutYawStart = this.mc.vrSettings.vrWorldRotation - f2;
+                        this.walkaboutYawStart = this.mc.vrSettings.worldRotation - f2;
                     }
                     else
                     {
-                        this.mc.vrSettings.vrWorldRotation = this.walkaboutYawStart + f2;
-                        this.mc.vrSettings.vrWorldRotation %= 360.0F;
+                        this.mc.vrSettings.worldRotation = this.walkaboutYawStart + f2;
+                        this.mc.vrSettings.worldRotation %= 360.0F;
                     }
                 }
                 else
@@ -1007,11 +976,11 @@ public abstract class MCVR
                     if (!this.isFreeRotate)
                     {
                         this.isFreeRotate = true;
-                        this.walkaboutYawStart = this.mc.vrSettings.vrWorldRotation + f3;
+                        this.walkaboutYawStart = this.mc.vrSettings.worldRotation + f3;
                     }
                     else
                     {
-                        this.mc.vrSettings.vrWorldRotation = this.walkaboutYawStart - f3;
+                        this.mc.vrSettings.worldRotation = this.walkaboutYawStart - f3;
                     }
                 }
                 else
@@ -1065,7 +1034,7 @@ public abstract class MCVR
                 this.mc.setScreen((Screen)null);
             }
 
-            if (this.mc.vrSettings.vrWorldRotationIncrement == 0.0F)
+            if (this.mc.vrSettings.worldRotationIncrement == 0.0F)
             {
                 float f4 = this.getInputAction(this.keyRotateAxis).getAxis2DUseTracked().getX();
 
@@ -1077,8 +1046,8 @@ public abstract class MCVR
                 if (f4 != 0.0F)
                 {
                     float f8 = 10.0F * f4;
-                    this.mc.vrSettings.vrWorldRotation -= f8;
-                    this.mc.vrSettings.vrWorldRotation %= 360.0F;
+                    this.mc.vrSettings.worldRotation -= f8;
+                    this.mc.vrSettings.worldRotation %= 360.0F;
                 }
             }
             else if (this.keyRotateAxis.consumeClick() || this.keyFreeMoveRotate.consumeClick())
@@ -1092,12 +1061,12 @@ public abstract class MCVR
 
                 if (Math.abs(f5) > 0.5F)
                 {
-                    this.mc.vrSettings.vrWorldRotation -= this.mc.vrSettings.vrWorldRotationIncrement * Math.signum(f5);
-                    this.mc.vrSettings.vrWorldRotation %= 360.0F;
+                    this.mc.vrSettings.worldRotation -= this.mc.vrSettings.worldRotationIncrement * Math.signum(f5);
+                    this.mc.vrSettings.worldRotation %= 360.0F;
                 }
             }
 
-            if (this.mc.vrSettings.vrWorldRotationIncrement == 0.0F)
+            if (this.mc.vrSettings.worldRotationIncrement == 0.0F)
             {
                 float f6 = VivecraftMovementInput.getMovementAxisValue(this.keyRotateLeft);
 
@@ -1110,17 +1079,17 @@ public abstract class MCVR
                         f9 = 10.0F * f6;
                     }
 
-                    this.mc.vrSettings.vrWorldRotation += f9;
-                    this.mc.vrSettings.vrWorldRotation %= 360.0F;
+                    this.mc.vrSettings.worldRotation += f9;
+                    this.mc.vrSettings.worldRotation %= 360.0F;
                 }
             }
             else if (this.keyRotateLeft.consumeClick())
             {
-                this.mc.vrSettings.vrWorldRotation += this.mc.vrSettings.vrWorldRotationIncrement;
-                this.mc.vrSettings.vrWorldRotation %= 360.0F;
+                this.mc.vrSettings.worldRotation += this.mc.vrSettings.worldRotationIncrement;
+                this.mc.vrSettings.worldRotation %= 360.0F;
             }
 
-            if (this.mc.vrSettings.vrWorldRotationIncrement == 0.0F)
+            if (this.mc.vrSettings.worldRotationIncrement == 0.0F)
             {
                 float f7 = VivecraftMovementInput.getMovementAxisValue(this.keyRotateRight);
 
@@ -1133,17 +1102,17 @@ public abstract class MCVR
                         f10 = 10.0F * f7;
                     }
 
-                    this.mc.vrSettings.vrWorldRotation -= f10;
-                    this.mc.vrSettings.vrWorldRotation %= 360.0F;
+                    this.mc.vrSettings.worldRotation -= f10;
+                    this.mc.vrSettings.worldRotation %= 360.0F;
                 }
             }
             else if (this.keyRotateRight.consumeClick())
             {
-                this.mc.vrSettings.vrWorldRotation -= this.mc.vrSettings.vrWorldRotationIncrement;
-                this.mc.vrSettings.vrWorldRotation %= 360.0F;
+                this.mc.vrSettings.worldRotation -= this.mc.vrSettings.worldRotationIncrement;
+                this.mc.vrSettings.worldRotation %= 360.0F;
             }
 
-            this.seatedRot = this.mc.vrSettings.vrWorldRotation;
+            this.seatedRot = this.mc.vrSettings.worldRotation;
 
             if (this.keyRadialMenu.consumeClick() && !flag1)
             {
@@ -1157,13 +1126,13 @@ public abstract class MCVR
 
             if (this.keySwapMirrorView.consumeClick())
             {
-                if (this.mc.vrSettings.displayMirrorMode == 14)
+                if (this.mc.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON)
                 {
-                    this.mc.vrSettings.displayMirrorMode = 13;
+                    this.mc.vrSettings.displayMirrorMode = VRSettings.MirrorMode.FIRST_PERSON;
                 }
-                else if (this.mc.vrSettings.displayMirrorMode == 13)
+                else if (this.mc.vrSettings.displayMirrorMode == VRSettings.MirrorMode.FIRST_PERSON)
                 {
-                    this.mc.vrSettings.displayMirrorMode = 14;
+                    this.mc.vrSettings.displayMirrorMode = VRSettings.MirrorMode.THIRD_PERSON;
                 }
 
                 this.mc.vrRenderer.reinitFrameBuffers("Mirror Setting Changed");
@@ -1174,7 +1143,7 @@ public abstract class MCVR
                 KeyboardHandler.setOverlayShowing(!KeyboardHandler.Showing);
             }
 
-            if (this.keyMoveThirdPersonCam.consumeClick() && !Main.kiosk && !this.mc.vrSettings.seated && (this.mc.vrSettings.displayMirrorMode == 15 || this.mc.vrSettings.displayMirrorMode == 14))
+            if (this.keyMoveThirdPersonCam.consumeClick() && !Main.kiosk && !this.mc.vrSettings.seated && (this.mc.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY || this.mc.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON))
             {
                 ControllerType controllertype2 = this.findActiveBindingControllerType(this.keyMoveThirdPersonCam);
 

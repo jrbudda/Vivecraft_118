@@ -114,14 +114,14 @@
 +
 +        if (minecraft.player == null || s == null || !pPacket.getMessage().getString().contains(s))
 +        {
-+            if (minecraft.vrSettings.chatNotifications > 0)
++            if (minecraft.vrSettings.chatNotifications != VRSettings.ChatNotifications.NONE)
 +            {
-+                if ((minecraft.vrSettings.chatNotifications == 1 || minecraft.vrSettings.chatNotifications == 3) && !minecraft.vrSettings.seated)
++                if ((minecraft.vrSettings.chatNotifications == VRSettings.ChatNotifications.HAPTIC || minecraft.vrSettings.chatNotifications == VRSettings.ChatNotifications.BOTH) && !minecraft.vrSettings.seated)
 +                {
 +                    minecraft.vr.triggerHapticPulse(ControllerType.LEFT, 0.2F, 1000.0F, 1.0F);
 +                }
 +
-+                if (minecraft.vrSettings.chatNotifications == 2 || minecraft.vrSettings.chatNotifications == 3)
++                if (minecraft.vrSettings.chatNotifications == VRSettings.ChatNotifications.SOUND || minecraft.vrSettings.chatNotifications == VRSettings.ChatNotifications.BOTH)
 +                {
 +                    Vec3 vec3 = minecraft.vrPlayer.vrdata_world_pre.getController(1).getPosition();
 +                    minecraft.level.playLocalSound(vec3.x(), vec3.y(), vec3.z(), Registry.SOUND_EVENT.get(new ResourceLocation(minecraft.vrSettings.chatNotificationSound)), SoundSource.NEUTRAL, 0.3F, 0.1F, false);

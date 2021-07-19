@@ -175,25 +175,25 @@ public class RadialHandler
     {
         if (isShowing())
         {
-            if (PointedL && GuiHandler.keyKeyboardShift.isPressed(ControllerType.LEFT))
+            if (PointedL && GuiHandler.keyKeyboardShift.consumeClick(ControllerType.LEFT))
             {
                 UI.setShift(true);
                 lastPressedShiftL = true;
             }
 
-            if (!GuiHandler.keyKeyboardShift.isKeyDown(ControllerType.LEFT) && lastPressedShiftL)
+            if (!GuiHandler.keyKeyboardShift.isDown(ControllerType.LEFT) && lastPressedShiftL)
             {
                 UI.setShift(false);
                 lastPressedShiftL = false;
             }
 
-            if (PointedR && GuiHandler.keyKeyboardShift.isPressed(ControllerType.RIGHT))
+            if (PointedR && GuiHandler.keyKeyboardShift.consumeClick(ControllerType.RIGHT))
             {
                 UI.setShift(true);
                 lastPressedShiftR = true;
             }
 
-            if (!GuiHandler.keyKeyboardShift.isKeyDown(ControllerType.RIGHT) && lastPressedShiftR)
+            if (!GuiHandler.keyKeyboardShift.isDown(ControllerType.RIGHT) && lastPressedShiftR)
             {
                 UI.setShift(false);
                 lastPressedShiftR = false;
@@ -227,25 +227,25 @@ public class RadialHandler
             }
             else
             {
-                if (PointedL && GuiHandler.keyKeyboardClick.isPressed(ControllerType.LEFT))
+                if (PointedL && GuiHandler.keyKeyboardClick.consumeClick(ControllerType.LEFT))
                 {
                     UI.mouseClicked((double)((int)d0), (double)((int)d1), 0);
                     lastPressedClickL = true;
                 }
 
-                if (!GuiHandler.keyKeyboardClick.isKeyDown(ControllerType.LEFT) && lastPressedClickL)
+                if (!GuiHandler.keyKeyboardClick.isDown(ControllerType.LEFT) && lastPressedClickL)
                 {
                     UI.mouseReleased((double)((int)d0), (double)((int)d1), 0);
                     lastPressedClickL = false;
                 }
 
-                if (PointedR && GuiHandler.keyKeyboardClick.isPressed(ControllerType.RIGHT))
+                if (PointedR && GuiHandler.keyKeyboardClick.consumeClick(ControllerType.RIGHT))
                 {
                     UI.mouseClicked((double)((int)d2), (double)((int)d3), 0);
                     lastPressedClickR = true;
                 }
 
-                if (!GuiHandler.keyKeyboardClick.isKeyDown(ControllerType.RIGHT) && lastPressedClickR)
+                if (!GuiHandler.keyKeyboardClick.isDown(ControllerType.RIGHT) && lastPressedClickR)
                 {
                     UI.mouseReleased((double)((int)d2), (double)((int)d3), 0);
                     lastPressedClickR = false;

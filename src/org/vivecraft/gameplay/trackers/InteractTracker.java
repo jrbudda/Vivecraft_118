@@ -30,6 +30,7 @@ import org.vivecraft.reflection.MCReflection;
 import org.vivecraft.render.RenderPass;
 import org.vivecraft.render.VRFirstPersonArmSwing;
 import org.vivecraft.settings.VRHotkeys;
+import org.vivecraft.settings.VRSettings;
 
 public class InteractTracker extends Tracker
 {
@@ -157,7 +158,7 @@ public class InteractTracker extends Tracker
 
         for (int j = 0; j < 2; ++j)
         {
-            if (!this.inCamera[j] && !this.inHandheldCamera[j] || !this.mc.vr.keyVRInteract.isKeyDown(ControllerType.values()[j]))
+            if (!this.inCamera[j] && !this.inHandheldCamera[j] || !this.mc.vr.keyVRInteract.isDown(ControllerType.values()[j]))
             {
                 this.reset(player, j);
 
@@ -172,7 +173,7 @@ public class InteractTracker extends Tracker
                 ItemStack itemstack = player.getItemInHand(j == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
                 Item item = null;
 
-                if (!this.active[j] && (this.mc.vrSettings.displayMirrorMode == 15 || this.mc.vrSettings.displayMirrorMode == 14) && this.mc.vrSettings.mixedRealityRenderCameraModel)
+                if (!this.active[j] && (this.mc.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY || this.mc.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON) && this.mc.vrSettings.mixedRealityRenderCameraModel)
                 {
                     VRData.VRDevicePose vrdata$vrdevicepose = this.mc.vrPlayer.vrdata_world_pre.getEye(RenderPass.THIRD);
                     Vec3 vec32 = vrdata$vrdevicepose.getPosition();
@@ -267,7 +268,7 @@ public class InteractTracker extends Tracker
     {
         for (int i = 0; i < 2; ++i)
         {
-            if (this.mc.vr.keyVRInteract.isPressed(ControllerType.values()[i]) && this.active[i])
+            if (this.mc.vr.keyVRInteract.consumeClick(ControllerType.values()[i]) && this.active[i])
             {
                 InteractionHand interactionhand = InteractionHand.values()[i];
                 boolean flag = false;

@@ -23,6 +23,7 @@ public class GuiQuickCommandEditor extends GuiVROptionsBase
 
     protected void loadDefaults()
     {
+        super.loadDefaults();
         this.minecraft.vrSettings.vrQuickCommands = this.minecraft.vrSettings.getQuickCommandsDefaults();
     }
 

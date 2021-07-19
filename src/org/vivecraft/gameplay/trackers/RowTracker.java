@@ -153,7 +153,7 @@ public class RowTracker extends Tracker
     Vec3 getAbsArmPos(int side)
     {
         Vec3 vec3 = this.mc.vr.controllerHistory[side].averagePosition(0.1D);
-        Quaternion quaternion = new Quaternion(0.0F, VRSettings.inst.vrWorldRotation, 0.0F);
+        Quaternion quaternion = new Quaternion(0.0F, VRSettings.inst.worldRotation, 0.0F);
         return VRPlayer.get().roomOrigin.add(quaternion.multiply(vec3));
     }
 

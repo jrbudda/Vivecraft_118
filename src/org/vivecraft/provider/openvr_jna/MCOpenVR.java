@@ -399,7 +399,7 @@ public class MCOpenVR extends MCVR
                 {
                     VRSettings vrsettings = this.mc.vrSettings;
 
-                    if (this.mc.vrSettings.vrHudLockMode != 1 && this.hudPopup)
+                    if (this.mc.vrSettings.vrHudLockMode != VRSettings.HUDLock.HEAD && this.hudPopup)
                     {
                         this.processHotbar();
                     }
@@ -665,7 +665,7 @@ public class MCOpenVR extends MCVR
             throw new RuntimeException("Failed to write action manifest", exception);
         }
 
-        String s1 = this.mc.vrSettings.vrReverseHands ? "_reversed" : "";
+        String s1 = this.mc.vrSettings.reverseHands ? "_reversed" : "";
         Utils.loadAssetToFile("input/vive_defaults" + s1 + ".json", new File("openvr/input/vive_defaults.json"), false);
         Utils.loadAssetToFile("input/oculus_defaults" + s1 + ".json", new File("openvr/input/oculus_defaults.json"), false);
         Utils.loadAssetToFile("input/wmr_defaults" + s1 + ".json", new File("openvr/input/wmr_defaults.json"), false);
@@ -1608,7 +1608,7 @@ public class MCOpenVR extends MCVR
                 this.inputActions.values().forEach(this::readNewData);
                 this.mc.getProfiler().pop();
 
-                if (this.mc.vrSettings.vrReverseHands)
+                if (this.mc.vrSettings.reverseHands)
                 {
                     this.updateControllerPose(0, this.leftPoseHandle);
                     this.updateControllerPose(1, this.rightPoseHandle);
@@ -1633,7 +1633,7 @@ public class MCOpenVR extends MCVR
 
     long getControllerHandle(ControllerType hand)
     {
-        if (this.mc.vrSettings.vrReverseHands)
+        if (this.mc.vrSettings.reverseHands)
         {
             return hand == ControllerType.RIGHT ? this.leftControllerHandle : this.rightControllerHandle;
         }

@@ -24,9 +24,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.optifine.model.QuadBounds;
 
-import org.lwjgl.opengl.GL43;
 import org.vivecraft.gameplay.trackers.CameraTracker;
 import org.vivecraft.settings.VRHotkeys;
+import org.vivecraft.settings.VRSettings;
 import org.vivecraft.utils.Utils;
 
 public class VRWidgetHelper
@@ -40,7 +40,7 @@ public class VRWidgetHelper
 
         if (minecraft.vrSettings.mixedRealityRenderCameraModel)
         {
-            if ((minecraft.currentPass == RenderPass.LEFT || minecraft.currentPass == RenderPass.RIGHT) && (minecraft.vrSettings.displayMirrorMode == 15 || minecraft.vrSettings.displayMirrorMode == 14))
+            if ((minecraft.currentPass == RenderPass.LEFT || minecraft.currentPass == RenderPass.RIGHT) && (minecraft.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY || minecraft.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON))
             {
                 float f = 0.35F;
 
@@ -98,26 +98,26 @@ public class VRWidgetHelper
     public static void renderVRCameraWidget(float offsetX, float offsetY, float offsetZ, float scale, RenderPass renderPass, ModelResourceLocation model, ModelResourceLocation displayModel, Runnable displayBindFunc, Function<Direction, VRWidgetHelper.DisplayFace> displayFaceFunc)
     {
         Minecraft minecraft = Minecraft.getInstance();
-        GL43.glPushMatrix();
-        minecraft.gameRenderer.applyVRModelViewLegacy(minecraft.currentPass);
+        PoseStack poseStack = new PoseStack();
+        minecraft.gameRenderer.applyVRModelView(minecraft.currentPass, poseStack);
         Vec3 vec3 = minecraft.vrPlayer.vrdata_world_render.getEye(renderPass).getPosition();
         Vec3 vec31 = minecraft.vrPlayer.vrdata_world_render.getEye(minecraft.currentPass).getPosition();
         Vec3 vec32 = vec3.subtract(vec31);
         RenderSystem.enableDepthTest();
         RenderSystem.defaultBlendFunc();
-        GL43.glTranslated(vec32.x, vec32.y, vec32.z);
+        poseStack.translate(vec32.x, vec32.y, vec32.z);
         //RenderSystem.multMatrix(minecraft.vrPlayer.vrdata_world_render.getEye(renderPass).getMatrix().toMCMatrix());
         scale = scale * minecraft.vrPlayer.vrdata_world_render.worldScale;
-        GL43.glScalef(scale, scale, scale);
+        poseStack.scale(scale, scale, scale);
 
         if (debug)
         {
-            GL43.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
+        	poseStack.rotateDeg(180.0F, 0.0F, 1.0F, 0.0F);
             minecraft.gameRenderer.renderDebugAxes(0, 0, 0, 0.08F);
-            GL43.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
+            poseStack.rotateDeg(180.0F, 0.0F, 1.0F, 0.0F);
         }
 
-        GL43.glTranslatef(offsetX, offsetY, offsetZ);
+        poseStack.translate(offsetX, offsetY, offsetZ);
         minecraft.getTextureManager().bindForSetup(InventoryMenu.BLOCK_ATLAS);
         BlockPos blockpos = new BlockPos(minecraft.vrPlayer.vrdata_world_render.getEye(renderPass).getPosition());
         int i = Utils.getCombinedLightWithMin(minecraft.level, blockpos, 0);
@@ -149,7 +149,7 @@ public class VRWidgetHelper
         tesselator.end();
         RenderSystem.enableBlend();
         //RenderSystem.defaultAlphaFunc();
-        GL43.glPopMatrix();
+        poseStack.popPose();
     }
 
     public static enum DisplayFace

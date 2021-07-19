@@ -62,30 +62,8 @@ public class VRHotkeys
 
             if (action == 1 && key == 73 && InputConstants.isKeyDown(345))
             {
-                ++minecraft.vrSettings.inertiaFactor;
-
-                if (minecraft.vrSettings.inertiaFactor > 3)
-                {
-                    minecraft.vrSettings.inertiaFactor = 0;
-                }
-
-                switch (minecraft.vrSettings.inertiaFactor)
-                {
-                    case 0:
-                        minecraft.gui.getChat().addMessage(new TranslatableComponent("vivecraft.messages.playerinertia", Lang.get("vivecraft.options.inertia.none")));
-                        break;
-
-                    case 1:
-                        minecraft.gui.getChat().addMessage(new TranslatableComponent("vivecraft.messages.playerinertia", Lang.get("vivecraft.options.inertia.normal")));
-                        break;
-
-                    case 2:
-                        minecraft.gui.getChat().addMessage(new TranslatableComponent("vivecraft.messages.playerinertia", Lang.get("vivecraft.options.inertia.large")));
-                        break;
-
-                    case 3:
-                        minecraft.gui.getChat().addMessage(new TranslatableComponent("vivecraft.messages.playerinertia", Lang.get("vivecraft.options.inertia.massive")));
-                }
+                minecraft.vrSettings.inertiaFactor = minecraft.vrSettings.inertiaFactor.getNext();
+                minecraft.gui.getChat().addMessage(new TranslatableComponent("vivecraft.messages.playerinertia", Lang.get(minecraft.vrSettings.inertiaFactor.getLangKey())));
 
                 flag = true;
             }

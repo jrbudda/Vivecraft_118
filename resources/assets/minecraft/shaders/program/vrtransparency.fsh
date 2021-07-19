@@ -1,24 +1,24 @@
 #version 150
 
-uniform sampler DiffuseSampler;
-uniform sampler DiffuseDepthSampler;
-uniform sampler TranslucentSampler;
-uniform sampler TranslucentDepthSampler;
-uniform sampler ItemEntitySampler;
-uniform sampler ItemEntityDepthSampler;
-uniform sampler ParticlesSampler;
-uniform sampler ParticlesDepthSampler;
-uniform sampler WeatherSampler;
-uniform sampler WeatherDepthSampler;
-uniform sampler CloudsSampler;
-uniform sampler CloudsDepthSampler;
+uniform sampler2D DiffuseSampler;
+uniform sampler2D DiffuseDepthSampler;
+uniform sampler2D TranslucentSampler;
+uniform sampler2D TranslucentDepthSampler;
+uniform sampler2D ItemEntitySampler;
+uniform sampler2D ItemEntityDepthSampler;
+uniform sampler2D ParticlesSampler;
+uniform sampler2D ParticlesDepthSampler;
+uniform sampler2D WeatherSampler;
+uniform sampler2D WeatherDepthSampler;
+uniform sampler2D CloudsSampler;
+uniform sampler2D CloudsDepthSampler;
 
-uniform sampler VrOccludedSampler;
-uniform sampler VrOccludedDepthSampler;
-uniform sampler VrUnoccludedSampler;
-uniform sampler VrUnoccludedDepthSampler;
-uniform sampler VrHandsSampler;
-uniform sampler VrHandsDepthSampler;
+uniform sampler2D VrOccludedSampler;
+uniform sampler2D VrOccludedDepthSampler;
+uniform sampler2D VrUnoccludedSampler;
+uniform sampler2D VrUnoccludedDepthSampler;
+uniform sampler2D VrHandsSampler;
+uniform sampler2D VrHandsDepthSampler;
 
 in vec2 texCoord;
 

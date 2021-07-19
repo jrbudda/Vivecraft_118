@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.PostChain;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
@@ -31,6 +30,7 @@ import org.vivecraft.render.RenderConfigException;
 import org.vivecraft.render.RenderPass;
 import org.vivecraft.render.ShaderHelper;
 import org.vivecraft.render.VRShaders;
+import org.vivecraft.settings.VRSettings;
 import org.vivecraft.utils.LangHelper;
 
 public abstract class VRRenderer
@@ -58,7 +58,7 @@ public abstract class VRRenderer
     public boolean lastFogFancy = true;
     public boolean lastFogFast = false;
     public int lastGuiScale = 0;
-    protected int lastMirror;
+    protected VRSettings.MirrorMode lastMirror;
     public int lastRenderDistanceChunks = -1;
     public long lastWindow = 0L;
     public float lastWorldScale = 0.0F;
@@ -344,20 +344,20 @@ public abstract class VRRenderer
         list.add(RenderPass.LEFT);
         list.add(RenderPass.RIGHT);
 
-        if (minecraft.vrSettings.displayMirrorMode == 13)
+        if (minecraft.vrSettings.displayMirrorMode == VRSettings.MirrorMode.FIRST_PERSON)
         {
             list.add(RenderPass.CENTER);
         }
-        else if (minecraft.vrSettings.displayMirrorMode == 15)
+        else if (minecraft.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY)
         {
-            if (minecraft.vrSettings.mixedRealityMRPlusUndistorted && minecraft.vrSettings.mixedRealityUnityLike)
+            if (minecraft.vrSettings.mixedRealityUndistorted && minecraft.vrSettings.mixedRealityUnityLike)
             {
                 list.add(RenderPass.CENTER);
             }
 
             list.add(RenderPass.THIRD);
         }
-        else if (minecraft.vrSettings.displayMirrorMode == 14)
+        else if (minecraft.vrSettings.displayMirrorMode == VRSettings.MirrorMode.THIRD_PERSON)
         {
             list.add(RenderPass.THIRD);
         }
@@ -570,7 +570,7 @@ public abstract class VRRenderer
             this.mirrorFBWidth = minecraft.getWindow().getScreenWidth();
             this.mirrorFBHeight = minecraft.getWindow().getScreenHeight();
 
-            if (minecraft.vrSettings.displayMirrorMode == 15)
+            if (minecraft.vrSettings.displayMirrorMode == VRSettings.MirrorMode.MIXED_REALITY)
             {
                 this.mirrorFBWidth = minecraft.getWindow().getScreenWidth() / 2;
 

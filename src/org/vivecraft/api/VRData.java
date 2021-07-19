@@ -111,7 +111,7 @@ public class VRData
         else
         {
             Vec3 vec3 = this.c1.getPosition().subtract(this.c0.getPosition()).normalize().yRot((-(float)Math.PI / 2F));
-            return Minecraft.getInstance().vrSettings.vrReverseHands ? (float)Math.toDegrees(Math.atan2(vec3.x, -vec3.z)) : (float)Math.toDegrees(Math.atan2(-vec3.x, vec3.z));
+            return Minecraft.getInstance().vrSettings.reverseHands ? (float)Math.toDegrees(Math.atan2(vec3.x, -vec3.z)) : (float)Math.toDegrees(Math.atan2(-vec3.x, vec3.z));
         }
     }
 

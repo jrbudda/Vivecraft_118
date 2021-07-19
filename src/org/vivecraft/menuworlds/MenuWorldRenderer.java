@@ -56,6 +56,7 @@ import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL43;
 import org.vivecraft.reflection.MCReflection;
 import org.vivecraft.render.GLUtils;
+import org.vivecraft.settings.VRSettings;
 
 public class MenuWorldRenderer
 {
@@ -105,46 +106,45 @@ public class MenuWorldRenderer
 
     public void init()
     {
-        if (this.mc.vrSettings.menuWorldSelection == 3)
+        if (this.mc.vrSettings.menuWorldSelection == VRSettings.MenuWorld.NONE)
         {
             System.out.println("Main menu worlds disabled.");
+            return;
         }
-        else
+
+        try
         {
-            try
-            {
-                InputStream inputstream = MenuWorldDownloader.getRandomWorld();
+            InputStream inputstream = MenuWorldDownloader.getRandomWorld();
 
-                if (inputstream != null)
-                {
-                    System.out.println("Initializing main menu world renderer...");
-                    this.loadRenderers();
-                    System.out.println("Loading world data...");
-                    this.setWorld(MenuWorldExporter.loadWorld(inputstream));
-                    System.out.println("Building geometry...");
-                    this.prepare();
-                    this.mc.gameRenderer.menuWorldFastTime = (new Random()).nextInt(10) == 0;
-                }
-                else
-                {
-                    System.out.println("Failed to load any main menu world, falling back to old menu room");
-                }
-            }
-            catch (Throwable throwable)
+            if (inputstream != null)
             {
-                if (!(throwable instanceof OutOfMemoryError) && !(throwable.getCause() instanceof OutOfMemoryError))
-                {
-                    System.out.println("Exception thrown when loading main menu world, falling back to old menu room");
-                }
-                else
-                {
-                    System.out.println("OutOfMemoryError while loading main menu world. Low heap size or 32-bit Java?");
-                }
-
-                throwable.printStackTrace();
-                this.destroy();
-                this.setWorld((FakeBlockAccess)null);
+                System.out.println("Initializing main menu world renderer...");
+                this.loadRenderers();
+                System.out.println("Loading world data...");
+                this.setWorld(MenuWorldExporter.loadWorld(inputstream));
+                System.out.println("Building geometry...");
+                this.prepare();
+                this.mc.gameRenderer.menuWorldFastTime = (new Random()).nextInt(10) == 0;
             }
+            else
+            {
+                System.out.println("Failed to load any main menu world, falling back to old menu room");
+            }
+        }
+        catch (Throwable throwable)
+        {
+            if (!(throwable instanceof OutOfMemoryError) && !(throwable.getCause() instanceof OutOfMemoryError))
+            {
+                System.out.println("Exception thrown when loading main menu world, falling back to old menu room");
+            }
+            else
+            {
+                System.out.println("OutOfMemoryError while loading main menu world. Low heap size or 32-bit Java?");
+            }
+
+            throwable.printStackTrace();
+            this.destroy();
+            this.setWorld(null);
         }
     }
 

@@ -14,7 +14,9 @@ import org.vivecraft.settings.VRSettings;
 
 public class GuiRadialConfiguration extends GuiVROptionsBase
 {
-    static VROptionLayout[] options = new VROptionLayout[] {new VROptionLayout(VRSettings.VrOptions.RADIAL_MODE_HOLD, VROptionLayout.Position.POS_LEFT, 0.0F, true, "")};
+    static VROptionLayout[] options = new VROptionLayout[] {
+            new VROptionLayout(VRSettings.VrOptions.RADIAL_MODE_HOLD, VROptionLayout.Position.POS_LEFT, 0.0F, true, "")
+    };
     private String[] arr;
     private boolean isShift = false;
     private int selectedIndex = -1;
@@ -186,9 +188,9 @@ public class GuiRadialConfiguration extends GuiVROptionsBase
 
     protected void loadDefaults()
     {
-        this.settings.radialModeHold = true;
+        super.loadDefaults();
         this.settings.vrRadialItems = this.settings.getRadialItemsDefault();
-        this.settings.vrRadialItemsAlt = new String[8];
+        this.settings.vrRadialItemsAlt = this.settings.getRadialItemsAltDefault();
     }
 
     protected boolean onDoneClicked()
