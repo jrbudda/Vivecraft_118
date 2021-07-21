@@ -86,7 +86,7 @@ public class VRWidgetHelper
                     minecraft.vrRenderer.cameraFramebuffer.bindRead();
                 }
                 else {
-                    minecraft.getTextureManager().bindForSetup(new ResourceLocation("vivecraft:textures/black.png"));
+                	RenderSystem.setShaderTexture(0, new ResourceLocation("vivecraft:textures/black.png"));
                 }
             }, (face) ->
             {
@@ -118,7 +118,7 @@ public class VRWidgetHelper
         }
 
         poseStack.translate(offsetX, offsetY, offsetZ);
-        minecraft.getTextureManager().bindForSetup(InventoryMenu.BLOCK_ATLAS);
+        RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
         BlockPos blockpos = new BlockPos(minecraft.vrPlayer.vrdata_world_render.getEye(renderPass).getPosition());
         int i = Utils.getCombinedLightWithMin(minecraft.level, blockpos, 0);
         Tesselator tesselator = Tesselator.getInstance();

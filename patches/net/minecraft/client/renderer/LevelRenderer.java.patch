@@ -842,12 +842,12 @@
 +
 +        this.entityEffect = null;
 +        this.entityTarget = null;
-+        postchain = this.minecraft.vrRenderer.entityShaders.get(this.minecraft.getMainRenderTarget().name);
++        PostChain postchain2 = this.minecraft.vrRenderer.entityShaders.get(this.minecraft.getMainRenderTarget().name);
 +
-+        if (postchain != null)
++        if (postchain2 != null)
 +        {
-+            this.entityEffect = postchain;
-+            this.entityTarget = this.entityEffect.getTempTarget("final");
++            this.entityEffect = postchain2;
++            this.entityTarget = postchain2.getTempTarget("final");
 +        }
 +    }
  }

@@ -172,7 +172,7 @@
 +    private boolean lastClick;
 +    public boolean resourcePacksChanged;
 +    public int tickCounter;
-+    public final String minecriftVerString = "Vivecraft 1.17.1 jrbudda-1-a";
++    public final String minecriftVerString = "Vivecraft 1.17.1 jrbudda-1-a2";
      private static final Logger LOGGER = LogManager.getLogger();
      public static final boolean ON_OSX = Util.getPlatform() == Util.OS.OSX;
      private static final int MAX_TICKS_PER_UPDATE = 10;

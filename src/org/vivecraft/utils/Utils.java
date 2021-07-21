@@ -4,7 +4,6 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.platform.GlStateManager;
 import io.github.classgraph.ClassGraph;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -58,7 +57,6 @@ import org.vivecraft.utils.lwjgl.Matrix4f;
 import org.vivecraft.utils.lwjgl.Vector2f;
 import org.vivecraft.utils.lwjgl.Vector3f;
 import org.vivecraft.utils.lwjgl.Vector4f;
-import org.vivecraft.utils.math.Convert;
 import org.vivecraft.utils.math.Quaternion;
 import org.vivecraft.utils.math.Vector2;
 import org.vivecraft.utils.math.Vector3;
@@ -307,64 +305,6 @@ public class Utils
         matrix4f.m21 = matrix.m21;
         matrix4f.m22 = matrix.m22;
         return matrix4f;
-    }
-
-    public static GlStateManager.Color colorFromHSB(float hue, float saturation, float brightness)
-    {
-        GlStateManager.Color GlStateManager$color = new GlStateManager.Color();
-
-        if (saturation == 0.0F)
-        {
-            GlStateManager$color.r = GlStateManager$color.g = GlStateManager$color.b = brightness;
-        }
-        else
-        {
-            float f = (hue - (float)Math.floor((double)hue)) * 6.0F;
-            float f1 = f - (float)Math.floor((double)f);
-            float f2 = brightness * (1.0F - saturation);
-            float f3 = brightness * (1.0F - saturation * f1);
-            float f4 = brightness * (1.0F - saturation * (1.0F - f1));
-
-            switch ((int)f)
-            {
-                case 0:
-                    GlStateManager$color.r = brightness;
-                    GlStateManager$color.g = f4;
-                    GlStateManager$color.b = f2;
-                    break;
-
-                case 1:
-                    GlStateManager$color.r = f3;
-                    GlStateManager$color.g = brightness;
-                    GlStateManager$color.b = f2;
-                    break;
-
-                case 2:
-                    GlStateManager$color.r = f2;
-                    GlStateManager$color.g = brightness;
-                    GlStateManager$color.b = f4;
-                    break;
-
-                case 3:
-                    GlStateManager$color.r = f2;
-                    GlStateManager$color.g = f3;
-                    GlStateManager$color.b = brightness;
-                    break;
-
-                case 4:
-                    GlStateManager$color.r = f4;
-                    GlStateManager$color.g = f2;
-                    GlStateManager$color.b = brightness;
-                    break;
-
-                case 5:
-                    GlStateManager$color.r = brightness;
-                    GlStateManager$color.g = f2;
-                    GlStateManager$color.b = f3;
-            }
-        }
-
-        return GlStateManager$color;
     }
 
     public static InputStream getAssetAsStream(String name, boolean required)

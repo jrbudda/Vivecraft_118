@@ -11,8 +11,11 @@ import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.resources.ResourceLocation;
@@ -22,12 +25,14 @@ import net.minecraft.util.Tuple;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-import org.lwjgl.opengl.GL43;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL11;
 import org.vivecraft.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.provider.ControllerType;
 import org.vivecraft.provider.InputSimulator;
 import org.vivecraft.provider.MCVR;
+import org.vivecraft.utils.RGBAColor;
 import org.vivecraft.utils.Utils;
 import org.vivecraft.utils.lwjgl.Matrix4f;
 import org.vivecraft.utils.lwjgl.Vector3f;
@@ -44,7 +49,7 @@ public class PhysicalKeyboard
     private static final float SPACING = 0.0064F;
     private static final float KEY_WIDTH = 0.04F;
     private static final float KEY_HEIGHT = 0.04F;
-    private static final float KEY_WIDTH_SPECIAL = 0.086399995F;
+    private static final float KEY_WIDTH_SPECIAL = KEY_WIDTH * 2 + SPACING;
     private int rows;
     private int columns;
     private float spacing;
@@ -57,7 +62,15 @@ public class PhysicalKeyboard
     private long[] pressRepeatTime = new long[2];
     private long shiftPressTime;
     private boolean lastPressedShift;
-    private String easterEggText = new String(new byte[] {114, 111, 121, 97, 108, 32, 114, 97, 105, 110, 98, 111, 119}, StandardCharsets.UTF_8);
+    private Supplier<String> easterEggText = () -> {
+        int[] data = {0xbc, 0xa1, 0xb7, 0xaf, 0xa2, 0xee, 0xbc, 0xaf, 0xa7, 0xa0, 0xac, 0xa1, 0xb9};
+        byte[] bytes = new byte[data.length];
+        for (int i = 0; i < data.length; i++)
+            bytes[i] = (byte)(data[i] ^ 0xce);
+        String str = new String(bytes, StandardCharsets.UTF_8);
+        this.easterEggText = () -> str; // poor man's lazy init
+        return str;
+    };
     private int easterEggIndex = 0;
     private boolean easterEggActive;
 
@@ -69,24 +82,23 @@ public class PhysicalKeyboard
     public void init()
     {
         this.keys.clear();
-        this.rows = 4;
-        this.columns = 13;
-        this.spacing = 0.0064F * this.scale;
-        this.keyWidth = 0.04F * this.scale;
-        this.keyHeight = 0.04F * this.scale;
-        this.keyWidthSpecial = 0.086399995F * this.scale;
-        String s = this.mc.vrSettings.keyboardKeys;
+        this.rows = ROWS;
+        this.columns = COLUMNS;
+        this.spacing = SPACING * this.scale;
+        this.keyWidth = KEY_WIDTH * this.scale;
+        this.keyHeight = KEY_HEIGHT * this.scale;
+        this.keyWidthSpecial = KEY_WIDTH_SPECIAL * this.scale;
 
+        String chars = this.mc.vrSettings.keyboardKeys;
         if (this.shift)
         {
-            s = this.mc.vrSettings.keyboardKeysShift;
+            chars = this.mc.vrSettings.keyboardKeysShift;
         }
 
-        float f = (float)s.length() / (float)this.columns;
-
-        if (Math.abs((float)this.rows - f) > 0.01F)
+        float calcRows = (float)chars.length() / (float)this.columns;
+        if (Math.abs((float)this.rows - calcRows) > 0.01F)
         {
-            this.rows = Mth.ceil(f);
+            this.rows = Mth.ceil(calcRows);
         }
 
         for (int i = 0; i < this.rows; ++i)
@@ -96,14 +108,15 @@ public class PhysicalKeyboard
                 int k = i * this.columns + j;
                 char c0 = ' ';
 
-                if (k < s.length())
+                if (k < chars.length())
                 {
-                    c0 = s.charAt(k);
+                    c0 = chars.charAt(k);
                 }
 
                 final char c1 = c0;
                 this.addKey(new PhysicalKeyboard.KeyButton(k, String.valueOf(c0), this.keyWidthSpecial + this.spacing + (float)j * (this.keyWidth + this.spacing), (float)i * (this.keyHeight + this.spacing), this.keyWidth, this.keyHeight)
                 {
+                    @Override
                     public void onPressed()
                     {
                         InputSimulator.typeChar(c1);
@@ -115,8 +128,8 @@ public class PhysicalKeyboard
 
                         if (c1 == '/' && PhysicalKeyboard.this.mc.screen == null)
                         {
-                            InputSimulator.pressKey(47);
-                            InputSimulator.releaseKey(47);
+                            InputSimulator.pressKey(GLFW.GLFW_KEY_SLASH);
+                            InputSimulator.releaseKey(GLFW.GLFW_KEY_SLASH);
                         }
                     }
                 });
@@ -125,8 +138,9 @@ public class PhysicalKeyboard
 
         for (int l = 0; l < 2; ++l)
         {
-            PhysicalKeyboard.KeyButton physicalkeyboard$keybutton = this.addKey(new PhysicalKeyboard.KeyButton(1000 + l, "Shift", l == 1 ? this.keyWidthSpecial + this.spacing + (float)this.columns * (this.keyWidth + this.spacing) : 0.0F, 3.0F * (this.keyHeight + this.spacing), this.keyWidthSpecial, this.keyHeight)
+            this.addKey(new PhysicalKeyboard.KeyButton(1000 + l, "Shift", l == 1 ? this.keyWidthSpecial + this.spacing + (float)this.columns * (this.keyWidth + this.spacing) : 0.0F, 3.0F * (this.keyHeight + this.spacing), this.keyWidthSpecial, this.keyHeight)
             {
+                @Override
                 public void onPressed()
                 {
                     if (PhysicalKeyboard.this.shift && !PhysicalKeyboard.this.shiftSticky && Utils.milliTime() - PhysicalKeyboard.this.shiftPressTime < 400L)
@@ -140,21 +154,26 @@ public class PhysicalKeyboard
 
                     PhysicalKeyboard.this.shiftPressTime = Utils.milliTime();
                 }
-            });
 
-            if (this.shift)
-            {
-                if (!this.shiftSticky)
-                {
-                    physicalkeyboard$keybutton.color.r = 0.0F;
+                @Override
+                public RGBAColor getRenderColor() {
+                    if (shift) {
+                        RGBAColor color = new RGBAColor(this.pressed ? 1.0F : 0.5F, this.pressed ? 1.0F : 0.5F, 0.0F, 0.5F);
+
+                        if (!shiftSticky)
+                            color.r = 0.0F;
+
+                        return color;
+                    }
+
+                    return super.getRenderColor();
                 }
-
-                physicalkeyboard$keybutton.color.b = 0.0F;
-            }
+            });
         }
 
         this.addKey(new PhysicalKeyboard.KeyButton(1002, " ", this.keyWidthSpecial + this.spacing + (float)(this.columns - 5) / 2.0F * (this.keyWidth + this.spacing), (float)this.rows * (this.keyHeight + this.spacing), 5.0F * (this.keyWidth + this.spacing) - this.spacing, this.keyHeight)
         {
+            @Override
             public void onPressed()
             {
                 InputSimulator.typeChar(' ');
@@ -162,96 +181,107 @@ public class PhysicalKeyboard
         });
         this.addKey(new PhysicalKeyboard.KeyButton(1003, "Tab", 0.0F, this.keyHeight + this.spacing, this.keyWidthSpecial, this.keyHeight)
         {
+            @Override
             public void onPressed()
             {
-                InputSimulator.pressKey(258);
-                InputSimulator.releaseKey(258);
+                InputSimulator.pressKey(GLFW.GLFW_KEY_TAB);
+                InputSimulator.releaseKey(GLFW.GLFW_KEY_TAB);
             }
         });
         this.addKey(new PhysicalKeyboard.KeyButton(1004, "Esc", 0.0F, 0.0F, this.keyWidthSpecial, this.keyHeight)
         {
+            @Override
             public void onPressed()
             {
-                InputSimulator.pressKey(256);
-                InputSimulator.releaseKey(256);
+                InputSimulator.pressKey(GLFW.GLFW_KEY_ESCAPE);
+                InputSimulator.releaseKey(GLFW.GLFW_KEY_ESCAPE);
             }
         });
         this.addKey(new PhysicalKeyboard.KeyButton(1005, "Bksp", this.keyWidthSpecial + this.spacing + (float)this.columns * (this.keyWidth + this.spacing), 0.0F, this.keyWidthSpecial, this.keyHeight)
         {
+            @Override
             public void onPressed()
             {
-                InputSimulator.pressKey(259);
-                InputSimulator.releaseKey(259);
+                InputSimulator.pressKey(GLFW.GLFW_KEY_BACKSPACE);
+                InputSimulator.releaseKey(GLFW.GLFW_KEY_BACKSPACE);
             }
         });
         this.addKey(new PhysicalKeyboard.KeyButton(1006, "Enter", this.keyWidthSpecial + this.spacing + (float)this.columns * (this.keyWidth + this.spacing), 2.0F * (this.keyHeight + this.spacing), this.keyWidthSpecial, this.keyHeight)
         {
+            @Override
             public void onPressed()
             {
-                InputSimulator.pressKey(257);
-                InputSimulator.releaseKey(257);
+                InputSimulator.pressKey(GLFW.GLFW_KEY_ENTER);
+                InputSimulator.releaseKey(GLFW.GLFW_KEY_ENTER);
             }
         });
         this.addKey(new PhysicalKeyboard.KeyButton(1007, "\u2191", this.keyWidthSpecial + this.spacing + (float)(this.columns + 1) * (this.keyWidth + this.spacing), 4.0F * (this.keyHeight + this.spacing), this.keyWidth, this.keyHeight)
         {
+            @Override
             public void onPressed()
             {
-                InputSimulator.pressKey(265);
-                InputSimulator.releaseKey(265);
+                InputSimulator.pressKey(GLFW.GLFW_KEY_UP);
+                InputSimulator.releaseKey(GLFW.GLFW_KEY_UP);
             }
         });
         this.addKey(new PhysicalKeyboard.KeyButton(1008, "\u2193", this.keyWidthSpecial + this.spacing + (float)(this.columns + 1) * (this.keyWidth + this.spacing), 5.0F * (this.keyHeight + this.spacing), this.keyWidth, this.keyHeight)
         {
+            @Override
             public void onPressed()
             {
-                InputSimulator.pressKey(264);
-                InputSimulator.releaseKey(264);
+                InputSimulator.pressKey(GLFW.GLFW_KEY_DOWN);
+                InputSimulator.releaseKey(GLFW.GLFW_KEY_DOWN);
             }
         });
         this.addKey(new PhysicalKeyboard.KeyButton(1009, "\u2190", this.keyWidthSpecial + this.spacing + (float)this.columns * (this.keyWidth + this.spacing), 5.0F * (this.keyHeight + this.spacing), this.keyWidth, this.keyHeight)
         {
+            @Override
             public void onPressed()
             {
-                InputSimulator.pressKey(263);
-                InputSimulator.releaseKey(263);
+                InputSimulator.pressKey(GLFW.GLFW_KEY_LEFT);
+                InputSimulator.releaseKey(GLFW.GLFW_KEY_LEFT);
             }
         });
         this.addKey(new PhysicalKeyboard.KeyButton(1010, "\u2192", this.keyWidthSpecial + this.spacing + (float)(this.columns + 2) * (this.keyWidth + this.spacing), 5.0F * (this.keyHeight + this.spacing), this.keyWidth, this.keyHeight)
         {
+            @Override
             public void onPressed()
             {
-                InputSimulator.pressKey(262);
-                InputSimulator.releaseKey(262);
+                InputSimulator.pressKey(GLFW.GLFW_KEY_RIGHT);
+                InputSimulator.releaseKey(GLFW.GLFW_KEY_RIGHT);
             }
         });
         this.addKey(new PhysicalKeyboard.KeyButton(1011, "Cut", 1.0F * (this.keyWidthSpecial + this.spacing), -1.0F * (this.keyHeight + this.spacing), this.keyWidthSpecial, this.keyHeight)
         {
+            @Override
             public void onPressed()
             {
-                InputSimulator.pressKey(341);
-                InputSimulator.pressKey(88);
-                InputSimulator.releaseKey(88);
-                InputSimulator.releaseKey(341);
+                InputSimulator.pressKey(GLFW.GLFW_KEY_LEFT_CONTROL);
+                InputSimulator.pressKey(GLFW.GLFW_KEY_X);
+                InputSimulator.releaseKey(GLFW.GLFW_KEY_X);
+                InputSimulator.releaseKey(GLFW.GLFW_KEY_LEFT_CONTROL);
             }
         });
         this.addKey(new PhysicalKeyboard.KeyButton(1012, "Copy", 2.0F * (this.keyWidthSpecial + this.spacing), -1.0F * (this.keyHeight + this.spacing), this.keyWidthSpecial, this.keyHeight)
         {
+            @Override
             public void onPressed()
             {
-                InputSimulator.pressKey(341);
-                InputSimulator.pressKey(67);
-                InputSimulator.releaseKey(67);
-                InputSimulator.releaseKey(341);
+                InputSimulator.pressKey(GLFW.GLFW_KEY_LEFT_CONTROL);
+                InputSimulator.pressKey(GLFW.GLFW_KEY_C);
+                InputSimulator.releaseKey(GLFW.GLFW_KEY_C);
+                InputSimulator.releaseKey(GLFW.GLFW_KEY_LEFT_CONTROL);
             }
         });
         this.addKey(new PhysicalKeyboard.KeyButton(1013, "Paste", 3.0F * (this.keyWidthSpecial + this.spacing), -1.0F * (this.keyHeight + this.spacing), this.keyWidthSpecial, this.keyHeight)
         {
+            @Override
             public void onPressed()
             {
-                InputSimulator.pressKey(341);
-                InputSimulator.pressKey(86);
-                InputSimulator.releaseKey(86);
-                InputSimulator.releaseKey(341);
+                InputSimulator.pressKey(GLFW.GLFW_KEY_LEFT_CONTROL);
+                InputSimulator.pressKey(GLFW.GLFW_KEY_V);
+                InputSimulator.releaseKey(GLFW.GLFW_KEY_V);
+                InputSimulator.releaseKey(GLFW.GLFW_KEY_LEFT_CONTROL);
             }
         });
 
@@ -357,9 +387,10 @@ public class PhysicalKeyboard
 
     private void updateEasterEgg(String label)
     {
-        if (this.easterEggIndex < this.easterEggText.length())
+        String text = this.easterEggText.get();
+        if (this.easterEggIndex < text.length())
         {
-            if (label.toLowerCase().equals(String.valueOf(this.easterEggText.charAt(this.easterEggIndex))))
+            if (label.toLowerCase().equals(String.valueOf(text.charAt(this.easterEggIndex))))
             {
                 ++this.easterEggIndex;
             }
@@ -378,101 +409,128 @@ public class PhysicalKeyboard
         }
     }
 
-    private void drawBox(BufferBuilder buf, AABB box, GlStateManager.Color color)
+    private void drawBox(BufferBuilder buf, AABB box, RGBAColor color, PoseStack poseStack)
     {
-        buf.vertex(box.minX, box.minY, box.minZ).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, -1.0F).endVertex();
-        buf.vertex(box.minX, box.maxY, box.minZ).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, -1.0F).endVertex();
-        buf.vertex(box.maxX, box.maxY, box.minZ).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, -1.0F).endVertex();
-        buf.vertex(box.maxX, box.minY, box.minZ).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, -1.0F).endVertex();
-        buf.vertex(box.minX, box.minY, box.minZ).color(color.r, color.g, color.b, color.a).normal(0.0F, -1.0F, 0.0F).endVertex();
-        buf.vertex(box.maxX, box.minY, box.minZ).color(color.r, color.g, color.b, color.a).normal(0.0F, -1.0F, 0.0F).endVertex();
-        buf.vertex(box.maxX, box.minY, box.maxZ).color(color.r, color.g, color.b, color.a).normal(0.0F, -1.0F, 0.0F).endVertex();
-        buf.vertex(box.minX, box.minY, box.maxZ).color(color.r, color.g, color.b, color.a).normal(0.0F, -1.0F, 0.0F).endVertex();
-        buf.vertex(box.minX, box.minY, box.minZ).color(color.r, color.g, color.b, color.a).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        buf.vertex(box.minX, box.minY, box.maxZ).color(color.r, color.g, color.b, color.a).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        buf.vertex(box.minX, box.maxY, box.maxZ).color(color.r, color.g, color.b, color.a).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        buf.vertex(box.minX, box.maxY, box.minZ).color(color.r, color.g, color.b, color.a).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        buf.vertex(box.maxX, box.maxY, box.maxZ).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, 1.0F).endVertex();
-        buf.vertex(box.minX, box.maxY, box.maxZ).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, 1.0F).endVertex();
-        buf.vertex(box.minX, box.minY, box.maxZ).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, 1.0F).endVertex();
-        buf.vertex(box.maxX, box.minY, box.maxZ).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, 1.0F).endVertex();
-        buf.vertex(box.maxX, box.maxY, box.maxZ).color(color.r, color.g, color.b, color.a).normal(0.0F, 1.0F, 0.0F).endVertex();
-        buf.vertex(box.maxX, box.maxY, box.minZ).color(color.r, color.g, color.b, color.a).normal(0.0F, 1.0F, 0.0F).endVertex();
-        buf.vertex(box.minX, box.maxY, box.minZ).color(color.r, color.g, color.b, color.a).normal(0.0F, 1.0F, 0.0F).endVertex();
-        buf.vertex(box.minX, box.maxY, box.maxZ).color(color.r, color.g, color.b, color.a).normal(0.0F, 1.0F, 0.0F).endVertex();
-        buf.vertex(box.maxX, box.maxY, box.maxZ).color(color.r, color.g, color.b, color.a).normal(1.0F, 0.0F, 0.0F).endVertex();
-        buf.vertex(box.maxX, box.minY, box.maxZ).color(color.r, color.g, color.b, color.a).normal(1.0F, 0.0F, 0.0F).endVertex();
-        buf.vertex(box.maxX, box.minY, box.minZ).color(color.r, color.g, color.b, color.a).normal(1.0F, 0.0F, 0.0F).endVertex();
-        buf.vertex(box.maxX, box.maxY, box.minZ).color(color.r, color.g, color.b, color.a).normal(1.0F, 0.0F, 0.0F).endVertex();
+        com.mojang.math.Matrix4f matrix = poseStack.last().pose();
+        float minX = (float)box.minX, minY = (float)box.minY, minZ = (float)box.minZ;
+        float maxX = (float)box.maxX, maxY = (float)box.maxY, maxZ = (float)box.maxZ;
+        buf.vertex(matrix, minX, minY, minZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, -1.0F).endVertex();
+        buf.vertex(matrix, minX, maxY, minZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, -1.0F).endVertex();
+        buf.vertex(matrix, maxX, maxY, minZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, -1.0F).endVertex();
+        buf.vertex(matrix, maxX, minY, minZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, -1.0F).endVertex();
+        buf.vertex(matrix, minX, minY, minZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, -1.0F, 0.0F).endVertex();
+        buf.vertex(matrix, maxX, minY, minZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, -1.0F, 0.0F).endVertex();
+        buf.vertex(matrix, maxX, minY, maxZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, -1.0F, 0.0F).endVertex();
+        buf.vertex(matrix, minX, minY, maxZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, -1.0F, 0.0F).endVertex();
+        buf.vertex(matrix, minX, minY, minZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(-1.0F, 0.0F, 0.0F).endVertex();
+        buf.vertex(matrix, minX, minY, maxZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(-1.0F, 0.0F, 0.0F).endVertex();
+        buf.vertex(matrix, minX, maxY, maxZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(-1.0F, 0.0F, 0.0F).endVertex();
+        buf.vertex(matrix, minX, maxY, minZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(-1.0F, 0.0F, 0.0F).endVertex();
+        buf.vertex(matrix, maxX, maxY, maxZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, 1.0F).endVertex();
+        buf.vertex(matrix, minX, maxY, maxZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, 1.0F).endVertex();
+        buf.vertex(matrix, minX, minY, maxZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, 1.0F).endVertex();
+        buf.vertex(matrix, maxX, minY, maxZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, 0.0F, 1.0F).endVertex();
+        buf.vertex(matrix, maxX, maxY, maxZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, 1.0F, 0.0F).endVertex();
+        buf.vertex(matrix, maxX, maxY, minZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, 1.0F, 0.0F).endVertex();
+        buf.vertex(matrix, minX, maxY, minZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, 1.0F, 0.0F).endVertex();
+        buf.vertex(matrix, minX, maxY, maxZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(0.0F, 1.0F, 0.0F).endVertex();
+        buf.vertex(matrix, maxX, maxY, maxZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(1.0F, 0.0F, 0.0F).endVertex();
+        buf.vertex(matrix, maxX, minY, maxZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(1.0F, 0.0F, 0.0F).endVertex();
+        buf.vertex(matrix, maxX, minY, minZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(1.0F, 0.0F, 0.0F).endVertex();
+        buf.vertex(matrix, maxX, maxY, minZ).uv(0, 0).color(color.r, color.g, color.b, color.a).normal(1.0F, 0.0F, 0.0F).endVertex();
     }
 
-    public void render()
+    public void render(PoseStack poseStack)
     {
-        Vector3f vector3f = this.getCenterPos();
-        GL43.glTranslatef(-vector3f.x, -vector3f.y, -vector3f.z);
-        GlStateManager._disableTexture();
-        GlStateManager._disableCull();
+        poseStack.pushPose();
+        Vector3f center = this.getCenterPos();
+        poseStack.translate(-center.x, -center.y, -center.z);
+        RenderSystem.disableTexture();
+        RenderSystem.disableCull();
         GlStateManager.enableAlphaTest();
-        GlStateManager.alphaFunc(516, 0.0F);
-        GlStateManager._enableBlend();
+        GlStateManager.alphaFunc(GL11.GL_GREATER, 0.0F);
+        RenderSystem.enableBlend();
 
         if (this.easterEggActive)
         {
+            // https://qimg.techjargaming.com/i/UkG1cWAh.png
             for (PhysicalKeyboard.KeyButton physicalkeyboard$keybutton : this.keys)
             {
-                GlStateManager.Color GlStateManager$color = Utils.colorFromHSB(((float)this.mc.tickCounter + this.mc.getFrameTime()) / 100.0F + (float)(physicalkeyboard$keybutton.boundingBox.minX + (physicalkeyboard$keybutton.boundingBox.maxX - physicalkeyboard$keybutton.boundingBox.minX) / 2.0D) / 2.0F, 1.0F, 1.0F);
-                physicalkeyboard$keybutton.color.r = GlStateManager$color.r;
-                physicalkeyboard$keybutton.color.g = GlStateManager$color.g;
-                physicalkeyboard$keybutton.color.b = GlStateManager$color.b;
+                RGBAColor color = RGBAColor.fromHSB(((float)this.mc.tickCounter + this.mc.getFrameTime()) / 100.0F + (float)(physicalkeyboard$keybutton.boundingBox.minX + (physicalkeyboard$keybutton.boundingBox.maxX - physicalkeyboard$keybutton.boundingBox.minX) / 2.0D) / 2.0F, 1.0F, 1.0F);
+                physicalkeyboard$keybutton.color.r = color.r;
+                physicalkeyboard$keybutton.color.g = color.g;
+                physicalkeyboard$keybutton.color.b = color.b;
             }
         }
 
-        this.mc.getTextureManager().bindForSetup(new ResourceLocation("vivecraft:textures/white.png"));
-        GlStateManager._depthFunc(519);
+        RenderSystem.setShader(GameRenderer::getPositionTexColorNormalShader);
+
+        // TODO: does this still do the right thing for shaders?
+        RenderSystem.setShaderTexture(0, new ResourceLocation("vivecraft:textures/white.png"));
+
+        // We need to ignore depth so we can see the back faces and text
+        RenderSystem.depthFunc(GL11.GL_ALWAYS);
         RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+
+        // Stuff for drawing labels
         Font font = this.mc.font;
-        ArrayList<Tuple<String, Vector3f>> arraylist = new ArrayList<>();
-        float f5 = 0.002F * this.scale;
+        ArrayList<Tuple<String, Vector3f>> labels = new ArrayList<>();
+        float textScale = 0.002F * this.scale;
+
+        // Start building vertices for key boxes
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
         bufferbuilder.begin(Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_NORMAL);
 
         for (PhysicalKeyboard.KeyButton physicalkeyboard$keybutton1 : this.keys)
         {
-            AABB aabb = physicalkeyboard$keybutton1.getRenderBoundingBox();
-            GlStateManager.Color GlStateManager$color1 = physicalkeyboard$keybutton1.getRenderColor();
-            this.drawBox(bufferbuilder, aabb, GlStateManager$color1);
-            float f = (float)font.width(physicalkeyboard$keybutton1.label) * f5;
-            float f1 = 9.0F * f5;
-            float f2 = (float)aabb.minX + ((float)aabb.maxX - (float)aabb.minX) / 2.0F - f / 2.0F;
-            float f3 = (float)aabb.minY + ((float)aabb.maxY - (float)aabb.minY) / 2.0F - f1 / 2.0F;
-            float f4 = (float)aabb.minZ + ((float)aabb.maxZ - (float)aabb.minZ) / 2.0F;
-            arraylist.add(new Tuple<>(physicalkeyboard$keybutton1.label, new Vector3f(f2, f3, f4)));
+            AABB box = physicalkeyboard$keybutton1.getRenderBoundingBox();
+            RGBAColor color = physicalkeyboard$keybutton1.getRenderColor();
+
+            // Draw the key itself
+            this.drawBox(bufferbuilder, box, color, poseStack);
+
+            // Calculate text position
+            float stringWidth = (float)font.width(physicalkeyboard$keybutton1.label) * textScale;
+            float stringHeight = font.lineHeight * textScale;
+            float textX = (float)box.minX + ((float)box.maxX - (float)box.minX) / 2.0F - stringWidth / 2.0F;
+            float textY = (float)box.minY + ((float)box.maxY - (float)box.minY) / 2.0F - stringHeight / 2.0F;
+            float textZ = (float)box.minZ + ((float)box.maxZ - (float)box.minZ) / 2.0F;
+
+            // Put label in the list
+            labels.add(new Tuple<>(physicalkeyboard$keybutton1.label, new Vector3f(textX, textY, textZ)));
         }
 
+        // Draw all the key boxes
         tesselator.end();
-        GlStateManager._depthFunc(515);
-        GlStateManager._enableTexture();
-        //GlStateManager._disableLighting();
-        MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(tesselator.getBuilder());
-        PoseStack posestack = new PoseStack();
 
-        for (Tuple<String, Vector3f> tuple : arraylist)
+        RenderSystem.depthFunc(GL11.GL_LEQUAL);
+        RenderSystem.enableTexture();
+        //GlStateManager._disableLighting();
+
+        // Start building vertices for text
+        MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(tesselator.getBuilder());
+
+        // Build all the text
+        for (Tuple<String, Vector3f> label : labels)
         {
-            posestack.pushPose();
-            posestack.translate((double)(tuple.getB()).x, (double)(tuple.getB()).y, (double)(tuple.getB()).z);
-            posestack.scale(f5, f5, 1.0F);
-            font.drawInBatch(tuple.getA(), 0.0F, 0.0F, -1, false, posestack.last().pose(), multibuffersource$buffersource, false, 0, 15728880, font.isBidirectional());
-            posestack.popPose();
+            poseStack.pushPose();
+            poseStack.translate((double)(label.getB()).x, (double)(label.getB()).y, (double)(label.getB()).z);
+            poseStack.scale(textScale, textScale, 1.0F);
+            font.drawInBatch(label.getA(), 0.0F, 0.0F, 0xFFFFFFFF, false, poseStack.last().pose(), multibuffersource$buffersource, false, 0, 15728880, font.isBidirectional());
+            poseStack.popPose();
         }
 
+        // Draw all the labels
         multibuffersource$buffersource.endBatch();
         //GlStateManager._enableLighting();
-        GlStateManager._enableBlend();
-        GlStateManager._enableDepthTest();
-        GlStateManager._enableTexture();
-        GlStateManager._enableCull();
+
+        RenderSystem.enableBlend();
+        RenderSystem.enableDepthTest();
+        RenderSystem.enableTexture();
+        RenderSystem.enableCull();
         RenderSystem.defaultBlendFunc();
+        poseStack.popPose();
     }
 
     public void show()
@@ -528,7 +586,7 @@ public class PhysicalKeyboard
         public final int id;
         public final String label;
         public final AABB boundingBox;
-        public GlStateManager.Color color = new GlStateManager.Color(1.0F, 1.0F, 1.0F, 0.5F);
+        public RGBAColor color = new RGBAColor(1.0F, 1.0F, 1.0F, 0.5F);
         public boolean pressed;
 
         public KeyButton(int id, String label, float x, float y, float width, float height)
@@ -548,18 +606,18 @@ public class PhysicalKeyboard
             return this.pressed ? this.boundingBox.expandTowards(0.0D, 0.0D, 0.08D) : this.boundingBox;
         }
 
-        public GlStateManager.Color getRenderColor()
+        public RGBAColor getRenderColor()
         {
-            GlStateManager.Color GlStateManager$color = new GlStateManager.Color(this.color.r, this.color.g, this.color.b, this.color.a);
+            RGBAColor color = this.color.copy();
 
             if (!this.pressed)
             {
-                GlStateManager$color.r *= 0.5F;
-                GlStateManager$color.g *= 0.5F;
-                GlStateManager$color.b *= 0.5F;
+                color.r *= 0.5F;
+                color.g *= 0.5F;
+                color.b *= 0.5F;
             }
 
-            return GlStateManager$color;
+            return color;
         }
 
         public final void press(ControllerType controller, boolean isRepeat)
