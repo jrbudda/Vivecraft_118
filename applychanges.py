@@ -53,7 +53,7 @@ def merge_tree(root_src_dir, root_dst_dir):
             shutil.copy(src_file, dst_dir)
 
 
-def applychanges(mcp_dir, patch_dir = "patches", applyPatches=True, backup = True, copyOriginal=True, origDir='.minecraft_orig', mergeInNew=True ):
+def applychanges(mcp_dir, version = "VR", applyPatches=True, backup = True, copyOriginal=True, origDir='.minecraft_orig', mergeInNew=True ):
     print("Applying Changes...")
 
     mod_src_dir = os.path.join(mcp_dir, "src","minecraft")
@@ -63,7 +63,7 @@ def applychanges(mcp_dir, patch_dir = "patches", applyPatches=True, backup = Tru
     tmp = os.path.join(mcp_dir, "src","tmp") 
     
     if backup and os.path.exists(mod_src_dir):
-        print("Backing up src/minecraft to src/minecraft-bak")
+        print("Backing up" + mod_src_dir + " to " + mod_bak_dir)
         #fuck python and the horse it rode in on.
         if os.path.exists(mod_bak_dir):       
            shutil.move(mod_bak_dir, tmp)
@@ -75,12 +75,12 @@ def applychanges(mcp_dir, patch_dir = "patches", applyPatches=True, backup = Tru
 
     if applyPatches:
         #apply patches
-        apply_patches( mcp_dir, os.path.join( base_dir, patch_dir ), mod_src_dir )
+        apply_patches( mcp_dir, os.path.join( base_dir, "patches", version ), mod_src_dir )
         
     if mergeInNew:
         #merge in the new classes
-        merge_tree( os.path.join( base_dir, "src" ), mod_src_dir )
-        merge_tree( os.path.join( base_dir, "resources" ), mod_res_dir )
+        merge_tree( os.path.join( base_dir, "src", version), mod_src_dir )
+        merge_tree( os.path.join( base_dir, "resources", version), mod_res_dir )
 
 def reallyrmtree(path):
     if not sys.platform.startswith('win'):
@@ -111,12 +111,12 @@ def rmtree_onerror(func, path, _):
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-m', '--mcp-dir', action='store', dest='mcp_dir', help='Path to MCP to use', default=None)
-    parser.add_option('-p', '--patch-dir', action='store', dest='patch_dir', help='Path to base patch dir', default='patches')    
+    parser.add_option('-v', '--version', action='store', dest='version', help='VR or NONVR', default='patches')    
     options, _ = parser.parse_args()
 
     if not options.mcp_dir is None:
-        applychanges(os.path.abspath(options.mcp_dir), options.patch_dir)
+        applychanges(os.path.abspath(options.mcp_dir), options.version)
     elif os.path.isfile(os.path.join('..', 'runtime', 'commands.py')):
-        applychanges(os.path.abspath('..'), options.patch_dir)
+        applychanges(os.path.abspath('..'), options.version)
     else:
-        applychanges(os.path.abspath(mcp_version), options.patch_dir)
+        applychanges(os.path.abspath(mcp_version), options.version)

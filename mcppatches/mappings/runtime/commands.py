@@ -1316,8 +1316,8 @@ class Commands(object):
         excmeta    = {CLIENT: self.xclientmeta,      SERVER: self.xclientmeta}
         exclogdry  = {CLIENT: self.xclientlogdry,    SERVER: self.xserverlogdry}
         
-        if not os.path.isfile(exclogdry[side]):
-            raise Exception('Exceptor Log not found: ' + exclogdry[side])
+        #if not os.path.isfile(exclogdry[side]):
+        #    raise Exception('Exceptor Log not found: ' + exclogdry[side])
 
         def splitAccessLine(line):
             pts = line.split(' ', 3)
@@ -1328,6 +1328,7 @@ class Commands(object):
         
         def readLog(file):
             ret = { 'access' : {}, 'renames' : {} }
+            return ret
             log = [l.strip() for l in open(file, 'r').readlines()]
             for line in log:
                 if 'MarkerID' in line:
@@ -1920,7 +1921,7 @@ class Commands(object):
         # HINT: update reobf srg
         updatefile(reoblk[side])
         # HINT: update exc log for access opcodes
-        updatefile(excmeta[side])
+        #updatefile(excmeta[side])
 
         # HINT: We pathwalk the sources
         for path, _, filelist in os.walk(pathsrclk[side], followlinks=True):

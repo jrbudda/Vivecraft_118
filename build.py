@@ -43,11 +43,11 @@ def zipmerge( target_file, source_file ):
     #os.remove( target_file )
     shutil.copy( out_filename, target_file )
 
-def process_json(addon, version, mcversion, forgeversion, ofversion):
+def process_json(dir, addon, version, mcversion, forgeversion, ofversion):
     json_id = "vivecraft-"+version+addon
     lib_id = "com.mtbs3d:minecrift:"+version
     time = datetime.datetime(1979,6,1).strftime("%Y-%m-%dT%H:%M:%S-05:00")
-    with  open(os.path.join("installer","vivecraft" + addon + ".json"),"rb") as f:
+    with  open(os.path.join(dir,"vivecraft" + addon + ".json"),"rb") as f:
         s=f.read()
         s=s.replace("$MCVERSION", mcversion)
         s=s.replace("$FORGEVERSION", forgeversion)
@@ -79,12 +79,12 @@ def parse_tsrg_classnames(srgfile):
                 classnames["%s.class" % (split[0])] = split[1].strip()
     return classnames
 
-def create_install(mcp_dir):
+def create_install(mcp_dir, vrversion = "VR"):
     print "Creating Installer..."
     srg = os.path.join(mcp_dir,'class','srg')
     obf = os.path.join(mcp_dir,'class','obf')
-    resources = os.path.join(base_dir,"resources")
-    patches = os.path.join(base_dir,'patches')
+    resources = os.path.join(base_dir,"resources", vrversion)
+    patches = os.path.join(base_dir,'patches', vrversion)
     
     #use the java that mcp uses for compiling the installer and invoking launch4j
     dir = os.path.abspath(mcp_dir)
@@ -171,7 +171,6 @@ def create_install(mcp_dir):
         zipout.write(os.path.join(base_dir, "installer", "cpw.mods.modlauncher.api.ITransformationService"), "META-INF/services/cpw.mods.modlauncher.api.ITransformationService")
 
     os.chdir( base_dir )
-
     
     in_mem_zip.seek(0)
     if os.getenv("RELEASE_VERSION"):
@@ -212,7 +211,7 @@ def create_install(mcp_dir):
             bufsize=-1).communicate()
 	
     artifact_id = "vivecraft-"+version
-    installer_id = artifact_id+"-installer"
+    installer_id = artifact_id+"-" + vrversion + "-" + installer"  
     installer = os.path.join( installer_id+".jar" ) 
     shutil.copy( os.path.join("installer","installer.jar"), installer )
     with zipfile.ZipFile( installer,'a', zipfile.ZIP_DEFLATED) as install_out: #append to installer.jar
@@ -224,12 +223,13 @@ def create_install(mcp_dir):
                     relpath = os.path.relpath(dirName, "installer")
                     print "Adding %s..." % os.path.join(relpath,afile)
                     install_out.write(os.path.join(dirName,afile), os.path.join(relpath,afile))
-            
+
         # Add json files
-        install_out.writestr("version.json", process_json("", version,minecrift_version_num,"",of_file_name + "_LIB"))
-        install_out.writestr("version-forge.json", process_json("-forge", version,minecrift_version_num,forge_version,of_file_name + "_LIB"))
-        install_out.writestr("version-multimc.json", process_json("-multimc", version,minecrift_version_num,"",of_file_name + "_LIB"))
-        install_out.writestr("version-multimc-forge.json", process_json("-multimc-forge", version,minecrift_version_num,"",of_file_name + "_LIB"))
+        json_dir =  os.path.join(base_dir, "json", vrversion)
+        install_out.writestr("version.json", process_json(json_dir,"", version,minecrift_version_num,"",of_file_name + "_LIB"))
+        install_out.writestr("version-forge.json", process_json(json_dir, "-forge", version,minecrift_version_num,forge_version,of_file_name + "_LIB"))
+        install_out.writestr("version-multimc.json", process_json(json_dir, "-multimc", version,minecrift_version_num,"",of_file_name + "_LIB"))
+        install_out.writestr("version-multimc-forge.json", process_json(json_dir, "-multimc-forge", version,minecrift_version_num,"",of_file_name + "_LIB"))
               
         # Add version jar - this contains all the changed files (effectively minecrift.jar). A mix
         # of obfuscated and non-obfuscated files.
@@ -262,7 +262,7 @@ def readpomversion(pomFile):
 	version = str(project.getElementsByTagName("version")[0].firstChild.nodeValue)
 	return version
   
-def main(mcp_dir):
+def main(mcp_dir, version = "VR"):
     print 'Using mcp dir: %s' % mcp_dir
     print 'Using base dir: %s' % base_dir
     
@@ -314,20 +314,21 @@ def main(mcp_dir):
     except OSError:
         quit
         
-    create_install( mcp_dir )
+    create_install( mcp_dir, version)
     
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-m', '--mcp-dir', action='store', dest='mcp_dir', help='Path to MCP to use', default=None)
     parser.add_option('-o', '--no-optifine', dest='nomerge', default=False, action='store_true', help='If specified, no optifine merge will be carried out')
+    parser.add_option('-v', '--version', action='store', dest='version', help='VR or NONVR', default='VR')
 
     options, _ = parser.parse_args()
   
     install.nomerge = options.nomerge
 
     if not options.mcp_dir is None:
-        main(os.path.abspath(options.mcp_dir))
+        main(os.path.abspath(options.mcp_dir), options.version)
     elif os.path.isfile(os.path.join('..', 'runtime', 'commands.py')):
-        main(os.path.abspath('..'))
+        main(os.path.abspath('..'), options.version)
     else:
-        main(os.path.abspath(mcp_version))	
+        main(os.path.abspath(mcp_version), options.version)	

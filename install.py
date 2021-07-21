@@ -17,7 +17,7 @@ from minecriftversion import mc_version, of_file_name, minecrift_version_num, \
     mcp_download_url, mcp_uses_generics 
 from hashlib import md5  # pylint: disable-msg=E0611
 from optparse import OptionParser
-from applychanges import applychanges, apply_patch
+from applychanges import applychanges, apply_patches, apply_patch
 from idea import createIdeaProject, removeIdeaProject
 
 
@@ -516,7 +516,7 @@ def main(mcp_dir):
         mcp_patch_dir = os.path.join( base_dir, "mcppatches", "patches" )
         if os.path.exists( mcp_patch_dir ):
             print("Patching Optifine merge decompile errors...")
-            applychanges( mcp_dir, patch_dir="mcppatches/patches", backup=False, copyOriginal=False, mergeInNew=False )
+            apply_patches( mcp_dir, patch_dir="mcppatches/patches", target_dir = src_dir)
             compile_error_patching_done = True
         
         # Address problem files - copy over directly
@@ -547,7 +547,7 @@ def main(mcp_dir):
         # changes needed for Minecrift functionality
         if testpatches:
             print("Applying merge fix patches...")
-            applychanges( mcp_dir, patch_dir="mcppatches/patches", backup=False, copyOriginal=False, mergeInNew=False )
+            apply_patches( mcp_dir, patch_dir="mcppatches/patches", target_dir = src_dir)
         else:
             print("Applying full Vivecraft patches...")
             applychanges( mcp_dir )
@@ -652,7 +652,6 @@ if __name__ == '__main__':
             
     if preferredarch is '':
         preferredarch = osArch()
-
     
     nomerge = options.nomerge
     nopatch = options.nopatch
