@@ -1,13 +1,11 @@
 --- a/com/mojang/blaze3d/platform/GLX.java
 +++ b/com/mojang/blaze3d/platform/GLX.java
-@@ -31,7 +31,9 @@
+@@ -31,7 +31,7 @@
  {
      private static final Logger LOGGER = LogManager.getLogger();
      private static String cpuInfo;
 -
-+    
 +    public int intentionallModifyThisClassCauseItWontLoadProperlyFromOptifine = 69;
-+    
      public static String getOpenGLVersionString()
      {
          RenderSystem.assertThread(RenderSystem::isOnRenderThread);

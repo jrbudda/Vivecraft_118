@@ -69,9 +69,9 @@ def main(mcp_dir, version = "VR", orig_dir = ".minecraft_orig"):
         patch_dir = os.path.join( patch_base_dir, pkg )
         try:
             if not os.path.exists(new_dir):
-                os.mkdir(new_dir)
+                os.makedirs(new_dir)
             if not os.path.exists(patch_dir):
-                os.mkdir(patch_dir)
+                os.makedirs(patch_dir)
         except OSerror as e:
             quit
         for file_ in files:
@@ -83,11 +83,6 @@ def main(mcp_dir, version = "VR", orig_dir = ".minecraft_orig"):
                 os.remove(mod_file)
                 continue
 
-            if file_ == "Minecraft.java":
-                # Update Minecrift version
-                print "Updating Minecraft.java Minecrift version: [Minecrift %s %s %s] %s" % ( minecrift_version_num, version, minecrift_build, org_file ) 
-                replacelineinfile( mod_file, "public final String minecriftVerString",     "    public final String minecriftVerString = \"Vivecraft %s %s %s\";\n" % (minecrift_version_num,version,minecrift_build) );
-                
             if os.path.exists(org_file):
                 patch_file = os.path.join(patch_dir,file_+".patch")
                 label = pkg.replace("\\","/") + "/" + file_ #patch label always has "/"

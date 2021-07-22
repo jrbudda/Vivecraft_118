@@ -1,12 +1,10 @@
 --- a/com/mojang/blaze3d/systems/RenderSystem.java
 +++ b/com/mojang/blaze3d/systems/RenderSystem.java
-@@ -857,7 +857,8 @@
- 
-     public static void defaultBlendFunc()
-     {
--        blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-+        // VIVECRAFT: DestFactor of ONE_MINUS_SRC_ALPHA is really what we want here, because math
-+        blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-     }
- 
-     @Deprecated
+@@ -39,6 +39,7 @@
+ @DontObfuscate
+ public class RenderSystem
+ {
++    public int intentionallModifyThisClassCauseItWontLoadProperlyFromOptifine = 69;
+     static final Logger LOGGER = LogManager.getLogger();
+     private static final ConcurrentLinkedQueue<RenderCall> recordingQueue = Queues.newConcurrentLinkedQueue();
+     private static final Tesselator RENDER_THREAD_TESSELATOR = new Tesselator();

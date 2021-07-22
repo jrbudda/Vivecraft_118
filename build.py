@@ -128,36 +128,38 @@ def create_install(mcp_dir, vrversion = "VR"):
                 if flg:
                     arcname =  arc_path.replace('/','.') + cur_file.replace('.class', '.clazz')
                 zipout.write(in_file, arcname.strip('.'))
-
-        for abs_path, _, filelist in os.walk(srg, followlinks=True):
-            arc_path = os.path.relpath(abs_path, srg ).replace('\\','/').replace('.','') + '/'
-            for cur_file in fnmatch.filter(filelist, '*.class'):
-                #print arc_path + cur_file
-                flg = False
-                if not 'vivecraft' in (arc_path+cur_file).lower() and not 'jopenvr' in arc_path and not 'minecraftforge' in arc_path and not 'VR' in cur_file: #these misbehave when loaded in this jar, do some magic.
-                    flg = True
-                    ok = False
-                    v = (arc_path + cur_file).replace('/','\\').split('$')[0].replace('.class', '')
-                    cur_file_parent = cur_file.split('$')[0].replace('.class','') + '.class'
-                    if cur_file_parent in vanilla:
-                        v = vanilla[cur_file_parent].replace('/','\\')               
-                    for patch_path, _, patchlist in os.walk(patches, followlinks=True):
-                        for patch in fnmatch.filter(patchlist, '*.patch'):
-                            p = patch_path + '\\' + patch
-                            if v in p:
-                                #print 'Found ' + v + ' ' + p
-                                ok = True
-                                break
-                    if not ok:
-                        print "WARNING: Skipping unexpected file with no patch " + arc_path + cur_file_parent + ' (' + v + ')'
-                        continue
-                if "blaze3d" in arc_path:
-                    flg = True
-                in_file= os.path.join(abs_path,cur_file)
-                arcname =  "/srg/" + arc_path + cur_file
-                if flg:
-                    arcname =   "/srg/" + arc_path + cur_file.replace('.class', '.clsrg')
-                zipout.write(in_file, arcname.strip('.'))
+        
+        #put back when forge ready
+        #for abs_path, _, filelist in os.walk(srg, followlinks=True):
+        #    arc_path = os.path.relpath(abs_path, srg ).replace('\\','/').replace('.','') + '/'
+        #    for cur_file in fnmatch.filter(filelist, '*.class'):
+        #        #print arc_path + cur_file
+        #        flg = False
+        #        if not 'vivecraft' in (arc_path+cur_file).lower() and not 'jopenvr' in arc_path and not 'minecraftforge' in arc_path and not 'VR' in cur_file: #these misbehave when loaded in this jar, do some magic.
+        #            flg = True
+        #            ok = False
+        #            v = (arc_path + cur_file).replace('/','\\').split('$')[0].replace('.class', '')
+        #            cur_file_parent = cur_file.split('$')[0].replace('.class','') + '.class'
+        #            if cur_file_parent in vanilla:
+        #                v = vanilla[cur_file_parent].replace('/','\\')               
+        #            for patch_path, _, patchlist in os.walk(patches, followlinks=True):
+        #                for patch in fnmatch.filter(patchlist, '*.patch'):
+        #                    p = patch_path + '\\' + patch
+        #                    if v in p:
+        #                        #print 'Found ' + v + ' ' + p
+        #                        ok = True
+        #                        break
+        #            if not ok:
+        #                print "WARNING: Skipping unexpected file with no patch " + arc_path + cur_file_parent + ' (' + v + ')'
+        #                continue
+        #        if "blaze3d" in arc_path:
+        #            flg = True
+        #        in_file= os.path.join(abs_path,cur_file)
+        #        arcname =  "/srg/" + arc_path + cur_file
+        #        if flg:
+        #            arcname =   "/srg/" + arc_path + cur_file.replace('.class', '.clsrg')
+        #        zipout.write(in_file, arcname.strip('.'))
+                
         print "Checking Resources..."
         for a, b, c in os.walk(resources):
             arc_path = os.path.relpath(a,resources).replace('\\','/').replace('.','')+'/'
@@ -185,7 +187,7 @@ def create_install(mcp_dir, vrversion = "VR"):
     # Replace version info in installer.java
     print "Updating installer versions..."
     installer_java_file = os.path.join("installer","Installer.java")
-    replacelineinfile( installer_java_file, "private static final String PROJECT_NAME",          "    private static final String PROJECT_NAME          = \"%s\";\n" % project_name );
+    replacelineinfile( installer_java_file, "private static final String PROJECT_NAME",          "    private static final String PROJECT_NAME          = \"%s\";\n" % (project_name + " " + vrversion) );
     replacelineinfile( installer_java_file, "private static final String MINECRAFT_VERSION",     "    private static final String MINECRAFT_VERSION     = \"%s\";\n" % mc_version );
     replacelineinfile( installer_java_file, "private static final String MC_VERSION",            "    private static final String MC_VERSION            = \"%s\";\n" % minecrift_version_num );
     replacelineinfile( installer_java_file, "private static final String MC_MD5",                "    private static final String MC_MD5                = \"%s\";\n" % mc_file_md5 );
@@ -211,7 +213,7 @@ def create_install(mcp_dir, vrversion = "VR"):
             bufsize=-1).communicate()
 	
     artifact_id = "vivecraft-"+version
-    installer_id = artifact_id+"-" + vrversion + "-" + installer"  
+    installer_id = artifact_id+"-" + vrversion + "-installer"  
     installer = os.path.join( installer_id+".jar" ) 
     shutil.copy( os.path.join("installer","installer.jar"), installer )
     with zipfile.ZipFile( installer,'a', zipfile.ZIP_DEFLATED) as install_out: #append to installer.jar
@@ -285,8 +287,8 @@ def main(mcp_dir, version = "VR"):
     # Update Minecrift version
     minecraft_java_file = os.path.join(mcp_dir,'src','minecraft','net','minecraft','client','Minecraft.java')
     if os.path.exists(minecraft_java_file):
-        print "Updating Minecraft.java with Vivecraft version: [Vivecraft %s %s] %s" % ( minecrift_version_num, minecrift_build, minecraft_java_file ) 
-        replacelineinfile( minecraft_java_file, "public final String minecriftVerString",     "    public final String minecriftVerString = \"Vivecraft %s %s\";\n" % (minecrift_version_num, minecrift_build) );        
+        print "Updating Minecraft.java with Vivecraft version: [Vivecraft %s %s %s] %s" % ( minecrift_version_num, version, minecrift_build, minecraft_java_file ) 
+        replacelineinfile( minecraft_java_file, "public final String minecriftVerString",     "    public final String minecriftVerString = \"Vivecraft %s %s %s\";\n" % (minecrift_version_num, version, minecrift_build) );        
 
     print("Recompiling...")
     from runtime.mcp import recompile_side, reobfuscate_side

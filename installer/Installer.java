@@ -37,7 +37,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 	private static final long serialVersionUID = -562178983462626162L;
 	private String tempDir = System.getProperty("java.io.tmpdir");
 	/* DO NOT RENAME THESE STRING CONSTS - THEY ARE USED IN (AND THE VALUES UPDATED BY) THE AUTOMATED BUILD SCRIPTS */
-    private static final boolean ALLOW_FORGE_INSTALL  = true;
+    private static final boolean ALLOW_FORGE_INSTALL  = false;
     private static final boolean DEFAULT_FORGE_INSTALL= false;
     private static final boolean ALLOW_KATVR_INSTALL  = true;
     private static final boolean ALLOW_KIOSK_INSTALL  = true;
@@ -52,8 +52,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static String FORGE_VERSION               = "";
     private static final String HOMEPAGE_LINK         = "http://www.vivecraft.org";
     private static final String DONATION_LINK         = "https://www.patreon.com/jrbudda";
-    private static final String PROJECT_NAME          = "Vivecraft";
-	/* END OF DO NOT RENAME */
+    private static final String PROJECT_NAME          = "Vivecraft NONVR";
+    /* END OF DO NOT RENAME */
 	
 	private static final String OF_LIB_PATH           = "libraries/optifine/OptiFine/";
 	private static final String DEFAULT_PROFILE_NAME = PROJECT_NAME + " " + MINECRAFT_VERSION;
