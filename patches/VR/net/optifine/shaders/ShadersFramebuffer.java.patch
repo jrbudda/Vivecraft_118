@@ -1,0 +1,48 @@
+--- a/net/optifine/shaders/ShadersFramebuffer.java
++++ b/net/optifine/shaders/ShadersFramebuffer.java
+@@ -37,7 +37,7 @@
+     private int[] colorImageUnits;
+     private int glFramebuffer;
+     private FlipTextures colorTexturesFlip;
+-    private IntBuffer depthTextures;
++    public IntBuffer depthTextures;
+     private final DrawBuffers drawBuffers;
+     private DrawBuffers activeDrawBuffers;
+     private int[] drawColorTextures;
+@@ -108,10 +108,25 @@
+                 GL30.glTexParameteri(3553, 34892, 34894);
+             }
+ 
+-            GL30.glTexImage2D(3553, 0, 6402, this.width, this.height, 0, 6402, 5126, (FloatBuffer)null);
++            if (this.name == "dfb")
++            {
++                GL30.glTexImage2D(3553, 0, 35056, this.width, this.height, 0, 34041, 34042, (FloatBuffer)null);
++            }
++            else
++            {
++                GL30.glTexImage2D(3553, 0, 6402, this.width, this.height, 0, 6402, 5126, (FloatBuffer)null);
++            }
++        }
++
++        if (this.name == "dfb")
++        {
++            this.setFramebufferTexture2D(36160, 33306, 3553, this.depthTextures.get(0), 0);
++        }
++        else
++        {
++            this.setFramebufferTexture2D(36160, 36096, 3553, this.depthTextures.get(0), 0);
+         }
+ 
+-        this.setFramebufferTexture2D(36160, 36096, 3553, this.depthTextures.get(0), 0);
+         Shaders.checkGLError("FBS " + this.name + " depth");
+ 
+         for (int l = 0; l < this.usedColorBuffers; ++l)
+@@ -165,7 +180,7 @@
+     {
+         if (this.glFramebuffer != 0)
+         {
+-            EXTFramebufferObject.glDeleteFramebuffersEXT(this.glFramebuffer);
++            GlStateManager._glDeleteFramebuffers(this.glFramebuffer);
+             this.glFramebuffer = 0;
+         }
+ 

@@ -1,0 +1,202 @@
+--- a/optifine/OptiFineClassTransformer.java
++++ b/optifine/OptiFineClassTransformer.java
+@@ -27,18 +27,18 @@
+         try
+         {
+             dbg("OptiFine ClassTransformer");
+-            URL url = OptiFineClassTransformer.class.getProtectionDomain().getCodeSource().getLocation();
+-            URI uri = url.toURI();
+-            File file1 = new File(uri);
+-            this.ofZipFile = new ZipFile(file1);
+-            dbg("OptiFine ZIP file: " + file1);
++            URL url1 = Differ.class.getProtectionDomain().getCodeSource().getLocation();
++            URI uri1 = url1.toURI();
++            File file2 = new File(uri1);
++            this.ofZipFile = new ZipFile(file2);
++            dbg("OptiFine ZIP file: " + file2);
+             this.patchMap = Patcher.getConfigurationMap(this.ofZipFile);
+             this.patterns = Patcher.getConfigurationPatterns(this.patchMap);
+             OptiFineResourceLocator.setResourceLocator(this);
+         }
+-        catch (Exception exception)
++        catch (Exception exception1)
+         {
+-            exception.printStackTrace();
++            exception1.printStackTrace();
+         }
+ 
+         if (this.ofZipFile == null)
+@@ -50,37 +50,37 @@
+ 
+     public byte[] transform(String name, String transformedName, byte[] bytes)
+     {
+-        String s = name + ".class";
+-        byte[] abyte = this.getOptiFineResource(s);
+-        return abyte != null ? abyte : bytes;
++        String s1 = name + ".class";
++        byte[] abyte1 = this.getOptiFineResource(s1);
++        return abyte1 != null ? abyte1 : bytes;
+     }
+ 
+     public synchronized InputStream getOptiFineResourceStream(String name)
+     {
+         name = Utils.removePrefix(name, "/");
+-        byte[] abyte = this.getOptiFineResource(name);
+-        return abyte == null ? null : new ByteArrayInputStream(abyte);
++        byte[] abyte1 = this.getOptiFineResource(name);
++        return abyte1 == null ? null : new ByteArrayInputStream(abyte1);
+     }
+ 
+     public InputStream getResourceStream(String path)
+     {
+         path = Utils.ensurePrefix(path, "/");
+-        return this.getClass().getResourceAsStream(path);
++        return Differ.class.getResourceAsStream(path);
+     }
+ 
+     public synchronized byte[] getOptiFineResource(String name)
+     {
+         name = Utils.removePrefix(name, "/");
+-        byte[] abyte = this.getOptiFineResourceZip(name);
++        byte[] abyte1 = this.getOptiFineResourceZip(name);
+ 
+-        if (abyte != null)
++        if (abyte1 != null)
+         {
+-            return abyte;
++            return abyte1;
+         }
+         else
+         {
+-            abyte = this.getOptiFineResourcePatched(name, this);
+-            return abyte != null ? abyte : null;
++            abyte1 = this.getOptiFineResourcePatched(name, this);
++            return abyte1 != null ? abyte1 : null;
+         }
+     }
+ 
+@@ -93,9 +93,9 @@
+         else
+         {
+             name = Utils.removePrefix(name, "/");
+-            ZipEntry zipentry = this.ofZipFile.getEntry(name);
++            ZipEntry zipentry1 = this.ofZipFile.getEntry(name);
+ 
+-            if (zipentry == null)
++            if (zipentry1 == null)
+             {
+                 return null;
+             }
+@@ -103,23 +103,23 @@
+             {
+                 try
+                 {
+-                    InputStream inputstream = this.ofZipFile.getInputStream(zipentry);
+-                    byte[] abyte = readAll(inputstream);
+-                    inputstream.close();
++                    InputStream inputstream1 = this.ofZipFile.getInputStream(zipentry1);
++                    byte[] abyte1 = readAll(inputstream1);
++                    inputstream1.close();
+ 
+-                    if ((long)abyte.length != zipentry.getSize())
++                    if ((long)abyte1.length != zipentry1.getSize())
+                     {
+-                        dbg("Invalid size, name: " + name + ", zip: " + zipentry.getSize() + ", stream: " + abyte.length);
++                        dbg("Invalid size, name: " + name + ", zip: " + zipentry1.getSize() + ", stream: " + abyte1.length);
+                         return null;
+                     }
+                     else
+                     {
+-                        return abyte;
++                        return abyte1;
+                     }
+                 }
+-                catch (IOException ioexception)
++                catch (IOException ioexception1)
+                 {
+-                    ioexception.printStackTrace();
++                    ioexception1.printStackTrace();
+                     return null;
+                 }
+             }
+@@ -131,10 +131,10 @@
+         if (this.patterns != null && this.patchMap != null && resourceProvider != null)
+         {
+             name = Utils.removePrefix(name, "/");
+-            String s = "patch/" + name + ".xdelta";
+-            byte[] abyte = this.getOptiFineResourceZip(s);
++            String s4 = "patch/" + name + ".xdelta";
++            byte[] abyte4 = this.getOptiFineResourceZip(s4);
+ 
+-            if (abyte == null)
++            if (abyte4 == null)
+             {
+                 return null;
+             }
+@@ -142,27 +142,27 @@
+             {
+                 try
+                 {
+-                    byte[] abyte1 = Patcher.applyPatch(name, abyte, this.patterns, this.patchMap, resourceProvider);
+-                    String s1 = "patch/" + name + ".md5";
+-                    byte[] abyte2 = this.getOptiFineResourceZip(s1);
++                    byte[] abyte5 = Patcher.applyPatch(name, abyte4, this.patterns, this.patchMap, resourceProvider);
++                    String s5 = "patch/" + name + ".md5";
++                    byte[] abyte6 = this.getOptiFineResourceZip(s5);
+ 
+-                    if (abyte2 != null)
++                    if (abyte6 != null)
+                     {
+-                        String s2 = new String(abyte2, "ASCII");
+-                        byte[] abyte3 = HashUtils.getHashMd5(abyte1);
+-                        String s3 = HashUtils.toHexString(abyte3);
++                        String s6 = new String(abyte6, "ASCII");
++                        byte[] abyte7 = HashUtils.getHashMd5(abyte5);
++                        String s7 = HashUtils.toHexString(abyte7);
+ 
+-                        if (!s2.equals(s3))
++                        if (!s6.equals(s7))
+                         {
+-                            throw new IOException("MD5 not matching, name: " + name + ", saved: " + s2 + ", patched: " + s3);
++                            throw new IOException("MD5 not matching, name: " + name + ", saved: " + s6 + ", patched: " + s7);
+                         }
+                     }
+ 
+-                    return abyte1;
++                    return abyte5;
+                 }
+-                catch (Exception exception)
++                catch (Exception exception1)
+                 {
+-                    exception.printStackTrace();
++                    exception1.printStackTrace();
+                     return null;
+                 }
+             }
+@@ -175,20 +175,20 @@
+ 
+     public static byte[] readAll(InputStream is) throws IOException
+     {
+-        ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
+-        byte[] abyte = new byte[1024];
++        ByteArrayOutputStream bytearrayoutputstream1 = new ByteArrayOutputStream();
++        byte[] abyte1 = new byte[1024];
+ 
+         while (true)
+         {
+-            int i = is.read(abyte);
++            int j = is.read(abyte1);
+ 
+-            if (i < 0)
++            if (j < 0)
+             {
+                 is.close();
+-                return bytearrayoutputstream.toByteArray();
++                return bytearrayoutputstream1.toByteArray();
+             }
+ 
+-            bytearrayoutputstream.write(abyte, 0, i);
++            bytearrayoutputstream1.write(abyte1, 0, j);
+         }
+     }
+ 

@@ -1,0 +1,82 @@
+--- a/net/optifine/shaders/ShadersRender.java
++++ b/net/optifine/shaders/ShadersRender.java
+@@ -2,6 +2,7 @@
+ 
+ import com.mojang.blaze3d.platform.GLX;
+ import com.mojang.blaze3d.platform.GlStateManager;
++import com.mojang.blaze3d.platform.Lighting;
+ import com.mojang.blaze3d.systems.RenderSystem;
+ import com.mojang.blaze3d.vertex.BufferBuilder;
+ import com.mojang.blaze3d.vertex.PoseStack;
+@@ -251,7 +252,7 @@
+         }
+     }
+ 
+-    public static void renderShadowMap(GameRenderer entityRenderer, Camera activeRenderInfo, int pass, float partialTicks, long finishTimeNano)
++    public static void renderShadowMap(GameRenderer gameRenderer, Camera activeRenderInfo, int pass, float partialTicks, long finishTimeNano)
+     {
+         if (Shaders.hasShadowMap)
+         {
+@@ -334,6 +335,7 @@
+                 levelrenderer.renderChunkLayer(RenderTypes.SOLID, posestack, d0, d1, d2, matrix4f1);
+                 Shaders.checkGLError("shadow terrain solid");
+                 GlStateManager.enableAlphaTest();
++                GlStateManager.alphaFunc(516, 0.1F); // vivecraft?
+                 levelrenderer.renderChunkLayer(RenderTypes.CUTOUT_MIPPED, posestack, d0, d1, d2, matrix4f1);
+                 Shaders.checkGLError("shadow terrain cutoutmipped");
+                 minecraft.getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS).setFilter(false, false);
+@@ -346,16 +348,40 @@
+             LevelRenderer levelrenderer1 = minecraft.levelRenderer;
+             EntityRenderDispatcher entityrenderdispatcher = minecraft.getEntityRenderDispatcher();
+             MultiBufferSource.BufferSource multibuffersource$buffersource = levelrenderer1.getRenderTypeTextures().bufferSource();
+-            boolean flag = Shaders.isShadowPass && !minecraft.player.isSpectator();
++
++            if (Shaders.isShadowPass && !minecraft.player.isSpectator())
++            {
++                boolean flag1 = true;
++            }
++            else
++            {
++                boolean flag2 = false;
++            }
++            
++            //vivecraft neutral lighting
++            Matrix4f matrix4fi = new Matrix4f();
++            matrix4fi.setIdentity();
++            Lighting.setupLevel(matrix4fi);
+ 
+             for (Entity entity : Shaders.isRenderShadowEntities() ? Shaders.getCurrentWorld().entitiesForRendering() : (List<Entity>)Collections.EMPTY_LIST)
+             {
+-                if ((entityrenderdispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(minecraft.player)) && (entity != activeRenderInfo.getEntity() || flag || activeRenderInfo.isDetached() || activeRenderInfo.getEntity() instanceof LivingEntity && ((LivingEntity)activeRenderInfo.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || activeRenderInfo.getEntity() == entity))
++            	if ((entityrenderdispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(minecraft.player)) && (!(entity instanceof LocalPlayer) || activeRenderInfo.getEntity() == entity))
+                 {
+-                    levelrenderer1.renderedEntity = entity;
+-                    Shaders.nextEntity(entity);
+-                    levelrenderer1.renderEntity(entity, d0, d1, d2, partialTicks, posestack, multibuffersource$buffersource);
+-                    levelrenderer1.renderedEntity = null;
++                	if (entity == activeRenderInfo.getEntity())
++                	{
++                		gameRenderer.restoreRVEPos((LivingEntity)entity);
++                	}
++
++                	levelrenderer1.renderedEntity = entity;
++                	Shaders.nextEntity(entity);
++                	levelrenderer1.renderEntity(entity, d0, d1, d2, partialTicks, posestack, multibuffersource$buffersource);
++                	levelrenderer1.renderedEntity = null;
++
++                	if (entity == activeRenderInfo.getEntity())
++                	{
++                		gameRenderer.cacheRVEPos((LivingEntity)entity);
++                		gameRenderer.setupRVE();
++                	}
+                 }
+             }
+ 
+@@ -459,7 +485,6 @@
+             GlStateManager._depthMask(true);
+             GlStateManager._enableCull();
+             GlStateManager._disableBlend();
+-            GL30.glFlush();
+             Shaders.checkGLError("shadow flush");
+             Shaders.isShadowPass = false;
+             minecraft.getProfiler().popPush("shadow postprocess");
