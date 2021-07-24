@@ -211,7 +211,7 @@ public class JumpTracker extends Tracker
         {
             return false;
         }
-        else if (!i.getTag().getBoolean("Unbreakable"))
+        else if (!i.hasTag() || !i.getTag().getBoolean("Unbreakable"))
         {
             return false;
         }

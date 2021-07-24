@@ -40,10 +40,17 @@ public class VRData
         this.c1 = new VRData.VRDevicePose(this, minecraft.vr.getAimRotation(1), minecraft.vr.getAimSource(1).subtract(vec3).add(vec31), minecraft.vr.getAimVector(1));
         this.h0 = new VRData.VRDevicePose(this, minecraft.vr.getHandRotation(0), minecraft.vr.getAimSource(0).subtract(vec3).add(vec31), minecraft.vr.getHandVector(0));
         this.h1 = new VRData.VRDevicePose(this, minecraft.vr.getHandRotation(1), minecraft.vr.getAimSource(1).subtract(vec3).add(vec31), minecraft.vr.getHandVector(1));
-        Matrix4f matrix4f = this.getSmoothedRotation(0, 0.33F);
-        Matrix4f matrix4f1 = this.getSmoothedRotation(1, 0.33F);
-        this.t0 = new VRData.VRDevicePose(this, matrix4f, minecraft.vr.getAimSource(0).subtract(vec3).add(vec31), matrix4f.transform(Vector3.forward()).toVector3d());
-        this.t1 = new VRData.VRDevicePose(this, matrix4f1, minecraft.vr.getAimSource(1).subtract(vec3).add(vec31), matrix4f1.transform(Vector3.forward()).toVector3d());
+
+        if(minecraft.vrSettings.seated) {
+        	this.t0 = eye0;
+        	this.t1 = eye1;
+        } else {
+        	Matrix4f matrix4f = this.getSmoothedRotation(0, 0.2F);
+        	Matrix4f matrix4f1 = this.getSmoothedRotation(1, 0.2F);
+        	this.t0 = new VRData.VRDevicePose(this, matrix4f, minecraft.vr.getAimSource(0).subtract(vec3).add(vec31), matrix4f.transform(Vector3.forward()).toVector3d());
+        	this.t1 = new VRData.VRDevicePose(this, matrix4f1, minecraft.vr.getAimSource(1).subtract(vec3).add(vec31), matrix4f1.transform(Vector3.forward()).toVector3d());
+        }
+        
         Matrix4f matrix4f2 = Matrix4f.multiply(Matrix4f.rotationY(-rotation), (new Matrix4f(Minecraft.getInstance().cameraTracker.getRotation())).transposed());
         this.cam = new VRData.VRDevicePose(this, matrix4f2, Minecraft.getInstance().cameraTracker.getPosition().subtract(origin).yRot(-rotation).subtract(vec3).add(vec31), matrix4f2.transform(Vector3.forward()).toVector3d());
 

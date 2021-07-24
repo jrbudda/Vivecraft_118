@@ -790,16 +790,16 @@
 -                        this.applyItemArmTransform(pMatrixStack, humanoidarm, pEquippedProgress);
 -                        this.applyItemArmAttackTransform(pMatrixStack, humanoidarm, pSwingProgress);
 +                        pMatrixStack.pushPose();
-+                        pMatrixStack.translate((double) - 0.1325F, 0.25D, (double)0.08F);
-+                        pMatrixStack.mulPose(Vector3f.XP.rotationDegrees(180.0F));
-+                        pMatrixStack.scale(0.25F, 1.5F, 0.25F);
++                        pMatrixStack.scale(0.625F, 0.625F, 0.625F);
++                        pMatrixStack.translate(flag ? -0.53D : -0.47D, -0.5D, -0.6D);
++                        //pMatrixStack.mulPose(Vector3f.XP.rotationDegrees(180.0F));
 +                        this.minecraft.getBlockRenderer().getModelRenderer().renderModel(pMatrixStack.last(), pBuffer.getBuffer(Sheets.solidBlockSheet()), (BlockState)null, this.minecraft.getModelManager().getModel(TelescopeTracker.scopeModel), 0.5F, 0.5F, 1.0F, pCombinedLight, OverlayTexture.NO_OVERLAY);
 +                        pMatrixStack.popPose();
                      }
  
 -                    this.renderItem(pPlayer, pStack, flag1 ? ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND, !flag1, pMatrixStack, pBuffer, pCombinedLight);
 +                    pMatrixStack.pushPose();
-+                    pMatrixStack.translate(0.0D, (double)0.2501F, (double) - 0.053F);
++                    pMatrixStack.translate(flag ? -0.01875D : 0.01875D, 0.215D, -0.0626D);
 +                    pMatrixStack.mulPose(Vector3f.XP.rotationDegrees(90.0F));
 +                    pMatrixStack.mulPose(Vector3f.YP.rotationDegrees(180.0F));
 +                    pMatrixStack.mulPose(Vector3f.ZP.rotationDegrees(180.0F));

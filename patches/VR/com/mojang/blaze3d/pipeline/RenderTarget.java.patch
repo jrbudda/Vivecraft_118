@@ -22,8 +22,9 @@
          return new float[]{1.0F, 1.0F, 1.0F, 0.0F};
      });
      public int filterMode;
-     private boolean stencilEnabled = false;
+-    private boolean stencilEnabled = false;
 -
++    public boolean stencilEnabled = true;
 +    //Vivecraft
 +    public static final int NO_TEXTURE_ID = -1;
 +    private int texid = -1;

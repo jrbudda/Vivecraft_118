@@ -30,7 +30,7 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
-
+import org.vivecraft.gameplay.VRPlayer;
 import org.vivecraft.reflection.MCReflection;
 import org.vivecraft.settings.profile.ProfileManager;
 import org.vivecraft.settings.profile.ProfileReader;
@@ -1244,6 +1244,7 @@ public class VRSettings
             void onOptionChange() {
                 Minecraft.getInstance().vrPlayer.roomScaleMovementDelay = 2;
                 Minecraft.getInstance().vrPlayer.snapRoomOriginToPlayerEntity(Minecraft.getInstance().player, false, true);
+                VRPlayer.get().preTick();
             }
         },
         WORLD_ROTATION(true, false, 0, 360, 30, 0) { // World Rotation

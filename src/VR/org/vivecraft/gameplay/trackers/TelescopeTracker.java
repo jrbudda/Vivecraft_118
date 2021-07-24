@@ -13,8 +13,8 @@ import org.vivecraft.render.RenderPass;
 
 public class TelescopeTracker extends Tracker
 {
-    public static final ResourceLocation scopeResource = new ResourceLocation("vivecraft:trashbin");
-    public static final ModelResourceLocation scopeModel = new ModelResourceLocation("vivecraft:trashbin");
+    //public static final ResourceLocation scopeResource = new ResourceLocation("vivecraft:trashbin");
+    public static final ModelResourceLocation scopeModel = new ModelResourceLocation("vivecraft:spyglass_in_hand#inventory");
     private static final double lensDistMax = 0.05D;
     private static final double lensDistMin = 0.185D;
     private static final double lensDotMax = 0.9D;
@@ -36,6 +36,11 @@ public class TelescopeTracker extends Tracker
 
     public static boolean isTelescope(ItemStack i)
     {
+        return i.getItem() == Items.SPYGLASS || isLegacyTelescope(i);
+    }
+
+    // TODO: old eye of the farseer, remove this eventually
+    public static boolean isLegacyTelescope(ItemStack i) {
         if (i.isEmpty())
         {
             return false;
@@ -48,7 +53,7 @@ public class TelescopeTracker extends Tracker
         {
             return false;
         }
-        else if (!i.getTag().getBoolean("Unbreakable"))
+        else if (!i.hasTag() || !i.getTag().getBoolean("Unbreakable"))
         {
             return false;
         }
@@ -58,15 +63,15 @@ public class TelescopeTracker extends Tracker
         }
     }
 
-    public static Vec3 getLensOrigin(int controller)
+    private static Vec3 getLensOrigin(int controller)
     {
-        VRData.VRDevicePose vrdata$vrdevicepose = Minecraft.getInstance().vrPlayer.vrdata_world_pre.getController(controller);
+        VRData.VRDevicePose vrdata$vrdevicepose = Minecraft.getInstance().vrPlayer.vrdata_room_pre.getController(controller);
         return vrdata$vrdevicepose.getPosition().add(getViewVector(controller).scale(-0.2D).add(vrdata$vrdevicepose.getDirection().scale((double)0.05F)));
     }
 
-    public static Vec3 getViewVector(int controller)
+    private static Vec3 getViewVector(int controller)
     {
-        return Minecraft.getInstance().vrPlayer.vrdata_world_pre.getController(controller).getCustomVector(new Vec3(0.0D, -1.0D, 0.0D));
+        return Minecraft.getInstance().vrPlayer.vrdata_room_pre.getController(controller).getCustomVector(new Vec3(0.0D, -1.0D, 0.0D));
     }
 
     public static boolean isViewing(int controller)
@@ -76,63 +81,70 @@ public class TelescopeTracker extends Tracker
 
     public static float viewPercent(int controller)
     {
-        float f = 0.0F;
+    	LocalPlayer p = Minecraft.getInstance().player;
+    	if(p!= null && Minecraft.getInstance().vrSettings.seated) {
+    		if(isTelescope(p.getUseItem()))
+    			return 1;
+    		else 
+    			return 0;
+    	}
 
-        for (int i = 0; i < 2; ++i)
+        float out = 0.0F;
+
+        for (int e = 0; e < 2; ++e)
         {
-            float f1 = viewPercent(controller, i);
+            float tmp = viewPercent(controller, e);
 
-            if (f1 > f)
+            if (tmp > out)
             {
-                f = f1;
+                out = tmp;
             }
         }
 
-        return f;
+        return out;
     }
 
     private static float viewPercent(int controller, int e)
     {
-        float f = 0.0F;
-
         if (e == -1)
         {
             return 0.0F;
         }
         else
         {
-            VRData.VRDevicePose vrdata$vrdevicepose = Minecraft.getInstance().vrPlayer.vrdata_world_pre.getEye(RenderPass.values()[e]);
-            double d0 = vrdata$vrdevicepose.getPosition().subtract(getLensOrigin(controller)).length();
-            Vec3 vec3 = vrdata$vrdevicepose.getDirection();
-            double d1 = Math.abs(vec3.dot(getViewVector(controller)));
-            double d2 = 0.0D;
-            double d3 = 0.0D;
+            VRData.VRDevicePose eye = Minecraft.getInstance().vrPlayer.vrdata_room_pre.getEye(RenderPass.values()[e]);
+            double dist = eye.getPosition().subtract(getLensOrigin(controller)).length();
+            Vec3 look = eye.getDirection();
+            double dot = Math.abs(look.dot(getViewVector(controller)));
 
-            if (d1 > 0.75D)
+            double dfact = 0.0D;
+            double distfact = 0.0D;
+
+            if (dot > lensDotMin)
             {
-                if (d1 > 0.9D)
+                if (dot > lensDotMax)
                 {
-                    d2 = 1.0D;
+                    dfact = 1.0D;
                 }
                 else
                 {
-                    d2 = (d1 - 0.75D) / 0.15000000000000002D;
+                    dfact = (dot - lensDotMin) / (lensDotMax - lensDotMin);
                 }
             }
 
-            if (d0 < 0.185D)
+            if (dist < lensDistMin)
             {
-                if (d0 < 0.05D)
+                if (dist < lensDistMax)
                 {
-                    d3 = 1.0D;
+                    distfact = 1.0D;
                 }
                 else
                 {
-                    d3 = 1.0D - (d0 - 0.05D) / 0.135D;
+                    distfact = 1.0D - (dist - lensDistMax) / (lensDistMin - lensDistMax);
                 }
             }
 
-            return (float)Math.min(d2, d3);
+            return (float)Math.min(dfact, distfact);
         }
     }
 }

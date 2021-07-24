@@ -59,7 +59,7 @@
  import net.minecraft.world.level.block.RenderShape;
  import net.minecraft.world.level.block.entity.BlockEntity;
  import net.minecraft.world.level.block.entity.SkullBlockEntity;
-@@ -248,15 +264,116 @@
+@@ -248,15 +264,118 @@
  import net.minecraft.world.phys.BlockHitResult;
  import net.minecraft.world.phys.EntityHitResult;
  import net.minecraft.world.phys.HitResult;
@@ -73,6 +73,8 @@
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
 +import org.lwjgl.opengl.ARBShaderObjects;
++import org.lwjgl.opengl.GL11;
++import org.lwjgl.opengl.GL30;
  import org.lwjgl.util.tinyfd.TinyFileDialogs;
 +import org.vivecraft.api.ErrorHelper;
 +import org.vivecraft.api.NetworkHelper;
@@ -172,11 +174,11 @@
 +    private boolean lastClick;
 +    public boolean resourcePacksChanged;
 +    public int tickCounter;
-+    public final String minecriftVerString = "Vivecraft 1.17.1 jrbudda-1-a2";
++    public final String minecriftVerString = "Vivecraft 1.17.1 VR jrbudda-1-a4";
      private static final Logger LOGGER = LogManager.getLogger();
      public static final boolean ON_OSX = Util.getPlatform() == Util.OS.OSX;
      private static final int MAX_TICKS_PER_UPDATE = 10;
-@@ -287,7 +404,7 @@
+@@ -287,7 +406,7 @@
      public final DebugRenderer debugRenderer;
      private final AtomicReference<StoringChunkProgressListener> progressListener = new AtomicReference<>();
      public final Gui gui;
@@ -185,7 +187,7 @@
      private final HotbarManager hotbarManager;
      public final MouseHandler mouseHandler;
      public final KeyboardHandler keyboardHandler;
-@@ -307,7 +424,7 @@
+@@ -307,7 +426,7 @@
      private final LanguageManager languageManager;
      private final BlockColors blockColors;
      private final ItemColors itemColors;
@@ -194,7 +196,7 @@
      private final SoundManager soundManager;
      private final MusicManager musicManager;
      private final FontManager fontManager;
-@@ -385,11 +502,20 @@
+@@ -385,11 +504,20 @@
      private MetricsRecorder metricsRecorder = InactiveMetricsRecorder.INSTANCE;
      private final ResourceLoadStateTracker reloadStateTracker = new ResourceLoadStateTracker();
      private String debugPath = "root";
@@ -215,7 +217,7 @@
          this.gameDirectory = pGameConfig.location.gameDirectory;
          File file1 = pGameConfig.location.assetDirectory;
          this.resourcePackDirectory = pGameConfig.location.resourcePackDirectory;
-@@ -403,8 +529,6 @@
+@@ -403,8 +531,6 @@
          this.minecraftSessionService = yggdrasilauthenticationservice.createMinecraftSessionService();
          this.socialInteractionsService = this.createSocialInteractions(yggdrasilauthenticationservice, pGameConfig);
          this.user = pGameConfig.user.user;
@@ -224,7 +226,7 @@
          this.demo = pGameConfig.game.demo;
          this.allowsMultiplayer = !pGameConfig.game.disableMultiplayer;
          this.allowsChat = !pGameConfig.game.disableChat;
-@@ -427,6 +551,23 @@
+@@ -427,6 +553,23 @@
          KeybindComponent.setKeyResolver(KeyMapping::createNameSupplier);
          this.fixerUpper = DataFixers.getDataFixer();
          this.toast = new ToastComponent(this);
@@ -248,7 +250,7 @@
          this.gameThread = Thread.currentThread();
          this.options = new Options(this, this.gameDirectory);
          this.tutorial = new Tutorial(this, this.options);
-@@ -465,10 +606,11 @@
+@@ -465,10 +608,11 @@
          this.keyboardHandler = new KeyboardHandler(this);
          this.keyboardHandler.setup(this.window.getWindow());
          RenderSystem.initRenderer(this.options.glDebugVerbosity, false);
@@ -261,7 +263,7 @@
          this.resourcePackRepository.reload();
          this.options.loadSelectedResourcePacks(this.resourcePackRepository);
          this.languageManager = new LanguageManager(this.options.languageCode);
-@@ -486,6 +628,16 @@
+@@ -486,6 +630,16 @@
          this.font = this.fontManager.createFont();
          this.resourceManager.registerReloadListener(this.fontManager.getReloadListener());
          this.selectMainFont(this.isEnforceUnicode());
@@ -278,7 +280,7 @@
          this.resourceManager.registerReloadListener(new GrassColorReloadListener());
          this.resourceManager.registerReloadListener(new FoliageColorReloadListener());
          this.window.setErrorSection("Startup");
-@@ -517,6 +669,7 @@
+@@ -517,6 +671,7 @@
          this.createSearchTrees();
          this.resourceManager.registerReloadListener(this.searchRegistry);
          this.particleEngine = new ParticleEngine(this.level, this.textureManager);
@@ -286,7 +288,7 @@
          this.resourceManager.registerReloadListener(this.particleEngine);
          this.paintingTextures = new PaintingTextureManager(this.textureManager);
          this.resourceManager.registerReloadListener(this.paintingTextures);
-@@ -524,7 +677,17 @@
+@@ -524,7 +679,17 @@
          this.resourceManager.registerReloadListener(this.mobEffectTextures);
          this.gpuWarnlistManager = new GpuWarnlistManager();
          this.resourceManager.registerReloadListener(this.gpuWarnlistManager);
@@ -305,7 +307,7 @@
          this.debugRenderer = new DebugRenderer(this);
          RenderSystem.setErrorCallback(this::onFullscreenError);
  
-@@ -553,12 +716,22 @@
+@@ -553,12 +718,22 @@
          this.window.updateRawMouseInput(this.options.rawMouseInput);
          this.window.setDefaultErrorCallback();
          this.resizeDisplay();
@@ -328,7 +330,7 @@
              Util.ifElse(p_91245_, this::rollbackResourcePacks, () -> {
                  if (SharedConstants.IS_RUNNING_IN_IDE)
                  {
-@@ -566,17 +739,19 @@
+@@ -566,17 +741,19 @@
                  }
  
                  this.reloadStateTracker.finishReload();
@@ -357,7 +359,7 @@
      }
  
      public void updateTitle()
-@@ -586,13 +761,7 @@
+@@ -586,13 +763,7 @@
  
      private String createTitle()
      {
@@ -372,7 +374,7 @@
          stringbuilder.append(" ");
          stringbuilder.append(SharedConstants.getCurrentVersion().getName());
          ClientPacketListener clientpacketlistener = this.getConnection();
-@@ -609,13 +778,13 @@
+@@ -609,13 +780,13 @@
              {
                  stringbuilder.append(I18n.m_118938_("title.multiplayer.realms"));
              }
@@ -389,7 +391,7 @@
              }
          }
  
-@@ -642,7 +811,10 @@
+@@ -642,7 +813,10 @@
  
      private void rollbackResourcePacks(Throwable pThrowable)
      {
@@ -401,7 +403,7 @@
          {
              Component component;
  
-@@ -728,10 +900,10 @@
+@@ -728,10 +902,10 @@
              LOGGER.fatal("Reported exception thrown!", (Throwable)reportedexception);
              crash(reportedexception.getReport());
          }
@@ -415,7 +417,7 @@
              this.emergencySave();
              crash(crashreport);
          }
-@@ -757,7 +929,7 @@
+@@ -757,7 +931,7 @@
          });
          ReloadableIdSearchTree<ItemStack> reloadableidsearchtree = new ReloadableIdSearchTree<>((p_91121_) ->
          {
@@ -424,7 +426,7 @@
          });
          NonNullList<ItemStack> nonnulllist = NonNullList.create();
  
-@@ -843,17 +1015,41 @@
+@@ -843,17 +1017,41 @@
          if (pReport.getSaveFile() != null)
          {
              Bootstrap.realStdoutPrintln("#@!@# Game crashed! Crash report saved to: #@!@# " + pReport.getSaveFile());
@@ -469,7 +471,7 @@
          }
      }
  
-@@ -894,6 +1090,22 @@
+@@ -894,6 +1092,22 @@
  
                  this.setOverlay(new LoadingOverlay(this, this.resourceManager.createReload(Util.backgroundExecutor(), this, RESOURCE_RELOAD_INITIAL_TASK, list), (p_91252_) ->
                  {
@@ -492,7 +494,7 @@
                      Util.ifElse(p_91252_, this::rollbackResourcePacks, () -> {
                          this.levelRenderer.allChanged();
                          this.reloadStateTracker.finishReload();
-@@ -1019,6 +1231,22 @@
+@@ -1019,6 +1233,22 @@
              }
          }
  
@@ -515,7 +517,7 @@
          this.screen = pGuiScreen;
          BufferUploader.reset();
  
-@@ -1081,6 +1309,14 @@
+@@ -1081,6 +1311,14 @@
          {
              Util.timeSource = System::nanoTime;
  
@@ -530,7 +532,7 @@
              if (this.delayedCrash == null)
              {
                  System.exit(0);
-@@ -1116,11 +1352,11 @@
+@@ -1116,11 +1354,11 @@
              this.window.close();
          }
      }
@@ -544,7 +546,7 @@
  
          if (this.window.shouldClose())
          {
-@@ -1146,79 +1382,263 @@
+@@ -1146,79 +1384,263 @@
  
          if (pRenderLevel)
          {
@@ -838,7 +840,7 @@
          {
              if (this.pause)
              {
-@@ -1229,12 +1649,12 @@
+@@ -1229,12 +1651,12 @@
                  this.timer.partialTick = this.pausePartialTick;
              }
  
@@ -855,7 +857,7 @@
          this.profiler.push("fpsUpdate");
  
          while (Util.getMillis() >= this.lastTime + 1000L)
-@@ -1250,7 +1670,6 @@
+@@ -1250,7 +1672,6 @@
                  this.snooper.start();
              }
          }
@@ -863,7 +865,7 @@
          this.profiler.pop();
      }
  
-@@ -1321,14 +1740,16 @@
+@@ -1321,14 +1742,16 @@
          int i = this.window.calculateScale(this.options.guiScale, this.isEnforceUnicode());
          this.window.setGuiScale((double)i);
  
@@ -883,7 +885,7 @@
          this.mouseHandler.setIgnoreFirstMove();
      }
  
-@@ -1339,7 +1760,7 @@
+@@ -1339,7 +1762,7 @@
  
      private int getFramerateLimit()
      {
@@ -892,7 +894,7 @@
      }
  
      public void emergencySave()
-@@ -1556,6 +1977,16 @@
+@@ -1556,6 +1979,16 @@
          }
      }
  
@@ -909,7 +911,7 @@
      private void renderFpsMeter(PoseStack pMatrixStack, ProfileResults pProfilerResult)
      {
          List<ResultField> list = pProfilerResult.getTimes(this.debugPath);
-@@ -1643,14 +2074,14 @@
+@@ -1643,14 +2076,14 @@
              s1 = s1 + s + " ";
          }
  
@@ -927,7 +929,7 @@
              StringBuilder stringbuilder = new StringBuilder();
  
              if ("unspecified".equals(resultfield2.name))
-@@ -1659,15 +2090,15 @@
+@@ -1659,15 +2092,15 @@
              }
              else
              {
@@ -947,7 +949,7 @@
          }
      }
  
-@@ -1712,19 +2143,44 @@
+@@ -1712,19 +2145,44 @@
              {
                  BlockHitResult blockhitresult = (BlockHitResult)this.hitResult;
                  BlockPos blockpos = blockhitresult.getBlockPos();
@@ -996,7 +998,7 @@
              {
                  this.gameMode.stopDestroyBlock();
              }
-@@ -1746,39 +2202,48 @@
+@@ -1746,39 +2204,48 @@
              }
              else if (!this.player.isHandsBusy())
              {
@@ -1066,7 +1068,7 @@
          {
              this.rightClickDelay = 4;
  
-@@ -1791,74 +2256,102 @@
+@@ -1791,74 +2258,102 @@
  
                  for (InteractionHand interactionhand : InteractionHand.values())
                  {
@@ -1105,7 +1107,7 @@
 +                    ItemStack itemstack = this.player.getItemInHand(interactionhand);
  
 -                                break;
-+                    if (!TelescopeTracker.isTelescope(itemstack))
++                    if (vrSettings.seated || !TelescopeTracker.isTelescope(itemstack))
 +                    {
 +                        NetworkHelper.sendActiveHand((byte)interactionhand.ordinal());
  
@@ -1218,7 +1220,7 @@
                          }
                      }
                  }
-@@ -1873,12 +2366,15 @@
+@@ -1873,12 +2368,15 @@
  
      public void tick()
      {
@@ -1235,7 +1237,7 @@
  
          if (!this.pause)
          {
-@@ -1886,7 +2382,6 @@
+@@ -1886,7 +2384,6 @@
          }
  
          this.profiler.pop();
@@ -1243,7 +1245,7 @@
          this.tutorial.onLookAt(this.level, this.hitResult);
          this.profiler.push("gameMode");
  
-@@ -1896,11 +2391,7 @@
+@@ -1896,11 +2393,7 @@
          }
  
          this.profiler.popPush("textures");
@@ -1256,7 +1258,7 @@
  
          if (this.screen == null && this.player != null)
          {
-@@ -1936,6 +2427,10 @@
+@@ -1936,6 +2429,10 @@
              this.gui.clearCache();
          }
  
@@ -1267,7 +1269,7 @@
          if (this.overlay == null && (this.screen == null || this.screen.passEvents))
          {
              this.profiler.popPush("Keybindings");
-@@ -1947,8 +2442,30 @@
+@@ -1947,8 +2444,30 @@
              }
          }
  
@@ -1298,7 +1300,7 @@
              this.profiler.popPush("gameRenderer");
  
              if (!this.pause)
-@@ -1980,6 +2497,13 @@
+@@ -1980,6 +2499,13 @@
              this.gameRenderer.shutdownEffect();
          }
  
@@ -1312,7 +1314,7 @@
          if (!this.pause)
          {
              this.musicManager.tick();
-@@ -2051,24 +2575,21 @@
+@@ -2051,24 +2577,21 @@
          this.profiler.popPush("keyboard");
          this.keyboardHandler.tick();
          this.profiler.pop();
@@ -1343,7 +1345,7 @@
          }
  
          while (this.options.keySmoothCamera.consumeClick())
-@@ -2147,7 +2668,7 @@
+@@ -2147,7 +2670,7 @@
          {
              if (!this.player.isSpectator() && this.player.m_108700_(Screen.hasControlDown()))
              {
@@ -1352,7 +1354,7 @@
              }
          }
  
-@@ -2163,8 +2684,9 @@
+@@ -2163,8 +2686,9 @@
  
          if (this.player.isUsingItem())
          {
@@ -1363,7 +1365,7 @@
                  this.gameMode.releaseUsingItem(this.player);
              }
  
-@@ -2182,9 +2704,21 @@
+@@ -2182,9 +2706,21 @@
          }
          else
          {
@@ -1386,7 +1388,7 @@
              }
  
              while (this.options.keyUse.consumeClick())
-@@ -2203,7 +2737,7 @@
+@@ -2203,7 +2739,7 @@
              this.startUseItem();
          }
  
@@ -1395,7 +1397,7 @@
      }
  
      public static DataPackConfig loadDataPacks(LevelStorageSource.LevelStorageAccess pLevelStorage)
-@@ -2466,10 +3000,10 @@
+@@ -2466,10 +3002,10 @@
                              levelstoragesource$levelstorageaccess.close();
                          }
                      }
@@ -1408,7 +1410,7 @@
                      }
                  }
              }, new TranslatableComponent("selectWorld.backupQuestion.experimental"), new TranslatableComponent("selectWorld.backupWarning.experimental"), CommonComponents.GUI_PROCEED, CommonComponents.GUI_CANCEL));
-@@ -2499,6 +3033,13 @@
+@@ -2499,6 +3035,13 @@
  
      public void setLevel(ClientLevel pLevelClient)
      {
@@ -1422,7 +1424,7 @@
          ProgressScreen progressscreen = new ProgressScreen(true);
          progressscreen.progressStartNoAbort(new TranslatableComponent("connect.joining"));
          this.updateScreenAndTick(progressscreen);
-@@ -2537,12 +3078,15 @@
+@@ -2537,12 +3080,15 @@
          IntegratedServer integratedserver = this.singleplayerServer;
          this.singleplayerServer = null;
          this.gameRenderer.resetData();
@@ -1438,7 +1440,7 @@
              if (integratedserver != null)
              {
                  this.profiler.push("waitForServer");
-@@ -2559,6 +3103,7 @@
+@@ -2559,6 +3105,7 @@
              this.gui.onDisconnected();
              this.currentServer = null;
              this.isLocalServer = false;
@@ -1446,7 +1448,7 @@
              this.game.onLeaveGameSession();
          }
  
-@@ -2592,6 +3137,7 @@
+@@ -2592,6 +3139,7 @@
          this.particleEngine.setLevel(pLevel);
          this.blockEntityRenderDispatcher.setLevel(pLevel);
          this.updateTitle();
@@ -1454,7 +1456,7 @@
      }
  
      public boolean allowsMultiplayer()
-@@ -2667,6 +3213,17 @@
+@@ -2667,6 +3215,17 @@
      {
          if (this.hitResult != null && this.hitResult.getType() != HitResult.Type.MISS)
          {
@@ -1472,7 +1474,7 @@
              boolean flag = this.player.getAbilities().instabuild;
              BlockEntity blockentity = null;
              HitResult.Type hitresult$type = this.hitResult.getType();
-@@ -2755,6 +3312,8 @@
+@@ -2755,6 +3314,8 @@
                  }
              }
          }
@@ -1481,7 +1483,7 @@
      }
  
      private ItemStack addCustomNbtData(ItemStack pStack, BlockEntity pTe)
-@@ -3551,6 +4110,563 @@
+@@ -3551,6 +4112,564 @@
          public abstract boolean isChatAllowed(boolean p_168035_);
      }
  
@@ -1561,6 +1563,7 @@
 +            }
 +            //Debug
 +            //source = GuiHandler.guiFramebuffer;
++            //source = vrRenderer.telescopeFramebufferR;
 +            //
 +            if (source != null)
 +            {

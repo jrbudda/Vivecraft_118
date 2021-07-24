@@ -29,6 +29,15 @@
  import net.minecraft.world.level.GameType;
  import net.minecraft.world.level.Level;
  import net.minecraft.world.level.block.Blocks;
+@@ -89,7 +93,7 @@
+     private static final ResourceLocation VIGNETTE_LOCATION = new ResourceLocation("textures/misc/vignette.png");
+     private static final ResourceLocation WIDGETS_LOCATION = new ResourceLocation("textures/gui/widgets.png");
+     private static final ResourceLocation PUMPKIN_BLUR_LOCATION = new ResourceLocation("textures/misc/pumpkinblur.png");
+-    private static final ResourceLocation SPYGLASS_SCOPE_LOCATION = new ResourceLocation("textures/misc/spyglass_scope.png");
++    public static final ResourceLocation SPYGLASS_SCOPE_LOCATION = new ResourceLocation("textures/misc/spyglass_scope.png");
+     private static final ResourceLocation POWDER_SNOW_OUTLINE_LOCATION = new ResourceLocation("textures/misc/powder_snow_outline.png");
+     private static final Component DEMO_EXPIRED_TEXT = new TranslatableComponent("demo.demoExpired");
+     private static final int COLOR_WHITE = 16777215;
 @@ -133,7 +137,9 @@
      private int screenHeight;
      private final Map<ChatType, List<ChatListener>> chatListeners = Maps.newHashMap();

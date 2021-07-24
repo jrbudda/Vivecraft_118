@@ -52,7 +52,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static String FORGE_VERSION               = "";
     private static final String HOMEPAGE_LINK         = "http://www.vivecraft.org";
     private static final String DONATION_LINK         = "https://www.patreon.com/jrbudda";
-    private static final String PROJECT_NAME          = "Vivecraft NONVR";
+    private static final String PROJECT_NAME          = "Vivecraft VR";
     /* END OF DO NOT RENAME */
 	
 	private static final String OF_LIB_PATH           = "libraries/optifine/OptiFine/";

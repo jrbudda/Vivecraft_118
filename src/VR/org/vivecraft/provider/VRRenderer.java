@@ -21,6 +21,7 @@ import net.optifine.Config;
 import net.optifine.shaders.Shaders;
 import org.lwjgl.opengl.ARBShaderObjects;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL43;
 import org.vivecraft.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.gameplay.screenhandlers.KeyboardHandler;
@@ -121,58 +122,82 @@ public abstract class VRRenderer
         this.LeftEyeTextureId = this.RightEyeTextureId = -1;
     }
 
-    public void doCircleStencil(RenderTarget fb)
+    public void doStencil(boolean inverse)
     {
         Minecraft minecraft = Minecraft.getInstance();
+        
+        //setup stencil for writing
         GL11.glEnable(GL11.GL_STENCIL_TEST);
-        GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE);
-        GL11.glStencilMask(255);
-        GL11.glClearStencil(255);
-        GlStateManager.clear(1024);
-        GL11.glClearStencil(0);
-        GL11.glStencilFunc(GL11.GL_ALWAYS, 0, 255);
-        RenderSystem.colorMask(false, false, false, true);
-        RenderSystem.depthMask(false);
-        GlStateManager.disableAlphaTest();
-        RenderSystem.disableDepthTest();
+		GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE);
+		GL11.glStencilMask(0xFF); // Write to stencil buffer
+        
+		if(inverse) {
+			//clear whole image for total mask in color, stencil, depth
+			GL11.glClearStencil(0xFF);
+	    	GL43.glClearDepthf(0);
+
+			GL11.glStencilFunc(GL11.GL_ALWAYS, 0, 0xFF); // Set any stencil to 0	
+    		RenderSystem.colorMask(false, false, false, true); 
+
+		} else {
+			//clear whole image for total transparency
+			GL11.glClearStencil(0);
+	    	GL43.glClearDepthf(1);
+	       
+			GL11.glStencilFunc(GL11.GL_ALWAYS, 0xFF, 0xFF); // Set any stencil to 1
+    		RenderSystem.colorMask(true, true, true, true); 
+		}
+		
+    	GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT); 
+    	
+		GL11.glClearStencil(0);
+    	GL43.glClearDepthf(1);
+   	
+		RenderSystem.depthMask(true); 
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthFunc(GL11.GL_ALWAYS);
         RenderSystem.disableTexture();
         RenderSystem.disableCull();
-        GlStateManager.color4f(0.0F, 0.0F, 0.0F, 1.0F);
-        GL43.glMatrixMode(5889);
+        
+        GL43.glColor4f(0F, 0F, 0F, 1.0F);
+        
+        GL43.glMatrixMode(GL11.GL_PROJECTION);
         GL43.glPushMatrix();
         GL43.glLoadIdentity();
-        GL43.glMatrixMode(5888);
-        GL43.glPushMatrix();
-        GL43.glLoadIdentity();
-        GL43.glOrtho(0.0D, (double)fb.viewWidth, 0.0D, (double)fb.viewHeight, -10.0D, 20.0D);
+        RenderTarget fb = minecraft.getMainRenderTarget();
         RenderSystem.viewport(0, 0, fb.viewWidth, fb.viewHeight);
-        GL11.glBegin(GL11.GL_TRIANGLE_FAN);
-        int i = 32;
-        float f = (float)(fb.viewWidth / 2);
-        GL11.glVertex2f((float)(fb.viewWidth / 2), (float)(fb.viewWidth / 2));
-
-        for (int j = 0; j < i + 1; ++j)
-        {
-            float f1 = (float)j / (float)i * (float)Math.PI * 2.0F;
-            float f2 = (float)((double)(fb.viewWidth / 2) + Math.cos((double)f1) * (double)f);
-            float f3 = (float)((double)(fb.viewWidth / 2) + Math.sin((double)f1) * (double)f);
-            GL11.glVertex2f(f2, f3);
+        GL43.glOrtho(0.0D, (double)fb.viewWidth, 0.0D, (double)fb.viewHeight, 0.0, 20.0D);
+        GL43.glMatrixMode(GL11.GL_MODELVIEW);
+        GL43.glPushMatrix();
+        GL43.glLoadIdentity();
+        if(inverse) //draw on far clip
+        	GL43.glTranslatef(0, 0, -20);
+        int s= GL43.glGetInteger(GL43.GL_CURRENT_PROGRAM);
+        GL30.glUseProgram(0);
+        
+        if(minecraft.currentPass == RenderPass.SCOPEL || minecraft.currentPass == RenderPass.SCOPER){
+            drawCircle(fb.viewWidth, fb.viewHeight);
+        } else if(minecraft.currentPass == RenderPass.LEFT||minecraft.currentPass == RenderPass.RIGHT) {
+        	drawMask();
         }
 
-        GL11.glEnd();
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL43.glPopMatrix();
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
         GL43.glPopMatrix();
-        RenderSystem.depthMask(true);
+
+        RenderSystem.depthMask(true); // Do write to depth buffer
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.enableDepthTest();
-        GlStateManager.enableAlphaTest();
+
+        GL43.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);      
         RenderSystem.enableTexture();
         RenderSystem.enableCull();
+        GL30.glUseProgram(s);
         GL11.glStencilFunc(GL11.GL_NOTEQUAL, 255, 1);
         GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
-        GL11.glStencilMask(0);
+        GL11.glStencilMask(0); // Dont Write to stencil buffer
+        RenderSystem.depthFunc(GL11.GL_LEQUAL);
     }
 
     public void doFSAA(boolean hasShaders)
@@ -247,58 +272,38 @@ public abstract class VRRenderer
             GL43.glPopMatrix();
         }
     }
-
-    public void doStencilForEye(int i)
-    {
-        Minecraft minecraft = Minecraft.getInstance();
-        float[] afloat = this.getStencilMask(minecraft.currentPass);
-        GL11.glEnable(GL11.GL_STENCIL_TEST);
-        GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE);
-        GL11.glStencilMask(255);
-        GlStateManager.clear(1024);
-        GL11.glStencilFunc(GL11.GL_ALWAYS, 255, 255);
-        //TODO: fix.
-        if (afloat != null)
+    
+    private void drawCircle(float width, float height) {
+        GL11.glBegin(GL11.GL_TRIANGLE_FAN);
+        int i = 32;
+        float f = (float)(width / 2);
+        GL11.glVertex2f((float)(width / 2), (float)(width / 2));
+        for (int j = 0; j < i + 1; ++j)
         {
-//            GlStateManager.disableAlphaTest();
-//            RenderSystem.disableDepthTest();
-//            RenderSystem.disableTexture();
-//            RenderSystem.disableCull();
-//            RenderSystem.color3f(0.0F, 0.0F, 0.0F);
-//            RenderSystem.depthMask(false);
-//            GL43.glMatrixMode(5889);
-//            GL43.glPushMatrix();
-//            GL43.glLoadIdentity();
-//            GL43.glMatrixMode(5888);
-//            GL43.glPushMatrix();
-//            GL43.glLoadIdentity();
-//            GL43.glOrtho(0.0D, (double)this.framebufferVrRender.viewWidth, 0.0D, (double)this.framebufferVrRender.viewHeight, -10.0D, 20.0D);
-//            RenderSystem.viewport(0, 0, this.framebufferVrRender.viewWidth, this.framebufferVrRender.viewHeight);
-//            GL11.glBegin(GL11.GL_TRIANGLES);
-//
-//            for (int i = 0; i < afloat.length; i += 2)
-//            {
-//                GL11.glVertex2f(afloat[i] * minecraft.vrRenderer.renderScale, afloat[i + 1] * minecraft.vrRenderer.renderScale);
-//            }
-//
-//            GL11.glEnd();
-//            GL11.glMatrixMode(GL11.GL_PROJECTION);
-//            GL43.glPopMatrix();
-//            GL11.glMatrixMode(GL11.GL_MODELVIEW);
-//            GL43.glPopMatrix();
-//            RenderSystem.depthMask(true);
-//            RenderSystem.enableDepthTest();
-//            GlStateManager.enableAlphaTest();
-//            RenderSystem.enableTexture();
-//            RenderSystem.enableCull();
+            float f1 = (float)j / (float)i * (float)Math.PI * 2.0F;
+            float f2 = (float)((double)(width / 2) + Math.cos((double)f1) * (double)f);
+            float f3 = (float)((double)(width / 2) + Math.sin((double)f1) * (double)f);
+            GL11.glVertex2f(f2, f3);
+        }
+        GL11.glEnd();
+    }
+    
+    private void drawMask() {
+		Minecraft mc = Minecraft.getInstance();
+		float[] verts = getStencilMask(mc.currentPass);
+		if (verts == null) return;
+		
+        GL11.glBegin(GL11.GL_TRIANGLES);
+
+        for (int i = 0; i < verts.length; i += 2)
+        {
+            GL11.glVertex2f(verts[i] * mc.vrRenderer.renderScale, verts[i + 1] * mc.vrRenderer.renderScale);
         }
 
-        GL11.glStencilFunc(GL11.GL_NOTEQUAL, 255, 1);
-        GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
-        GL11.glStencilMask(0);
+        GL11.glEnd();
     }
 
-    public void drawQuad()
+    private void drawQuad()
     {
         GL11.glBegin(GL11.GL_QUADS);
         GL11.glTexCoord2f(0.0F, 0.0F);

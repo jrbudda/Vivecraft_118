@@ -40,10 +40,6 @@ public class ASMDelegator
             ItemStack itemstack4 = (new ItemStack(Items.SHEARS)).setHoverName(new TranslatableComponent("vivecraft.item.climbclaws"));
             itemstack4.getTag().putBoolean("Unbreakable", true);
             itemstack4.getTag().putInt("HideFlags", 4);
-            ItemStack itemstack2 = (new ItemStack(Items.ENDER_EYE)).setHoverName(new TranslatableComponent("vivecraft.item.telescope"));
-            itemstack2.getTag().putBoolean("Unbreakable", true);
-            itemstack2.getTag().putInt("HideFlags", 4);
-            list.add(itemstack2);
             list.add(itemstack3);
             list.add(itemstack4);
         }
