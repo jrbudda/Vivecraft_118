@@ -21,6 +21,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.vivecraft.gameplay.VRPlayer;
 import org.vivecraft.render.PlayerModelController;
+import org.vivecraft.render.RenderPass;
 import org.vivecraft.settings.AutoCalibration;
 import org.vivecraft.settings.VRSettings;
 import org.vivecraft.utils.lwjgl.Matrix4f;
@@ -126,7 +127,7 @@ public class NetworkHelper
                 ((Buffer)floatbuffer).rewind();
                 Matrix4f matrix4f = new Matrix4f();
                 matrix4f.load(floatbuffer);
-                Vec3 vec3 = player.vrdata_world_post.getHeadPivot().subtract(Minecraft.getInstance().player.position());
+                Vec3 vec3 = player.vrdata_world_post.getEye(RenderPass.CENTER).getPosition().subtract(Minecraft.getInstance().player.position());
                 Quaternion quaternion = new Quaternion(matrix4f);
                 ByteBuf bytebuf1 = Unpooled.buffer();
                 bytebuf1.writeBoolean(Minecraft.getInstance().vrSettings.seated);

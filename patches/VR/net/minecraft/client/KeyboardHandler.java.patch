@@ -1,6 +1,14 @@
 --- a/net/minecraft/client/KeyboardHandler.java
 +++ b/net/minecraft/client/KeyboardHandler.java
-@@ -43,6 +43,9 @@
+@@ -15,6 +15,7 @@
+ import net.minecraft.client.gui.components.ChatComponent;
+ import net.minecraft.client.gui.components.EditBox;
+ import net.minecraft.client.gui.components.events.GuiEventListener;
++import net.minecraft.client.gui.screens.ChatScreen;
+ import net.minecraft.client.gui.screens.Screen;
+ import net.minecraft.client.gui.screens.SimpleOptionsSubScreen;
+ import net.minecraft.client.gui.screens.controls.ControlsScreen;
+@@ -43,6 +44,9 @@
  import net.optifine.reflect.Reflector;
  import net.optifine.shaders.Shaders;
  import net.optifine.shaders.gui.GuiShaderOptions;
@@ -10,7 +18,7 @@
  
  public class KeyboardHandler
  {
-@@ -411,6 +414,26 @@
+@@ -411,6 +415,29 @@
      {
          if (pWindowPointer == this.minecraft.getWindow().getWindow())
          {
@@ -19,6 +27,9 @@
 +                if (org.vivecraft.gameplay.screenhandlers.KeyboardHandler.Showing)
 +                {
 +                    org.vivecraft.gameplay.screenhandlers.KeyboardHandler.setOverlayShowing(false);
++                    if(minecraft.screen instanceof ChatScreen) {
++                    	minecraft.screen.onClose();
++                    }
 +                    return;
 +                }
 +
@@ -37,7 +48,7 @@
              if (this.debugCrashKeyTime > 0L)
              {
                  if (!InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 67) || !InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 292))
-@@ -445,13 +468,15 @@
+@@ -445,13 +472,15 @@
                          if (Screen.hasControlDown())
                          {
                          }
@@ -60,7 +71,7 @@
                          return;
                      }
                  }
-@@ -537,7 +562,7 @@
+@@ -537,7 +566,7 @@
                  }
              }
  
@@ -69,7 +80,7 @@
              {
                  InputConstants.Key inputconstants$key = InputConstants.getKey(p_90895_, pKey);
  
-@@ -595,6 +620,7 @@
+@@ -595,6 +624,7 @@
                          if (p_90895_ == 290)
                          {
                              this.minecraft.options.hideGui = !this.minecraft.options.hideGui;
@@ -77,7 +88,7 @@
                          }
                      }
  
-@@ -619,7 +645,7 @@
+@@ -619,7 +649,7 @@
          }
      }
  

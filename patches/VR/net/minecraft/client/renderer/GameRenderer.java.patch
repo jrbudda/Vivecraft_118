@@ -731,7 +731,7 @@
          }
      }
  
-@@ -2222,4 +2417,2249 @@
+@@ -2222,4 +2417,2253 @@
      {
          return rendertypeCrumblingShader;
      }
@@ -1264,7 +1264,7 @@
 +	        RenderSystem.depthFunc(515);
 +	    }
 +	
-+	    Vec3i vec3i = new Vec3i(200 - 127 * c, 200 - 127 * c, 200 - 127 * c);
++	    Vec3i vec3i = new Vec3i(64, 64, 64);
 +	    byte b0 = -1;
 +	    Vec3 vec3 = new Vec3(0.0D, 0.0D, 0.0D);
 +	    Vec3 vec31 = this.minecraft.vrPlayer.vrdata_world_render.getController(c).getDirection();
@@ -1382,7 +1382,8 @@
 +	    {
 +	        SmartAnimations.spriteRendered(textureatlassprite);
 +	    }
-+	
++
++	    RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
 +	    RenderSystem.setShaderTexture(0, textureatlassprite.atlas().location());
 +	    float f = textureatlassprite.getU0();
 +	    float f1 = textureatlassprite.getU1();
@@ -1487,7 +1488,9 @@
 +	    if (this.minecraft.currentPass != RenderPass.SCOPEL && this.minecraft.currentPass != RenderPass.SCOPER)
 +	    {
 +	        this.lightTexture.turnOffLightLayer();
++            matrixStackIn.pushPose();
 +	        RenderSystem.enableDepthTest();
++            RenderSystem.enableTexture();
 +
 +	        if (i == 0)
 +	        {
@@ -1500,16 +1503,17 @@
 +                RenderSystem.setShaderTexture(0, this.minecraft.vrRenderer.telescopeFramebufferL.getColorTextureId());
 +	        }
 +
-+	        matrixStackIn.pushPose();
-+	        float scale = 0.0785F;
-+	        RenderSystem.enableTexture();
++            float scale = 0.0785F;
 +            //actual framebuffer
 +	        float f = TelescopeTracker.viewPercent(i);
-+	        this.drawSizedQuadWithLightmap(720.0F, 720.0F, scale, LightTexture.pack((int)(f*15.0),(int)(f*15.0)), matrixStackIn.last().pose());
++	        this.drawSizedQuad(720.0F, 720.0F, scale, new float[]{f, f, f, 1}, matrixStackIn.last().pose());
++
 +	        RenderSystem.setShaderTexture(0, Gui.SPYGLASS_SCOPE_LOCATION);
 +	        RenderSystem.enableBlend();
++            matrixStackIn.translate(0.0D, 0.0D, 0.00001D);
 +	        int light = LevelRenderer.getLightColor(this.minecraft.level, new BlockPos(minecraft.vrPlayer.vrdata_world_render.getController(i).getPosition()));
 +	        this.drawSizedQuadWithLightmap(720.0F, 720.0F, scale, light, matrixStackIn.last().pose());
++
 +            matrixStackIn.popPose();
 +	        this.lightTexture.turnOnLightLayer();
 +	    }

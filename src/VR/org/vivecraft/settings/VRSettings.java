@@ -31,6 +31,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.vivecraft.gameplay.VRPlayer;
+import org.vivecraft.gameplay.screenhandlers.KeyboardHandler;
+import org.vivecraft.gui.PhysicalKeyboard;
 import org.vivecraft.reflection.MCReflection;
 import org.vivecraft.settings.profile.ProfileManager;
 import org.vivecraft.settings.profile.ProfileReader;
@@ -369,6 +371,8 @@ public class VRSettings
     public boolean physicalKeyboard = true;
     @SettingField(VrOptions.PHYSICAL_KEYBOARD_SCALE)
     public float physicalKeyboardScale = 1.0f;
+    @SettingField(VrOptions.PHYSICAL_KEYBOARD_THEME)
+    public PhysicalKeyboard.KeyboardTheme physicalKeyboardTheme = PhysicalKeyboard.KeyboardTheme.DEFAULT;
     @SettingField(VrOptions.ALLOW_ADVANCED_BINDINGS)
     public boolean allowAdvancedBindings = false;
     @SettingField(VrOptions.CHAT_NOTIFICATIONS)
@@ -915,6 +919,7 @@ public class VRSettings
                 field.set(this, f);
             }
 
+            par1EnumOptions.onOptionChange();
             this.saveOptions();
         } catch (Exception ex) {
             System.out.println("Failed to set VR option float value: " + par1EnumOptions);
@@ -1058,7 +1063,13 @@ public class VRSettings
         AUTO_OPEN_KEYBOARD(false, true), // Always Open Keyboard
         RADIAL_MODE_HOLD(false, true, "vivecraft.options.hold", "vivecraft.options.press"), // Radial Menu Mode
         PHYSICAL_KEYBOARD(false, true, "vivecraft.options.keyboard.physical", "vivecraft.options.keyboard.pointer"), // Keyboard Type
-        PHYSICAL_KEYBOARD_SCALE(true, false, 0.75f, 1.5f, 0.01f, -1), // Keyboard Size
+        PHYSICAL_KEYBOARD_SCALE(true, false, 0.75f, 1.5f, 0.01f, -1) { // Keyboard Size
+            @Override
+            void onOptionChange() {
+                KeyboardHandler.physicalKeyboard.setScale(Minecraft.getInstance().vrSettings.physicalKeyboardScale);
+            }
+        },
+        PHYSICAL_KEYBOARD_THEME(false, false), // Keyboard Theme
         GUI_APPEAR_OVER_BLOCK(false, true), // Appear Over Block
         //HMD/render
         FSAA(false, true), // Lanczos Scaler

@@ -2,7 +2,7 @@ import os, os.path, sys, tempfile, re
 import shutil, fnmatch
 import subprocess, shlex
 from optparse import OptionParser
-from minecriftversion import mc_version, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version
+from minecriftversion import mc_version, minecrift_version_num, of_file_extension, of_file_md5, mcp_version
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 

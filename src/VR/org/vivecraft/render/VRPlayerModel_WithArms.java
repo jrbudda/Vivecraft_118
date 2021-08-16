@@ -10,6 +10,8 @@ import com.mojang.math.Vector3f;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.ModelPart.Polygon;
+import net.minecraft.client.model.geom.ModelPart.Vertex;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
@@ -28,6 +30,8 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 	private final boolean slim;
 	public ModelPart leftShoulder;
 	public ModelPart rightShoulder;
+	public ModelPart leftShoulder_sleeve;
+	public ModelPart rightShoulder_sleeve;
 	public ModelPart leftHand;
 	public ModelPart rightHand;
 	PlayerModelController.RotInfo rotInfo;
@@ -40,6 +44,8 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 		this.slim = p_170822_;
 		this.leftShoulder = p_170821_.getChilds("leftShoulder");
 		this.rightShoulder = p_170821_.getChilds("rightShoulder");
+		this.leftShoulder_sleeve = p_170821_.getChilds("leftShoulder_sleeve");
+		this.rightShoulder_sleeve = p_170821_.getChilds("rightShoulder_sleeve");
 		this.rightHand = p_170821_.getChilds("rightHand");
 		this.leftHand = p_170821_.getChilds("leftHand");
 
@@ -49,6 +55,12 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 		}).collect(ImmutableList.toImmutableList());
 	}
 
+	private void copyUV(Polygon source, Polygon dest) {
+		for (int i = 0; i < source.vertices.length; i++) {
+			dest.vertices[i] = new Vertex(dest.vertices[i].pos, source.vertices[i].u, source.vertices[i].v);
+		}
+	}
+	
 	public static MeshDefinition createMesh(CubeDeformation p_170826_, boolean p_170827_)
 	{
 		MeshDefinition meshdefinition = VRPlayerModel.createMesh(p_170826_, false);
@@ -59,19 +71,24 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 		partdefinition.addOrReplaceChild("right_arm", CubeListBuilder.create(), PartPose.ZERO);
 
 		if(p_170827_) {
-			partdefinition.addOrReplaceChild("leftHand", CubeListBuilder.create().texOffs(32, 56).addBox(-1.0F, -2.0F, -2.0F, 3.0F, 4.0F, 4.0F, p_170826_), PartPose.offset(5.0F, 2.5F, 0.0F));
-			partdefinition.addOrReplaceChild("left_sleeve", CubeListBuilder.create().texOffs(32, 56).addBox(-1.0F, -2.0F, -2.0F, 3.0F, 4.0F, 4.0F, p_170826_.extend(0.25f)), PartPose.offset(5.0F, 2.5F, 0.0F));
-			partdefinition.addOrReplaceChild("rightHand", CubeListBuilder.create().texOffs(40, 24).addBox(-2.0F, -2.0F, -2.0F, 3.0F, 4.0F, 4.0F, p_170826_), PartPose.offset(-5.0F, 2.5F, 0.0F));
-			partdefinition.addOrReplaceChild("right_sleeve", CubeListBuilder.create().texOffs(40, 24).addBox(-2.0F, -2.0F, -2.0F, 3.0F, 4.0F, 4.0F, p_170826_.extend(0.25f)), PartPose.offset(-5.0F, 2.5F, 0.0F));
-			partdefinition.addOrReplaceChild("leftShoulder", CubeListBuilder.create().texOffs(48, 48).addBox(-1.0F, -2.0F, -2.0F, 3.0F, 4.0F, 4.0F, p_170826_.extend(0.25F)), PartPose.offset(5.0F, 2.5F, 0.0F));
-			partdefinition.addOrReplaceChild("rightShoulder", CubeListBuilder.create().texOffs(40, 32).addBox(-2.0F, -2.0F, -2.0F, 3.0F, 4.0F, 4.0F, p_170826_.extend(0.25F)), PartPose.offset(-5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("leftHand", CubeListBuilder.create().texOffs(32, 55).addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, p_170826_), PartPose.offset(5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("left_sleeve", CubeListBuilder.create().texOffs(48, 55).addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, p_170826_.extend(0.25f)), PartPose.offset(5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("rightHand", CubeListBuilder.create().texOffs(40, 23).addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, p_170826_), PartPose.offset(-5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("right_sleeve", CubeListBuilder.create().texOffs(40, 39).addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, p_170826_.extend(0.25f)), PartPose.offset(-5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("leftShoulder", CubeListBuilder.create().texOffs(32, 48).addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, p_170826_), PartPose.offset(5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("rightShoulder", CubeListBuilder.create().texOffs(40, 16).addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, p_170826_), PartPose.offset(-5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("leftShoulder_sleeve", CubeListBuilder.create().texOffs(48, 48).addBox(-1.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, p_170826_.extend(0.25f)), PartPose.offset(5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("rightShoulder_sleeve", CubeListBuilder.create().texOffs(40, 16).addBox(-2.0F, -2.0F, -2.0F, 3.0F, 5.0F, 4.0F, p_170826_.extend(0.25f)), PartPose.offset(-5.0F, 2.5F, 0.0F));
 		}else {
-			partdefinition.addOrReplaceChild("leftHand", CubeListBuilder.create().texOffs(32, 56).addBox(-1.0F, -2.0F, -2.0F, 4.0F, 4.0F, 4.0F, p_170826_), PartPose.offset(5.0F, 2.5F, 0.0F));
-			partdefinition.addOrReplaceChild("left_sleeve", CubeListBuilder.create().texOffs(32, 56).addBox(-1.0F, -2.0F, -2.0F, 4.0F, 4.0F, 4.0F, p_170826_.extend(0.25f)), PartPose.offset(5.0F, 2.5F, 0.0F));
-			partdefinition.addOrReplaceChild("rightHand", CubeListBuilder.create().texOffs(40, 24).addBox(-2.0F, -2.0F, -2.0F, 4.0F, 4.0F, 4.0F, p_170826_), PartPose.offset(-5.0F, 2.5F, 0.0F));
-			partdefinition.addOrReplaceChild("right_sleeve", CubeListBuilder.create().texOffs(40, 24).addBox(-2.0F, -2.0F, -2.0F, 4.0F, 4.0F, 4.0F, p_170826_.extend(0.25f)), PartPose.offset(-5.0F, 2.5F, 0.0F));
-			partdefinition.addOrReplaceChild("leftShoulder", CubeListBuilder.create().texOffs(48, 48).addBox(-1.0F, -2.0F, -2.0F, 4.0F, 4.0F, 4.0F, p_170826_.extend(0.25F)), PartPose.offset(5.0F, 2.5F, 0.0F));
-			partdefinition.addOrReplaceChild("rightShoulder", CubeListBuilder.create().texOffs(40, 32).addBox(-2.0F, -2.0F, -2.0F, 4.0F, 4.0F, 4.0F, p_170826_.extend(0.25F)), PartPose.offset(-5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("leftHand", CubeListBuilder.create().texOffs(32, 55).addBox(-1.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, p_170826_), PartPose.offset(5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("left_sleeve", CubeListBuilder.create().texOffs(48, 55).addBox(-1.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, p_170826_.extend(0.25f)), PartPose.offset(5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("rightHand", CubeListBuilder.create().texOffs(40, 23).addBox(-2.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, p_170826_), PartPose.offset(-5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("right_sleeve", CubeListBuilder.create().texOffs(40, 39).addBox(-2.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, p_170826_.extend(0.25f)), PartPose.offset(-5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("leftShoulder", CubeListBuilder.create().texOffs(32, 48).addBox(-1.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, p_170826_), PartPose.offset(5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("rightShoulder", CubeListBuilder.create().texOffs(40, 16).addBox(-2.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, p_170826_), PartPose.offset(-5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("leftShoulder_sleeve", CubeListBuilder.create().texOffs(48, 48).addBox(-1.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, p_170826_.extend(0.25f)), PartPose.offset(5.0F, 2.5F, 0.0F));
+			partdefinition.addOrReplaceChild("rightShoulder_sleeve", CubeListBuilder.create().texOffs(40, 32).addBox(-2.0F, -2.0F, -2.0F, 4.0F, 5.0F, 4.0F, p_170826_.extend(0.25f)), PartPose.offset(-5.0F, 2.5F, 0.0F));
+
 		}
 		return meshdefinition;
 	}
@@ -79,7 +96,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 
 	protected Iterable<ModelPart> bodyParts()
 	{
-        return ImmutableList.of(this.body, this.leftHand, this.rightHand,this.leftShoulder, this.rightShoulder, this.rightLeg, this.leftLeg, this.hat, this.leftPants, this.rightPants, this.leftSleeve, this.rightSleeve, this.jacket);
+        return ImmutableList.of(this.body, this.leftHand, this.rightHand,this.leftShoulder, this.rightShoulder,this.leftShoulder_sleeve, this.rightShoulder_sleeve,  this.rightLeg, this.leftLeg, this.hat, this.leftPants, this.rightPants, this.leftSleeve, this.rightSleeve, this.jacket);
 	}
 
 	public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch)
@@ -185,7 +202,22 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 
 		this.leftSleeve.copyFrom(this.leftHand);
 		this.rightSleeve.copyFrom(this.rightHand);
-
+		this.leftShoulder_sleeve.copyFrom(this.leftShoulder);
+		this.rightShoulder_sleeve.copyFrom(this.rightShoulder);
+		this.leftShoulder_sleeve.visible = this.leftSleeve.visible;
+		this.rightShoulder_sleeve.visible = this.rightSleeve.visible;
+		
+		int i = 3;
+		//finger hax
+		copyUV(rightShoulder.cubes.get(0).polygons[3], this.rightHand.cubes.get(0).polygons[3]);	
+		copyUV(leftShoulder.cubes.get(0).polygons[3], leftHand.cubes.get(0).polygons[3]);
+		copyUV(rightShoulder.cubes.get(0).polygons[3], this.rightHand.cubes.get(0).polygons[2]);	
+		copyUV(leftShoulder.cubes.get(0).polygons[3], leftHand.cubes.get(0).polygons[2]);
+		
+		copyUV(rightShoulder_sleeve.cubes.get(0).polygons[3], this.rightSleeve.cubes.get(0).polygons[3]);	
+		copyUV(leftShoulder_sleeve.cubes.get(0).polygons[3], leftSleeve.cubes.get(0).polygons[3]);
+		copyUV(rightShoulder_sleeve.cubes.get(0).polygons[3], this.rightSleeve.cubes.get(0).polygons[2]);	
+		copyUV(leftShoulder_sleeve.cubes.get(0).polygons[3], leftSleeve.cubes.get(0).polygons[2]);
 	}
 
 	public void setAllVisible(boolean pVisible)
@@ -194,6 +226,8 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 
 		this.rightShoulder.visible = pVisible;
 		this.leftShoulder.visible = pVisible;
+		this.rightShoulder_sleeve.visible = pVisible;
+		this.leftShoulder_sleeve.visible = pVisible;
 		this.rightHand.visible = pVisible;
 		this.leftHand.visible = pVisible;
 		this.leftArm.visible = false;

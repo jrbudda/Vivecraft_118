@@ -8,10 +8,19 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -32,6 +41,7 @@ import org.vivecraft.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.provider.ControllerType;
 import org.vivecraft.provider.InputSimulator;
 import org.vivecraft.provider.MCVR;
+import org.vivecraft.settings.OptionEnum;
 import org.vivecraft.utils.RGBAColor;
 import org.vivecraft.utils.Utils;
 import org.vivecraft.utils.lwjgl.Matrix4f;
@@ -73,6 +83,7 @@ public class PhysicalKeyboard
     };
     private int easterEggIndex = 0;
     private boolean easterEggActive;
+    private Map<Integer, RGBAColor> customTheme = new HashMap<>();
 
     public PhysicalKeyboard()
     {
@@ -301,6 +312,53 @@ public class PhysicalKeyboard
             }
         }
 
+        if (mc.vrSettings.physicalKeyboardTheme == KeyboardTheme.CUSTOM) {
+            customTheme.clear();
+            File themeFile = new File(mc.gameDirectory, "keyboardtheme.txt");
+            if (!themeFile.exists()) {
+                // Write template theme file
+                try (PrintWriter pw = new PrintWriter(new FileWriter(themeFile, StandardCharsets.UTF_8))) {
+                    char[] normalChars = this.mc.vrSettings.keyboardKeys.toCharArray();
+                    for (int i = 0; i < normalChars.length; i++) {
+                        pw.println("# " + normalChars[i] + " (Normal)");
+                        pw.println(i + "=255,255,255");
+                    }
+                    char[] shiftChars = this.mc.vrSettings.keyboardKeysShift.toCharArray();
+                    for (int i = 0; i < shiftChars.length; i++) {
+                        pw.println("# " + shiftChars[i] + " (Shifted)");
+                        pw.println((i + 500) + "=255,255,255");
+                    }
+                    this.keys.forEach(button -> {
+                        if (button.id >= 1000) {
+                            pw.println("# " + button.label);
+                            pw.println(button.id + "=255,255,255");
+                        }
+                    });
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            } else {
+                // Load theme file
+                try (Stream<String> lines = Files.lines(Paths.get(themeFile.toURI()), StandardCharsets.UTF_8)) {
+                    lines.forEach(line -> {
+                        if (line.length() == 0 || line.charAt(0) == '#') return;
+                        try {
+                            String[] split = line.split("=", 2);
+                            int id = Integer.parseInt(split[0]);
+                            String[] colorSplit = split[1].split(",");
+                            RGBAColor color = new RGBAColor(Integer.parseInt(colorSplit[0]), Integer.parseInt(colorSplit[1]), Integer.parseInt(colorSplit[2]), 255);
+                            customTheme.put(id, color);
+                        } catch (Exception ex) {
+                            System.out.println("Bad theme line: " + line);
+                            ex.printStackTrace();
+                        }
+                    });
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+
         this.reinit = false;
     }
 
@@ -451,16 +509,27 @@ public class PhysicalKeyboard
         GlStateManager.alphaFunc(GL11.GL_GREATER, 0.0F);
         RenderSystem.enableBlend();
 
-        if (this.easterEggActive)
-        {
+        if (this.easterEggActive) {
             // https://qimg.techjargaming.com/i/UkG1cWAh.png
-            for (PhysicalKeyboard.KeyButton physicalkeyboard$keybutton : this.keys)
-            {
-                RGBAColor color = RGBAColor.fromHSB(((float)this.mc.tickCounter + this.mc.getFrameTime()) / 100.0F + (float)(physicalkeyboard$keybutton.boundingBox.minX + (physicalkeyboard$keybutton.boundingBox.maxX - physicalkeyboard$keybutton.boundingBox.minX) / 2.0D) / 2.0F, 1.0F, 1.0F);
-                physicalkeyboard$keybutton.color.r = color.r;
-                physicalkeyboard$keybutton.color.g = color.g;
-                physicalkeyboard$keybutton.color.b = color.b;
+            for (PhysicalKeyboard.KeyButton button : this.keys) {
+                RGBAColor color = RGBAColor.fromHSB(((float)this.mc.tickCounter + this.mc.getFrameTime()) / 100.0F + (float)(button.boundingBox.minX + (button.boundingBox.maxX - button.boundingBox.minX) / 2.0D) / 2.0F, 1.0F, 1.0F);
+                button.color.r = color.r;
+                button.color.g = color.g;
+                button.color.b = color.b;
             }
+        } else {
+            this.keys.forEach(button -> {
+                if (mc.vrSettings.physicalKeyboardTheme == KeyboardTheme.CUSTOM) {
+                    RGBAColor color = customTheme.get(this.shift && button.id < 1000 ? button.id + 500 : button.id);
+                    if (color != null) {
+                        button.color.r = color.r;
+                        button.color.g = color.g;
+                        button.color.b = color.b;
+                    }
+                } else {
+                    mc.vrSettings.physicalKeyboardTheme.assignColor(button);
+                }
+            });
         }
 
         RenderSystem.setShader(GameRenderer::getPositionTexColorNormalShader);
@@ -639,5 +708,101 @@ public class PhysicalKeyboard
         }
 
         public abstract void onPressed();
+    }
+
+    public enum KeyboardTheme implements OptionEnum<KeyboardTheme> {
+        DEFAULT {
+            @Override
+            public void assignColor(KeyButton button) {
+                button.color.r = 1.0F;
+                button.color.g = 1.0F;
+                button.color.b = 1.0F;
+            }
+        },
+        RED {
+            @Override
+            public void assignColor(KeyButton button) {
+                button.color.r = 1.0F;
+                button.color.g = 0.0F;
+                button.color.b = 0.0F;
+            }
+        },
+        GREEN {
+            @Override
+            public void assignColor(KeyButton button) {
+                button.color.r = 0.0F;
+                button.color.g = 1.0F;
+                button.color.b = 0.0F;
+            }
+        },
+        BLUE {
+            @Override
+            public void assignColor(KeyButton button) {
+                button.color.r = 0.0F;
+                button.color.g = 0.0F;
+                button.color.b = 1.0F;
+            }
+        },
+        BLACK {
+            @Override
+            public void assignColor(KeyButton button) {
+                button.color.r = 0.0F;
+                button.color.g = 0.0F;
+                button.color.b = 0.0F;
+            }
+        },
+        GRASS {
+            @Override
+            public void assignColor(KeyButton button) {
+                if (button.boundingBox.maxY < 0.07D) {
+                    button.color.r = 0.321F;
+                    button.color.g = 0.584F;
+                    button.color.b = 0.184F;
+                } else {
+                    button.color.r = 0.607F;
+                    button.color.g = 0.462F;
+                    button.color.b = 0.325F;
+                }
+            }
+        },
+        BEES {
+            @Override
+            public void assignColor(KeyButton button) {
+                float val = button.boundingBox.maxX % 0.2D < 0.1D ? 1.0F : 0.0F;
+                button.color.r = val;
+                button.color.g = val;
+                button.color.b = 0.0F;
+            }
+        },
+        AESTHETIC {
+            @Override
+            public void assignColor(KeyButton button) {
+                if (button.id >= 1000) {
+                    button.color.r = 0.0F;
+                    button.color.g = 1.0F;
+                    button.color.b = 1.0F;
+                } else {
+                    button.color.r = 1.0F;
+                    button.color.g = 0.0F;
+                    button.color.b = 1.0F;
+                }
+            }
+        },
+        DOSE {
+            @Override
+            public void assignColor(KeyButton button) {
+                button.color.r = button.id % 2 == 0 ? 0.5F : 0.0F;
+                button.color.g = button.id % 2 == 0 ? 0.0F : 1.0F;
+                button.color.b = button.id % 2 == 0 ? 1.0F : 0.0F;
+            }
+        },
+        CUSTOM {
+            @Override
+            public void assignColor(KeyButton button) {
+                // Handled elsewhere
+            }
+        };
+
+        public abstract void assignColor(KeyButton button);
     }
 }

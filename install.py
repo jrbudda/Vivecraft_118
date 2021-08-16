@@ -13,7 +13,7 @@ from shutil import move
 from tempfile import mkstemp
 from os import remove, close
 from minecriftversion import mc_version, of_file_name, minecrift_version_num, \
-    minecrift_build, of_file_extension, of_file_md5, of_build_md5, mcp_version, mc_file_md5, \
+    of_file_extension, of_file_md5, of_build_md5, mcp_version, mc_file_md5, \
     mcp_download_url, mcp_uses_generics 
 from hashlib import md5  # pylint: disable-msg=E0611
 from optparse import OptionParser

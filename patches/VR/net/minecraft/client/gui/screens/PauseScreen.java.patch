@@ -1,8 +1,9 @@
 --- a/net/minecraft/client/gui/screens/PauseScreen.java
 +++ b/net/minecraft/client/gui/screens/PauseScreen.java
-@@ -1,13 +1,22 @@
+@@ -1,13 +1,23 @@
  package net.minecraft.client.gui.screens;
  
++import org.vivecraft.gameplay.screenhandlers.KeyboardHandler;
 +import org.vivecraft.gui.settings.GuiQuickCommandsInGame;
 +import org.vivecraft.settings.AutoCalibration;
 +import org.vivecraft.settings.VRHotkeys;
@@ -23,7 +24,7 @@
  import net.minecraft.network.chat.Component;
  import net.minecraft.network.chat.TranslatableComponent;
  
-@@ -30,6 +39,82 @@
+@@ -30,6 +40,84 @@
          {
              this.createPauseMenu();
          }
@@ -33,6 +34,8 @@
 +            this.addRenderableWidget(new Button(this.width / 2 - 102, this.height / 4 + 72 + -16, 98, 20, new TranslatableComponent("vivecraft.gui.chat"), (p) ->
 +            {
 +                this.minecraft.setScreen(new ChatScreen(""));
++                if (minecraft.vrSettings.autoOpenKeyboard)
++                	KeyboardHandler.setOverlayShowing(true);
 +            }));
 +        }
 +        else
@@ -106,7 +109,7 @@
      }
  
      private void createPauseMenu()
-@@ -49,29 +134,29 @@
+@@ -49,29 +137,29 @@
          {
              this.minecraft.setScreen(new StatsScreen(this, this.minecraft.player.getStats()));
          }));
@@ -159,7 +162,7 @@
          this.addRenderableWidget(new Button(this.width / 2 - 102, this.height / 4 + 96 + -16, 98, 20, new TranslatableComponent("menu.options"), (p_96323_) ->
          {
              this.minecraft.setScreen(new OptionsScreen(this, this.minecraft.options));
-@@ -82,7 +167,9 @@
+@@ -82,7 +170,9 @@
          }));
          button.active = this.minecraft.hasSingleplayerServer() && !this.minecraft.getSingleplayerServer().isPublished();
          Component component = this.minecraft.isLocalServer() ? new TranslatableComponent("menu.returnToMenu") : new TranslatableComponent("menu.disconnect");

@@ -180,14 +180,17 @@ def create_install(mcp_dir, vrversion = "VR"):
     elif os.getenv("BUILD_NUMBER"):
         version = "b"+os.getenv("BUILD_NUMBER")
     else:
-        version = minecrift_build
+        if vrversion == "VR":
+            version = vr_build
+        else:
+            version = nonvr_build
 
     version = minecrift_version_num+"-"+version
     
     # Replace version info in installer.java
     print "Updating installer versions..."
     installer_java_file = os.path.join("installer","Installer.java")
-    replacelineinfile( installer_java_file, "private static final String PROJECT_NAME",          "    private static final String PROJECT_NAME          = \"%s\";\n" % (project_name + " " + vrversion) );
+    replacelineinfile( installer_java_file, "private static final String PROJECT_NAME",          "    private static final String PROJECT_NAME          = \"%s\";\n" % (project_name) );
     replacelineinfile( installer_java_file, "private static final String MINECRAFT_VERSION",     "    private static final String MINECRAFT_VERSION     = \"%s\";\n" % mc_version );
     replacelineinfile( installer_java_file, "private static final String MC_VERSION",            "    private static final String MC_VERSION            = \"%s\";\n" % minecrift_version_num );
     replacelineinfile( installer_java_file, "private static final String MC_MD5",                "    private static final String MC_MD5                = \"%s\";\n" % mc_file_md5 );
@@ -213,7 +216,7 @@ def create_install(mcp_dir, vrversion = "VR"):
             bufsize=-1).communicate()
 	
     artifact_id = "vivecraft-"+version
-    installer_id = artifact_id+"-" + vrversion + "-installer"  
+    installer_id = artifact_id + "-installer"  
     installer = os.path.join( installer_id+".jar" ) 
     shutil.copy( os.path.join("installer","installer.jar"), installer )
     with zipfile.ZipFile( installer,'a', zipfile.ZIP_DEFLATED) as install_out: #append to installer.jar
@@ -284,11 +287,13 @@ def main(mcp_dir, version = "VR"):
     reallyrmtree(srg)
     reallyrmtree(obf)
 		       
+    minecrift_build = vr_build if version == "VR" else nonvr_build 
+    
     # Update Minecrift version
     minecraft_java_file = os.path.join(mcp_dir,'src','minecraft','net','minecraft','client','Minecraft.java')
     if os.path.exists(minecraft_java_file):
-        print "Updating Minecraft.java with Vivecraft version: [Vivecraft %s %s %s] %s" % ( minecrift_version_num, version, minecrift_build, minecraft_java_file ) 
-        replacelineinfile( minecraft_java_file, "public final String minecriftVerString",     "    public final String minecriftVerString = \"Vivecraft %s %s %s\";\n" % (minecrift_version_num, version, minecrift_build) );        
+        print "Updating Minecraft.java with Vivecraft version: [Vivecraft %s %s %s] %s" % ( minecrift_version_num, "", minecrift_build, minecraft_java_file ) 
+        replacelineinfile( minecraft_java_file, "public final String minecriftVerString",     "    public final String minecriftVerString = \"Vivecraft %s %s %s\";\n" % (minecrift_version_num, "", minecrift_build) );        
 
     print("Recompiling...")
     from runtime.mcp import recompile_side, reobfuscate_side

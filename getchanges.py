@@ -4,7 +4,7 @@ import os, os.path, sys
 import shutil, glob, fnmatch
 import subprocess, logging, shlex, re
 from optparse import OptionParser
-from minecriftversion import mcp_version, minecrift_version_num, minecrift_build
+from minecriftversion import mcp_version, minecrift_version_num
 from build import replacelineinfile
 
 base_dir = os.path.dirname(os.path.abspath(__file__))

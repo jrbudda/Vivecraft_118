@@ -23,6 +23,7 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.optifine.model.QuadBounds;
+import org.lwjgl.opengl.GL11;
 
 import org.vivecraft.gameplay.trackers.CameraTracker;
 import org.vivecraft.settings.VRHotkeys;
@@ -52,6 +53,7 @@ public class VRWidgetHelper
                 renderVRCameraWidget(-0.748F, -0.438F, -0.06F, f, RenderPass.THIRD, GameRenderer.thirdPersonCameraModel, GameRenderer.thirdPersonCameraDisplayModel, () ->
                 {
                     minecraft.vrRenderer.framebufferMR.bindRead();
+                    RenderSystem.setShaderTexture(0, minecraft.vrRenderer.framebufferMR.getColorTextureId());
                 }, (face) ->
                 {
                     if (face == Direction.NORTH)
@@ -84,6 +86,7 @@ public class VRWidgetHelper
                 if (minecraft.getItemInHandRenderer().getNearOpaqueBlock(minecraft.vrPlayer.vrdata_world_render.getEye(RenderPass.CAMERA).getPosition(), (double)minecraft.gameRenderer.minClipDistance) == null)
                 {
                     minecraft.vrRenderer.cameraFramebuffer.bindRead();
+                    RenderSystem.setShaderTexture(0, minecraft.vrRenderer.cameraFramebuffer.getColorTextureId());
                 }
                 else {
                 	RenderSystem.setShaderTexture(0, new ResourceLocation("vivecraft:textures/black.png"));
@@ -98,15 +101,17 @@ public class VRWidgetHelper
     public static void renderVRCameraWidget(float offsetX, float offsetY, float offsetZ, float scale, RenderPass renderPass, ModelResourceLocation model, ModelResourceLocation displayModel, Runnable displayBindFunc, Function<Direction, VRWidgetHelper.DisplayFace> displayFaceFunc)
     {
         Minecraft minecraft = Minecraft.getInstance();
-        PoseStack poseStack = new PoseStack();
+        PoseStack poseStack = RenderSystem.getModelViewStack();
+        poseStack.pushPose();
+        poseStack.setIdentity();
         minecraft.gameRenderer.applyVRModelView(minecraft.currentPass, poseStack);
+
         Vec3 vec3 = minecraft.vrPlayer.vrdata_world_render.getEye(renderPass).getPosition();
         Vec3 vec31 = minecraft.vrPlayer.vrdata_world_render.getEye(minecraft.currentPass).getPosition();
         Vec3 vec32 = vec3.subtract(vec31);
-        RenderSystem.enableDepthTest();
-        RenderSystem.defaultBlendFunc();
+
         poseStack.translate(vec32.x, vec32.y, vec32.z);
-        //RenderSystem.multMatrix(minecraft.vrPlayer.vrdata_world_render.getEye(renderPass).getMatrix().toMCMatrix());
+        poseStack.mulPoseMatrix(minecraft.vrPlayer.vrdata_world_render.getEye(renderPass).getMatrix().toMCMatrix());
         scale = scale * minecraft.vrPlayer.vrdata_world_render.worldScale;
         poseStack.scale(scale, scale, scale);
 
@@ -118,17 +123,32 @@ public class VRWidgetHelper
         }
 
         poseStack.translate(offsetX, offsetY, offsetZ);
-        RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
+        RenderSystem.applyModelViewMatrix();
+
         BlockPos blockpos = new BlockPos(minecraft.vrPlayer.vrdata_world_render.getEye(renderPass).getPosition());
         int i = Utils.getCombinedLightWithMin(minecraft.level, blockpos, 0);
+
+        RenderSystem.enableDepthTest();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
+        if (minecraft.level != null)
+            RenderSystem.setShader(GameRenderer::getRendertypeCutoutShader);
+        else
+            RenderSystem.setShader(GameRenderer::getPositionTexColorNormalShader);
+        minecraft.gameRenderer.lightTexture().turnOnLightLayer();
+
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
         bufferbuilder.begin(Mode.QUADS, DefaultVertexFormat.BLOCK);
         minecraft.getBlockRenderer().getModelRenderer().renderModel((new PoseStack()).last(), bufferbuilder, (BlockState)null, minecraft.getModelManager().getModel(model), 1.0F, 1.0F, 1.0F, i, OverlayTexture.NO_OVERLAY);
         tesselator.end();
+
+        minecraft.gameRenderer.lightTexture().turnOffLightLayer();
         RenderSystem.disableBlend();
         GlStateManager.alphaFunc(519, 0.0F);
         displayBindFunc.run();
+        RenderSystem.setShader(GameRenderer::getPositionTexColorNormalShader);
+
         BufferBuilder bufferbuilder1 = tesselator.getBuilder();
         bufferbuilder1.begin(Mode.QUADS, DefaultVertexFormat.POSITION_TEX_LMAP_COLOR_NORMAL);
 
@@ -148,8 +168,9 @@ public class VRWidgetHelper
 
         tesselator.end();
         RenderSystem.enableBlend();
-        //RenderSystem.defaultAlphaFunc();
+        GlStateManager.alphaFunc(519, 0.1F);
         poseStack.popPose();
+        RenderSystem.applyModelViewMatrix();
     }
 
     public static enum DisplayFace

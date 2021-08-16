@@ -1,10 +1,12 @@
 --- a/net/minecraft/client/gui/screens/ChatScreen.java
 +++ b/net/minecraft/client/gui/screens/ChatScreen.java
-@@ -127,7 +127,16 @@
+@@ -126,8 +126,17 @@
+             {
                  this.sendMessage(s);
              }
- 
+-
 -            this.minecraft.setScreen((Screen)null);
++            //Vivecraft
 +            if (this.minecraft.vrSettings.seated)
 +            {
 +                this.minecraft.setScreen((Screen)null);
@@ -14,7 +16,7 @@
 +                this.input.setValue(this.initial);
 +                this.historyPos = this.minecraft.gui.getChat().getRecentChat().size();
 +            }
-+
++            //
              return true;
          }
      }

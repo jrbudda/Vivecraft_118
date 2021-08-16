@@ -52,7 +52,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static String FORGE_VERSION               = "";
     private static final String HOMEPAGE_LINK         = "http://www.vivecraft.org";
     private static final String DONATION_LINK         = "https://www.patreon.com/jrbudda";
-    private static final String PROJECT_NAME          = "Vivecraft VR";
+    private static final String PROJECT_NAME          = "Vivecraft";
     /* END OF DO NOT RENAME */
 	
 	private static final String OF_LIB_PATH           = "libraries/optifine/OptiFine/";
@@ -1760,8 +1760,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
 	private String getMinecraftProfileName(boolean usingForge, boolean sm)
 	{
-		if(!usingForge)	return DEFAULT_PROFILE_NAME;
-		else return DEFAULT_PROFILE_NAME_FORGE;
+		if(!usingForge)	return DEFAULT_PROFILE_NAME + (version.contains("NONVR") ? "(NONVR)" : "");
+		else return DEFAULT_PROFILE_NAME_FORGE + (version.contains("NONVR") ? "(NONVR)" : "");
 	}
 
 	public static String readAsciiFile(File file)

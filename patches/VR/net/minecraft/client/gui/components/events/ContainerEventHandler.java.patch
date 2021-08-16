@@ -32,21 +32,23 @@
          }).isPresent();
      }
  
-@@ -92,8 +93,11 @@
+@@ -92,8 +93,13 @@
  
  default void setInitialFocus(@Nullable GuiEventListener pEventListener)
      {
 -        this.setFocused(pEventListener);
 -        pEventListener.changeFocus(true);
++        //Vivecraft - dont autofocus text fields, it forces open the keyboard
 +        if (Minecraft.getInstance().vrSettings.seated)
 +        {
 +            this.setFocused(pEventListener);
 +            pEventListener.changeFocus(true);
 +        }
++        //
      }
  
  default void magicalSpecialHackyFocus(@Nullable GuiEventListener pEventListener)
-@@ -113,23 +117,23 @@
+@@ -113,23 +119,23 @@
          else
          {
              List <? extends GuiEventListener > list = this.children();

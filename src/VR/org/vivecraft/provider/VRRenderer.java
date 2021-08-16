@@ -634,8 +634,12 @@ public abstract class VRRenderer
             this.telescopeFramebufferR = new TextureTarget("TelescopeR", j2, k2, true, false, -1, true, false);
             minecraft.print(this.telescopeFramebufferR.toString());
             this.checkGLError("TelescopeR framebuffer setup");
+            this.telescopeFramebufferR.setClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            this.telescopeFramebufferR.clear(Minecraft.ON_OSX);
             this.telescopeFramebufferL = new TextureTarget("TelescopeL", j2, k2, true, false, -1, true, false);
             minecraft.print(this.telescopeFramebufferL.toString());
+            this.telescopeFramebufferL.setClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            this.telescopeFramebufferL.clear(Minecraft.ON_OSX);
             this.checkGLError("TelescopeL framebuffer setup");
             int j1 = Math.round(1920.0F * minecraft.vrSettings.handCameraResScale);
             int k1 = Math.round(1080.0F * minecraft.vrSettings.handCameraResScale);

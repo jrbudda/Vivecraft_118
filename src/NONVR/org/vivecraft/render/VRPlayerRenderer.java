@@ -49,12 +49,19 @@ public class VRPlayerRenderer extends LivingEntityRenderer<AbstractClientPlayer,
 {
 	static LayerDefinition VRLayerDef = LayerDefinition.create(VRPlayerModel.createMesh(CubeDeformation.NONE, false), 64, 64);
 	static LayerDefinition VRLayerDef_arms = LayerDefinition.create(VRPlayerModel_WithArms.createMesh(CubeDeformation.NONE, false), 64, 64);
-    
+
+    static LayerDefinition VRLayerDef_slim = LayerDefinition.create(VRPlayerModel.createMesh(CubeDeformation.NONE, true), 64, 64);
+	static LayerDefinition VRLayerDef_arms_slim = LayerDefinition.create(VRPlayerModel_WithArms.createMesh(CubeDeformation.NONE, true), 64, 64);
+
 	public VRPlayerRenderer(EntityRendererProvider.Context p_174557_, boolean p_174558_, boolean seated)
 	{
-		super(p_174557_, seated ? 
+		super(p_174557_, !p_174558_ ? (seated ? 
 				new VRPlayerModel<>(VRLayerDef.bakeRoot(), p_174558_) : 
-					new VRPlayerModel_WithArms<>(VRLayerDef_arms.bakeRoot(), p_174558_), 0.5F);        
+					new VRPlayerModel_WithArms<>(VRLayerDef_arms.bakeRoot(), p_174558_)) :
+						(seated ? 
+								new VRPlayerModel<>(VRLayerDef_slim.bakeRoot(), p_174558_) : 
+									new VRPlayerModel_WithArms<>(VRLayerDef_arms_slim.bakeRoot(), p_174558_))
+					, 0.5F);        
 		this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(p_174557_.bakeLayer(p_174558_ ? ModelLayers.PLAYER_SLIM_INNER_ARMOR : ModelLayers.PLAYER_INNER_ARMOR)), new HumanoidModel(p_174557_.bakeLayer(p_174558_ ? ModelLayers.PLAYER_SLIM_OUTER_ARMOR : ModelLayers.PLAYER_OUTER_ARMOR))));
 		this.addLayer(new PlayerItemInHandLayer<>(this));
 		this.addLayer(new ArrowLayer<>(p_174557_, this));

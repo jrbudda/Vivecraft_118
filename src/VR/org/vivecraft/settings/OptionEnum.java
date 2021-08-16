@@ -12,7 +12,9 @@ public interface OptionEnum<T extends Enum<T>> {
 			case "on": return LangHelper.ON_KEY;
 			case "off": return LangHelper.OFF_KEY;
 		}
-		return "vivecraft.options." + getClass().getSimpleName().toLowerCase() + "." + name().toLowerCase().replace("_", "");
+
+		Class<?> cls = getClass();
+		return "vivecraft.options." + (cls.isAnonymousClass() ? cls.getSuperclass() : cls).getSimpleName().toLowerCase() + "." + name().toLowerCase().replace("_", "");
 	}
 
 	default T getNext() {
