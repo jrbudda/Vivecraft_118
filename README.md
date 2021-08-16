@@ -1,4 +1,4 @@
-Vivecraft for Minecraft 1.16
+Vivecraft for Minecraft 1.17
 =========
 
 This readme is intended for developers. For downloads and gameplay instructions please see the [official website](http://www.vivecraft.org/)
@@ -6,7 +6,7 @@ This readme is intended for developers. For downloads and gameplay instructions 
 
 Localization
 ========
-Vivecraft supports localization of its plethora of options and other strings. If you are multilingual and would like to help the project out, you can translate Vivecraft into your language of choice over on [Transifex](https://www.transifex.com/techjar/vivecraft/). If your target language is not on the list, you can put in a request for it to be added.
+Vivecraft supports localization of its plethora of options and other strings. If you are multilingual and would like to help the project out, you can translate Vivecraft into your language of choice over on [Transifex](https://www.transifex.com/techjar/vivecraft/). If your target language is not on the list, you can put in a request for it to be added. Note that we can only support languages that Minecraft itself supports, which you can find a list of [on the Minecraft wiki](https://minecraft.fandom.com/wiki/Language).
 
 When translating tooltips (these are indicated by having `.tooltip` at the end of the translation key) bear in mind that the tooltip box in-game has a fixed size and a limit of 8 lines, so if you write too much text it may be truncated. It can be difficult to judge where the limit is though since it depends on character width, so just guess and don't worry about it too much. There's a lot of extra space in most tooltips so it will likely be fine. Also, for tooltips that have a listing of what the option values do, the values on the left side of the colon should match what will appear on the button.
 
@@ -18,12 +18,13 @@ If you're not sure about a particular translation, feel free to join our [Discor
 
 
 Using this Repository
+(Note this is a little outdated for 1.17, some directory names have changed, will be updated soon)
 ========
  
  Vivecraft uses patches to avoid distributing Minecraft code. The build scripts are in Python 2.X.
  
  - Fork, checkout or download the repo using your Git method of choice.
- - Install Java JDK 1.8. The Java JRE will NOT work.
+ - Install Java JDK 16. The Java JRE will NOT work.
  - Set the JAVA_HOME environment variable to the JDK directory
  - Add %JAVA_HOME%\bin to your PATH environment variable
  - Install Python 2.7.x (NOT 3.x). Be sure to tick the 'add python to your PATH' option during install. [Download from python.org](https://www.python.org/downloads/)
