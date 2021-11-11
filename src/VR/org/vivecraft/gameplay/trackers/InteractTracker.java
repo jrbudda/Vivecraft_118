@@ -130,7 +130,7 @@ public class InteractTracker extends Tracker
 
                 try
                 {
-                    new MCReflection.ReflectionMethod(oclass, "func_225533_a_", BlockState.class, Level.class, BlockPos.class, Player.class, InteractionHand.class, BlockHitResult.class);
+                    new MCReflection.ReflectionMethod(oclass, MCReflection.BlockBehavior_Use, BlockState.class, Level.class, BlockPos.class, Player.class, InteractionHand.class, BlockHitResult.class);
                     this.rightClickable.add(oclass);
                 }
                 catch (Throwable throwable1)
@@ -141,7 +141,7 @@ public class InteractTracker extends Tracker
 
                 try
                 {
-                    new MCReflection.ReflectionMethod(oclass, "func_225533_a_", BlockState.class, Level.class, BlockPos.class, Player.class, InteractionHand.class, BlockHitResult.class);
+                    new MCReflection.ReflectionMethod(oclass, MCReflection.BlockBehavior_Use, BlockState.class, Level.class, BlockPos.class, Player.class, InteractionHand.class, BlockHitResult.class);
                     this.rightClickable.add(oclass);
                 }
                 catch (Throwable throwable)

@@ -287,7 +287,7 @@ public class VRInputAction
             {
                 for (VRInputAction vrinputaction : MCOpenVR.get().getInputActions())
                 {
-                    if (vrinputaction != this && vrinputaction.isEnabledRaw(controllertype) && vrinputaction.isActive() && vrinputaction.getPriority() > this.getPriority() && MCVR.get().getOrigins(this).contains(i))
+                    if (vrinputaction != this && vrinputaction.isEnabledRaw(controllertype) && vrinputaction.isActive() && vrinputaction.getPriority() > this.getPriority() && MCVR.get().getOrigins(vrinputaction).contains(i))
                     {
                         if (vrinputaction.isHanded())
                         {

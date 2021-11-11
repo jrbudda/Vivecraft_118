@@ -562,10 +562,23 @@ public class VRPlayer
     {
         if (entity != null)
         {
-
-            entity.setYRot(data.hmd.getYaw());
-            entity.setYHeadRot(entity.getYRot());
-            entity.setXRot(-data.hmd.getPitch());
+        	if(false){//TODO: Option
+                entity.setYRot(data.hmd.getYaw());
+                entity.setYHeadRot(entity.getYRot());
+                entity.setXRot(-data.hmd.getPitch());		
+        	} else {
+        		if(mc.gameRenderer.crossVec != null){
+        			Vec3 playerToCrosshair = entity.getEyePosition(1).subtract(mc.gameRenderer.crossVec); //backwards
+        			double what = playerToCrosshair.y/playerToCrosshair.length();
+        			if(what > 1) what = 1;
+        			if(what < -1) what = -1;
+        			float pitch = (float)Math.toDegrees(Math.asin(what));
+        			float yaw = (float)Math.toDegrees(Math.atan2(playerToCrosshair.x, -playerToCrosshair.z));    
+        			entity.setXRot(pitch);
+        			entity.setYRot(yaw);
+        			entity.setYHeadRot(yaw);
+        		}	
+        	}
 
             if (entity.isSprinting() && entity.input.jumping || entity.isFallFlying() || entity.isSwimming() && entity.zza > 0.0F)
             {

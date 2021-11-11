@@ -131,6 +131,13 @@ public class VRSettings
         AUTO
     }
 
+    public enum RightClickDelay implements OptionEnum<RightClickDelay> {
+    	VANILLA,
+    	SLOW,
+    	SLOWER,
+    	SLOWEST
+    }
+    
     @SettingField
     public int version = UNKNOWN_VERSION;
 
@@ -186,7 +193,11 @@ public class VRSettings
     @SettingField(VrOptions.HRTF_SELECTION)
     public int hrtfSelection = 0;
     @SettingField
+    public boolean disableFun = false;
+    @SettingField
     public boolean firstRun = true;
+    @SettingField(VrOptions.RIGHT_CLICK_DELAY)
+    public RightClickDelay rightclickDelay = RightClickDelay.VANILLA;
     //
 
     //Locomotion

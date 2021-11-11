@@ -134,7 +134,7 @@ public class VehicleTracker extends Tracker
                 }
 
                 boolean flag = true;
-                float f = 5.0F;
+                float smoothed = 10.0F;
 
                 if (entity instanceof Minecart)
                 {
@@ -158,11 +158,11 @@ public class VehicleTracker extends Tracker
                     }
 
                     double d0 = this.mineCartSpeed((Minecart)entity);
-                    f = 200.0F * (float)(d0 * d0);
+                    smoothed = 200.0F * (float)(d0 * d0);
 
-                    if (f < 5.0F)
+                    if (smoothed < 10.0F)
                     {
-                        f = 5.0F;
+                        smoothed = 10.0F;
                     }
                 }
 
@@ -170,14 +170,14 @@ public class VehicleTracker extends Tracker
 
                 if (flag)
                 {
-                    if (f1 > f)
+                    if (f1 > smoothed)
                     {
-                        f1 = f;
+                        f1 = smoothed;
                     }
 
-                    if (f1 < -f)
+                    if (f1 < -smoothed)
                     {
-                        f1 = -f;
+                        f1 = -smoothed;
                     }
                 }
 

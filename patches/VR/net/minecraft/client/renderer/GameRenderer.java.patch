@@ -2493,16 +2493,16 @@
 +		Vec3 vec3 = this.getControllerRenderPos(controller);
 +		vec3 = vec3.subtract(this.minecraft.vrPlayer.getVRDataWorld().getEye(this.minecraft.currentPass).getPosition());
 +		matrix.translate((double)((float)vec3.x), (double)((float)vec3.y), (double)((float)vec3.z));
-+
++		float sc = this.minecraft.vrPlayer.vrdata_world_render.worldScale;
 +		if (minecraft.level != null && TelescopeTracker.isTelescope(minecraft.player.getUseItem())) {
 +			matrix.mulPoseMatrix(this.minecraft.vrPlayer.vrdata_world_render.hmd.getMatrix().inverted().transposed().toMCMatrix());
 +			matrix.rotateDegXp(90);
-+			matrix.translate(controller==0?0.15:-0.15,-0.05, 0.075);
++			matrix.translate(controller==0?0.075*sc:-0.075*sc,-0.025*sc, 0.0325*sc);
 +		} else {
 +			matrix.mulPoseMatrix(this.minecraft.vrPlayer.vrdata_world_render.getController(controller).getMatrix().inverted().transposed().toMCMatrix());
 +		}
 +		
-+		matrix.scale(this.minecraft.vrPlayer.vrdata_world_render.worldScale, this.minecraft.vrPlayer.vrdata_world_render.worldScale, this.minecraft.vrPlayer.vrdata_world_render.worldScale);
++		matrix.scale(sc, sc, sc);
 +
 +	}
 +

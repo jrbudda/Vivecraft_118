@@ -174,7 +174,7 @@
 +    private boolean lastClick;
 +    public boolean resourcePacksChanged;
 +    public int tickCounter;
-+    public final String minecriftVerString = "Vivecraft 1.17.1  jrbudda-VR-1-a8";
++    public final String minecriftVerString = "Vivecraft 1.17.1  jrbudda-VR-1-b2";
      private static final Logger LOGGER = LogManager.getLogger();
      public static final boolean ON_OSX = Util.getPlatform() == Util.OS.OSX;
      private static final int MAX_TICKS_PER_UPDATE = 10;
@@ -998,7 +998,7 @@
              {
                  this.gameMode.stopDestroyBlock();
              }
-@@ -1746,39 +2204,48 @@
+@@ -1746,42 +2204,59 @@
              }
              else if (!this.player.isHandsBusy())
              {
@@ -1066,9 +1066,22 @@
 -        if (!this.gameMode.isDestroying())
 +        if (!this.gameMode.isDestroying() || !this.vrSettings.seated)
          {
-             this.rightClickDelay = 4;
- 
-@@ -1791,74 +2258,102 @@
+-            this.rightClickDelay = 4;
+-
++        	
++            if(vrSettings.rightclickDelay == VRSettings.RightClickDelay.VANILLA)
++            	this.rightClickDelay = 4;
++            else if(vrSettings.rightclickDelay == VRSettings.RightClickDelay.SLOW)
++            	this.rightClickDelay = 6;
++            else if(vrSettings.rightclickDelay == VRSettings.RightClickDelay.SLOWER)
++            	this.rightClickDelay = 8;
++            else if(vrSettings.rightclickDelay == VRSettings.RightClickDelay.SLOWEST)
++            	this.rightClickDelay = 10;         
++            
+             if (!this.player.isHandsBusy())
+             {
+                 if (this.hitResult == null)
+@@ -1791,74 +2266,102 @@
  
                  for (InteractionHand interactionhand : InteractionHand.values())
                  {
@@ -1142,12 +1155,13 @@
 -                                            this.gameRenderer.itemInHandRenderer.itemUsed(interactionhand);
 +                                            this.player.swingArm(interactionhand, VRFirstPersonArmSwing.Use);
                                          }
--                                    }
++
++                                        return;
+                                     }
  
 -                                    return;
 -                                }
-+                                        return;
-+                                    }
++                                    break;
  
 -                                if (interactionresult1 == InteractionResult.FAIL)
 -                                {
@@ -1155,17 +1169,14 @@
 -                                }
 -                        }
 -                    }
-+                                    break;
- 
--                    if (!itemstack.isEmpty())
--                    {
--                        InteractionResult interactionresult2 = this.gameMode.useItem(this.player, this.level, interactionhand);
 +                                case BLOCK:
 +                                    BlockHitResult blockhitresult = (BlockHitResult)this.hitResult;
 +                                    int i = itemstack.getCount();
 +                                    InteractionResult interactionresult1 = this.gameMode.useItemOn(this.player, this.level, interactionhand, blockhitresult);
  
--                        if (interactionresult2.consumesAction())
+-                    if (!itemstack.isEmpty())
+-                    {
+-                        InteractionResult interactionresult2 = this.gameMode.useItem(this.player, this.level, interactionhand);
 +                                    if (interactionresult1.consumesAction())
 +                                    {
 +                                        if (interactionresult1.shouldSwing())
@@ -1192,7 +1203,8 @@
 +                        }
 +
 +                        //this.physicalGuiManager.preClickAction();
-+
+ 
+-                        if (interactionresult2.consumesAction())
 +                        if (itemstack.isEmpty() && (this.hitResult == null || this.hitResult.getType() == HitResult.Type.MISS))
                          {
 -                            if (interactionresult2.shouldSwing())
@@ -1220,7 +1232,7 @@
                          }
                      }
                  }
-@@ -1873,12 +2368,15 @@
+@@ -1873,12 +2376,15 @@
  
      public void tick()
      {
@@ -1237,7 +1249,7 @@
  
          if (!this.pause)
          {
-@@ -1886,7 +2384,6 @@
+@@ -1886,7 +2392,6 @@
          }
  
          this.profiler.pop();
@@ -1245,7 +1257,7 @@
          this.tutorial.onLookAt(this.level, this.hitResult);
          this.profiler.push("gameMode");
  
-@@ -1896,11 +2393,7 @@
+@@ -1896,11 +2401,7 @@
          }
  
          this.profiler.popPush("textures");
@@ -1258,7 +1270,7 @@
  
          if (this.screen == null && this.player != null)
          {
-@@ -1936,6 +2429,10 @@
+@@ -1936,6 +2437,10 @@
              this.gui.clearCache();
          }
  
@@ -1269,7 +1281,7 @@
          if (this.overlay == null && (this.screen == null || this.screen.passEvents))
          {
              this.profiler.popPush("Keybindings");
-@@ -1947,8 +2444,30 @@
+@@ -1947,8 +2452,30 @@
              }
          }
  
@@ -1300,7 +1312,7 @@
              this.profiler.popPush("gameRenderer");
  
              if (!this.pause)
-@@ -1980,6 +2499,13 @@
+@@ -1980,6 +2507,13 @@
              this.gameRenderer.shutdownEffect();
          }
  
@@ -1314,7 +1326,7 @@
          if (!this.pause)
          {
              this.musicManager.tick();
-@@ -2051,24 +2577,21 @@
+@@ -2051,24 +2585,21 @@
          this.profiler.popPush("keyboard");
          this.keyboardHandler.tick();
          this.profiler.pop();
@@ -1345,7 +1357,7 @@
          }
  
          while (this.options.keySmoothCamera.consumeClick())
-@@ -2147,7 +2670,7 @@
+@@ -2147,7 +2678,7 @@
          {
              if (!this.player.isSpectator() && this.player.m_108700_(Screen.hasControlDown()))
              {
@@ -1354,7 +1366,7 @@
              }
          }
  
-@@ -2163,8 +2686,9 @@
+@@ -2163,8 +2694,9 @@
  
          if (this.player.isUsingItem())
          {
@@ -1365,7 +1377,7 @@
                  this.gameMode.releaseUsingItem(this.player);
              }
  
-@@ -2182,9 +2706,21 @@
+@@ -2182,9 +2714,21 @@
          }
          else
          {
@@ -1388,7 +1400,7 @@
              }
  
              while (this.options.keyUse.consumeClick())
-@@ -2203,7 +2739,7 @@
+@@ -2203,7 +2747,7 @@
              this.startUseItem();
          }
  
@@ -1397,7 +1409,7 @@
      }
  
      public static DataPackConfig loadDataPacks(LevelStorageSource.LevelStorageAccess pLevelStorage)
-@@ -2466,10 +3002,10 @@
+@@ -2466,10 +3010,10 @@
                              levelstoragesource$levelstorageaccess.close();
                          }
                      }
@@ -1410,7 +1422,7 @@
                      }
                  }
              }, new TranslatableComponent("selectWorld.backupQuestion.experimental"), new TranslatableComponent("selectWorld.backupWarning.experimental"), CommonComponents.GUI_PROCEED, CommonComponents.GUI_CANCEL));
-@@ -2499,6 +3035,13 @@
+@@ -2499,6 +3043,13 @@
  
      public void setLevel(ClientLevel pLevelClient)
      {
@@ -1424,7 +1436,7 @@
          ProgressScreen progressscreen = new ProgressScreen(true);
          progressscreen.progressStartNoAbort(new TranslatableComponent("connect.joining"));
          this.updateScreenAndTick(progressscreen);
-@@ -2537,12 +3080,15 @@
+@@ -2537,12 +3088,15 @@
          IntegratedServer integratedserver = this.singleplayerServer;
          this.singleplayerServer = null;
          this.gameRenderer.resetData();
@@ -1440,7 +1452,7 @@
              if (integratedserver != null)
              {
                  this.profiler.push("waitForServer");
-@@ -2559,6 +3105,7 @@
+@@ -2559,6 +3113,7 @@
              this.gui.onDisconnected();
              this.currentServer = null;
              this.isLocalServer = false;
@@ -1448,7 +1460,7 @@
              this.game.onLeaveGameSession();
          }
  
-@@ -2592,6 +3139,7 @@
+@@ -2592,6 +3147,7 @@
          this.particleEngine.setLevel(pLevel);
          this.blockEntityRenderDispatcher.setLevel(pLevel);
          this.updateTitle();
@@ -1456,7 +1468,7 @@
      }
  
      public boolean allowsMultiplayer()
-@@ -2667,6 +3215,17 @@
+@@ -2667,6 +3223,17 @@
      {
          if (this.hitResult != null && this.hitResult.getType() != HitResult.Type.MISS)
          {
@@ -1474,7 +1486,7 @@
              boolean flag = this.player.getAbilities().instabuild;
              BlockEntity blockentity = null;
              HitResult.Type hitresult$type = this.hitResult.getType();
-@@ -2755,6 +3314,8 @@
+@@ -2755,6 +3322,8 @@
                  }
              }
          }
@@ -1483,7 +1495,7 @@
      }
  
      private ItemStack addCustomNbtData(ItemStack pStack, BlockEntity pTe)
-@@ -3551,6 +4112,564 @@
+@@ -3551,6 +4120,564 @@
          public abstract boolean isChatAllowed(boolean p_168035_);
      }
  

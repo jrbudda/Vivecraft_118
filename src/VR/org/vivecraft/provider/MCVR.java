@@ -240,7 +240,8 @@ public abstract class MCVR
 
         if (!this.mc.vrSettings.seated && this.mc.vrSettings.allowStandingOriginOffset)
         {
-            vec3 = vec3.add((double)this.mc.vrSettings.originOffset.getX(), (double)this.mc.vrSettings.originOffset.getY(), (double)this.mc.vrSettings.originOffset.getZ());
+        	if(this.mc.vr.isHMDTracking())
+        		vec3 = vec3.add((double)this.mc.vrSettings.originOffset.getX(), (double)this.mc.vrSettings.originOffset.getY(), (double)this.mc.vrSettings.originOffset.getZ());
         }
 
         return vec3;
@@ -314,7 +315,8 @@ public abstract class MCVR
 
         if (this.mc.vrSettings.seated || this.mc.vrSettings.allowStandingOriginOffset)
         {
-            vector3 = vector3.add(this.mc.vrSettings.originOffset);
+        	if(this.mc.vr.isHMDTracking())
+        		vector3 = vector3.add(this.mc.vrSettings.originOffset);
         }
 
         return vector3.toVector3d();
@@ -344,7 +346,8 @@ public abstract class MCVR
 
             if (this.mc.vrSettings.seated || this.mc.vrSettings.allowStandingOriginOffset)
             {
-                vector31 = vector31.add(this.mc.vrSettings.originOffset);
+            	if(this.mc.vr.isHMDTracking())
+            		vector31 = vector31.add(this.mc.vrSettings.originOffset);
             }
 
             return vector31.toVector3d();
@@ -356,7 +359,8 @@ public abstract class MCVR
 
             if (this.mc.vrSettings.seated || this.mc.vrSettings.allowStandingOriginOffset)
             {
-                vector3 = vector3.add(this.mc.vrSettings.originOffset);
+            	if(this.mc.vr.isHMDTracking())
+            		vector3 = vector3.add(this.mc.vrSettings.originOffset);
             }
 
             return vector3.toVector3d();
