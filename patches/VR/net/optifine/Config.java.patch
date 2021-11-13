@@ -6,20 +6,25 @@
      {
 -        if (gameSettings == null)
 -        {
-+    	//Vivecraft why do we do this?
-+        //if (gameSettings == null)
-+        //{
-             gameSettings = settings;
-             updateAvailableProcessors();
-             ReflectorForge.putLaunchBlackboard("optifine.ForgeSplashCompatible", Boolean.TRUE);
-             antialiasingLevel = gameSettings.ofAaLevel;
-             quadRenderingAvailable = canUseCompatibilityProfile();
+-            gameSettings = settings;
+-            updateAvailableProcessors();
+-            ReflectorForge.putLaunchBlackboard("optifine.ForgeSplashCompatible", Boolean.TRUE);
+-            antialiasingLevel = gameSettings.ofAaLevel;
 -        }
-+        //}
-     }
+-    }
++    	//Vivecraft why do we do this?
++    	//if (gameSettings == null)
++    	//{
++	    	gameSettings = settings;
++	    	updateAvailableProcessors();
++	    	ReflectorForge.putLaunchBlackboard("optifine.ForgeSplashCompatible", Boolean.TRUE);
++	    	antialiasingLevel = gameSettings.ofAaLevel;
++    	//}
++}
  
      public static void initDisplay()
-@@ -163,14 +164,11 @@
+     {
+@@ -162,14 +163,11 @@
  
      public static void checkInitialized()
      {
@@ -38,7 +43,7 @@
          }
      }
  
-@@ -207,9 +205,9 @@
+@@ -206,9 +204,9 @@
  
                  build = readLines(inputstream)[0];
              }
@@ -50,7 +55,7 @@
                  build = "";
              }
          }
-@@ -398,9 +396,9 @@
+@@ -397,9 +395,9 @@
                  }
              }
          }
@@ -62,7 +67,7 @@
              return def;
          }
      }
-@@ -448,9 +446,9 @@
+@@ -447,9 +445,9 @@
              String s = GL11.glGetString(GL11.GL_EXTENSIONS);
              return s.split(" ");
          }
@@ -74,7 +79,7 @@
              return new String[0];
          }
      }
-@@ -505,9 +503,9 @@
+@@ -504,9 +502,9 @@
                  }
              }
          }
@@ -86,7 +91,7 @@
          }
      }
  
-@@ -1120,7 +1118,7 @@
+@@ -1119,7 +1117,7 @@
              Resource resource = resourceManager.getResource(location);
              return resource != null;
          }
@@ -95,7 +100,7 @@
          {
              return false;
          }
-@@ -1174,7 +1172,7 @@
+@@ -1173,7 +1171,7 @@
                      astring[i] = apackresources[i].getName();
                  }
  
@@ -104,7 +109,7 @@
              }
          }
      }
-@@ -2033,9 +2031,9 @@
+@@ -2022,9 +2020,9 @@
  
          if (showFrameTime)
          {
@@ -117,7 +122,7 @@
          }
          else
          {
-@@ -2323,14 +2321,7 @@
+@@ -2308,14 +2306,7 @@
  
      public static boolean isIntegratedServerRunning()
      {

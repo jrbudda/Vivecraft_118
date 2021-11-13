@@ -29,7 +29,7 @@
  import net.minecraft.world.level.GameType;
  import net.minecraft.world.level.Level;
  import net.minecraft.world.level.block.Blocks;
-@@ -89,7 +93,7 @@
+@@ -91,7 +95,7 @@
      private static final ResourceLocation VIGNETTE_LOCATION = new ResourceLocation("textures/misc/vignette.png");
      private static final ResourceLocation WIDGETS_LOCATION = new ResourceLocation("textures/gui/widgets.png");
      private static final ResourceLocation PUMPKIN_BLUR_LOCATION = new ResourceLocation("textures/misc/pumpkinblur.png");
@@ -38,7 +38,7 @@
      private static final ResourceLocation POWDER_SNOW_OUTLINE_LOCATION = new ResourceLocation("textures/misc/powder_snow_outline.png");
      private static final Component DEMO_EXPIRED_TEXT = new TranslatableComponent("demo.demoExpired");
      private static final int COLOR_WHITE = 16777215;
-@@ -133,7 +137,9 @@
+@@ -135,7 +139,9 @@
      private int screenHeight;
      private final Map<ChatType, List<ChatListener>> chatListeners = Maps.newHashMap();
      private float scopeScale;
@@ -49,7 +49,7 @@
      public Gui(Minecraft p_93005_)
      {
          this.minecraft = p_93005_;
-@@ -166,14 +172,16 @@
+@@ -168,14 +174,16 @@
          this.titleFadeOutTime = 20;
      }
  
@@ -68,7 +68,7 @@
          {
              this.renderVignette(this.minecraft.getCameraEntity());
          }
-@@ -187,7 +195,7 @@
+@@ -189,7 +197,7 @@
          float f = this.minecraft.getDeltaFrameTime();
          this.scopeScale = Mth.lerp(0.5F * f, this.scopeScale, 1.125F);
  
@@ -77,7 +77,7 @@
          {
              if (this.minecraft.player.isScoping())
              {
-@@ -205,14 +213,15 @@
+@@ -207,14 +215,15 @@
              }
          }
  
@@ -95,7 +95,7 @@
          {
              this.renderPortalOverlay(f2);
          }
-@@ -232,10 +241,10 @@
+@@ -234,10 +243,10 @@
              RenderSystem.setShader(GameRenderer::getPositionTexShader);
              RenderSystem.setShaderTexture(0, GUI_ICONS_LOCATION);
              RenderSystem.enableBlend();
@@ -108,7 +108,7 @@
              this.minecraft.getProfiler().push("bossHealth");
              this.bossOverlay.render(pMatrixStack);
              this.minecraft.getProfiler().pop();
-@@ -409,7 +418,27 @@
+@@ -411,7 +420,27 @@
              {
                  this.displayScoreboardSidebar(pMatrixStack, objective1);
              }
@@ -137,7 +137,7 @@
              RenderSystem.enableBlend();
              RenderSystem.defaultBlendFunc();
              pMatrixStack.pushPose();
-@@ -420,14 +449,14 @@
+@@ -422,14 +451,14 @@
              pMatrixStack.popPose();
              objective1 = scoreboard.getDisplayObjective(0);
  
@@ -156,7 +156,7 @@
              }
          }
  
-@@ -447,6 +476,7 @@
+@@ -449,6 +478,7 @@
  
      private void renderCrosshair(PoseStack pMatrixStack)
      {
@@ -164,7 +164,7 @@
          Options options = this.minecraft.options;
  
          if (options.getCameraType().isFirstPerson() && (this.minecraft.gameMode.getPlayerMode() != GameType.SPECTATOR || this.canRenderCrosshairForSpectator(this.minecraft.hitResult)))
-@@ -643,12 +673,36 @@
+@@ -649,12 +679,36 @@
              this.setBlitOffset(-90);
              this.blit(pMatrixStack, i - 91, this.screenHeight - 22, 0, 0, 182, 22);
              this.blit(pMatrixStack, i - 91 - 1 + player.getInventory().selected * 20, this.screenHeight - 22 - 1, 0, 22, 24, 22);
@@ -204,7 +204,7 @@
                  }
                  else
                  {
-@@ -709,6 +763,7 @@
+@@ -715,6 +769,7 @@
              }
  
              RenderSystem.disableBlend();
@@ -212,7 +212,7 @@
          }
      }
  
-@@ -1223,6 +1278,7 @@
+@@ -1230,6 +1285,7 @@
  
      private void renderTextureOverlay(ResourceLocation p_168709_, float p_168710_)
      {
@@ -220,7 +220,7 @@
          RenderSystem.disableDepthTest();
          RenderSystem.depthMask(false);
          RenderSystem.defaultBlendFunc();
-@@ -1244,6 +1300,7 @@
+@@ -1251,6 +1307,7 @@
  
      private void renderSpyglassOverlay(float p_168676_)
      {
@@ -228,7 +228,7 @@
          RenderSystem.disableDepthTest();
          RenderSystem.depthMask(false);
          RenderSystem.defaultBlendFunc();
-@@ -1302,6 +1359,7 @@
+@@ -1309,6 +1366,7 @@
  
      private void renderVignette(Entity pEntity)
      {
@@ -236,7 +236,7 @@
          if (!Config.isVignetteEnabled())
          {
              RenderSystem.enableDepthTest();
-@@ -1358,6 +1416,7 @@
+@@ -1365,6 +1423,7 @@
  
      private void renderPortalOverlay(float pTimeInPortal)
      {
@@ -244,7 +244,7 @@
          if (pTimeInPortal < 1.0F)
          {
              pTimeInPortal = pTimeInPortal * pTimeInPortal;
-@@ -1657,4 +1716,101 @@
+@@ -1664,4 +1723,101 @@
              return gui$hearttype;
          }
      }

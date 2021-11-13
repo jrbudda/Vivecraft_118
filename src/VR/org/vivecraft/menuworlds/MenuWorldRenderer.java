@@ -1263,7 +1263,7 @@ public class MenuWorldRenderer
         public MenuCloudRenderer(Minecraft p_i23_1_)
         {
             this.mc = p_i23_1_;
-            this.glListClouds = GLUtils.generateDisplayLists(1);
+            //this.glListClouds = GLUtils.generateDisplayLists(1);
         }
 
         public void prepareToRender(float partialTicks, Vec3 color)

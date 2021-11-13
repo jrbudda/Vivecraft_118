@@ -1,6 +1,6 @@
 --- a/net/optifine/shaders/ShadersFramebuffer.java
 +++ b/net/optifine/shaders/ShadersFramebuffer.java
-@@ -37,7 +37,7 @@
+@@ -36,7 +36,7 @@
      private int[] colorImageUnits;
      private int glFramebuffer;
      private FlipTextures colorTexturesFlip;
@@ -9,7 +9,7 @@
      private final DrawBuffers drawBuffers;
      private DrawBuffers activeDrawBuffers;
      private int[] drawColorTextures;
-@@ -108,10 +108,25 @@
+@@ -107,10 +107,25 @@
                  GL30.glTexParameteri(3553, 34892, 34894);
              }
  
@@ -37,12 +37,3 @@
          Shaders.checkGLError("FBS " + this.name + " depth");
  
          for (int l = 0; l < this.usedColorBuffers; ++l)
-@@ -165,7 +180,7 @@
-     {
-         if (this.glFramebuffer != 0)
-         {
--            EXTFramebufferObject.glDeleteFramebuffersEXT(this.glFramebuffer);
-+            GlStateManager._glDeleteFramebuffers(this.glFramebuffer);
-             this.glFramebuffer = 0;
-         }
- 

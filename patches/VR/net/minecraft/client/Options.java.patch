@@ -45,7 +45,7 @@
          this.particles = p_168428_.process("particles", this.particles, ParticleStatus::byId, ParticleStatus::getId);
          this.framerateLimit = p_168428_.process("maxFps", this.framerateLimit);
  
-@@ -796,9 +800,9 @@
+@@ -820,9 +824,9 @@
  
                  printwriter.close();
              }
@@ -57,7 +57,7 @@
              }
  
              this.saveOptions = false;
-@@ -866,22 +870,22 @@
+@@ -890,22 +894,22 @@
          return this.useNativeTransport;
      }
  
@@ -87,7 +87,7 @@
  
              if (i > 0 && Config.isShaders())
              {
-@@ -897,60 +901,61 @@
+@@ -921,60 +925,61 @@
  
              this.ofAaLevel = i;
              this.ofAaLevel = Config.limit(this.ofAaLevel, 0, 16);
@@ -164,7 +164,7 @@
          {
              switch (this.ofFogType)
              {
-@@ -963,7 +968,7 @@
+@@ -987,7 +992,7 @@
              }
          }
  
@@ -173,7 +173,7 @@
          {
              this.ofFogStart += 0.2F;
  
-@@ -973,18 +978,18 @@
+@@ -997,18 +1002,18 @@
              }
          }
  
@@ -195,7 +195,7 @@
          {
              ++this.ofClouds;
  
-@@ -996,13 +1001,13 @@
+@@ -1020,13 +1025,13 @@
              this.updateRenderClouds();
          }
  
@@ -211,7 +211,7 @@
          {
              ++this.ofDroppedItems;
  
-@@ -1012,7 +1017,7 @@
+@@ -1036,7 +1041,7 @@
              }
          }
  
@@ -220,7 +220,7 @@
          {
              ++this.ofRain;
  
-@@ -1022,7 +1027,7 @@
+@@ -1046,7 +1051,7 @@
              }
          }
  
@@ -229,7 +229,7 @@
          {
              ++this.ofAnimatedWater;
  
-@@ -1037,7 +1042,7 @@
+@@ -1061,7 +1066,7 @@
              }
          }
  
@@ -238,7 +238,7 @@
          {
              ++this.ofAnimatedLava;
  
-@@ -1052,92 +1057,92 @@
+@@ -1076,92 +1081,92 @@
              }
          }
  
@@ -349,7 +349,7 @@
          {
              int i = 900;
              this.ofAutoSaveTicks = Math.max(this.ofAutoSaveTicks / i * i, i);
-@@ -1149,7 +1154,7 @@
+@@ -1173,7 +1178,7 @@
              }
          }
  
@@ -358,7 +358,7 @@
          {
              ++this.ofBetterGrass;
  
-@@ -1161,7 +1166,7 @@
+@@ -1185,7 +1190,7 @@
              this.minecraft.levelRenderer.allChanged();
          }
  
@@ -367,7 +367,7 @@
          {
              ++this.ofConnectedTextures;
  
-@@ -1180,27 +1185,27 @@
+@@ -1204,27 +1209,27 @@
              }
          }
  
@@ -400,7 +400,7 @@
          {
              ++this.ofVignette;
  
-@@ -1210,7 +1215,7 @@
+@@ -1234,7 +1239,7 @@
              }
          }
  
@@ -409,7 +409,7 @@
          {
              ++this.ofChunkUpdates;
  
-@@ -1220,12 +1225,12 @@
+@@ -1244,12 +1249,12 @@
              }
          }
  
@@ -424,7 +424,7 @@
          {
              ++this.ofTime;
  
-@@ -1235,85 +1240,85 @@
+@@ -1259,85 +1264,85 @@
              }
          }
  
@@ -525,7 +525,7 @@
          {
              if (this.ofTranslucentBlocks == 0)
              {
-@@ -1335,41 +1340,41 @@
+@@ -1359,41 +1364,41 @@
              this.minecraft.levelRenderer.allChanged();
          }
  
@@ -574,7 +574,7 @@
          {
              ++this.ofScreenshotSize;
  
-@@ -1379,34 +1384,34 @@
+@@ -1403,34 +1408,34 @@
              }
          }
  
@@ -615,7 +615,7 @@
          {
              if (this.ofChatBackground == 0)
              {
-@@ -1422,29 +1427,29 @@
+@@ -1446,29 +1451,29 @@
              }
          }
  
@@ -652,7 +652,7 @@
          {
              int i1 = (int)Option.RENDER_DISTANCE.get(this);
              String s2 = I18n.m_118938_("of.options.renderDistance.tiny");
-@@ -1496,7 +1501,7 @@
+@@ -1520,7 +1525,7 @@
  
              return s + i1 + " " + s1 + "";
          }
@@ -661,7 +661,7 @@
          {
              switch (this.ofFogType)
              {
-@@ -1513,23 +1518,23 @@
+@@ -1537,23 +1542,23 @@
                      return s + Lang.getOff();
              }
          }
@@ -691,7 +691,7 @@
          {
              switch (this.ofClouds)
              {
-@@ -1546,7 +1551,7 @@
+@@ -1570,7 +1575,7 @@
                      return s + Lang.getDefault();
              }
          }
@@ -700,7 +700,7 @@
          {
              switch (this.ofTrees)
              {
-@@ -1564,7 +1569,7 @@
+@@ -1588,7 +1593,7 @@
                      return s + Lang.get("of.general.smart");
              }
          }
@@ -709,7 +709,7 @@
          {
              switch (this.ofDroppedItems)
              {
-@@ -1578,7 +1583,7 @@
+@@ -1602,7 +1607,7 @@
                      return s + Lang.getDefault();
              }
          }
@@ -718,7 +718,7 @@
          {
              switch (this.ofRain)
              {
-@@ -1595,7 +1600,7 @@
+@@ -1619,7 +1624,7 @@
                      return s + Lang.getDefault();
              }
          }
@@ -727,7 +727,7 @@
          {
              switch (this.ofAnimatedWater)
              {
-@@ -1609,7 +1614,7 @@
+@@ -1633,7 +1638,7 @@
                      return s + Lang.getOn();
              }
          }
@@ -736,7 +736,7 @@
          {
              switch (this.ofAnimatedLava)
              {
-@@ -1623,75 +1628,75 @@
+@@ -1647,75 +1652,75 @@
                      return s + Lang.getOn();
              }
          }
@@ -830,7 +830,7 @@
          {
              int l = 900;
  
-@@ -1716,7 +1721,7 @@
+@@ -1740,7 +1745,7 @@
                  return this.ofAutoSaveTicks <= 16 * l ? s + Lang.get("of.options.save.12min") : s + Lang.get("of.options.save.24min");
              }
          }
@@ -839,7 +839,7 @@
          {
              switch (this.ofBetterGrass)
              {
-@@ -1730,7 +1735,7 @@
+@@ -1754,7 +1759,7 @@
                      return s + Lang.getOff();
              }
          }
@@ -848,7 +848,7 @@
          {
              switch (this.ofConnectedTextures)
              {
-@@ -1744,23 +1749,23 @@
+@@ -1768,23 +1773,23 @@
                      return s + Lang.getOff();
              }
          }
@@ -877,7 +877,7 @@
          {
              switch (this.ofVignette)
              {
-@@ -1774,15 +1779,15 @@
+@@ -1798,15 +1803,15 @@
                      return s + Lang.getDefault();
              }
          }
@@ -896,7 +896,7 @@
          {
              if (this.ofTime == 1)
              {
-@@ -1793,67 +1798,67 @@
+@@ -1817,67 +1822,67 @@
                  return this.ofTime == 2 ? s + Lang.get("of.options.time.nightOnly") : s + Lang.getDefault();
              }
          }
@@ -982,7 +982,7 @@
          {
              if (this.ofTranslucentBlocks == 1)
              {
-@@ -1864,56 +1869,56 @@
+@@ -1888,56 +1893,56 @@
                  return this.ofTranslucentBlocks == 2 ? s + Lang.getFancy() : s + Lang.getDefault();
              }
          }
@@ -1052,7 +1052,7 @@
          {
              double d1 = Option.FRAMERATE_LIMIT.get(this);
  
-@@ -1926,7 +1931,7 @@
+@@ -1950,7 +1955,7 @@
                  return d1 == Option.FRAMERATE_LIMIT.getMaxValue() ? s + I18n.m_118938_("options.framerateLimit.max") : s + (int)d1 + " fps";
              }
          }
@@ -1061,7 +1061,7 @@
          {
              if (this.ofChatBackground == 3)
              {
-@@ -1937,13 +1942,13 @@
+@@ -1961,13 +1966,13 @@
                  return this.ofChatBackground == 5 ? s + Lang.get("of.general.compact") : s + Lang.getDefault();
              }
          }
@@ -1078,7 +1078,7 @@
              double d0 = progressoption.get(this);
              return d0 == 0.0D ? s + I18n.m_118938_("options.off") : s + (int)(d0 * 100.0D) + "%";
          }
-@@ -2372,16 +2377,19 @@
+@@ -2396,16 +2401,19 @@
                          this.ofKeyBindZoom.setKey(InputConstants.getKey(astring[1]));
                      }
                  }
@@ -1100,7 +1100,7 @@
          }
          catch (Exception exception11)
          {
-@@ -2468,10 +2476,10 @@
+@@ -2492,10 +2500,10 @@
              printwriter.println("key_" + this.ofKeyBindZoom.getName() + ":" + this.ofKeyBindZoom.saveString());
              printwriter.close();
          }
@@ -1113,7 +1113,7 @@
          }
      }
  
-@@ -2532,7 +2540,7 @@
+@@ -2556,7 +2564,7 @@
          this.renderClouds = CloudStatus.FANCY;
          this.fov = 70.0D;
          this.gamma = 0.0D;
@@ -1122,7 +1122,7 @@
          this.particles = ParticleStatus.ALL;
          this.heldItemTooltips = true;
          this.forceUnicodeFont = false;
-@@ -2545,7 +2553,7 @@
+@@ -2569,7 +2577,7 @@
          Config.updateAvailableProcessors();
          this.ofSmoothWorld = Config.isSingleProcessor();
          this.ofLazyChunkLoading = false;
@@ -1131,7 +1131,7 @@
          this.ofFastMath = false;
          this.ofFastRender = false;
          this.ofTranslucentBlocks = 0;
-@@ -2629,61 +2637,61 @@
+@@ -2653,61 +2661,61 @@
          this.minecraft.delayTextureReload();
      }
  
@@ -1222,7 +1222,7 @@
              {
                  return i;
              }
-@@ -2692,37 +2700,34 @@
+@@ -2716,37 +2724,34 @@
          return -1;
      }
  

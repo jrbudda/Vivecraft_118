@@ -5,7 +5,7 @@
                  GlStateManager._bindTexture(this.getMultiTexID().norm);
  
 -                for (TextureAtlasSprite textureatlassprite2 : list)
-+                for (TextureAtlasSprite textureatlassprite2 : (Set<TextureAtlasSprite>)(Set<?>)list)
++                for (TextureAtlasSprite textureatlassprite2 : (Collection<TextureAtlasSprite>)(Collection<?>)list)
                  {
                      TextureAtlasSprite textureatlassprite4 = textureatlassprite2.spriteNormal;
  
@@ -14,11 +14,11 @@
                  GlStateManager._bindTexture(this.getMultiTexID().spec);
  
 -                for (TextureAtlasSprite textureatlassprite3 : list)
-+                for (TextureAtlasSprite textureatlassprite3 : (Set<TextureAtlasSprite>)(Set<?>)list)
++                for (TextureAtlasSprite textureatlassprite3 : (Collection<TextureAtlasSprite>)(Collection<?>)list)
                  {
                      TextureAtlasSprite textureatlassprite5 = textureatlassprite3.spriteSpecular;
  
-@@ -911,7 +911,7 @@
+@@ -942,7 +942,7 @@
                              }
                              else
                              {
@@ -27,7 +27,7 @@
                                  map.put(j, k + 1);
                              }
                          }
-@@ -927,9 +927,9 @@
+@@ -958,9 +958,9 @@
          Set set = map.keySet();
          Set set1 = new TreeSet(set);
  
@@ -39,7 +39,7 @@
              l += l1;
          }
  
-@@ -937,9 +937,9 @@
+@@ -968,9 +968,9 @@
          int k1 = 0;
          int i2 = l * percentScale / 100;
  

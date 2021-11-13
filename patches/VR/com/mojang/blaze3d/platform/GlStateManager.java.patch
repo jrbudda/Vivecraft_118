@@ -9,7 +9,7 @@
      private static final GlStateManager.DepthState DEPTH = new GlStateManager.DepthState();
      private static final GlStateManager.CullState CULL = new GlStateManager.CullState();
      private static final GlStateManager.PolygonOffsetState POLY_OFFSET = new GlStateManager.PolygonOffsetState();
-@@ -223,22 +223,19 @@
+@@ -225,22 +225,19 @@
          {
              blendLockState.setFactors(pSrcFactor, pDstFactor);
          }
@@ -42,7 +42,7 @@
          }
      }
  
-@@ -246,26 +243,30 @@
+@@ -248,26 +245,30 @@
      {
          RenderSystem.assertThread(RenderSystem::isOnRenderThread);
  
@@ -86,7 +86,7 @@
          }
      }
  
-@@ -640,6 +641,8 @@
+@@ -642,6 +643,8 @@
      public static void _glDeleteFramebuffers(int pFrameBuffer)
      {
          RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
@@ -95,7 +95,7 @@
          GL30.glDeleteFramebuffers(pFrameBuffer);
      }
  
-@@ -892,11 +895,11 @@
+@@ -894,11 +897,11 @@
  
              GL11.glDeleteTextures(pTexture);
  
@@ -110,7 +110,7 @@
                  }
              }
          }
-@@ -906,13 +909,13 @@
+@@ -908,13 +911,13 @@
      {
          RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
  
@@ -127,7 +127,7 @@
                  }
              }
          }
-@@ -1198,32 +1201,29 @@
+@@ -1200,32 +1203,29 @@
              int k = getActiveTextureUnit();
              int l = getBoundTexture();
  
@@ -169,7 +169,7 @@
      }
  
      public static void lockAlpha(GlAlphaState stateNew)
-@@ -1287,45 +1287,45 @@
+@@ -1289,45 +1289,45 @@
          }
      }
  
@@ -226,7 +226,7 @@
              cullLock.lock();
          }
      }
-@@ -1338,34 +1338,34 @@
+@@ -1340,34 +1340,34 @@
          }
      }
  
@@ -270,7 +270,7 @@
  
          if (Config.isShaders())
          {
-@@ -1376,7 +1376,7 @@
+@@ -1378,7 +1378,7 @@
                  for (int j = 1; j < i; ++j)
                  {
                      Shaders.uniform_instanceId.setValue(j);
@@ -279,7 +279,7 @@
                  }
  
                  Shaders.uniform_instanceId.setValue(0);
-@@ -1399,9 +1399,9 @@
+@@ -1423,9 +1423,9 @@
          GL31.glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
      }
  
@@ -291,7 +291,7 @@
      }
  
      public static int getFramebufferRead()
-@@ -1428,13 +1428,13 @@
+@@ -1452,13 +1452,13 @@
          GL14.glBlendFuncSeparate(BLEND.srcRgb, BLEND.dstRgb, BLEND.srcAlpha, BLEND.dstAlpha);
      }
  
@@ -309,7 +309,7 @@
  
                  if (glblendstate != null)
                  {
-@@ -1453,19 +1453,19 @@
+@@ -1477,19 +1477,19 @@
          }
      }
  
@@ -334,7 +334,7 @@
      }
  
      public static int getProgram()
-@@ -1473,7 +1473,7 @@
+@@ -1497,7 +1497,7 @@
          return glProgram;
      }
  
@@ -343,7 +343,7 @@
      {
          public final GlStateManager.BooleanState mode = new GlStateManager.BooleanState(3042);
          public int srcRgb = 1;
-@@ -1693,4 +1693,46 @@
+@@ -1717,4 +1717,46 @@
              return INSTANCE.height;
          }
      }

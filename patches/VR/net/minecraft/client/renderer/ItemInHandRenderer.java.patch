@@ -207,7 +207,7 @@
      private void applyItemArmTransform(PoseStack pMatrixStack, HumanoidArm pHand, float pEquippedProg)
      {
          int i = pHand == HumanoidArm.RIGHT ? 1 : -1;
-@@ -380,188 +475,481 @@
+@@ -388,188 +483,481 @@
          return p_172913_.is(Items.CROSSBOW) && CrossbowItem.isCharged(p_172913_);
      }
  
@@ -820,7 +820,7 @@
          }
      }
  
-@@ -671,4 +1059,41 @@
+@@ -679,4 +1067,41 @@
              return p_172932_ == InteractionHand.MAIN_HAND ? RENDER_MAIN_HAND_ONLY : RENDER_OFF_HAND_ONLY;
          }
      }

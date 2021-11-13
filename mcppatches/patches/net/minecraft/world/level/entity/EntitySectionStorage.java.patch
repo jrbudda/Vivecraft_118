@@ -4,8 +4,8 @@
      public LongSet getAllChunksWithExistingSections()
      {
          LongSet longset = new LongOpenHashSet();
--        this.sections.keySet().forEach((p_175643_1_) ->
-+        this.sections.keySet().forEach((long p_175643_1_) ->
+-        this.sections.keySet().forEach((p_156884_1_) ->
++        this.sections.keySet().forEach((long p_156884_1_) ->
          {
-             longset.add(getChunkKeyFromSectionKey(p_175643_1_));
+             longset.add(getChunkKeyFromSectionKey(p_156884_1_));
          });

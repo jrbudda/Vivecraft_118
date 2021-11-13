@@ -1,14 +1,14 @@
 --- a/net/optifine/shaders/ShadersRender.java
 +++ b/net/optifine/shaders/ShadersRender.java
-@@ -2,6 +2,7 @@
+@@ -1,6 +1,7 @@
+ package net.optifine.shaders;
  
- import com.mojang.blaze3d.platform.GLX;
  import com.mojang.blaze3d.platform.GlStateManager;
 +import com.mojang.blaze3d.platform.Lighting;
  import com.mojang.blaze3d.systems.RenderSystem;
  import com.mojang.blaze3d.vertex.BufferBuilder;
  import com.mojang.blaze3d.vertex.PoseStack;
-@@ -251,7 +252,7 @@
+@@ -250,7 +251,7 @@
          }
      }
  
@@ -17,7 +17,7 @@
      {
          if (Shaders.hasShadowMap)
          {
-@@ -334,6 +335,7 @@
+@@ -333,6 +334,7 @@
                  levelrenderer.renderChunkLayer(RenderTypes.SOLID, posestack, d0, d1, d2, matrix4f1);
                  Shaders.checkGLError("shadow terrain solid");
                  GlStateManager.enableAlphaTest();
@@ -25,7 +25,7 @@
                  levelrenderer.renderChunkLayer(RenderTypes.CUTOUT_MIPPED, posestack, d0, d1, d2, matrix4f1);
                  Shaders.checkGLError("shadow terrain cutoutmipped");
                  minecraft.getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS).setFilter(false, false);
-@@ -346,16 +348,40 @@
+@@ -345,16 +347,40 @@
              LevelRenderer levelrenderer1 = minecraft.levelRenderer;
              EntityRenderDispatcher entityrenderdispatcher = minecraft.getEntityRenderDispatcher();
              MultiBufferSource.BufferSource multibuffersource$buffersource = levelrenderer1.getRenderTypeTextures().bufferSource();
@@ -72,7 +72,7 @@
                  }
              }
  
-@@ -459,7 +485,6 @@
+@@ -458,7 +484,6 @@
              GlStateManager._depthMask(true);
              GlStateManager._enableCull();
              GlStateManager._disableBlend();

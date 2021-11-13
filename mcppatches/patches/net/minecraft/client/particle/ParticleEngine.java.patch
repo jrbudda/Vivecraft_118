@@ -9,7 +9,7 @@
          return particleprovider == null ? null : particleprovider.createParticle(pParticleData, this.level, pX, p_107398_, pY, p_107400_, pZ, p_107402_);
      }
  
-@@ -676,8 +676,14 @@
+@@ -674,8 +674,14 @@
          return this.trackedParticleCounts.getInt(p_172280_) < p_172280_.getLimit();
      }
  

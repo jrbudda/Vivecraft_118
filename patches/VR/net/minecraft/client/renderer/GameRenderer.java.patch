@@ -27,8 +27,8 @@
 +import java.nio.FloatBuffer;
  import java.nio.file.Files;
  import java.nio.file.Path;
- import java.util.Calendar;
-@@ -36,18 +41,28 @@
+ import java.util.List;
+@@ -34,17 +39,27 @@
  import net.minecraft.client.Camera;
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.Screenshot;
@@ -38,7 +38,6 @@
  import net.minecraft.client.gui.screens.LoadingOverlay;
  import net.minecraft.client.gui.screens.ReceivingLevelScreen;
 +import net.minecraft.client.gui.screens.Screen;
- import net.minecraft.client.gui.screens.TitleScreen;
 +import net.minecraft.client.gui.screens.WinScreen;
 +import net.minecraft.client.main.Main;
  import net.minecraft.client.player.AbstractClientPlayer;
@@ -57,7 +56,7 @@
  import net.minecraft.network.chat.ClickEvent;
  import net.minecraft.network.chat.Style;
  import net.minecraft.network.chat.TextComponent;
-@@ -55,7 +70,9 @@
+@@ -52,7 +67,9 @@
  import net.minecraft.server.packs.resources.ResourceManager;
  import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
  import net.minecraft.server.packs.resources.ResourceProvider;
@@ -67,7 +66,7 @@
  import net.minecraft.world.effect.MobEffects;
  import net.minecraft.world.entity.Entity;
  import net.minecraft.world.entity.LivingEntity;
-@@ -66,6 +83,7 @@
+@@ -63,6 +80,7 @@
  import net.minecraft.world.entity.player.Player;
  import net.minecraft.world.entity.projectile.ProjectileUtil;
  import net.minecraft.world.item.ItemStack;
@@ -75,7 +74,7 @@
  import net.minecraft.world.level.GameType;
  import net.minecraft.world.level.Level;
  import net.minecraft.world.level.block.state.BlockState;
-@@ -82,17 +100,35 @@
+@@ -79,6 +97,7 @@
  import net.optifine.GlErrors;
  import net.optifine.Lagometer;
  import net.optifine.RandomEntities;
@@ -83,17 +82,15 @@
  import net.optifine.entity.model.CustomEntityModels;
  import net.optifine.gui.GuiChatOF;
  import net.optifine.reflect.Reflector;
--import net.optifine.reflect.ReflectorResolver;
- import net.optifine.shaders.Shaders;
+@@ -88,8 +107,26 @@
  import net.optifine.shaders.ShadersRender;
  import net.optifine.util.MemoryMonitor;
  import net.optifine.util.TimedEvent;
++
 +import org.apache.commons.lang3.tuple.Triple;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
--
 +import org.lwjgl.opengl.GL11;
-+import org.lwjgl.opengl.GL43;
 +import org.vivecraft.api.NetworkHelper;
 +import org.vivecraft.api.VRData;
 +import org.vivecraft.gameplay.VRPlayer;
@@ -107,13 +104,12 @@
 +import org.vivecraft.render.RenderPass;
 +import org.vivecraft.render.VRCamera;
 +import org.vivecraft.render.VRWidgetHelper;
-+import org.vivecraft.utils.Utils;
 +import org.vivecraft.settings.VRSettings;
-+//TODO: this needs a lot of work
++import org.vivecraft.utils.Utils;
+ 
  public class GameRenderer implements ResourceManagerReloadListener, AutoCloseable
  {
-     private static final ResourceLocation NAUSEA_LOCATION = new ResourceLocation("textures/misc/nausea.png");
-@@ -134,7 +170,9 @@
+@@ -132,7 +169,9 @@
      public static final int EFFECT_NONE = EFFECTS.length;
      private int effectIndex = EFFECT_NONE;
      private boolean effectActive;
@@ -124,7 +120,7 @@
      public ShaderInstance blitShader;
      private final Map<String, ShaderInstance> shaders = Maps.newHashMap();
      @Nullable
-@@ -247,7 +285,7 @@
+@@ -245,7 +284,7 @@
      private static ShaderInstance rendertypeCrumblingShader;
      private boolean initialized = false;
      private Level updatedWorld = null;
@@ -133,7 +129,7 @@
      private long lastServerTime = 0L;
      private int lastServerTicks = 0;
      private int serverWaitTime = 0;
-@@ -256,6 +294,47 @@
+@@ -254,6 +293,47 @@
      private float avgServerTickDiff = 0.0F;
      private PostChain[] fxaaShaders = new PostChain[10];
      private boolean guiLoadingVisible = false;
@@ -181,7 +177,7 @@
  
      public GameRenderer(Minecraft p_109083_, ResourceManager p_109084_, RenderBuffers p_109085_)
      {
-@@ -266,6 +345,13 @@
+@@ -264,6 +344,13 @@
          this.lightTexture = new LightTexture(this, p_109083_);
          this.renderBuffers = p_109085_;
          this.postEffect = null;
@@ -195,7 +191,7 @@
      }
  
      public void close()
-@@ -778,13 +864,16 @@
+@@ -777,13 +864,16 @@
      {
          Entity entity = this.minecraft.getCameraEntity();
  
@@ -215,7 +211,7 @@
              boolean flag = false;
              int i = 3;
              double d1 = d0;
-@@ -810,14 +899,16 @@
+@@ -809,14 +899,16 @@
              {
                  d1 = this.minecraft.hitResult.getLocation().distanceToSqr(vec3);
              }
@@ -235,7 +231,7 @@
              }, d1);
  
              if (entityhitresult != null)
-@@ -869,9 +960,14 @@
+@@ -868,9 +960,14 @@
          }
      }
  
@@ -251,7 +247,7 @@
          {
              return 90.0D;
          }
-@@ -1061,25 +1157,56 @@
+@@ -1061,25 +1158,56 @@
          RenderSystem.setProjectionMatrix(pMatrix);
      }
  
@@ -314,7 +310,7 @@
          return posestack.last().pose();
      }
  
-@@ -1096,33 +1223,51 @@
+@@ -1096,33 +1224,51 @@
  
      public void render(float pPartialTicks, long pNanoTime, boolean p_109096_)
      {
@@ -384,7 +380,7 @@
                  {
                      RenderSystem.disableBlend();
                      RenderSystem.disableDepthTest();
-@@ -1134,7 +1279,37 @@
+@@ -1134,7 +1280,37 @@
  
                  this.minecraft.getMainRenderTarget().bindWrite(true);
              }
@@ -423,7 +419,7 @@
              {
                  RenderSystem.viewport(0, 0, this.minecraft.getWindow().getWidth(), this.minecraft.getWindow().getHeight());
              }
-@@ -1291,7 +1466,7 @@
+@@ -1292,7 +1468,7 @@
          {
              this.minecraft.options.renderDebugCharts = true;
          }
@@ -432,7 +428,7 @@
  
      private void m_182644_()
      {
-@@ -1366,9 +1541,9 @@
+@@ -1367,9 +1543,9 @@
  
                      nativeimage1.close();
                  }
@@ -444,7 +440,7 @@
                  }
                  finally {
                      nativeimage.close();
-@@ -1377,13 +1552,10 @@
+@@ -1378,13 +1554,10 @@
          }
      }
  
@@ -460,7 +456,7 @@
          {
              Entity entity = this.minecraft.getCameraEntity();
              boolean flag = entity instanceof Player && !this.minecraft.options.hideGui;
-@@ -1412,18 +1584,42 @@
+@@ -1413,18 +1586,42 @@
  
              return flag;
          }
@@ -506,7 +502,7 @@
  
          if (Config.isShaders())
          {
-@@ -1441,13 +1637,7 @@
+@@ -1442,13 +1639,7 @@
          boolean flag1 = this.shouldRenderBlockOutline();
          this.minecraft.getProfiler().popPush("camera");
          Camera camera = this.mainCamera;
@@ -521,7 +517,7 @@
          PoseStack posestack = new PoseStack();
          double d0 = this.getFov(camera, pPartialTicks, true);
          posestack.last().pose().multiply(this.getProjectionMatrix(d0));
-@@ -1457,26 +1647,30 @@
+@@ -1458,26 +1649,30 @@
          {
              posestack = p_109092_;
          }
@@ -564,7 +560,7 @@
          }
  
          if (Shaders.isEffectsModelView())
-@@ -1490,16 +1684,23 @@
+@@ -1491,16 +1686,23 @@
  
          if (Reflector.ForgeHooksClient_onCameraSetup.exists())
          {
@@ -598,7 +594,7 @@
          this.minecraft.levelRenderer.prepareCullFrustum(p_109092_, camera.getPosition(), this.getProjectionMatrix(Math.max(d0, this.minecraft.options.fov)));
          this.minecraft.levelRenderer.renderLevel(p_109092_, pPartialTicks, pFinishTimeNano, flag1, camera, this, this.lightTexture, matrix4f);
  
-@@ -1509,26 +1710,13 @@
+@@ -1510,26 +1712,13 @@
              Reflector.callVoid(Reflector.ForgeHooksClient_dispatchRenderLast, this.minecraft.levelRenderer, p_109092_, pPartialTicks, matrix4f, pFinishTimeNano);
          }
  
@@ -630,7 +626,7 @@
          }
  
          if (flag)
-@@ -1536,6 +1724,7 @@
+@@ -1537,6 +1726,7 @@
              Shaders.endRender();
          }
  
@@ -638,7 +634,7 @@
          this.minecraft.getProfiler().pop();
      }
  
-@@ -1648,8 +1837,6 @@
+@@ -1649,8 +1839,6 @@
  
          if (!this.initialized)
          {
@@ -647,62 +643,7 @@
              if (Config.getBitsOs() == 64 && Config.getBitsJre() == 32)
              {
                  Config.setNotify64BitJava(true);
-@@ -1720,7 +1907,7 @@
-         }
-     }
- 
--    private void updateMainMenu(TitleScreen mainGui)
-+    private void updateMainMenu(TitleScreen p_updateMainMenu_1_)
-     {
-         try
-         {
-@@ -1745,14 +1932,14 @@
-                 return;
-             }
- 
--            Reflector.setFieldValue(mainGui, Reflector.GuiMainMenu_splashText, s);
-+            Reflector.setFieldValue(p_updateMainMenu_1_, Reflector.GuiMainMenu_splashText, s);
-         }
-         catch (Throwable throwable)
-         {
-         }
-     }
- 
--    public boolean setFxaaShader(int fxaaLevel)
-+    public boolean setFxaaShader(int p_setFxaaShader_1_)
-     {
-         if (!GLX.isUsingFBOs())
-         {
-@@ -1762,7 +1949,7 @@
-         {
-             return true;
-         }
--        else if (fxaaLevel != 2 && fxaaLevel != 4)
-+        else if (p_setFxaaShader_1_ != 2 && p_setFxaaShader_1_ != 4)
-         {
-             if (this.postEffect == null)
-             {
-@@ -1775,7 +1962,7 @@
-                 return true;
-             }
-         }
--        else if (this.postEffect != null && this.postEffect == this.fxaaShaders[fxaaLevel])
-+        else if (this.postEffect != null && this.postEffect == this.fxaaShaders[p_setFxaaShader_1_])
-         {
-             return true;
-         }
-@@ -1785,8 +1972,8 @@
-         }
-         else
-         {
--            this.loadEffect(new ResourceLocation("shaders/post/fxaa_of_" + fxaaLevel + "x.json"));
--            this.fxaaShaders[fxaaLevel] = this.postEffect;
-+            this.loadEffect(new ResourceLocation("shaders/post/fxaa_of_" + p_setFxaaShader_1_ + "x.json"));
-+            this.fxaaShaders[p_setFxaaShader_1_] = this.postEffect;
-             return this.effectActive;
-         }
-     }
-@@ -1817,11 +2004,17 @@
+@@ -1781,11 +1969,17 @@
              float f5 = this.itemActivationOffX * (float)(pWidthsp / 4);
              float f6 = this.itemActivationOffY * (float)(pHeightScaled / 4);
              RenderSystem.enableDepthTest();
@@ -722,7 +663,7 @@
              posestack.scale(f7, -f7, f7);
              posestack.mulPose(Vector3f.YP.rotationDegrees(900.0F * Mth.abs(Mth.sin(f4))));
              posestack.mulPose(Vector3f.XP.rotationDegrees(6.0F * Mth.cos(f * 8.0F)));
-@@ -1832,6 +2025,8 @@
+@@ -1796,6 +1990,8 @@
              multibuffersource$buffersource.endBatch();
              RenderSystem.enableCull();
              RenderSystem.disableDepthTest();
@@ -731,7 +672,7 @@
          }
      }
  
-@@ -2222,4 +2417,2253 @@
+@@ -2186,4 +2382,2253 @@
      {
          return rendertypeCrumblingShader;
      }

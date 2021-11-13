@@ -1567,7 +1567,11 @@
 			]
 		},
 		{
-			"name": "cpw.mods:modlauncher:8.0.9",
+			"name": "cpw.mods:modlauncher:9.0.7",
+			"url": "https://files.minecraftforge.net/maven/"
+		},
+		{
+            "name": "cpw.mods:securejarhandler:0.9.54",
 			"url": "https://files.minecraftforge.net/maven/"
 		},
 		{

@@ -174,7 +174,7 @@
 +    private boolean lastClick;
 +    public boolean resourcePacksChanged;
 +    public int tickCounter;
-+    public final String minecriftVerString = "Vivecraft 1.17.1  jrbudda-VR-1-b2";
++    public final String minecriftVerString = "Vivecraft 1.17.1  jrbudda-VR-2-a1";
      private static final Logger LOGGER = LogManager.getLogger();
      public static final boolean ON_OSX = Util.getPlatform() == Util.OS.OSX;
      private static final int MAX_TICKS_PER_UPDATE = 10;
@@ -546,7 +546,7 @@
  
          if (this.window.shouldClose())
          {
-@@ -1146,79 +1384,263 @@
+@@ -1146,79 +1384,258 @@
  
          if (pRenderLevel)
          {
@@ -613,19 +613,24 @@
 +                this.vrPlayer.preTick();
                  this.tick();
 +                this.vrPlayer.postTick();
-+                this.profiler.pop();
              }
  
              this.profiler.pop();
          }
  
 +        this.options.ofFastRender = false;
-+        this.profiler.popPush("setupRenderConfiguration");
++        this.profiler.push("setupRenderConfiguration");
          this.mouseHandler.turnPlayer();
          this.window.setErrorSection("Render");
          this.profiler.push("sound");
          this.soundManager.updateSource(this.gameRenderer.getMainCamera());
          this.profiler.pop();
+-        this.profiler.push("render");
+-        PoseStack posestack = RenderSystem.getModelViewStack();
+-        posestack.pushPose();
+-        RenderSystem.applyModelViewMatrix();
+-        RenderSystem.clear(16640, ON_OSX);
+-        this.mainRenderTarget.bindWrite(true);
 +        try
 +        {
 +            this.checkGLError("pre render setup ");
@@ -640,12 +645,7 @@
 +        float f = this.pause ? this.pausePartialTick : this.timer.partialTick;
 +        this.profiler.popPush("preRender");
 +        this.vrPlayer.preRender(f);      
-         this.profiler.push("render");
--        PoseStack posestack = RenderSystem.getModelViewStack();
--        posestack.pushPose();
--        RenderSystem.applyModelViewMatrix();
--        RenderSystem.clear(16640, ON_OSX);
--        this.mainRenderTarget.bindWrite(true);
++        this.profiler.popPush("2D");
 +        
 +        //PoseStack posestack = RenderSystem.getModelViewStack();
 +        //posestack.pushPose();
@@ -653,10 +653,10 @@
 +        //RenderSystem.clear(16640, ON_OSX);
 +        //this.mainRenderTarget.bindWrite(true);
          FogRenderer.setupNoFog();
-         this.profiler.push("display");
+-        this.profiler.push("display");
          RenderSystem.enableTexture();
          RenderSystem.enableCull();
-         this.profiler.pop();
+-        this.profiler.pop();
 +        this.profiler.push("Gui");
 +        this.currentPass = RenderPass.GUI;
 +        this.gameRenderer.getMainCamera().setup(this.level, this.getCameraEntity(), false, false, f);
@@ -827,8 +827,7 @@
  
 -        this.profiler.popPush("yield");
 -        Thread.yield();
-+        this.getProfiler().pop();
-         this.profiler.pop();
+-        this.profiler.pop();
          this.window.setErrorSection("Post render");
 +        this.window.updateDisplay();
          ++this.frames;
@@ -840,7 +839,7 @@
          {
              if (this.pause)
              {
-@@ -1229,12 +1651,12 @@
+@@ -1229,12 +1646,12 @@
                  this.timer.partialTick = this.pausePartialTick;
              }
  
@@ -857,7 +856,7 @@
          this.profiler.push("fpsUpdate");
  
          while (Util.getMillis() >= this.lastTime + 1000L)
-@@ -1250,7 +1672,6 @@
+@@ -1250,7 +1667,6 @@
                  this.snooper.start();
              }
          }
@@ -865,7 +864,7 @@
          this.profiler.pop();
      }
  
-@@ -1321,14 +1742,16 @@
+@@ -1321,14 +1737,16 @@
          int i = this.window.calculateScale(this.options.guiScale, this.isEnforceUnicode());
          this.window.setGuiScale((double)i);
  
@@ -885,7 +884,7 @@
          this.mouseHandler.setIgnoreFirstMove();
      }
  
-@@ -1339,7 +1762,7 @@
+@@ -1339,7 +1757,7 @@
  
      private int getFramerateLimit()
      {
@@ -894,7 +893,7 @@
      }
  
      public void emergencySave()
-@@ -1556,6 +1979,16 @@
+@@ -1556,6 +1974,16 @@
          }
      }
  
@@ -911,7 +910,7 @@
      private void renderFpsMeter(PoseStack pMatrixStack, ProfileResults pProfilerResult)
      {
          List<ResultField> list = pProfilerResult.getTimes(this.debugPath);
-@@ -1643,14 +2076,14 @@
+@@ -1643,14 +2071,14 @@
              s1 = s1 + s + " ";
          }
  
@@ -929,7 +928,7 @@
              StringBuilder stringbuilder = new StringBuilder();
  
              if ("unspecified".equals(resultfield2.name))
-@@ -1659,15 +2092,15 @@
+@@ -1659,15 +2087,15 @@
              }
              else
              {
@@ -949,7 +948,7 @@
          }
      }
  
-@@ -1712,19 +2145,44 @@
+@@ -1712,19 +2140,44 @@
              {
                  BlockHitResult blockhitresult = (BlockHitResult)this.hitResult;
                  BlockPos blockpos = blockhitresult.getBlockPos();
@@ -998,7 +997,7 @@
              {
                  this.gameMode.stopDestroyBlock();
              }
-@@ -1746,42 +2204,59 @@
+@@ -1746,42 +2199,59 @@
              }
              else if (!this.player.isHandsBusy())
              {
@@ -1081,7 +1080,7 @@
              if (!this.player.isHandsBusy())
              {
                  if (this.hitResult == null)
-@@ -1791,74 +2266,102 @@
+@@ -1791,74 +2261,102 @@
  
                  for (InteractionHand interactionhand : InteractionHand.values())
                  {
@@ -1191,7 +1190,8 @@
 +                                                this.gameRenderer.itemInHandRenderer.itemUsed(interactionhand);
 +                                            }
 +                                        }
-+
+ 
+-                        if (interactionresult2.consumesAction())
 +                                        return;
 +                                    }
 +
@@ -1203,16 +1203,15 @@
 +                        }
 +
 +                        //this.physicalGuiManager.preClickAction();
- 
--                        if (interactionresult2.consumesAction())
++
 +                        if (itemstack.isEmpty() && (this.hitResult == null || this.hitResult.getType() == HitResult.Type.MISS))
-                         {
--                            if (interactionresult2.shouldSwing())
++                        {
 +                            Reflector.call(Reflector.ForgeHooks_onEmptyClick, this.player, interactionhand);
 +                        }
 +
 +                        if (!itemstack.isEmpty())
-+                        {
+                         {
+-                            if (interactionresult2.shouldSwing())
 +                            InteractionResult interactionresult2 = this.gameMode.useItem(this.player, this.level, interactionhand);
 +
 +                            if (interactionresult2.consumesAction())
@@ -1232,7 +1231,7 @@
                          }
                      }
                  }
-@@ -1873,12 +2376,15 @@
+@@ -1873,12 +2371,15 @@
  
      public void tick()
      {
@@ -1249,7 +1248,7 @@
  
          if (!this.pause)
          {
-@@ -1886,7 +2392,6 @@
+@@ -1886,7 +2387,6 @@
          }
  
          this.profiler.pop();
@@ -1257,7 +1256,7 @@
          this.tutorial.onLookAt(this.level, this.hitResult);
          this.profiler.push("gameMode");
  
-@@ -1896,11 +2401,7 @@
+@@ -1896,11 +2396,7 @@
          }
  
          this.profiler.popPush("textures");
@@ -1270,7 +1269,7 @@
  
          if (this.screen == null && this.player != null)
          {
-@@ -1936,6 +2437,10 @@
+@@ -1936,6 +2432,10 @@
              this.gui.clearCache();
          }
  
@@ -1281,7 +1280,7 @@
          if (this.overlay == null && (this.screen == null || this.screen.passEvents))
          {
              this.profiler.popPush("Keybindings");
-@@ -1947,8 +2452,30 @@
+@@ -1947,8 +2447,30 @@
              }
          }
  
@@ -1312,7 +1311,7 @@
              this.profiler.popPush("gameRenderer");
  
              if (!this.pause)
-@@ -1980,6 +2507,13 @@
+@@ -1980,6 +2502,13 @@
              this.gameRenderer.shutdownEffect();
          }
  
@@ -1326,7 +1325,7 @@
          if (!this.pause)
          {
              this.musicManager.tick();
-@@ -2051,24 +2585,21 @@
+@@ -2051,24 +2580,21 @@
          this.profiler.popPush("keyboard");
          this.keyboardHandler.tick();
          this.profiler.pop();
@@ -1357,7 +1356,7 @@
          }
  
          while (this.options.keySmoothCamera.consumeClick())
-@@ -2147,7 +2678,7 @@
+@@ -2147,7 +2673,7 @@
          {
              if (!this.player.isSpectator() && this.player.m_108700_(Screen.hasControlDown()))
              {
@@ -1366,7 +1365,7 @@
              }
          }
  
-@@ -2163,8 +2694,9 @@
+@@ -2163,8 +2689,9 @@
  
          if (this.player.isUsingItem())
          {
@@ -1377,7 +1376,7 @@
                  this.gameMode.releaseUsingItem(this.player);
              }
  
-@@ -2182,9 +2714,21 @@
+@@ -2182,9 +2709,21 @@
          }
          else
          {
@@ -1400,7 +1399,7 @@
              }
  
              while (this.options.keyUse.consumeClick())
-@@ -2203,7 +2747,7 @@
+@@ -2203,7 +2742,7 @@
              this.startUseItem();
          }
  
@@ -1409,7 +1408,7 @@
      }
  
      public static DataPackConfig loadDataPacks(LevelStorageSource.LevelStorageAccess pLevelStorage)
-@@ -2466,10 +3010,10 @@
+@@ -2466,10 +3005,10 @@
                              levelstoragesource$levelstorageaccess.close();
                          }
                      }
@@ -1422,7 +1421,7 @@
                      }
                  }
              }, new TranslatableComponent("selectWorld.backupQuestion.experimental"), new TranslatableComponent("selectWorld.backupWarning.experimental"), CommonComponents.GUI_PROCEED, CommonComponents.GUI_CANCEL));
-@@ -2499,6 +3043,13 @@
+@@ -2499,6 +3038,13 @@
  
      public void setLevel(ClientLevel pLevelClient)
      {
@@ -1436,7 +1435,7 @@
          ProgressScreen progressscreen = new ProgressScreen(true);
          progressscreen.progressStartNoAbort(new TranslatableComponent("connect.joining"));
          this.updateScreenAndTick(progressscreen);
-@@ -2537,12 +3088,15 @@
+@@ -2537,12 +3083,15 @@
          IntegratedServer integratedserver = this.singleplayerServer;
          this.singleplayerServer = null;
          this.gameRenderer.resetData();
@@ -1452,7 +1451,7 @@
              if (integratedserver != null)
              {
                  this.profiler.push("waitForServer");
-@@ -2559,6 +3113,7 @@
+@@ -2559,6 +3108,7 @@
              this.gui.onDisconnected();
              this.currentServer = null;
              this.isLocalServer = false;
@@ -1460,7 +1459,7 @@
              this.game.onLeaveGameSession();
          }
  
-@@ -2592,6 +3147,7 @@
+@@ -2592,6 +3142,7 @@
          this.particleEngine.setLevel(pLevel);
          this.blockEntityRenderDispatcher.setLevel(pLevel);
          this.updateTitle();
@@ -1468,7 +1467,7 @@
      }
  
      public boolean allowsMultiplayer()
-@@ -2667,6 +3223,17 @@
+@@ -2667,6 +3218,17 @@
      {
          if (this.hitResult != null && this.hitResult.getType() != HitResult.Type.MISS)
          {
@@ -1486,7 +1485,7 @@
              boolean flag = this.player.getAbilities().instabuild;
              BlockEntity blockentity = null;
              HitResult.Type hitresult$type = this.hitResult.getType();
-@@ -2755,6 +3322,8 @@
+@@ -2755,6 +3317,8 @@
                  }
              }
          }
@@ -1495,7 +1494,7 @@
      }
  
      private ItemStack addCustomNbtData(ItemStack pStack, BlockEntity pTe)
-@@ -3551,6 +4120,564 @@
+@@ -3551,6 +4115,564 @@
          public abstract boolean isChatAllowed(boolean p_168035_);
      }
  

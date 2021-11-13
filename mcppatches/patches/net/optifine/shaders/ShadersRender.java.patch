@@ -1,6 +1,6 @@
 --- a/net/optifine/shaders/ShadersRender.java
 +++ b/net/optifine/shaders/ShadersRender.java
-@@ -348,7 +348,7 @@
+@@ -347,7 +347,7 @@
              MultiBufferSource.BufferSource multibuffersource$buffersource = levelrenderer1.getRenderTypeTextures().bufferSource();
              boolean flag = Shaders.isShadowPass && !minecraft.player.isSpectator();
  
@@ -9,7 +9,7 @@
              {
                  if ((entityrenderdispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(minecraft.player)) && (entity != activeRenderInfo.getEntity() || flag || activeRenderInfo.isDetached() || activeRenderInfo.getEntity() instanceof LivingEntity && ((LivingEntity)activeRenderInfo.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || activeRenderInfo.getEntity() == entity))
                  {
-@@ -372,7 +372,7 @@
+@@ -371,7 +371,7 @@
              Frustum frustum1 = frustum;
              label97:
  

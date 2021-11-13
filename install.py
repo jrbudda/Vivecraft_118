@@ -373,6 +373,40 @@ def zipmerge( target_file, source_file ):
     os.remove( target_file )
     shutil.copy( out_filename, target_file )
 
+def ofmerge( target_file, source_file ):
+    out_file, out_filename = tempfile.mkstemp()
+    out = zipfile.ZipFile(out_filename,'a')
+    try:
+        target = zipfile.ZipFile( target_file, 'r')
+    except Exception as e:
+        print 'zipmerge: target not a zip-file: %s' % target_file
+        raise
+
+    try:        
+        source = zipfile.ZipFile( source_file, 'r' )
+    except Exception as e:
+        print 'zipmerge: source not a zip-file: %s' % source_file
+        raise
+        
+    #source supersedes target
+    source_files = set( source.namelist() )
+    source_files_mod = set() #doing it this way suppresses duplication warnings
+    for file in source_files:
+       source_files_mod.add(file.replace("notch/","")) #1.17 OF_H1 structure change.
+    target_files = set( target.namelist() ) - source_files_mod
+
+    for file in target_files:
+        out.writestr( file, target.open( file ).read() )
+        
+    for file in source_files:
+        if file.startswith("srg/"): continue
+        out.writestr(file.replace("notch/",""), source.open( file ).read() )
+
+    source.close()
+    target.close()
+    out.close()
+    os.remove( target_file )
+    shutil.copy( out_filename, target_file )
 
 def symlink(source, link_name):
     import os
@@ -455,7 +489,7 @@ def main(mcp_dir):
         print("Applying Optifine...")
         minecraft_jar = os.path.join( mcp_dir,"jars","versions",mc_version,mc_version+".jar")
         print ' Merging\n  %s\n into\n  %s' % (optifine_dest_file, minecraft_jar)
-        zipmerge( minecraft_jar, optifine_dest_file )
+        ofmerge( minecraft_jar, optifine_dest_file )
     else:
         print("Skipping Optifine merge!")
         

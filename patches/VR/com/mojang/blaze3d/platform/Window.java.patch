@@ -1,6 +1,19 @@
 --- a/com/mojang/blaze3d/platform/Window.java
 +++ b/com/mojang/blaze3d/platform/Window.java
-@@ -165,7 +165,6 @@
+@@ -98,8 +98,10 @@
+         GLFW.glfwWindowHint(139275, 221185);
+         GLFW.glfwWindowHint(139266, 3);
+         GLFW.glfwWindowHint(139267, 2);
+-        GLFW.glfwWindowHint(139272, 204801);
+-        GLFW.glfwWindowHint(139270, 1);
++        //Vivecraft keep compatibility profile?
++        GLFW.glfwWindowHint(139272, 204802);
++        //(was 204801)
++        //GLFW.glfwWindowHint(139270, 1);
+         long i = 0L;
+ 
+         if (Reflector.EarlyProgressVisualization_handOffWindow.exists())
+@@ -154,7 +156,6 @@
          GL.createCapabilities();
          this.setMode();
          this.refreshFramebufferSize();
@@ -8,7 +21,7 @@
          GLFW.glfwSetWindowPosCallback(this.window, this::onMove);
          GLFW.glfwSetWindowSizeCallback(this.window, this::onResize);
          GLFW.glfwSetWindowFocusCallback(this.window, this::onFocus);
-@@ -296,9 +295,9 @@
+@@ -285,9 +286,9 @@
                  memorystack.close();
              }
          }
@@ -20,7 +33,7 @@
          }
      }
  
-@@ -375,7 +374,7 @@
+@@ -364,7 +365,7 @@
      {
          RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
          this.vsync = pVsyncEnabled;
@@ -29,7 +42,7 @@
      }
  
      public void close()
-@@ -398,15 +397,15 @@
+@@ -387,15 +388,15 @@
      {
          if (pWindowPointer == this.window)
          {
@@ -48,7 +61,7 @@
                  {
                      this.eventHandler.resizeDisplay();
                  }
-@@ -425,20 +424,24 @@
+@@ -414,20 +415,24 @@
  
          if (this.framebufferHeight == 0 || this.framebufferWidth == 0)
          {
@@ -79,7 +92,7 @@
      }
  
      private void onFocus(long pWindowPointer, boolean p_85394_)
-@@ -586,13 +589,12 @@
+@@ -575,13 +580,12 @@
      {
          int i;
  
@@ -94,7 +107,7 @@
          }
  
          return i;
-@@ -601,10 +603,10 @@
+@@ -590,10 +594,10 @@
      public void setGuiScale(double pScaleFactor)
      {
          this.guiScale = pScaleFactor;
@@ -109,7 +122,7 @@
      }
  
      public void setTitle(String pTitle)
-@@ -624,12 +626,12 @@
+@@ -613,12 +617,12 @@
  
      public int getWidth()
      {
@@ -124,7 +137,7 @@
      }
  
      public void setWidth(int p_166451_)
-@@ -688,9 +690,9 @@
+@@ -677,9 +681,9 @@
          InputConstants.updateRawMouseInput(this.window, pValue);
      }
  
