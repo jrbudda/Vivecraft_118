@@ -1,6 +1,6 @@
 --- a/optifine/OptiFineClassTransformer.java
 +++ b/optifine/OptiFineClassTransformer.java
-@@ -27,18 +27,18 @@
+@@ -30,18 +30,18 @@
          try
          {
              dbg("OptiFine ClassTransformer");
@@ -26,27 +26,7 @@
          }
  
          if (this.ofZipFile == null)
-@@ -50,37 +50,37 @@
- 
-     public byte[] transform(String name, String transformedName, byte[] bytes)
-     {
--        String s = name + ".class";
--        byte[] abyte = this.getOptiFineResource(s);
--        return abyte != null ? abyte : bytes;
-+        String s1 = name + ".class";
-+        byte[] abyte1 = this.getOptiFineResource(s1);
-+        return abyte1 != null ? abyte1 : bytes;
-     }
- 
-     public synchronized InputStream getOptiFineResourceStream(String name)
-     {
-         name = Utils.removePrefix(name, "/");
--        byte[] abyte = this.getOptiFineResource(name);
--        return abyte == null ? null : new ByteArrayInputStream(abyte);
-+        byte[] abyte1 = this.getOptiFineResource(name);
-+        return abyte1 == null ? null : new ByteArrayInputStream(abyte1);
-     }
- 
+@@ -75,7 +75,7 @@
      public InputStream getResourceStream(String path)
      {
          path = Utils.ensurePrefix(path, "/");
@@ -55,27 +35,7 @@
      }
  
      public synchronized byte[] getOptiFineResource(String name)
-     {
-         name = Utils.removePrefix(name, "/");
--        byte[] abyte = this.getOptiFineResourceZip(name);
-+        byte[] abyte1 = this.getOptiFineResourceZip(name);
- 
--        if (abyte != null)
-+        if (abyte1 != null)
-         {
--            return abyte;
-+            return abyte1;
-         }
-         else
-         {
--            abyte = this.getOptiFineResourcePatched(name, this);
--            return abyte != null ? abyte : null;
-+            abyte1 = this.getOptiFineResourcePatched(name, this);
-+            return abyte1 != null ? abyte1 : null;
-         }
-     }
- 
-@@ -93,9 +93,9 @@
+@@ -103,9 +103,9 @@
          else
          {
              name = Utils.removePrefix(name, "/");
@@ -87,7 +47,7 @@
              {
                  return null;
              }
-@@ -103,23 +103,23 @@
+@@ -113,23 +113,23 @@
              {
                  try
                  {
@@ -119,7 +79,7 @@
                      return null;
                  }
              }
-@@ -131,10 +131,10 @@
+@@ -141,10 +141,10 @@
          if (this.patterns != null && this.patchMap != null && resourceProvider != null)
          {
              name = Utils.removePrefix(name, "/");
@@ -133,7 +93,7 @@
              {
                  return null;
              }
-@@ -142,27 +142,27 @@
+@@ -152,27 +152,27 @@
              {
                  try
                  {
@@ -173,7 +133,7 @@
                      return null;
                  }
              }
-@@ -175,20 +175,20 @@
+@@ -185,20 +185,20 @@
  
      public static byte[] readAll(InputStream is) throws IOException
      {

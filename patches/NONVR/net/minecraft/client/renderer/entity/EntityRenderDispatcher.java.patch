@@ -20,7 +20,7 @@
  import net.minecraft.CrashReport;
  import net.minecraft.CrashReportCategory;
  import net.minecraft.ReportedException;
-@@ -77,6 +83,12 @@
+@@ -78,6 +84,12 @@
      public Entity renderEntity = null;
      private EntityRendererProvider.Context context = null;
  
@@ -33,7 +33,7 @@
      public <E extends Entity> int getPackedLightCoords(E pEntity, float pPartialTicks)
      {
          int i = this.getRenderer(pEntity).getPackedLightCoords(pEntity, pPartialTicks);
-@@ -103,8 +115,66 @@
+@@ -104,8 +116,66 @@
          if (pEntity instanceof AbstractClientPlayer)
          {
              String s = ((AbstractClientPlayer)pEntity).getModelName();
@@ -102,7 +102,7 @@
          }
          else
          {
-@@ -217,9 +287,9 @@
+@@ -218,9 +288,9 @@
  
                  p_114391_.popPose();
              }

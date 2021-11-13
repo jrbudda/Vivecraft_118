@@ -25,22 +25,7 @@
  import net.minecraft.client.color.block.BlockColors;
  import net.minecraft.client.gui.Font;
  import net.minecraft.client.gui.components.Button;
-@@ -21,39 +27,65 @@
- import net.minecraft.client.gui.screens.TitleScreen;
- import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
- import net.minecraft.client.model.ArmorStandModel;
-+import net.minecraft.client.model.BatModel;
- import net.minecraft.client.model.BeeModel;
- import net.minecraft.client.model.BlazeModel;
-+import net.minecraft.client.model.BoatModel;
- import net.minecraft.client.model.BookModel;
- import net.minecraft.client.model.ChestedHorseModel;
- import net.minecraft.client.model.ChickenModel;
-+import net.minecraft.client.model.CodModel;
- import net.minecraft.client.model.ColorableHierarchicalModel;
-+import net.minecraft.client.model.CreeperModel;
-+import net.minecraft.client.model.DolphinModel;
-+import net.minecraft.client.model.EndermiteModel;
+@@ -30,6 +36,7 @@
  import net.minecraft.client.model.EntityModel;
  import net.minecraft.client.model.EvokerFangsModel;
  import net.minecraft.client.model.FoxModel;
@@ -48,50 +33,17 @@
  import net.minecraft.client.model.GuardianModel;
  import net.minecraft.client.model.HoglinModel;
  import net.minecraft.client.model.HorseModel;
- import net.minecraft.client.model.IllagerModel;
- import net.minecraft.client.model.IronGolemModel;
-+import net.minecraft.client.model.LavaSlimeModel;
- import net.minecraft.client.model.LeashKnotModel;
- import net.minecraft.client.model.LlamaModel;
- import net.minecraft.client.model.LlamaSpitModel;
-+import net.minecraft.client.model.MinecartModel;
- import net.minecraft.client.model.OcelotModel;
-+import net.minecraft.client.model.ParrotModel;
- import net.minecraft.client.model.PhantomModel;
- import net.minecraft.client.model.PiglinModel;
-+import net.minecraft.client.model.PufferfishBigModel;
-+import net.minecraft.client.model.PufferfishMidModel;
-+import net.minecraft.client.model.PufferfishSmallModel;
- import net.minecraft.client.model.QuadrupedModel;
- import net.minecraft.client.model.RabbitModel;
-+import net.minecraft.client.model.RavagerModel;
-+import net.minecraft.client.model.SalmonModel;
- import net.minecraft.client.model.ShulkerBulletModel;
- import net.minecraft.client.model.ShulkerModel;
-+import net.minecraft.client.model.SilverfishModel;
- import net.minecraft.client.model.SkullModel;
-+import net.minecraft.client.model.SlimeModel;
- import net.minecraft.client.model.SnowGolemModel;
-+import net.minecraft.client.model.SpiderModel;
-+import net.minecraft.client.model.SquidModel;
- import net.minecraft.client.model.StriderModel;
- import net.minecraft.client.model.TridentModel;
-+import net.minecraft.client.model.TropicalFishModelA;
-+import net.minecraft.client.model.TropicalFishModelB;
- import net.minecraft.client.model.TurtleModel;
- import net.minecraft.client.model.VexModel;
-+import net.minecraft.client.model.VillagerModel;
-+import net.minecraft.client.model.WitchModel;
-+import net.minecraft.client.model.WitherBossModel;
+@@ -54,7 +61,9 @@
  import net.minecraft.client.model.WolfModel;
  import net.minecraft.client.model.dragon.DragonHeadModel;
  import net.minecraft.client.model.geom.ModelPart;
 +import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+ import net.minecraft.client.particle.TerrainParticle;
 +import net.minecraft.client.player.LocalPlayer;
  import net.minecraft.client.renderer.DimensionSpecialEffects;
  import net.minecraft.client.renderer.FogRenderer;
  import net.minecraft.client.renderer.ItemBlockRenderTypes;
-@@ -71,6 +103,7 @@
+@@ -72,6 +81,7 @@
  import net.minecraft.client.renderer.blockentity.LecternRenderer;
  import net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer;
  import net.minecraft.client.renderer.blockentity.SignRenderer;
@@ -99,14 +51,13 @@
  import net.minecraft.client.renderer.entity.BoatRenderer;
  import net.minecraft.client.renderer.entity.EndCrystalRenderer;
  import net.minecraft.client.renderer.entity.EnderDragonRenderer;
-@@ -88,38 +121,61 @@
+@@ -88,22 +98,34 @@
  import net.minecraft.client.renderer.entity.TropicalFishRenderer;
  import net.minecraft.client.renderer.entity.WitherSkullRenderer;
  import net.minecraft.client.renderer.entity.layers.LlamaDecorLayer;
 +import net.minecraft.client.resources.ClientPackSource;
  import net.minecraft.client.resources.LegacyPackResourcesAdapter;
  import net.minecraft.client.resources.PackResourcesAdapterV4;
-+import net.minecraft.client.resources.language.I18n;
  import net.minecraft.client.resources.model.ModelManager;
  import net.minecraft.core.BlockPos;
  import net.minecraft.nbt.CompoundTag;
@@ -115,6 +66,7 @@
  import net.minecraft.network.syncher.EntityDataAccessor;
 +import net.minecraft.resources.ResourceKey;
  import net.minecraft.resources.ResourceLocation;
+ import net.minecraft.server.level.ChunkHolder;
  import net.minecraft.server.level.ServerLevel;
  import net.minecraft.server.level.ServerPlayer;
  import net.minecraft.server.level.Ticket;
@@ -126,12 +78,15 @@
 +import net.minecraft.server.packs.repository.PackRepository;
 +import net.minecraft.server.packs.repository.PackSource;
 +import net.minecraft.server.packs.resources.ReloadableResourceManager;
+ import net.minecraft.server.packs.resources.ResourceManager;
  import net.minecraft.tags.ItemTags;
 +import net.minecraft.tags.StaticTags;
 +import net.minecraft.tags.TagContainer;
 +import net.minecraft.world.InteractionHand;
+ import net.minecraft.world.effect.MobEffect;
+ import net.minecraft.world.effect.MobEffectInstance;
  import net.minecraft.world.entity.Entity;
- import net.minecraft.world.entity.EntityType;
+@@ -111,19 +133,29 @@
  import net.minecraft.world.entity.LivingEntity;
  import net.minecraft.world.entity.decoration.ItemFrame;
  import net.minecraft.world.entity.item.ItemEntity;
@@ -161,7 +116,7 @@
  import net.minecraftforge.eventbus.api.Event;
  import net.optifine.Log;
  import net.optifine.util.ArrayUtils;
-@@ -142,7 +198,7 @@
+@@ -146,7 +178,7 @@
      public static ReflectorMethod ClientModLoader_isLoading = new ReflectorMethod(ClientModLoader, "isLoading");
      public static ReflectorMethod ClientModLoader_renderProgressText = new ReflectorMethod(ClientModLoader, "renderProgressText");
      public static ReflectorClass ChunkDataEvent_Save = new ReflectorClass("net.minecraftforge.event.world.ChunkDataEvent$Save");
@@ -170,27 +125,23 @@
      public static ReflectorClass ChunkEvent_Load = new ReflectorClass("net.minecraftforge.event.world.ChunkEvent$Load");
      public static ReflectorConstructor ChunkEvent_Load_Constructor = new ReflectorConstructor(ChunkEvent_Load, new Class[] {ChunkAccess.class});
      public static ReflectorClass ChunkEvent_Unload = new ReflectorClass("net.minecraftforge.event.world.ChunkEvent$Unload");
-@@ -342,8 +398,9 @@
-     public static ReflectorField Launch_blackboard = new ReflectorField(Launch, "blackboard");
-     public static ReflectorClass LightUtil = new ReflectorClass("net.minecraftforge.client.model.pipeline.LightUtil");
+@@ -203,6 +235,7 @@
+     public static ReflectorMethod IForgeBlockState_getSoundType3 = new ReflectorMethod(IForgeBlockState, "getSoundType", new Class[] {LevelReader.class, BlockPos.class, Entity.class});
+     public static ReflectorMethod IForgeBlockState_getStateAtViewpoint = new ReflectorMethod(IForgeBlockState, "getStateAtViewpoint");
+     public static ReflectorMethod IForgeBlockState_shouldDisplayFluidOverlay = new ReflectorMethod(IForgeBlockState, "shouldDisplayFluidOverlay");
++    public static ReflectorMethod IForgeBlockState_isAir2 = new ReflectorMethod(IForgeBlockState, "isAir", new Class[] {BlockGetter.class, BlockPos.class});
+     public static ReflectorClass IForgeFluid = new ReflectorClass("net.minecraftforge.common.extensions.IForgeFluid");
+     public static ReflectorMethod IForgeFluid_getAttributes = new ReflectorMethod(IForgeFluid, "getAttributes");
+     public static ReflectorClass IForgeEntity = new ReflectorClass("net.minecraftforge.common.extensions.IForgeEntity");
+@@ -342,6 +375,7 @@
      public static ReflectorField LightUtil_itemConsumer = new ReflectorField(LightUtil, "itemConsumer");
--    public static ReflectorField LightUtil_tessellator = new ReflectorField(LightUtil, "tessellator");
+     public static ReflectorField LightUtil_tessellator = new ReflectorField(LightUtil, "tessellator");
      public static ReflectorMethod LightUtil_putBakedQuad = new ReflectorMethod(LightUtil, "putBakedQuad");
 +    public static ReflectorMethod LightUtil_renderQuadColor = new ReflectorMethod(LightUtil, "renderQuadColor");
-+    public static ReflectorField LightUtil_tessellator = new ReflectorField(LightUtil, "tessellator");
-     public static ReflectorClass Loader = new ReflectorClass("net.minecraftforge.fml.common.Loader");
-     public static ReflectorMethod Loader_getActiveModList = new ReflectorMethod(Loader, "getActiveModList");
-     public static ReflectorMethod Loader_instance = new ReflectorMethod(Loader, "instance");
-@@ -399,6 +456,8 @@
-     public static ReflectorField GuiEnchantment_bookModel = new ReflectorField(GuiEnchantment, BookModel.class);
-     public static ReflectorClass GuiMainMenu = new ReflectorClass(TitleScreen.class);
-     public static ReflectorField GuiMainMenu_splashText = new ReflectorField(GuiMainMenu, String.class);
-+    public static ReflectorClass I18n = new ReflectorClass(I18n.class);
-+    public static ReflectorField I18n_locale = new ReflectorField(I18n, Locale.class);
-     public static ReflectorClass ItemOverride = new ReflectorClass(ItemOverride.class);
-     public static ReflectorField ItemOverride_listResourceValues = new ReflectorField(ItemOverride, List.class);
-     public static ReflectorClass LegacyResourcePackWrapper = new ReflectorClass(LegacyPackResourcesAdapter.class);
-@@ -429,6 +488,9 @@
+     public static ReflectorClass MinecraftForge = new ReflectorClass("net.minecraftforge.common.MinecraftForge");
+     public static ReflectorField MinecraftForge_EVENT_BUS = new ReflectorField(MinecraftForge, "EVENT_BUS");
+     public static ReflectorClass MinecraftForgeClient = new ReflectorClass("net.minecraftforge.client.MinecraftForgeClient");
+@@ -434,6 +468,9 @@
      public static ReflectorFields RenderEnderCrystal_modelRenderers = new ReflectorFields(RenderEnderCrystal, ModelPart.class, 3);
      public static ReflectorClass ModelEvokerFangs = new ReflectorClass(EvokerFangsModel.class);
      public static ReflectorFields ModelEvokerFangs_ModelRenderers = new ReflectorFields(ModelEvokerFangs, ModelPart.class, 3);
@@ -200,7 +151,7 @@
      public static ReflectorClass ModelGuardian = new ReflectorClass(GuardianModel.class);
      public static ReflectorField ModelGuardian_spines = new ReflectorField(ModelGuardian, ModelPart[].class, 0);
      public static ReflectorField ModelGuardian_tail = new ReflectorField(ModelGuardian, ModelPart[].class, 1);
-@@ -539,9 +601,9 @@
+@@ -544,9 +581,9 @@
  
              method.invoke((Object)null, params);
          }
@@ -212,7 +163,7 @@
          }
      }
  
-@@ -561,9 +623,9 @@
+@@ -566,9 +603,9 @@
                  return obool;
              }
          }
@@ -224,7 +175,7 @@
              return false;
          }
      }
-@@ -584,9 +646,9 @@
+@@ -589,9 +626,9 @@
                  return integer;
              }
          }
@@ -236,7 +187,7 @@
              return 0;
          }
      }
-@@ -607,9 +669,9 @@
+@@ -612,9 +649,9 @@
                  return olong;
              }
          }
@@ -248,7 +199,7 @@
              return 0L;
          }
      }
-@@ -630,9 +692,9 @@
+@@ -635,9 +672,9 @@
                  return f;
              }
          }
@@ -260,7 +211,7 @@
              return 0.0F;
          }
      }
-@@ -653,9 +715,9 @@
+@@ -658,9 +695,9 @@
                  return d0;
              }
          }
@@ -272,7 +223,7 @@
              return 0.0D;
          }
      }
-@@ -667,9 +729,9 @@
+@@ -672,9 +709,9 @@
              Method method = refMethod.getTargetMethod();
              return method == null ? null : (String)method.invoke((Object)null, params);
          }
@@ -284,7 +235,7 @@
              return null;
          }
      }
-@@ -681,9 +743,9 @@
+@@ -686,9 +723,9 @@
              Method method = refMethod.getTargetMethod();
              return method == null ? null : method.invoke((Object)null, params);
          }
@@ -296,7 +247,7 @@
              return null;
          }
      }
-@@ -706,9 +768,9 @@
+@@ -711,9 +748,9 @@
  
              method.invoke(obj, params);
          }
@@ -308,7 +259,7 @@
          }
      }
  
-@@ -728,9 +790,9 @@
+@@ -733,9 +770,9 @@
                  return obool;
              }
          }
@@ -320,7 +271,7 @@
              return false;
          }
      }
-@@ -751,9 +813,9 @@
+@@ -756,9 +793,9 @@
                  return integer;
              }
          }
@@ -332,7 +283,7 @@
              return 0;
          }
      }
-@@ -774,9 +836,9 @@
+@@ -779,9 +816,9 @@
                  return olong;
              }
          }
@@ -344,7 +295,7 @@
              return 0L;
          }
      }
-@@ -797,9 +859,9 @@
+@@ -802,9 +839,9 @@
                  return f;
              }
          }
@@ -356,7 +307,7 @@
              return 0.0F;
          }
      }
-@@ -820,9 +882,9 @@
+@@ -825,9 +862,9 @@
                  return d0;
              }
          }
@@ -368,7 +319,7 @@
              return 0.0D;
          }
      }
-@@ -834,9 +896,9 @@
+@@ -839,9 +876,9 @@
              Method method = refMethod.getTargetMethod();
              return method == null ? null : (String)method.invoke(obj, params);
          }
@@ -380,7 +331,7 @@
              return null;
          }
      }
-@@ -848,9 +910,9 @@
+@@ -853,9 +890,9 @@
              Method method = refMethod.getTargetMethod();
              return method == null ? null : method.invoke(obj, params);
          }
@@ -392,7 +343,7 @@
              return null;
          }
      }
-@@ -867,9 +929,9 @@
+@@ -872,9 +909,9 @@
              Field field = refField.getTargetField();
              return field == null ? null : field.get(obj);
          }
@@ -404,7 +355,7 @@
              return null;
          }
      }
-@@ -881,9 +943,9 @@
+@@ -886,9 +923,9 @@
              Field field = refField.getTargetField();
              return field == null ? def : field.getBoolean(obj);
          }
@@ -416,7 +367,7 @@
              return def;
          }
      }
-@@ -907,9 +969,9 @@
+@@ -912,9 +949,9 @@
              Field field = refField.getTargetField();
              return field == null ? def : field.getFloat(obj);
          }
@@ -428,7 +379,7 @@
              return def;
          }
      }
-@@ -926,9 +988,9 @@
+@@ -931,9 +968,9 @@
              Field field = refField.getTargetField();
              return field == null ? def : field.getInt(obj);
          }
@@ -440,7 +391,7 @@
              return def;
          }
      }
-@@ -940,9 +1002,9 @@
+@@ -945,9 +982,9 @@
              Field field = refField.getTargetField();
              return field == null ? def : field.getLong(obj);
          }
@@ -452,7 +403,7 @@
              return def;
          }
      }
-@@ -1011,9 +1073,9 @@
+@@ -1016,9 +1053,9 @@
                  return true;
              }
          }
@@ -464,7 +415,7 @@
              return false;
          }
      }
-@@ -1153,10 +1215,8 @@
+@@ -1158,10 +1195,8 @@
                  RuntimeException runtimeexception = (RuntimeException)throwable;
                  throw runtimeexception;
              }
@@ -477,7 +428,7 @@
          }
          else
          {
-@@ -1250,4 +1310,154 @@
+@@ -1255,4 +1290,154 @@
          ReflectorResolver.register(iresolvable);
          return true;
      }

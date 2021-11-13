@@ -1,6 +1,6 @@
 --- a/com/mojang/blaze3d/systems/RenderSystem.java
 +++ b/com/mojang/blaze3d/systems/RenderSystem.java
-@@ -39,6 +39,7 @@
+@@ -40,6 +40,7 @@
  @DontObfuscate
  public class RenderSystem
  {

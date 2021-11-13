@@ -38,10 +38,6 @@ public class VivecraftTransformationService implements ITransformationService
         LOGGER.info("VivecraftTransformationService.initialize");
     }
 
-    public void beginScanning(IEnvironment environment)
-    {
-    }
-
     public void onLoad(IEnvironment env, Set<String> otherServices) throws IncompatibleEnvironmentException
     {
         LOGGER.info("VivecraftTransformationService.onLoad");
