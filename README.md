@@ -1,4 +1,4 @@
-Vivecraft for Minecraft 1.17
+Vivecraft for Minecraft 1.18
 =========
 
 This readme is intended for developers. For downloads and gameplay instructions please see the [official website](http://www.vivecraft.org/)
@@ -18,13 +18,13 @@ If you're not sure about a particular translation, feel free to join our [Discor
 
 
 Using this Repository
-(Note this is a little outdated for 1.17, some directory names have changed, will be updated soon)
+(Note this is a little outdated for 1.17+, some directory names have changed, will be updated soon)
 ========
  
  Vivecraft uses patches to avoid distributing Minecraft code. The build scripts are in Python 2.X.
  
  - Fork, checkout or download the repo using your Git method of choice.
- - Install Java JDK 16. The Java JRE will NOT work.
+ - Install Java JDK 17. The Java JRE will NOT work.
  - Set the JAVA_HOME environment variable to the JDK directory
  - Add %JAVA_HOME%\bin to your PATH environment variable
  - Install Python 2.7.x (NOT 3.x). Be sure to tick the 'add python to your PATH' option during install. [Download from python.org](https://www.python.org/downloads/)
