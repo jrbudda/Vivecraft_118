@@ -1,21 +1,16 @@
 ﻿diff -r -U 3 minecraft\com\mojang\blaze3d\audio\OggAudioStream.java minecraft_patched\com\mojang\blaze3d\audio\OggAudioStream.java
 --- minecraft\com\mojang\blaze3d\audio\OggAudioStream.java
 +++ minecraft_patched\com\mojang\blaze3d\audio\OggAudioStream.java
-@@ -116,23 +116,25 @@
+@@ -116,7 +116,7 @@
        } else {
           MemoryStack memorystack = MemoryStack.stackPush();
  
 -         int l;
--         label79: {
 +         boolean flag1;
-+         label79:
-+         {
+          label79: {
              boolean flag;
--            label80: {
-+            label80:
-+            {
-                try {
-                   PointerBuffer pointerbuffer = memorystack.mallocPointer(1);
+             label80: {
+@@ -125,14 +125,14 @@
                    IntBuffer intbuffer = memorystack.mallocInt(1);
                    IntBuffer intbuffer1 = memorystack.mallocInt(1);
  
@@ -34,7 +29,7 @@
                             break label79;
                          }
                       } else {
-@@ -190,7 +192,7 @@
+@@ -190,7 +190,7 @@
              memorystack.close();
           }
  

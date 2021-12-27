@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\server\MinecraftServer.java minecraft_patched\net\minecraft\server\MinecraftServer.java
 --- minecraft\net\minecraft\server\MinecraftServer.java
 +++ minecraft_patched\net\minecraft\server\MinecraftServer.java
-@@ -759,7 +759,7 @@
+@@ -748,7 +748,7 @@
        }
     }
  

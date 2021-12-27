@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\world\entity\SpawnPlacements.java minecraft_patched\net\minecraft\world\entity\SpawnPlacements.java
 --- minecraft\net\minecraft\world\entity\SpawnPlacements.java
 +++ minecraft_patched\net\minecraft\world\entity\SpawnPlacements.java
-@@ -58,7 +58,7 @@
+@@ -60,7 +60,7 @@
  
     public static <T extends Entity> boolean m_21759_(EntityType<T> p_21760_, ServerLevelAccessor p_21761_, MobSpawnType p_21762_, BlockPos p_21763_, Random p_21764_) {
        SpawnPlacements.Data spawnplacements$data = f_21750_.get(p_21760_);

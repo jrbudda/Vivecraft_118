@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\world\level\entity\EntitySectionStorage.java minecraft_patched\net\minecraft\world\level\entity\EntitySectionStorage.java
 --- minecraft\net\minecraft\world\level\entity\EntitySectionStorage.java
 +++ minecraft_patched\net\minecraft\world\level\entity\EntitySectionStorage.java
-@@ -105,7 +105,7 @@
+@@ -104,7 +104,7 @@
  
     public LongSet m_156857_() {
        LongSet longset = new LongOpenHashSet();

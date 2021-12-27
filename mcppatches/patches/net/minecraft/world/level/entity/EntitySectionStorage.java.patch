@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/level/entity/EntitySectionStorage.java
 +++ b/net/minecraft/world/level/entity/EntitySectionStorage.java
-@@ -127,7 +127,7 @@
+@@ -140,7 +140,7 @@
      public LongSet getAllChunksWithExistingSections()
      {
          LongSet longset = new LongOpenHashSet();

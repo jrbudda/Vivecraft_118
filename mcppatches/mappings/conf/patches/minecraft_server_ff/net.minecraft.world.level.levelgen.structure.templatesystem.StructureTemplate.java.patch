@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\world\level\levelgen\structure\templatesystem\StructureTemplate.java minecraft_patched\net\minecraft\world\level\levelgen\structure\templatesystem\StructureTemplate.java
 --- minecraft\net\minecraft\world\level\levelgen\structure\templatesystem\StructureTemplate.java
 +++ minecraft_patched\net\minecraft\world\level\levelgen\structure\templatesystem\StructureTemplate.java
-@@ -134,7 +134,7 @@
+@@ -130,7 +130,7 @@
     }
  
     private static List<StructureTemplate.StructureBlockInfo> m_74614_(List<StructureTemplate.StructureBlockInfo> p_74615_, List<StructureTemplate.StructureBlockInfo> p_74616_, List<StructureTemplate.StructureBlockInfo> p_74617_) {

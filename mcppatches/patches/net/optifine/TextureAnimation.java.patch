@@ -1,6 +1,6 @@
 --- a/net/optifine/TextureAnimation.java
 +++ b/net/optifine/TextureAnimation.java
-@@ -208,16 +208,16 @@
+@@ -207,16 +207,16 @@
  
          if (j + i <= this.imageData.limit())
          {
@@ -10,7 +10,7 @@
 -            if (k + i <= this.imageData.limit())
 +            if (offset2 + i <= this.imageData.limit())
              {
-                 ((Buffer)this.interpolateData).clear();
+                 this.interpolateData.clear();
  
                  for (int l = 0; l < i; ++l)
                  {

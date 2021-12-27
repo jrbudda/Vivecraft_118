@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\commands\arguments\blocks\BlockPredicateArgument.java minecraft_patched\net\minecraft\commands\arguments\blocks\BlockPredicateArgument.java
 --- minecraft\net\minecraft\commands\arguments\blocks\BlockPredicateArgument.java
 +++ minecraft_patched\net\minecraft\commands\arguments\blocks\BlockPredicateArgument.java
-@@ -139,7 +139,7 @@
+@@ -157,7 +157,7 @@
                    return false;
                 }
  

@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\world\entity\Mob.java minecraft_patched\net\minecraft\world\entity\Mob.java
 --- minecraft\net\minecraft\world\entity\Mob.java
 +++ minecraft_patched\net\minecraft\world\entity\Mob.java
-@@ -1046,7 +1046,7 @@
+@@ -1062,7 +1062,7 @@
           if (itemstack.m_41720_() instanceof SpawnEggItem) {
              if (this.f_19853_ instanceof ServerLevel) {
                 SpawnEggItem spawneggitem = (SpawnEggItem)itemstack.m_41720_();

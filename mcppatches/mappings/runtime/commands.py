@@ -263,8 +263,8 @@ class Commands(object):
                 self.checkcommand('scalac runtime', '%s -J-version' % self.cmdscalac)
         if self.has_rg:
             self.checkcommand('retroguard', '%s --version' % self.retroguard, java=True)
-        if self.has_ss:
-            self.checkcommand('specialsource', '%s --version' % self.specialsource, java=True)
+        #if self.has_ss:
+            #self.checkcommand('specialsource', '%s --version' % self.specialsource, java=True)
 
         self.exceptor = os.path.normpath(self.config.get('COMMANDS', 'Exceptor'))
         if verify:
@@ -447,6 +447,7 @@ class Commands(object):
         self.config = config
 
         # HINT: We read the directories for cleanup
+        self.dirconf = os.path.normpath(config.get('DEFAULT', 'DirConf'))
         self.dirtemp = os.path.normpath(config.get('DEFAULT', 'DirTemp'))
         self.dirsrc = os.path.normpath(config.get('DEFAULT', 'DirSrc'))
         self.dirlogs = os.path.normpath(config.get('DEFAULT', 'DirLogs'))
@@ -569,7 +570,7 @@ class Commands(object):
         self.dirnatives = os.path.join(self.dirjars, "versions", self.versionClient, "%s-natives"%self.versionClient)
 
         jarslwjgl = []
-        jarslwjgl.append(os.path.join(self.dirjars,self.mcLibraries['jinput']['filename']))
+        #jarslwjgl.append(os.path.join(self.dirjars,self.mcLibraries['jinput']['filename']))
         jarslwjgl.append(os.path.join(self.dirjars,self.mcLibraries['lwjgl']['filename']))
         #jarslwjgl.append(os.path.join(self.dirjars,self.mcLibraries['lwjgl_util']['filename']))
 
@@ -1195,10 +1196,13 @@ class Commands(object):
             else:
                 identifier = 'RGMCP'
                 srg = reobsrg[side]
+            srg = self.dirconf + "\joined_reobf.tsrg"
         else:
             cmd = self.cmdss
             identifier = None
-            srg = cfgsrg[side].replace(".srg", ".tsrg")
+            #srg = cfgsrg[side].replace(".srg", ".tsrg")
+            srg = self.dirconf + "\joined.tsrg"
+
 
         # add specialsource.jar to copy of client or server classpath
         sscp = [self.specialsource] + cplk[side]
@@ -1876,7 +1880,13 @@ class Commands(object):
             return False
 
         # HINT: We read the relevant CSVs
-        names = {'methods': {}, 'fields': {}, 'params': {}}
+        names = {'classes':{}, 'methods': {}, 'fields': {}, 'params': {}}
+        with open(self.csvclasses, 'rb') as fh:
+            classesreader = csv.DictReader(fh)
+            for row in classesreader:
+                if int(row['side']) == side or int(row['side']) == 2:
+                    if row['name'] != row['searge']:
+                        names['classes'][row['searge']] = row['name'].replace(".","/")
         with open(self.csvmethods, 'rb') as fh:
             methodsreader = csv.DictReader(fh)
             for row in methodsreader:
@@ -1897,6 +1907,7 @@ class Commands(object):
                         names['params'][row['param']] = row['name']
 
         regexps = {
+            'classes': re.compile(r'C_[0-9]+_'),
             'methods': re.compile(r'm_[0-9]+_'),
             'fields': re.compile(r'f_[0-9]+_'),
             'params': re.compile(r'p_[0-9]+_'),
@@ -1906,7 +1917,7 @@ class Commands(object):
             tmp_file = src_file + '.tmp'
             with open(src_file, 'r') as fh:
                 buf = fh.read()
-            for group in ['methods', 'fields', 'params']:
+            for group in ['classes', 'methods', 'fields', 'params']:
                 def mapname(match):
                     try:
                         return names[group][match.group(0)]
@@ -1936,7 +1947,7 @@ class Commands(object):
         if not self.has_renumber_csv:
             self.logger.warning('!! renumbering disabled due to no csv !!')
             return False
-
+        self.logger.warning('!! renumbering due to csv !!')
         regexps = {
             'methods': re.compile(r'm_([0-9]+)_'),
             'fields': re.compile(r'f_([0-9]+)_'),
@@ -2249,9 +2260,9 @@ class Commands(object):
                 self.logger.info('> Modified class found      : %s', key)                           
                 
         classes = {}
-        srg_data = parse_srg(srglk[side])
+        srg_data = self.parse_tsrg2_array(self.dirconf + "\joined_reobf.tsrg")
         for row in srg_data['CL']:
-            classes[row['deobf_name']] = row['obf_name']
+            classes[row[1]] = row[0]
 
         if not os.path.exists(outpathlk[side]):
             os.makedirs(outpathlk[side])

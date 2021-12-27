@@ -1,6 +1,6 @@
 --- a/net/optifine/Config.java
 +++ b/net/optifine/Config.java
-@@ -143,14 +143,15 @@
+@@ -142,14 +142,15 @@
  
      public static void initGameSettings(Options settings)
      {
@@ -24,7 +24,7 @@
  
      public static void initDisplay()
      {
-@@ -162,14 +163,11 @@
+@@ -161,14 +162,11 @@
  
      public static void checkInitialized()
      {
@@ -43,19 +43,7 @@
          }
      }
  
-@@ -206,9 +204,9 @@
- 
-                 build = readLines(inputstream)[0];
-             }
--            catch (Exception exception)
-+            catch (Exception exception1)
-             {
--                warn("" + exception.getClass().getName() + ": " + exception.getMessage());
-+                warn("" + exception1.getClass().getName() + ": " + exception1.getMessage());
-                 build = "";
-             }
-         }
-@@ -397,9 +395,9 @@
+@@ -401,9 +399,9 @@
                  }
              }
          }
@@ -67,7 +55,7 @@
              return def;
          }
      }
-@@ -447,9 +445,9 @@
+@@ -451,9 +449,9 @@
              String s = GL11.glGetString(GL11.GL_EXTENSIONS);
              return s.split(" ");
          }
@@ -79,7 +67,7 @@
              return new String[0];
          }
      }
-@@ -504,9 +502,9 @@
+@@ -508,9 +506,9 @@
                  }
              }
          }
@@ -91,7 +79,7 @@
          }
      }
  
-@@ -1119,7 +1117,7 @@
+@@ -1111,7 +1109,7 @@
              Resource resource = resourceManager.getResource(location);
              return resource != null;
          }
@@ -100,7 +88,7 @@
          {
              return false;
          }
-@@ -1173,7 +1171,7 @@
+@@ -1165,7 +1163,7 @@
                      astring[i] = apackresources[i].getName();
                  }
  
@@ -109,20 +97,7 @@
              }
          }
      }
-@@ -2022,9 +2020,9 @@
- 
-         if (showFrameTime)
-         {
--            String s1 = String.format("%.1f", 1000.0D / (double)limit(i, 1, Integer.MAX_VALUE));
--            String s = String.format("%.1f", 1000.0D / (double)limit(j, 1, Integer.MAX_VALUE));
--            return "" + s1 + "/" + s + " ms";
-+            String s = String.format("%.1f", 1000.0D / (double)limit(i, 1, Integer.MAX_VALUE));
-+            String s1 = String.format("%.1f", 1000.0D / (double)limit(j, 1, Integer.MAX_VALUE));
-+            return "" + s + "/" + s1 + " ms";
-         }
-         else
-         {
-@@ -2308,14 +2306,7 @@
+@@ -2293,14 +2291,7 @@
  
      public static boolean isIntegratedServerRunning()
      {

@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\world\entity\animal\goat\Goat.java minecraft_patched\net\minecraft\world\entity\animal\goat\Goat.java
 --- minecraft\net\minecraft\world\entity\animal\goat\Goat.java
 +++ minecraft_patched\net\minecraft\world\entity\animal\goat\Goat.java
-@@ -121,7 +121,7 @@
+@@ -124,7 +124,7 @@
     }
  
     public Brain<Goat> m_6274_() {

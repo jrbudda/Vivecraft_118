@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\advancements\CriteriaTriggers.java minecraft_patched\net\minecraft\advancements\CriteriaTriggers.java
 --- minecraft\net\minecraft\advancements\CriteriaTriggers.java
 +++ minecraft_patched\net\minecraft\advancements\CriteriaTriggers.java
-@@ -105,7 +105,7 @@
+@@ -107,7 +107,7 @@
  
     @Nullable
     public static <T extends CriterionTriggerInstance> CriterionTrigger<T> m_10597_(ResourceLocation p_10598_) {

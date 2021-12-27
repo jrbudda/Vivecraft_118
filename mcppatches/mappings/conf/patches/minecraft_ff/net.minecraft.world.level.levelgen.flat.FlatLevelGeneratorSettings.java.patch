@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\world\level\levelgen\flat\FlatLevelGeneratorSettings.java minecraft_patched\net\minecraft\world\level\levelgen\flat\FlatLevelGeneratorSettings.java
 --- minecraft\net\minecraft\world\level\levelgen\flat\FlatLevelGeneratorSettings.java
 +++ minecraft_patched\net\minecraft\world\level\levelgen\flat\FlatLevelGeneratorSettings.java
-@@ -37,7 +37,7 @@
+@@ -31,7 +31,7 @@
  
  public class FlatLevelGeneratorSettings {
     private static final Logger f_70348_ = LogManager.getLogger();

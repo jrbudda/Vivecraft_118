@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\world\item\crafting\RecipeManager.java minecraft_patched\net\minecraft\world\item\crafting\RecipeManager.java
 --- minecraft\net\minecraft\world\item\crafting\RecipeManager.java
 +++ minecraft_patched\net\minecraft\world\item\crafting\RecipeManager.java
-@@ -78,7 +78,7 @@
+@@ -81,7 +81,7 @@
  
     public <C extends Container, T extends Recipe<C>> List<T> m_44013_(RecipeType<T> p_44014_) {
        return this.m_44054_(p_44014_).values().stream().map((p_44053_) -> {
@@ -10,7 +10,7 @@
        }).collect(Collectors.toList());
     }
  
-@@ -91,7 +91,7 @@
+@@ -94,7 +94,7 @@
     }
  
     private <C extends Container, T extends Recipe<C>> Map<ResourceLocation, Recipe<C>> m_44054_(RecipeType<T> p_44055_) {

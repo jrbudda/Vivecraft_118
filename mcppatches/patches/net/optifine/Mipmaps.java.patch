@@ -1,6 +1,6 @@
 --- a/net/optifine/Mipmaps.java
 +++ b/net/optifine/Mipmaps.java
-@@ -54,7 +54,7 @@
+@@ -53,7 +53,7 @@
  
                  if (k <= 0 && l <= 0)
                  {
@@ -9,7 +9,7 @@
                      return adimension;
                  }
  
-@@ -171,9 +171,9 @@
+@@ -170,9 +170,9 @@
  
      private int averageColor(int i, int j)
      {

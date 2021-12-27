@@ -2,10 +2,10 @@
 +++ b/net/minecraft/world/level/levelgen/feature/stateproviders/RandomizedIntStateProvider.java
 @@ -73,7 +73,7 @@
  
-     private static IntegerProperty findProperty(BlockState p_161571_, String p_161572_)
+     private static IntegerProperty findProperty(BlockState pState, String pPropertyName)
      {
--        Collection < Property<? >> collection = p_161571_.getProperties();
-+        Collection < Property> collection = p_161571_.getProperties();
+-        Collection < Property<? >> collection = pState.getProperties();
++    	 Collection < Property> collection = pState.getProperties();
          Optional<IntegerProperty> optional = collection.stream().filter((p_161583_) ->
          {
-             return p_161583_.getName().equals(p_161572_);
+             return p_161583_.getName().equals(pPropertyName);

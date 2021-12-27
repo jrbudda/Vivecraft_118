@@ -627,12 +627,12 @@ public class MCOpenVR extends MCVR
 
         for (VRInputAction vrinputaction1 : list1)
         {
-            map1.put(vrinputaction1.name, I18n.m_118938_(vrinputaction1.keyBinding.getCategory()) + " - " + I18n.m_118938_(vrinputaction1.keyBinding.getName()));
+            map1.put(vrinputaction1.name, I18n.a(vrinputaction1.keyBinding.getCategory()) + " - " + I18n.a(vrinputaction1.keyBinding.getName()));
         }
 
         for (VRInputActionSet vrinputactionset1 : VRInputActionSet.values())
         {
-            map1.put(vrinputactionset1.name, I18n.m_118938_(vrinputactionset1.localizedName));
+            map1.put(vrinputactionset1.name, I18n.a(vrinputactionset1.localizedName));
         }
 
         map1.put("/actions/global/in/lefthand", "Left Hand Pose");

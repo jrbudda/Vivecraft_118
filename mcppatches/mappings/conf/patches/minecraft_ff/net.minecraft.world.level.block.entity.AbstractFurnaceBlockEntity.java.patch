@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\world\level\block\entity\AbstractFurnaceBlockEntity.java minecraft_patched\net\minecraft\world\level\block\entity\AbstractFurnaceBlockEntity.java
 --- minecraft\net\minecraft\world\level\block\entity\AbstractFurnaceBlockEntity.java
 +++ minecraft_patched\net\minecraft\world\level\block\entity\AbstractFurnaceBlockEntity.java
-@@ -239,7 +239,7 @@
+@@ -238,7 +238,7 @@
  
        ItemStack itemstack = p_155017_.f_58310_.get(1);
        if (p_155017_.m_58425_() || !itemstack.m_41619_() && !p_155017_.f_58310_.get(0).m_41619_()) {
@@ -10,7 +10,7 @@
           int i = p_155017_.m_6893_();
           if (!p_155017_.m_58425_() && m_155005_(recipe, p_155017_.f_58310_, i)) {
              p_155017_.f_58316_ = p_155017_.m_7743_(itemstack);
-@@ -341,7 +341,7 @@
+@@ -340,7 +340,7 @@
     }
  
     private static int m_155009_(Level p_155010_, RecipeType<? extends AbstractCookingRecipe> p_155011_, Container p_155012_) {

@@ -829,7 +829,7 @@ public class Utils
         List<FormattedText> list = Lists.newArrayList();
         fontRenderer.getSplitter().splitLines(componentcollector.getResultOrEmpty(), width, Style.EMPTY, (lineText, sameLine) ->
         {
-            list.add(sameLine && linePrefix != null ? FormattedText.m_130773_(linePrefix, lineText) : lineText);
+            list.add(sameLine && linePrefix != null ? FormattedText.a(linePrefix, lineText) : lineText);
         });
         return (List<FormattedText>)(list.isEmpty() ? Lists.newArrayList(FormattedText.EMPTY) : list);
     }

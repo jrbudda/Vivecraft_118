@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\client\particle\ParticleEngine.java minecraft_patched\net\minecraft\client\particle\ParticleEngine.java
 --- minecraft\net\minecraft\client\particle\ParticleEngine.java
 +++ minecraft_patched\net\minecraft\client\particle\ParticleEngine.java
-@@ -301,7 +301,7 @@
+@@ -300,7 +300,7 @@
  
     @Nullable
     private <T extends ParticleOptions> Particle m_107395_(T p_107396_, double p_107397_, double p_107398_, double p_107399_, double p_107400_, double p_107401_, double p_107402_) {

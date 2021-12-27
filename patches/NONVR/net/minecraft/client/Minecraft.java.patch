@@ -9,7 +9,7 @@
  public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements SnooperPopulator, WindowEventHandler
  {
      private static Minecraft instance;
-+    public final String minecriftVerString = "Vivecraft 1.17.1  jrbudda-NONVR-1-b2";
++    public final String minecriftVerString = "Vivecraft 1.17.1  jrbudda-NONVR-2-a1";
      private static final Logger LOGGER = LogManager.getLogger();
      public static final boolean ON_OSX = Util.getPlatform() == Util.OS.OSX;
      private static final int MAX_TICKS_PER_UPDATE = 10;

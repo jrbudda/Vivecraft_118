@@ -8,25 +8,28 @@
  
  public class PlayerControllerOF extends MultiPlayerGameMode
  {
-@@ -47,13 +48,21 @@
-     public InteractionResult useItem(Player pPlayer, Level pLevel, InteractionHand pHand)
+@@ -47,13 +48,23 @@
+     public InteractionResult useItem(Player player, Level worldIn, InteractionHand hand)
      {
          this.acting = true;
-+        NetworkHelper.overrideLook(pPlayer, Minecraft.getInstance().vrPlayer.getRightClickLookOverride(pPlayer, pHand.ordinal()));
-         InteractionResult interactionresult = super.useItem(pPlayer, pLevel, pHand);
++        //Vivecraft
++        NetworkHelper.overrideLook(player, Minecraft.getInstance().vrPlayer.getRightClickLookOverride(player, hand.ordinal()));
++        //
+         InteractionResult interactionresult = super.useItem(player, worldIn, hand);
          this.acting = false;
          return interactionresult;
      }
- 
+-
++    //Vivecraft
 +    public void releaseUsingItem(Player pPlayer)
 +    {
 +        NetworkHelper.overrideLook(pPlayer, Minecraft.getInstance().vrPlayer.getRightClickLookOverride(pPlayer, pPlayer.getUsedItemHand().ordinal()));
 +        super.releaseUsingItem(pPlayer);
 +    }
-+
-     public InteractionResult useItemOn(LocalPlayer p_105263_, ClientLevel p_105264_, InteractionHand p_105265_, BlockHitResult p_105266_)
++    //
+     public InteractionResult useItemOn(LocalPlayer player, ClientLevel worldIn, InteractionHand hand, BlockHitResult rayTrace)
      {
-+        NetworkHelper.overrideLook(p_105263_, p_105266_.getLocation().subtract(p_105263_.getEyePosition(1.0F)).normalize());
++        NetworkHelper.overrideLook(player, rayTrace.getLocation().subtract(player.getEyePosition(1.0F)).normalize());
          this.acting = true;
-         this.lastClickBlockPos = p_105266_.getBlockPos();
-         InteractionResult interactionresult = super.useItemOn(p_105263_, p_105264_, p_105265_, p_105266_);
+         this.lastClickBlockPos = rayTrace.getBlockPos();
+         InteractionResult interactionresult = super.useItemOn(player, worldIn, hand, rayTrace);

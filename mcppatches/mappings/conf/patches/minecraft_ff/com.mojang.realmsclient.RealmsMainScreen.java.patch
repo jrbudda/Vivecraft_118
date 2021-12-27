@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\com\mojang\realmsclient\RealmsMainScreen.java minecraft_patched\com\mojang\realmsclient\RealmsMainScreen.java
 --- minecraft\com\mojang\realmsclient\RealmsMainScreen.java
 +++ minecraft_patched\com\mojang\realmsclient\RealmsMainScreen.java
-@@ -1133,9 +1133,12 @@
+@@ -1117,9 +1117,12 @@
  
     class CloseButton extends Button {
        public CloseButton() {
@@ -16,7 +16,7 @@
        }
  
        public void m_6303_(PoseStack p_86777_, int p_86778_, int p_86779_, float p_86780_) {
-@@ -1162,7 +1165,11 @@
+@@ -1148,7 +1151,11 @@
  
     class NewsButton extends Button {
        public NewsButton() {
@@ -29,7 +29,7 @@
              if (RealmsMainScreen.this.f_86259_ != null) {
                 Util.m_137581_().m_137646_(RealmsMainScreen.this.f_86259_);
                 if (RealmsMainScreen.this.f_86258_) {
-@@ -1173,7 +1180,6 @@
+@@ -1159,7 +1166,6 @@
                 }
  
              }
@@ -37,7 +37,7 @@
        }
  
        public void m_6303_(PoseStack p_86806_, int p_86807_, int p_86808_, float p_86809_) {
-@@ -1464,9 +1470,12 @@
+@@ -1391,9 +1397,12 @@
  
     class ShowPopupButton extends Button {
        public ShowPopupButton() {

@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\world\entity\npc\Villager.java minecraft_patched\net\minecraft\world\entity\npc\Villager.java
 --- minecraft\net\minecraft\world\entity\npc\Villager.java
 +++ minecraft_patched\net\minecraft\world\entity\npc\Villager.java
-@@ -139,7 +139,7 @@
+@@ -140,7 +140,7 @@
     }
  
     public Brain<Villager> m_6274_() {

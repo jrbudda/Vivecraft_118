@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\commands\arguments\ObjectiveArgument.java minecraft_patched\net\minecraft\commands\arguments\ObjectiveArgument.java
 --- minecraft\net\minecraft\commands\arguments\ObjectiveArgument.java
 +++ minecraft_patched\net\minecraft\commands\arguments\ObjectiveArgument.java
-@@ -66,7 +66,7 @@
+@@ -58,7 +58,7 @@
           return SharedSuggestionProvider.m_82970_(((CommandSourceStack)p_101974_.getSource()).m_81377_().m_129896_().m_83474_(), p_101975_);
        } else if (p_101974_.getSource() instanceof SharedSuggestionProvider) {
           SharedSuggestionProvider sharedsuggestionprovider = (SharedSuggestionProvider)p_101974_.getSource();

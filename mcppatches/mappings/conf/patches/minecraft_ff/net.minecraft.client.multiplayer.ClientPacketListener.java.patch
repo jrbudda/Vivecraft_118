@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\client\multiplayer\ClientPacketListener.java minecraft_patched\net\minecraft\client\multiplayer\ClientPacketListener.java
 --- minecraft\net\minecraft\client\multiplayer\ClientPacketListener.java
 +++ minecraft_patched\net\minecraft\client\multiplayer\ClientPacketListener.java
-@@ -508,7 +508,7 @@
+@@ -507,7 +507,7 @@
  
     public void m_182047_(ClientboundRemoveEntitiesPacket p_182633_) {
        PacketUtils.m_131363_(p_182633_, this, this.f_104888_);

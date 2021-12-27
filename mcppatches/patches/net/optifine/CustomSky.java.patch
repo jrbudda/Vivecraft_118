@@ -1,6 +1,6 @@
 --- a/net/optifine/CustomSky.java
 +++ b/net/optifine/CustomSky.java
-@@ -111,7 +111,7 @@
+@@ -110,7 +110,7 @@
  
              if (list.size() > 0)
              {

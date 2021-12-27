@@ -1,32 +1,20 @@
 --- a/net/minecraft/client/resources/model/ModelBakery.java
 +++ b/net/minecraft/client/resources/model/ModelBakery.java
-@@ -578,9 +578,9 @@
- 
-                         try {
-                             ModelBakery.ModelGroupKey modelbakery$modelgroupkey1 = pair2.getSecond().get();
--                            hashmap.computeIfAbsent(modelbakery$modelgroupkey1, (keyIn) -> {
-+                            ((Set) hashmap.computeIfAbsent(modelbakery$modelgroupkey1, (keyIn) -> {
-                                 return Sets.newIdentityHashSet();
--                            }).add(stateIn);
-+                            })).add(stateIn);
-                         }
-                         catch (Exception exception11)
-                         {
-@@ -589,7 +589,7 @@
+@@ -588,7 +588,7 @@
                      });
-                     hashmap.forEach((keyIn, setIn) ->
+                     map3.forEach((keyIn, setIn) ->
                      {
 -                        Iterator<BlockState> iterator = setIn.iterator();
 +                        Iterator<BlockState> iterator = ((Iterable<BlockState>)setIn).iterator();
  
                          while (iterator.hasNext())
                          {
-@@ -602,9 +602,9 @@
+@@ -601,9 +601,9 @@
                              }
                          }
  
 -                        if (setIn.size() > 1)
-+                        if (((Set<ResourceLocation>) setIn).size() > 1)
++                        if (((Set) setIn).size() > 1)
                          {
 -                            this.registerModelGroup(setIn);
 +                            this.registerModelGroup((Iterable<BlockState>) setIn);

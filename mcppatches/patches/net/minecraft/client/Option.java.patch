@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/Option.java
 +++ b/net/minecraft/client/Option.java
-@@ -179,7 +179,7 @@
+@@ -183,7 +183,7 @@
      });
      public static final ProgressOption FRAMERATE_LIMIT = new ProgressOption("options.framerateLimit", 0.0D, 260.0D, 5.0F, (p_168136_0_) ->
      {
@@ -9,7 +9,7 @@
      }, (p_168300_0_, p_168300_1_) ->
      {
          p_168300_0_.framerateLimit = (int)p_168300_1_.doubleValue();
-@@ -187,7 +187,7 @@
+@@ -191,7 +191,7 @@
  
          if (p_168300_0_.framerateLimit <= 0)
          {

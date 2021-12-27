@@ -1,6 +1,6 @@
 --- a/net/optifine/shaders/Shaders.java
 +++ b/net/optifine/shaders/Shaders.java
-@@ -899,6 +899,7 @@
+@@ -900,6 +900,7 @@
  
      public static void loadShaderPack()
      {
@@ -8,7 +8,7 @@
          boolean flag = shaderPackLoaded;
          boolean flag1 = isOldLighting();
  
-@@ -1212,7 +1213,7 @@
+@@ -1208,7 +1209,7 @@
          Set set = props.keySet();
          List<ICustomTexture> list = new ArrayList<>();
  
@@ -17,7 +17,7 @@
          {
              if (s1.startsWith(s))
              {
-@@ -6382,7 +6383,7 @@
+@@ -6408,7 +6409,7 @@
                          Lang.loadLocaleData(inputstream, properties);
                          inputstream.close();
  

@@ -6,7 +6,7 @@
  
     public void run() {
 -      while(true) {
-+	   {
++      {
           try {
 +         while(true) {
              if (!this.f_11515_) {

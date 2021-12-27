@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\world\level\dimension\DimensionType.java minecraft_patched\net\minecraft\world\level\dimension\DimensionType.java
 --- minecraft\net\minecraft\world\level\dimension\DimensionType.java
 +++ minecraft_patched\net\minecraft\world\level\dimension\DimensionType.java
-@@ -42,7 +42,7 @@
+@@ -41,7 +41,7 @@
     public static final ResourceLocation f_63840_ = new ResourceLocation("overworld");
     public static final ResourceLocation f_63841_ = new ResourceLocation("the_nether");
     public static final ResourceLocation f_63842_ = new ResourceLocation("the_end");

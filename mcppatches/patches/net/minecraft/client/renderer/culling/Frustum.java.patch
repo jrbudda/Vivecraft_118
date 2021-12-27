@@ -1,8 +1,8 @@
 --- a/net/minecraft/client/renderer/culling/Frustum.java
 +++ b/net/minecraft/client/renderer/culling/Frustum.java
-@@ -132,4 +132,16 @@
+@@ -228,4 +228,16 @@
      {
-         return this.frustumData;
+         return this.camZ;
      }
 +
 +	@Override

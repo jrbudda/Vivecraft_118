@@ -125,7 +125,7 @@ public class GuiRadialConfiguration extends GuiVROptionsBase
 
                 if (keymapping != null)
                 {
-                    s = I18n.m_118938_(keymapping.getName());
+                    s = I18n.a(keymapping.getName());
                 }
 
                 int i2 = Math.max(j, this.font.width(s));

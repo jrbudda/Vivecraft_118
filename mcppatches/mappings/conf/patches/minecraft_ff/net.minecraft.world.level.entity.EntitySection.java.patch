@@ -1,13 +1,13 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\world\level\entity\EntitySection.java minecraft_patched\net\minecraft\world\level\entity\EntitySection.java
 --- minecraft\net\minecraft\world\level\entity\EntitySection.java
 +++ minecraft_patched\net\minecraft\world\level\entity\EntitySection.java
-@@ -39,7 +39,7 @@
-       for(T t : this.f_156827_.m_13533_(p_156835_.m_142225_())) {
-          U u = (U)p_156835_.m_141992_(t);
-          if (u != null && p_156836_.test(u)) {
--            p_156837_.accept((T)u);
-+            p_156837_.accept(u);
+@@ -42,7 +42,7 @@
+          for(T t : collection) {
+             U u = (U)((EntityAccess)p_188349_.m_141992_(t));
+             if (u != null && t.m_142469_().m_82381_(p_188350_)) {
+-               p_188351_.accept((T)u);
++               p_188351_.accept(u);
+             }
           }
-       }
  
 

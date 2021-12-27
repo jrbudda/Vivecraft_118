@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\world\entity\animal\axolotl\AxolotlAi.java minecraft_patched\net\minecraft\world\entity\animal\axolotl\AxolotlAi.java
 --- minecraft\net\minecraft\world\entity\animal\axolotl\AxolotlAi.java
 +++ minecraft_patched\net\minecraft\world\entity\animal\axolotl\AxolotlAi.java
-@@ -61,7 +61,7 @@
+@@ -64,7 +64,7 @@
     }
  
     private static void m_149302_(Brain<Axolotl> p_149303_) {

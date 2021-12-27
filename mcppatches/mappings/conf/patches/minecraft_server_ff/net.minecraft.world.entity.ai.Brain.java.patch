@@ -10,7 +10,7 @@
     }
  
     public <U> long m_147341_(MemoryModuleType<U> p_147342_) {
-@@ -462,7 +462,7 @@
+@@ -465,7 +465,7 @@
        private final Optional<? extends ExpirableValue<U>> f_22031_;
  
        static <U> Brain.MemoryValue<U> m_22059_(MemoryModuleType<U> p_22060_, Optional<? extends ExpirableValue<?>> p_22061_) {

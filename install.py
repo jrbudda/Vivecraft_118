@@ -372,7 +372,31 @@ def zipmerge( target_file, source_file ):
     out.close()
     os.remove( target_file )
     shutil.copy( out_filename, target_file )
+    
+def stripmeta( target_file ):
+    out_file, out_filename = tempfile.mkstemp()
+    out = zipfile.ZipFile(out_filename,'a')
+    try:
+        target = zipfile.ZipFile( target_file, 'r')
+    except Exception as e:
+        print 'zipmerge: target not a zip-file: %s' % target_file
+        raise
 
+    target_files = set( target.namelist() ) - source_files_mod
+
+    for file in target_files:
+        out.writestr( file, target.open( file ).read() )
+        
+    for file in source_files:
+        if file.startswith("srg/"): continue
+        out.writestr(file.replace("notch/",""), source.open( file ).read() )
+
+    source.close()
+    target.close()
+    out.close()
+    os.remove( target_file )
+    shutil.copy( out_filename, target_file )
+    
 def ofmerge( target_file, source_file ):
     out_file, out_filename = tempfile.mkstemp()
     out = zipfile.ZipFile(out_filename,'a')
@@ -396,7 +420,8 @@ def ofmerge( target_file, source_file ):
     target_files = set( target.namelist() ) - source_files_mod
 
     for file in target_files:
-        out.writestr( file, target.open( file ).read() )
+        if not file.startswith('META-INF'):
+            out.writestr( file, target.open( file ).read() )
         
     for file in source_files:
         if file.startswith("srg/"): continue
@@ -485,9 +510,11 @@ def main(mcp_dir):
     if dependenciesOnly:
         sys.exit(1)
 
+    minecraft_jar = os.path.join( mcp_dir,"jars","versions",mc_version,mc_version+".jar")
+        
+        
     if nomerge == False:
         print("Applying Optifine...")
-        minecraft_jar = os.path.join( mcp_dir,"jars","versions",mc_version,mc_version+".jar")
         print ' Merging\n  %s\n into\n  %s' % (optifine_dest_file, minecraft_jar)
         ofmerge( minecraft_jar, optifine_dest_file )
     else:

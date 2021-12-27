@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\world\entity\monster\Zoglin.java minecraft_patched\net\minecraft\world\entity\monster\Zoglin.java
 --- minecraft\net\minecraft\world\entity\monster\Zoglin.java
 +++ minecraft_patched\net\minecraft\world\entity\monster\Zoglin.java
-@@ -87,11 +87,11 @@
+@@ -88,11 +88,11 @@
     }
  
     private static void m_34228_(Brain<Zoglin> p_34229_) {
@@ -15,7 +15,7 @@
     }
  
     private Optional<? extends LivingEntity> m_34251_() {
-@@ -172,7 +172,7 @@
+@@ -173,7 +173,7 @@
     }
  
     public Brain<Zoglin> m_6274_() {

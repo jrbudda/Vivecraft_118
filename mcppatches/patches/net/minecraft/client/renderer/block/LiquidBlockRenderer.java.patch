@@ -1,7 +1,7 @@
 --- a/net/minecraft/client/renderer/block/LiquidBlockRenderer.java
 +++ b/net/minecraft/client/renderer/block/LiquidBlockRenderer.java
 @@ -87,7 +87,7 @@
-     public boolean tesselate(BlockAndTintGetter pLightReader, BlockPos pPos, VertexConsumer pVertexBuilder, FluidState pFluidState)
+     public boolean tesselate(BlockAndTintGetter pLevel, BlockPos pPos, VertexConsumer pConsumer, FluidState pFluidState)
      {
          BlockState blockstate = pFluidState.createLegacyBlock();
 -        boolean f;
@@ -26,4 +26,4 @@
 +        return flg;
      }
  
-     private void vertex(VertexConsumer pVertexBuilder, double pX, double p_110987_, double pY, float p_110989_, float pZ, float p_110991_, float pRed, float pGreen, int pBlue)
+     private void vertex(VertexConsumer pConsumer, double pX, double p_110987_, double pY, float p_110989_, float pZ, float p_110991_, float pRed, float pGreen, int pBlue)

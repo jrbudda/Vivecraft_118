@@ -535,6 +535,7 @@ public class PhysicalKeyboard
         RenderSystem.setShader(GameRenderer::getPositionTexColorNormalShader);
 
         // TODO: does this still do the right thing for shaders?
+        mc.getTextureManager().bindForSetup(new ResourceLocation("vivecraft:textures/white.png"));
         RenderSystem.setShaderTexture(0, new ResourceLocation("vivecraft:textures/white.png"));
 
         // We need to ignore depth so we can see the back faces and text

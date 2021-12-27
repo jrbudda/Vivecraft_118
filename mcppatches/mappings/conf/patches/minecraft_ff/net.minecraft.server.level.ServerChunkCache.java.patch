@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\server\level\ServerChunkCache.java minecraft_patched\net\minecraft\server\level\ServerChunkCache.java
 --- minecraft\net\minecraft\server\level\ServerChunkCache.java
 +++ minecraft_patched\net\minecraft\server\level\ServerChunkCache.java
-@@ -493,7 +493,7 @@
+@@ -521,7 +521,7 @@
           super.m_6367_(p_8502_);
        }
  
