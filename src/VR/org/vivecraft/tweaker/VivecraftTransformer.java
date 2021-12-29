@@ -58,7 +58,7 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
             s = Utils.removeSuffix(s, new String[] {".clsrg"});
             Target target = Target.targetPreClass(s);
 
-            if (!this.exclusions.contains(s))
+            if (!this.exclusions.contains(s) && !s.contains("minecraftforge"))
             {
                 set.add(target);
             }

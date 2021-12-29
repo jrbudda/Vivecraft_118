@@ -4,7 +4,6 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import io.github.classgraph.ClassGraph;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -18,6 +17,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -49,9 +49,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.phys.Vec3;
+import optifine.OptiFineTransformationService;
+import optifine.OptiFineTransformer;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.vivecraft.render.VRShaders;
+import org.vivecraft.tweaker.VivecraftTransformer;
 import org.vivecraft.utils.lwjgl.Matrix3f;
 import org.vivecraft.utils.lwjgl.Matrix4f;
 import org.vivecraft.utils.lwjgl.Vector2f;
@@ -478,34 +482,25 @@ public class Utils
 
     public static URI getVivecraftZipLocation()
     {
+    	URL zipFileUrl = VivecraftTransformer.class.getProtectionDomain().getCodeSource().getLocation();
         if (vivecraftZipURI != null)
         {
             return vivecraftZipURI;
         }
         else
         {
-            for (URI uri : (new ClassGraph()).getClasspathURIs())
-            {
-                try (ZipFile zipfile = new ZipFile(new File(uri)))
-                {
-                    if (zipfile.getEntry("org/vivecraft/provider/MCVR.class") != null)
-                    {
-                        System.out.println("Found Vivecraft zip: " + uri.toString());
-                        vivecraftZipURI = uri;
-                        break;
-                    }
-                }
-                catch (IOException ioexception)
-                {
-                }
-            }
+        	zipFileUrl = VivecraftTransformer.class.getProtectionDomain().getCodeSource().getLocation();
 
-            if (vivecraftZipURI == null)
+            if (zipFileUrl == null)
             {
                 throw new RuntimeException("Could not find Vivecraft zip");
             }
             else
             {
+            	try {
+					vivecraftZipURI = zipFileUrl.toURI();
+				} catch (URISyntaxException e) {
+				}
                 return vivecraftZipURI;
             }
         }
@@ -517,7 +512,7 @@ public class Utils
 
         try
         {
-            File file1 = new File(uri);
+            File file1 = OptiFineTransformationService.toFile(uri);
             return new ZipFile(file1);
         }
         catch (IOException ioexception)
