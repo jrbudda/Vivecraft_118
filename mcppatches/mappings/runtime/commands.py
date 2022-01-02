@@ -2270,7 +2270,7 @@ class Commands(object):
         for row in srg_data['CL']:
             if srg_names:
                 classes[row[1]] = row[1]
-            else
+            else:
                 classes[row[1]] = row[0]
 
         if not os.path.exists(outpathlk[side]):
