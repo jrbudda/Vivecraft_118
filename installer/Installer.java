@@ -37,7 +37,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 	private static final long serialVersionUID = -562178983462626162L;
 	private String tempDir = System.getProperty("java.io.tmpdir");
 	/* DO NOT RENAME THESE STRING CONSTS - THEY ARE USED IN (AND THE VALUES UPDATED BY) THE AUTOMATED BUILD SCRIPTS */
-    private static final boolean ALLOW_FORGE_INSTALL  = true;
+    private static final boolean ALLOW_FORGE_INSTALL  = false;
     private static final boolean DEFAULT_FORGE_INSTALL= false;
     private static final boolean ALLOW_KATVR_INSTALL  = true;
     private static final boolean ALLOW_KIOSK_INSTALL  = true;
@@ -1028,7 +1028,11 @@ public class Installer extends JPanel  implements PropertyChangeListener
 				}
 
 				jar_id += mod;
-				InputStream version_jar = Installer.class.getResourceAsStream("version.jar");
+				InputStream version_jar; 
+				if(useForge.isSelected())
+					version_jar= Installer.class.getResourceAsStream("version-forge.jar");
+				else
+					version_jar= Installer.class.getResourceAsStream("version.jar");
 				if( version_jar != null && version_json != null )
 					try {
 						File ver_dir = null;
@@ -1089,11 +1093,11 @@ public class Installer extends JPanel  implements PropertyChangeListener
 						}
 
 						// Extract new lib
-						File lib_dir = new File(targetDir,"libraries/com/mtbs3d/minecrift/"+version);
+						File lib_dir = new File(targetDir,"libraries/com/mtbs3d/minecrift/"+version+mod);
 						if(isMultiMC)
 							lib_dir = new File(mmcinst,"libraries");
 						lib_dir.mkdirs();
-						File ver_file = new File (lib_dir, "minecrift-"+version+".jar");
+						File ver_file = new File (lib_dir, "minecrift-"+version+mod+".jar");
 						FileOutputStream ver_jar = new FileOutputStream(ver_file);
 						while ((d = version_jar.read(data)) != -1) {
 							ver_jar.write(data,0,d);

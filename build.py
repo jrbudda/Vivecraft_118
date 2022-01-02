@@ -45,7 +45,7 @@ def zipmerge( target_file, source_file ):
 
 def process_json(dir, addon, version, mcversion, forgeversion, ofversion):
     json_id = "vivecraft-"+version+addon
-    lib_id = "com.mtbs3d:minecrift:"+version
+    lib_id = "com.mtbs3d:minecrift:"+version+addon
     time = datetime.datetime(1979,6,1).strftime("%Y-%m-%dT%H:%M:%S-05:00")
     with  open(os.path.join(dir,"vivecraft" + addon + ".json"),"rb") as f:
         s=f.read()
@@ -95,10 +95,12 @@ def create_install(mcp_dir, vrversion = "VR"):
     print "java is " + commands.cmdjavac
     os.chdir("..")
     #
+    vanilla = parse_tsrg_classnames(os.path.join(mcp_dir, "conf", "joined.tsrg"))
     
-    in_mem_zip = StringIO.StringIO()
-    with zipfile.ZipFile( in_mem_zip,'w', zipfile.ZIP_DEFLATED) as zipout:
-        vanilla = parse_tsrg_classnames(os.path.join(mcp_dir, "conf", "joined.tsrg"))
+    in_mem_zip_obf = StringIO.StringIO()
+    in_mem_zip_srg = StringIO.StringIO()
+    with zipfile.ZipFile( in_mem_zip_obf,'w', zipfile.ZIP_DEFLATED) as zipout:
+        zipout.write(os.path.join(mcp_dir, "conf", "joined.srg"), "mappings/vivecraft/joined.srg")
         for abs_path, _, filelist in os.walk(obf, followlinks=True):
             arc_path = os.path.relpath( abs_path, obf ).replace('\\','/').replace('.','') + '/'
             for cur_file in fnmatch.filter(filelist, '*.class'):
@@ -128,13 +130,25 @@ def create_install(mcp_dir, vrversion = "VR"):
                 if flg:
                     arcname =  arc_path.replace('/','.') + cur_file.replace('.class', '.clazz')
                 zipout.write(in_file, arcname.strip('.'))
-        
+        for a, b, c in os.walk(resources):
+            print a
+            arc_path = os.path.relpath(a,resources).replace('\\','/').replace('.','')+'/'
+            for cur_file in c:
+                print "Adding resource %s..." % cur_file
+                in_file= os.path.join(a,cur_file) 
+                arcname =  arc_path + cur_file
+                zipout.write(in_file, arcname)
+            
+    with zipfile.ZipFile( in_mem_zip_srg,'w', zipfile.ZIP_DEFLATED) as zipout:
+        zipout.write(os.path.join(mcp_dir, "conf", "joined.srg"), "mappings/vivecraft/joined.srg")
+        zipout.write(os.path.join(base_dir, "installer", "cpw.mods.modlauncher.api.ITransformationService"), "META-INF/services/cpw.mods.modlauncher.api.ITransformationService")
         for abs_path, _, filelist in os.walk(srg, followlinks=True):
             arc_path = os.path.relpath(abs_path, srg ).replace('\\','/').replace('.','') + '/'
             for cur_file in fnmatch.filter(filelist, '*.class'):
+                if 'minecraftforge' in arc_path: continue
                 #print arc_path + cur_file
                 flg = False
-                if not 'vivecraft' in (arc_path+cur_file).lower() and not 'jopenvr' in arc_path and not 'minecraftforge' in arc_path and not 'VR' in cur_file: #these misbehave when loaded in this jar, do some magic.
+                if not 'vivecraft' in (arc_path+cur_file).lower() and not 'jopenvr' in arc_path and not 'VR' in cur_file: #these misbehave when loaded in this jar, do some magic.
                     flg = True
                     ok = False
                     v = (arc_path + cur_file).replace('/','\\').split('$')[0].replace('.class', '')
@@ -154,10 +168,11 @@ def create_install(mcp_dir, vrversion = "VR"):
                 if "blaze3d" in arc_path:
                     flg = True
                 in_file= os.path.join(abs_path,cur_file)
-                arcname =  "/srg/" + arc_path + cur_file
+                arcname = arc_path + cur_file
                 if flg:
-                    arcname =   "/srg/" + arc_path + cur_file.replace('.class', '.clsrg')
+                    arcname = "vcsrg/" + arc_path + cur_file.replace('.class', '.clsrg')
                 zipout.write(in_file, arcname.strip('.'))
+                
         print "Checking Resources..."
         for a, b, c in os.walk(resources):
             print a
@@ -167,13 +182,11 @@ def create_install(mcp_dir, vrversion = "VR"):
                 in_file= os.path.join(a,cur_file) 
                 arcname =  arc_path + cur_file
                 zipout.write(in_file, arcname)
-        print "Packaging mappings..."
-        zipout.write(os.path.join(mcp_dir, "conf", "joined.srg"), "mappings/vivecraft/joined.srg")
-        zipout.write(os.path.join(base_dir, "installer", "cpw.mods.modlauncher.api.ITransformationService"), "META-INF/services/cpw.mods.modlauncher.api.ITransformationService")
-
+                
     os.chdir( base_dir )
     
-    in_mem_zip.seek(0)
+    in_mem_zip_obf.seek(0)
+    in_mem_zip_srg.seek(0)
     if os.getenv("RELEASE_VERSION"):
         version = os.getenv("RELEASE_VERSION")
     elif os.getenv("BUILD_NUMBER"):
@@ -237,7 +250,8 @@ def create_install(mcp_dir, vrversion = "VR"):
               
         # Add version jar - this contains all the changed files (effectively minecrift.jar). A mix
         # of obfuscated and non-obfuscated files.
-        install_out.writestr( "version.jar", in_mem_zip.read() )
+        install_out.writestr( "version.jar", in_mem_zip_obf.read() )
+        #install_out.writestr( "version-forge.jar", in_mem_zip_srg.read() )       
         
         # Add the version info
         install_out.writestr( "version", artifact_id+":"+version )
@@ -301,17 +315,16 @@ def main(mcp_dir, version = "VR"):
     recompile_side( commands, CLIENT)
 
     print("Reobfuscating...")
+    
     #commands.creatergcfg(reobf=True, keep_lvt=True, keep_generics=True, srg_names=True)
-    reobfuscate_side( commands, CLIENT , srg_names=True)
-  
-
-    try:   
-        pass
-        shutil.move(reobf, srg)
-    except OSError:
-        quit
+    #reobfuscate_side( commands, CLIENT , srg_names=True)
+    #try:   
+    #    pass
+    #    shutil.move(reobf, srg)
+    #except OSError:
+    #    quit
    
-    #commands.creatergcfg(reobf=True, keep_lvt=True, keep_generics=True, srg_names=False)
+    commands.creatergcfg(reobf=True, keep_lvt=True, keep_generics=True, srg_names=False)
     reobfuscate_side( commands, CLIENT )
     
     try:   

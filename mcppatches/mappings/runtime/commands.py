@@ -1220,7 +1220,7 @@ class Commands(object):
             if not reobf:
                 shutil.copyfile(cfgsrg[side], deobsrg[side])
                 shutil.copyfile(deobsrg[side], reobsrg[side])
-            if rebof && srg_names:
+            if reobf and srg_names:
                  cmd = self.cmdss
                  srg = self.dirconf + "\joined.tsrg"
                  forkcmd = cmd.format(classpath=sscp, injar=out_jar, outjar=out_jar, identifier=identifier, mapfile=srg)
@@ -2255,20 +2255,23 @@ class Commands(object):
                 trgclasses.append(key)
                 #self.logger.info('> Unchanged class found: %s', key)
                 
-        for key in trgclasses:
-            if '$' in key and not key in md5table:
-                self.logger.info('> New inner class found: %s', key)
-            elif '$' in key and key in md5table:
-                self.logger.info('> Modified inner class found: %s', key)
-            elif not '$' in key and not key in md5table:
-                self.logger.info('> New class found: %s', key)
-            elif not '$' in key and key in md5table:    
-                self.logger.info('> Modified class found      : %s', key)                           
+        #for key in trgclasses:
+            #if '$' in key and not key in md5table:
+                #self.logger.info('> New inner class found: %s', key)
+            #elif '$' in key and key in md5table:
+                #self.logger.info('> Modified inner class found: %s', key)
+            #elif not '$' in key and not key in md5table:
+                #self.logger.info('> New class found: %s', key)
+            #elif not '$' in key and key in md5table:    
+                #self.logger.info('> Modified class found      : %s', key)                           
                 
         classes = {}
         srg_data = self.parse_tsrg2_array(self.dirconf + "\joined_reobf.tsrg")
         for row in srg_data['CL']:
-            classes[row[1]] = row[0]
+            if srg_names:
+                classes[row[1]] = row[1]
+            else
+                classes[row[1]] = row[0]
 
         if not os.path.exists(outpathlk[side]):
             os.makedirs(outpathlk[side])

@@ -55,6 +55,8 @@ import optifine.OptiFineTransformer;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.vivecraft.render.VRShaders;
+import org.vivecraft.tweaker.LoaderUtils;
+import org.vivecraft.tweaker.VivecraftTransformationService;
 import org.vivecraft.tweaker.VivecraftTransformer;
 import org.vivecraft.utils.lwjgl.Matrix3f;
 import org.vivecraft.utils.lwjgl.Matrix4f;
@@ -70,7 +72,6 @@ public class Utils
     private static final char[] illegalChars = new char[] {'"', '<', '>', '|', '\u0000', '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007', '\b', '\t', '\n', '\u000b', '\f', '\r', '\u000e', '\u000f', '\u0010', '\u0011', '\u0012', '\u0013', '\u0014', '\u0015', '\u0016', '\u0017', '\u0018', '\u0019', '\u001a', '\u001b', '\u001c', '\u001d', '\u001e', '\u001f', ':', '*', '?', '\\', '/'};
     private static final int CONNECT_TIMEOUT = 5000;
     private static final int READ_TIMEOUT = 20000;
-    private static URI vivecraftZipURI;
     private static final Random avRandomizer = new Random();
 
     public static String sanitizeFileName(String fileName)
@@ -456,7 +457,7 @@ public class Utils
             }
 
             System.out.println("Unpacking " + directory + " natives...");
-            ZipFile zipfile = getVivecraftZip();
+            ZipFile zipfile = LoaderUtils.getVivecraftZip();
             Enumeration <? extends ZipEntry > enumeration = zipfile.entries();
 
             while (enumeration.hasMoreElements())
@@ -480,46 +481,6 @@ public class Utils
         }
     }
 
-    public static URI getVivecraftZipLocation()
-    {
-    	URL zipFileUrl = VivecraftTransformer.class.getProtectionDomain().getCodeSource().getLocation();
-        if (vivecraftZipURI != null)
-        {
-            return vivecraftZipURI;
-        }
-        else
-        {
-        	zipFileUrl = VivecraftTransformer.class.getProtectionDomain().getCodeSource().getLocation();
-
-            if (zipFileUrl == null)
-            {
-                throw new RuntimeException("Could not find Vivecraft zip");
-            }
-            else
-            {
-            	try {
-					vivecraftZipURI = zipFileUrl.toURI();
-				} catch (URISyntaxException e) {
-				}
-                return vivecraftZipURI;
-            }
-        }
-    }
-
-    public static ZipFile getVivecraftZip()
-    {
-        URI uri = getVivecraftZipLocation();
-
-        try
-        {
-            File file1 = OptiFineTransformationService.toFile(uri);
-            return new ZipFile(file1);
-        }
-        catch (IOException ioexception)
-        {
-            throw new RuntimeException(ioexception);
-        }
-    }
 
     public static void writeStreamToFile(InputStream is, File file) throws IOException
     {

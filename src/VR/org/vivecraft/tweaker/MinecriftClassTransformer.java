@@ -6,10 +6,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import net.minecraft.launchwrapper.IClassTransformer;
 import org.vivecraft.utils.Utils;
@@ -17,11 +19,12 @@ import org.vivecraft.utils.Utils;
 public class MinecriftClassTransformer implements IClassTransformer
 {
     private static final boolean DEBUG = true;//Boolean.parseBoolean(System.getProperty("legacy.debugClassLoading", "false"));
-    private ZipFile mcZipFile = null;
     private final MinecriftClassTransformer.Stage stage;
     private final Map<String, byte[]> cache;
     private static Set<String> myClasses = new HashSet<>();
 
+    private ZipFile mcZipFile = null;
+    
     public MinecriftClassTransformer()
     {
         this(MinecriftClassTransformer.Stage.MAIN, (Map<String, byte[]>)null);
@@ -36,18 +39,18 @@ public class MinecriftClassTransformer implements IClassTransformer
         {
             try
             {
-                this.mcZipFile = Utils.getVivecraftZip();
+            	mcZipFile = LoaderUtils.getVivecraftZip();
+                if (mcZipFile == null)
+                {
+                    debug("*** Can not find the Minecrift JAR in the classpath ***");
+                    debug("*** Minecrift will not be loaded! ***");
+                }
             }
             catch (Exception exception)
             {
                 exception.printStackTrace();
             }
 
-            if (this.mcZipFile == null)
-            {
-                debug("*** Can not find the Minecrift JAR in the classpath ***");
-                debug("*** Minecrift will not be loaded! ***");
-            }
         }
         else if (cache == null)
         {
@@ -156,19 +159,25 @@ public class MinecriftClassTransformer implements IClassTransformer
 
     private byte[] getMinecriftClass(String name)
     {
-        if (this.mcZipFile == null)
+    	ZipFile zip;
+		try {
+			zip = LoaderUtils.getVivecraftZip();
+		} catch (Exception e) {
+			zip = null;
+		}
+        if (zip == null)
         {
             return null;
         }
         else
         {
             String s = name + ".class";
-            ZipEntry zipentry = this.mcZipFile.getEntry(s);
-
+            ZipEntry zipentry = zip.getEntry(s);
+            System.out.println(s);
             if (zipentry == null)
             {
                 s = name + ".clazz";
-                zipentry = this.mcZipFile.getEntry(s);
+                zipentry = zip.getEntry(s);
             }
 
             if (zipentry == null)
@@ -179,9 +188,10 @@ public class MinecriftClassTransformer implements IClassTransformer
             {
                 try
                 {
-                    InputStream inputstream = this.mcZipFile.getInputStream(zipentry);
+                    InputStream inputstream = zip.getInputStream(zipentry);
                     byte[] abyte = readAll(inputstream);
-
+                    inputstream.close();
+                    
                     if ((long)abyte.length != zipentry.getSize())
                     {
                         debug("Invalid size for " + s + ": " + abyte.length + ", should be: " + zipentry.getSize());
