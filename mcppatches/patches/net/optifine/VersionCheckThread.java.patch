@@ -1,0 +1,20 @@
+--- a/net/optifine/VersionCheckThread.java
++++ b/net/optifine/VersionCheckThread.java
+@@ -26,13 +26,13 @@
+             if (flag)
+             {
+                 httpurlconnection.setRequestProperty("OF-MC-Version", "1.18.1");
+-                httpurlconnection.setRequestProperty("OF-MC-Brand", ClientBrandRetriever.getClientModName().makeConcatWithConstants<invokedynamic>(ClientBrandRetriever.getClientModName()));
++                httpurlconnection.setRequestProperty("OF-MC-Brand", ClientBrandRetriever.getClientModName());
+                 httpurlconnection.setRequestProperty("OF-Edition", "HD_U");
+                 httpurlconnection.setRequestProperty("OF-Release", "H4");
+-                httpurlconnection.setRequestProperty("OF-Java-Version", System.getProperty("java.version").makeConcatWithConstants<invokedynamic>(System.getProperty("java.version")));
++                httpurlconnection.setRequestProperty("OF-Java-Version", System.getProperty("java.version"));
+                 httpurlconnection.setRequestProperty("OF-CpuCount", "" + Config.getAvailableProcessors());
+-                httpurlconnection.setRequestProperty("OF-OpenGL-Version", Config.openGlVersion.makeConcatWithConstants<invokedynamic>(Config.openGlVersion));
+-                httpurlconnection.setRequestProperty("OF-OpenGL-Vendor", Config.openGlVendor.makeConcatWithConstants<invokedynamic>(Config.openGlVendor));
++                httpurlconnection.setRequestProperty("OF-OpenGL-Version", Config.openGlVersion);
++                httpurlconnection.setRequestProperty("OF-OpenGL-Vendor", Config.openGlVendor);
+             }
+ 
+             httpurlconnection.setDoInput(true);

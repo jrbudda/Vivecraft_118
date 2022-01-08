@@ -1,0 +1,14 @@
+--- a/net/minecraft/data/worldgen/SurfaceRuleData.java
++++ b/net/minecraft/data/worldgen/SurfaceRuleData.java
+@@ -99,10 +99,7 @@
+         SurfaceRules.RuleSource surfacerules$rulesource9 = SurfaceRules.ifTrue(SurfaceRules.abovePreliminarySurface(), surfacerules$rulesource8);
+         builder.add(p_198381_ ? surfacerules$rulesource9 : surfacerules$rulesource8);
+         builder.add(SurfaceRules.ifTrue(SurfaceRules.verticalGradient("deepslate", VerticalAnchor.absolute(0), VerticalAnchor.absolute(8)), DEEPSLATE));
+-        return SurfaceRules.a(builder.build().toArray((p_198379_) ->
+-        {
+-            return new SurfaceRules.RuleSource[p_198379_];
+-        }));
++        return SurfaceRules.a((SurfaceRules.RuleSource[])builder.build().toArray(SurfaceRules.RuleSource[]::new));
+     }
+ 
+     public static SurfaceRules.RuleSource nether()

@@ -1,0 +1,10 @@
+--- a/net/optifine/shaders/FixedFramebuffer.java
++++ b/net/optifine/shaders/FixedFramebuffer.java
+@@ -121,6 +121,6 @@
+ 
+     public String toString()
+     {
+-        return this.name.makeConcatWithConstants<invokedynamic>(this.name);
++        return this.name;
+     }
+ }

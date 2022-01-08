@@ -1,0 +1,13 @@
+﻿diff -r -U 3 minecraft\net\minecraft\world\level\biome\TerrainShaper.java minecraft_patched\net\minecraft\world\level\biome\TerrainShaper.java
+--- minecraft\net\minecraft\world\level\biome\TerrainShaper.java
++++ minecraft_patched\net\minecraft\world\level\biome\TerrainShaper.java
+@@ -283,7 +283,7 @@
+       }, (p_187363_) -> {
+          DataResult dataresult;
+          if (p_187363_ instanceof TerrainShaper.Coordinate) {
+-            TerrainShaper.Coordinate terrainshaper$coordinate = p_187363_;
++            TerrainShaper.Coordinate terrainshaper$coordinate = (TerrainShaper.Coordinate)p_187363_;
+             dataresult = DataResult.success(terrainshaper$coordinate);
+          } else {
+             dataresult = DataResult.error("Not a coordinate resolver: " + p_187363_);
+

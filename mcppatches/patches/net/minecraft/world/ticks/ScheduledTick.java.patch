@@ -1,0 +1,11 @@
+--- a/net/minecraft/world/ticks/ScheduledTick.java
++++ b/net/minecraft/world/ticks/ScheduledTick.java
+@@ -60,7 +60,7 @@
+         this.priority = priority;
+         this.subTickOrder = subTickOrder;
+     }
+-    public static <T> ScheduledTick<T> probe(T p_193398_, BlockPos p_193399_)
++	public static <T> ScheduledTick<T> probe(T p_193398_, BlockPos p_193399_)
+     {
+         return new ScheduledTick<T>(p_193398_, p_193399_, 0L, TickPriority.NORMAL, 0L);
+     }

@@ -142,8 +142,11 @@ def installAndPatchMcp( mcp_dir ):
     #Remove outdated mcp patches
     mcppatchesdir = os.path.join(mcp_dir,"conf","patches")
     if os.path.exists(mcppatchesdir):
+        print( "delete old patches")
         reallyrmtree(mcppatchesdir)
-        
+    else:
+       print( "wut!")
+       
     # Patch in mcp (if present)
     mappingsdir = os.path.join(base_dir,"mcppatches","mappings")
     mappingstarget = os.path.join(mcp_dir)

@@ -1,0 +1,25 @@
+--- a/net/minecraft/world/level/block/state/properties/Property.java
++++ b/net/minecraft/world/level/block/state/properties/Property.java
+@@ -119,8 +119,6 @@
+ 
+     public static record Value<T extends Comparable<T>>(Property<T> property, T value)
+     {
+-        private final Property<T> property;
+-        private final T value;
+         public Value(Property<T> property, T value)
+         {
+             if (!property.getPossibleValues().contains(value))
+@@ -137,13 +135,5 @@
+         {
+             return this.property.getName() + "=" + this.property.getName(this.value);
+         }
+-        public Property<T> property()
+-        {
+-            return this.property;
+-        }
+-        public T value()
+-        {
+-            return this.value;
+-        }
+     }
+ }

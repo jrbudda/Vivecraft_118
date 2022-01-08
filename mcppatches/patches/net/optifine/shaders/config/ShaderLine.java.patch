@@ -1,0 +1,11 @@
+--- a/net/optifine/shaders/config/ShaderLine.java
++++ b/net/optifine/shaders/config/ShaderLine.java
+@@ -350,7 +350,7 @@
+ 
+     public String toString()
+     {
+-        return this.line.makeConcatWithConstants<invokedynamic>(this.line);
++        return this.line;
+     }
+ 
+     public static enum Type

@@ -15,7 +15,7 @@ releases/
 patches/Start.java.patch
 installer/out/
 /lib
-/mcp*
+/mcp_*
 patchsrc/
 
 src/JRift
