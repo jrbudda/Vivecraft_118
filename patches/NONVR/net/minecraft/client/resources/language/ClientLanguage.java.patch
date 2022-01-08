@@ -8,13 +8,3 @@
  
  public class ClientLanguage extends Language
  {
-@@ -46,6 +47,9 @@
-                     ResourceLocation resourcelocation = new ResourceLocation(s1, s);
-                     appendFrom(p_118917_.getResources(resourcelocation), map);
-                     Lang.loadResources(p_118917_, languageinfo.getCode(), map);
-+                    //Vivecraft
-+                    LangHelper.loadLocaleData(languageinfo.getCode(), map);
-+                    //
-                 }
-                 catch (FileNotFoundException filenotfoundexception)
-                 {

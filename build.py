@@ -43,16 +43,14 @@ def zipmerge( target_file, source_file ):
     #os.remove( target_file )
     shutil.copy( out_filename, target_file )
 
-def process_json(dir, addon, version, mcversion, forgeversion, ofversion):
-    json_id = "vivecraft-"+version+addon
-    lib_id = "com.mtbs3d:minecrift:"+version+addon
+def process_json(dir, installer_json_id, json_id, lib_id, version, mcversion, forgeversion, ofversion):
     time = datetime.datetime(1979,6,1).strftime("%Y-%m-%dT%H:%M:%S-05:00")
-    with  open(os.path.join(dir,"vivecraft" + addon + ".json"),"rb") as f:
+    with  open(os.path.join(dir,installer_json_id),"rb") as f:
         s=f.read()
         s=s.replace("$MCVERSION", mcversion)
         s=s.replace("$FORGEVERSION", forgeversion)
         s=s.replace("$OFVERSION", ofversion)
-        s=s.replace("$VERSION", version+addon)
+        s=s.replace("$VERSION", version)
         json_obj = json.loads(s)
         json_obj["id"] = json_id
         json_obj["time"] = time
@@ -243,10 +241,11 @@ def create_install(mcp_dir, vrversion = "VR"):
 
         # Add json files
         json_dir =  os.path.join(base_dir, "json", vrversion)
-        install_out.writestr("version.json", process_json(json_dir,"", version,minecrift_version_num,"",of_file_name + "_LIB"))
-        install_out.writestr("version-forge.json", process_json(json_dir, "-forge", version,minecrift_version_num,forge_version,of_file_name + "_LIB"))
-        install_out.writestr("version-multimc.json", process_json(json_dir, "-multimc", version,minecrift_version_num,"",of_file_name + "_LIB"))
-        install_out.writestr("version-multimc-forge.json", process_json(json_dir, "-multimc-forge", version,minecrift_version_num,"",of_file_name + "_LIB"))
+        
+        install_out.writestr("version.json",                process_json(json_dir, "vivecraft.json",                "vivecraft-"+version+"",       "com.mtbs3d:minecrift:"+version,            version, minecrift_version_num,"",of_file_name + "_LIB"))
+        install_out.writestr("version-forge.json",          process_json(json_dir, "vivecraft-forge.json",          "vivecraft-"+version+"-forge", "com.mtbs3d:minecrift:"+version+"-forge",   version, minecrift_version_num,forge_version,of_file_name + "_LIB"))
+        install_out.writestr("version-multimc.json",        process_json(json_dir, "vivecraft-multimc.json",        "vivecraft-"+version+"",       "com.mtbs3d:minecrift:"+version,            version, minecrift_version_num,"",of_file_name + "_LIB"))
+        install_out.writestr("version-multimc-forge.json",  process_json(json_dir, "vivecraft-multimc-forge.json",  "vivecraft-"+version+"",       "com.mtbs3d:minecrift:"+version,            version, minecrift_version_num,"",of_file_name + "_LIB"))
               
         # Add version jar - this contains all the changed files (effectively minecrift.jar). A mix
         # of obfuscated and non-obfuscated files.

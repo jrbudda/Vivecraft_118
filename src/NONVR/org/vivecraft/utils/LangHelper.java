@@ -77,16 +77,16 @@ public class LangHelper
 
     public static String get(String key, Object... params)
     {
-        return I18n.m_118938_(key, params);
+        return I18n.a(key, params);
     }
 
     public static String getYes()
     {
-        return I18n.m_118938_(YES_KEY);
+        return I18n.a(YES_KEY);
     }
 
     public static String getNo()
     {
-        return I18n.m_118938_(NO_KEY);
+        return I18n.a(NO_KEY);
     }
 }

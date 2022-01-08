@@ -8,4 +8,4 @@
 +    public int intentionallModifyThisClassCauseItWontLoadProperlyFromOptifine = 69;
      public static String getOpenGLVersionString()
      {
-         RenderSystem.assertThread(RenderSystem::isOnRenderThread);
+         RenderSystem.assertOnRenderThread();

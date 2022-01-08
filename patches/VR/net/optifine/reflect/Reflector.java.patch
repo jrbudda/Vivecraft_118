@@ -475,7 +475,7 @@
          }
          else
          {
-@@ -1241,4 +1292,170 @@
+@@ -1241,4 +1292,173 @@
          ReflectorResolver.register(iresolvable);
          return true;
      }
@@ -643,6 +643,9 @@
 +    public static ReflectorClass EntityRenderersEvent_RegisterRenderers = new ReflectorClass("net.minecraftforge.client.event.EntityRenderersEvent.RegisterRenderers");
 +    public static ReflectorConstructor EntityRenderersEvent_RegisterRenderers_Constructor = new ReflectorConstructor(EntityRenderersEvent_RegisterRenderers, new Class[0]);
 +
-+    
++    //This is only needed for nonvr since vr edits localplayer
++    public static ReflectorClass LocalPlayer = new ReflectorClass(LocalPlayer.class);
++    public static ReflectorMethod LocalPlayer_updateSyncFields = new ReflectorMethod(LocalPlayer, "updateSyncFields");    
++
 +    
  }

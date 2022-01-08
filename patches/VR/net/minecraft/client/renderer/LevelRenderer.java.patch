@@ -166,14 +166,19 @@
          this.blockEntityRenderDispatcher.prepare(this.level, pRenderBlockOutline, this.minecraft.hitResult);
          this.entityRenderDispatcher.prepare(this.level, pRenderBlockOutline, this.minecraft.crosshairPickEntity);
          ProfilerFiller profilerfiller = this.level.getProfiler();
+-        profilerfiller.popPush("light_update_queue");
+-        this.level.pollLightUpdates();
+-        profilerfiller.popPush("light_updates");
+-        boolean flag = this.level.isLightUpdateQueueEmpty();
+-        this.level.getChunkSource().getLightEngine().runUpdates(Integer.MAX_VALUE, flag, true);
 +    	//Vivecraft once per frame
 +        if (this.minecraft.currentPass == RenderPass.LEFT)
 +        {
-         profilerfiller.popPush("light_update_queue");
-         this.level.pollLightUpdates();
-         profilerfiller.popPush("light_updates");
-         boolean flag = this.level.isLightUpdateQueueEmpty();
-         this.level.getChunkSource().getLightEngine().runUpdates(Integer.MAX_VALUE, flag, true);
++        	profilerfiller.popPush("light_update_queue");
++        	this.level.pollLightUpdates();
++        	profilerfiller.popPush("light_updates");
++        	boolean flag = this.level.isLightUpdateQueueEmpty();
++        	this.level.getChunkSource().getLightEngine().runUpdates(Integer.MAX_VALUE, flag, true);
 +        }
 +        //Vivecraft use our postchain
 +        this.setShaderGroup();
@@ -301,8 +306,28 @@
              BlockPos blockpos1 = ((BlockHitResult)hitresult).getBlockPos();
              BlockState blockstate = this.level.getBlockState(blockpos1);
  
-@@ -2034,6 +2110,7 @@
-         this.minecraft.debugRenderer.render(pPoseStack, multibuffersource$buffersource, d0, d1, d2);
+@@ -2023,17 +2099,18 @@
+ 
+         PoseStack posestack = RenderSystem.getModelViewStack();
+         posestack.pushPose();
+-        posestack.mulPoseMatrix(pPoseStack.last().pose());
+-        RenderSystem.applyModelViewMatrix();
+-
+-        if (flag2)
+-        {
+-            ShadersRender.beginDebug();
+-        }
+-
+-        this.minecraft.debugRenderer.render(pPoseStack, multibuffersource$buffersource, d0, d1, d2);
++	        posestack.mulPoseMatrix(pPoseStack.last().pose());
++	        RenderSystem.applyModelViewMatrix();
++	
++	        if (flag2)
++	        {
++	            ShadersRender.beginDebug();
++	        }
++	
++	        this.minecraft.debugRenderer.render(pPoseStack, multibuffersource$buffersource, d0, d1, d2);
          posestack.popPose();
          RenderSystem.applyModelViewMatrix();
 +        profilerfiller.popPush("render bukkake");

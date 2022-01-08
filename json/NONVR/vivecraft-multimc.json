@@ -17,11 +17,7 @@
 		"url": "http://files.minecraftforge.net/maven/"
 	},
 	{
-		"url": "https://repo1.maven.org/maven2/",
-		"name": "io.github.classgraph:classgraph:4.8.78"
-	},
-	{
-		"name": "net.minecraft:launchwrapper:2.2",
+		"name": "net.minecraft:launchwrapper:2.3",
 		"url": "http://vivecraft.org/jar/"
 	},
 	{

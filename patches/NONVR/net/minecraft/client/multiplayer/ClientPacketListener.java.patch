@@ -1,14 +1,6 @@
 --- a/net/minecraft/client/multiplayer/ClientPacketListener.java
 +++ b/net/minecraft/client/multiplayer/ClientPacketListener.java
-@@ -246,6 +246,7 @@
- import net.minecraft.world.level.GameType;
- import net.minecraft.world.level.Level;
- import net.minecraft.world.level.LightLayer;
-+import net.minecraft.world.level.block.Block;
- import net.minecraft.world.level.block.entity.BannerBlockEntity;
- import net.minecraft.world.level.block.entity.BeaconBlockEntity;
- import net.minecraft.world.level.block.entity.BedBlockEntity;
-@@ -280,8 +281,11 @@
+@@ -273,8 +273,11 @@
  import net.minecraft.world.scores.Scoreboard;
  import net.minecraft.world.scores.Team;
  import net.minecraft.world.scores.criteria.ObjectiveCriteria;
@@ -20,37 +12,42 @@
  
  public class ClientPacketListener implements ClientGamePacketListener
  {
-@@ -315,6 +319,8 @@
-         this.localGameProfile = p_104909_;
-         this.advancements = new ClientAdvancements(p_104906_);
-         this.suggestionsProvider = new ClientSuggestionProvider(this, p_104906_);
+@@ -311,6 +314,8 @@
+         this.advancements = new ClientAdvancements(p_194193_);
+         this.suggestionsProvider = new ClientSuggestionProvider(this, p_194193_);
+         this.telemetryManager = p_194197_;
 +        NetworkHelper.resetServerSettings();
 +        NetworkHelper.displayedChatMessage = false;
      }
  
      public ClientSuggestionProvider getSuggestionsProvider()
-@@ -369,6 +375,7 @@
+@@ -366,6 +371,9 @@
  
          this.minecraft.debugRenderer.clear();
          this.minecraft.player.resetPos();
-+        //Reflector.call(Reflector.ClientHooks_firePlayerLogin, this.minecraft.gameMode, this.minecraft.player, this.minecraft.getConnection().getConnection());
-         int i = pPacket.getPlayerId();
++        //Forge
++        Reflector.call(Reflector.ClientHooks_firePlayerLogin, this.minecraft.gameMode, this.minecraft.player, this.minecraft.getConnection().getConnection());
++        //
+         int i = pPacket.playerId();
          this.minecraft.player.setId(i);
          this.level.addPlayer(i, this.minecraft.player);
-@@ -379,9 +386,12 @@
-         this.minecraft.player.setReducedDebugInfo(pPacket.isReducedDebugInfo());
-         this.minecraft.player.setShowDeathScreen(pPacket.shouldShowDeathScreen());
-         this.minecraft.gameMode.setLocalMode(pPacket.getGameType(), pPacket.getPreviousGameType());
-+        //Reflector.call(Reflector.NetworkHooks_sendMCRegistryPackets, this.connection, "PLAY_TO_SERVER");
+@@ -377,10 +385,15 @@
+         this.minecraft.player.setShowDeathScreen(pPacket.showDeathScreen());
+         this.minecraft.gameMode.setLocalMode(pPacket.gameType(), pPacket.previousGameType());
+         this.minecraft.options.setServerRenderDistance(pPacket.chunkRadius());
++        //Forge
++        Reflector.call(Reflector.NetworkHooks_sendMCRegistryPackets, connection, "PLAY_TO_SERVER");
++        //
          this.minecraft.options.broadcastOptions();
          this.connection.send(new ServerboundCustomPayloadPacket(ServerboundCustomPayloadPacket.BRAND, (new FriendlyByteBuf(Unpooled.buffer())).writeUtf(ClientBrandRetriever.getClientModName())));
          this.minecraft.getGame().onStartGameSession();
+         this.telemetryManager.onPlayerInfoReceived(pPacket.gameType(), pPacket.hardcore());
 +        NetworkHelper.vivePlayers.clear();
 +        NetworkHelper.sendVersionInfo();
      }
  
      public void handleAddEntity(ClientboundAddEntityPacket pPacket)
-@@ -650,9 +660,9 @@
+@@ -649,9 +662,9 @@
      {
          PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
          int i = 19 | (pPacket.shouldSuppressLightUpdates() ? 128 : 0);
@@ -62,20 +59,7 @@
          });
      }
  
-@@ -678,7 +688,11 @@
- 
-                 if (blockentity != null)
-                 {
--                    blockentity.load(compoundtag);
-+                //	if(Reflector.IForgeTileEntity_handleUpdateTag.exists())
-+                //		Reflector.call(blockentity, Reflector.IForgeTileEntity_handleUpdateTag,this.level.getBlockState(blockpos), compoundtag);
-+                //	else
-+                        blockentity.load(compoundtag);
-+                //	}
-                 }
-             }
-         }
-@@ -784,7 +798,17 @@
+@@ -809,7 +822,17 @@
      public void handleChat(ClientboundChatPacket pPacket)
      {
          PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
@@ -94,7 +78,7 @@
      }
  
      public void handleAnimate(ClientboundAnimatePacket pPacket)
-@@ -894,7 +918,8 @@
+@@ -919,7 +942,8 @@
  
                      if (entity1 == this.minecraft.player && !flag)
                      {
@@ -104,7 +88,7 @@
                      }
                  }
              }
-@@ -992,6 +1017,8 @@
+@@ -1017,6 +1041,8 @@
              this.level.addMapData(map);
              this.minecraft.setLevel(this.level);
              this.minecraft.setScreen(new ReceivingLevelScreen());
@@ -113,79 +97,51 @@
          }
  
          String s = localplayer.getServerBrand();
-@@ -1015,6 +1042,7 @@
- 
+@@ -1037,9 +1063,12 @@
+         {
+             localplayer1.getAttributes().assignValues(localplayer.getAttributes());
+         }
+-
++        //Forge
++        Reflector.call(Reflector.LocalPlayer_updateSyncFields, localplayer1, localplayer);// Forge: fix MC-10657
++        //
          localplayer1.resetPos();
          localplayer1.setServerBrand(s);
-+        //Reflector.call(Reflector.ClientHooks_firePlayerRespawn, this.minecraft.gameMode, localplayer, localplayer1, localplayer1.connection.getConnection());
++        Reflector.call(Reflector.ClientHooks_firePlayerRespawn, this.minecraft.gameMode, localplayer, localplayer1, localplayer1.connection.getConnection());
          this.level.addPlayer(i, localplayer1);
          localplayer1.setYRot(-180.0F);
          localplayer1.input = new KeyboardInput(this.minecraft.options);
-@@ -1149,7 +1177,17 @@
-         int i = pPacket.getType();
-         boolean flag = i == 2 && blockentity instanceof CommandBlockEntity;
- 
--        if (i == 1 && blockentity instanceof SpawnerBlockEntity || flag || i == 3 && blockentity instanceof BeaconBlockEntity || i == 4 && blockentity instanceof SkullBlockEntity || i == 6 && blockentity instanceof BannerBlockEntity || i == 7 && blockentity instanceof StructureBlockEntity || i == 8 && blockentity instanceof TheEndGatewayBlockEntity || i == 9 && blockentity instanceof SignBlockEntity || i == 11 && blockentity instanceof BedBlockEntity || i == 5 && blockentity instanceof ConduitBlockEntity || i == 12 && blockentity instanceof JigsawBlockEntity || i == 13 && blockentity instanceof CampfireBlockEntity || i == 14 && blockentity instanceof BeehiveBlockEntity)
-+        if ((i != 1 || !(blockentity instanceof SpawnerBlockEntity)) && !flag && (i != 3 || !(blockentity instanceof BeaconBlockEntity)) && (i != 4 || !(blockentity instanceof SkullBlockEntity)) && (i != 6 || !(blockentity instanceof BannerBlockEntity)) && (i != 7 || !(blockentity instanceof StructureBlockEntity)) && (i != 8 || !(blockentity instanceof TheEndGatewayBlockEntity)) && (i != 9 || !(blockentity instanceof SignBlockEntity)) && (i != 11 || !(blockentity instanceof BedBlockEntity)) && (i != 5 || !(blockentity instanceof ConduitBlockEntity)) && (i != 12 || !(blockentity instanceof JigsawBlockEntity)) && (i != 13 || !(blockentity instanceof CampfireBlockEntity)) && (i != 14 || !(blockentity instanceof BeehiveBlockEntity)))
-+        {
-+            if (blockentity == null)
-+            {
-+                LOGGER.error("Received invalid update packet for null tile entity at {} with data: {}", pPacket.getPos(), pPacket.getTag());
-+                return;
-+            }
-+
-+            Reflector.call(blockentity, Reflector.IForgeTileEntity_onDataPacket, this.connection, pPacket);
-+        }
-+        else
+@@ -1172,13 +1201,18 @@
+         BlockPos blockpos = pPacket.getPos();
+         this.minecraft.level.getBlockEntity(blockpos, pPacket.getType()).ifPresent((p_194239_) ->
          {
-             blockentity.load(pPacket.getTag());
-         }
-@@ -1178,9 +1216,9 @@
++    		//Forge
++    		if(Reflector.IForgeTileEntity_handleUpdateTag.exists()) {
++    			Reflector.call(p_194239_, Reflector.IForgeTileEntity_onDataPacket, connection, pPacket);
++    		} else {
++    		//
+             CompoundTag compoundtag = pPacket.getTag();
  
-         if (entity != null)
-         {
--            pPacket.getSlots().forEach((p_104926_) ->
-+            pPacket.getSlots().forEach((p_241664_1_) ->
+             if (compoundtag != null)
              {
--                entity.setItemSlot(p_104926_.getFirst(), p_104926_.getSecond());
-+                entity.setItemSlot(p_241664_1_.getFirst(), p_241664_1_.getSecond());
-             });
-         }
-     }
-@@ -1382,6 +1420,7 @@
+                 p_194239_.load(compoundtag);
+             }
+-
++    		}
+             if (p_194239_ instanceof CommandBlockEntity && this.minecraft.screen instanceof CommandBlockEditScreen)
+             {
+                 ((CommandBlockEditScreen)this.minecraft.screen).updateGui();
+@@ -1408,6 +1442,9 @@
          clientrecipebook.setupCollections(this.recipeManager.getRecipes());
          clientrecipebook.getCollections().forEach(mutablesearchtree::add);
          mutablesearchtree.refresh();
++        //Forge
 +        Reflector.call(Reflector.ForgeHooksClient_onRecipesUpdated, this.recipeManager);
++        //
      }
  
      public void handleLookAt(ClientboundPlayerLookAtPacket pPacket)
-@@ -1455,18 +1494,18 @@
-             case ADD:
-                 for (ResourceLocation resourcelocation : pPacket.getRecipes())
-                 {
--                    this.recipeManager.byKey(resourcelocation).ifPresent((p_104934_) ->
-+                    this.recipeManager.byKey(resourcelocation).ifPresent((p_217278_2_) ->
-                     {
--                        clientrecipebook.add(p_104934_);
--                        clientrecipebook.addHighlight(p_104934_);
--                        RecipeToast.addOrUpdate(this.minecraft.getToasts(), p_104934_);
-+                        clientrecipebook.add(p_217278_2_);
-+                        clientrecipebook.addHighlight(p_217278_2_);
-+                        RecipeToast.addOrUpdate(this.minecraft.getToasts(), p_217278_2_);
-                     });
-                 }
-         }
- 
--        clientrecipebook.getCollections().forEach((p_104937_) ->
-+        clientrecipebook.getCollections().forEach((p_199527_1_) ->
-         {
--            p_104937_.updateKnownRecipes(clientrecipebook);
-+            p_199527_1_.updateKnownRecipes(clientrecipebook);
-         });
- 
-         if (this.minecraft.screen instanceof RecipeUpdateListener)
-@@ -1482,7 +1521,7 @@
+@@ -1508,7 +1545,7 @@
  
          if (entity instanceof LivingEntity)
          {
@@ -194,46 +150,28 @@
  
              if (mobeffect != null)
              {
-@@ -1497,8 +1536,23 @@
-     {
+@@ -1524,7 +1561,7 @@
          PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
          TagContainer tagcontainer = TagContainer.deserializeFromNetwork(this.registryAccess, pPacket.getTags());
--        Multimap < ResourceKey <? extends Registry<? >> , ResourceLocation > multimap = StaticTags.getAllMissingTags(tagcontainer);
+         Multimap < ResourceKey <? extends Registry<? >> , ResourceLocation > multimap = StaticTags.getAllMissingTags(tagcontainer);
 -
-+        Multimap < ResourceKey <? extends Registry<? >> , ResourceLocation > multimap;
-+    	//Forge
-+        boolean vanillaConnection = false;
-+    	if(Reflector.NetworkHooks_isVanillaConnection.exists()) {
-+    	      multimap = StaticTags.getAllMissingTags(tagcontainer);
-+    		//TODO: investigate
-+//    		vanillaConnection = Reflector.callBoolean(Reflector.NetworkHooks_isVanillaConnection, netManager);
-+//    		if(vanillaConnection) {
-+//    			 multimap = StaticTags.getAllMissingTags((TagContainer)Reflector.call(Reflector.ForgeTagHandler_withNoCustom, tagcontainer));
-+//    		else {
-+//    			//multimap = (Multimap < ResourceKey <? extends Registry<? >> ) Reflector.call(Reflector.TagRegistryManager_validateVanillaTags, itagcollectionsupplier);
-+//    		}
-+    	} else {
-+            multimap = StaticTags.getAllMissingTags(tagcontainer);
-+    	}       
-+        //
 +    	
          if (!multimap.isEmpty())
          {
              LOGGER.warn("Incomplete server tags, disconnecting. Missing: {}", (Object)multimap);
-@@ -1506,6 +1560,12 @@
+@@ -1532,6 +1569,11 @@
          }
          else
          {
-+            if (Reflector.ForgeTagHandler_resetCachedTagCollections.exists())
-+            {
-+                Reflector.call(Reflector.ForgeTagHandler_resetCachedTagCollections, true, vanillaConnection);
++        	//Forge
++        	if(Reflector.ITagCollectionSupplier_reinjectOptionalTags.exists()) {
 +                tagcontainer = (TagContainer)Reflector.call(Reflector.ITagCollectionSupplier_reinjectOptionalTags, tagcontainer);
 +            }
-+
++        	//
              this.tags = tagcontainer;
  
              if (!this.connection.isMemoryConnection())
-@@ -1860,16 +1920,16 @@
+@@ -1886,16 +1928,16 @@
              {
                  throw new URISyntaxException(pUrl, "Wrong protocol");
              }
@@ -254,16 +192,7 @@
          {
              this.send(ServerboundResourcePackPacket.Action.FAILED_DOWNLOAD);
              return false;
-@@ -1881,7 +1941,7 @@
-         pFuture.thenRun(() ->
-         {
-             this.send(ServerboundResourcePackPacket.Action.SUCCESSFULLY_LOADED);
--        }).exceptionally((p_104948_) ->
-+        }).exceptionally((p_217276_1_) ->
-         {
-             this.send(ServerboundResourcePackPacket.Action.FAILED_DOWNLOAD);
-             return null;
-@@ -1941,6 +2001,7 @@
+@@ -1967,6 +2009,7 @@
          PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
          ResourceLocation resourcelocation = pPacket.getIdentifier();
          FriendlyByteBuf friendlybytebuf = null;
@@ -271,18 +200,7 @@
  
          try
          {
-@@ -2163,8 +2224,8 @@
- 
-                 for (int i7 = 0; i7 < l6; ++i7)
-                 {
--                    String s11 = friendlybytebuf.readUtf();
--                    beedebugrenderer$beeinfo.goals.add(s11);
-+                    String s16 = friendlybytebuf.readUtf();
-+                    beedebugrenderer$beeinfo.goals.add(s16);
-                 }
- 
-                 int j7 = friendlybytebuf.readVarInt();
-@@ -2215,14 +2276,86 @@
+@@ -2243,14 +2286,86 @@
                  int i5 = friendlybytebuf.readVarInt();
                  this.minecraft.debugRenderer.gameEventListenerRenderer.trackListener(positionsource, i5);
              }
@@ -371,7 +289,7 @@
              {
                  friendlybytebuf.release();
              }
-@@ -2411,28 +2544,27 @@
+@@ -2439,28 +2554,27 @@
              {
                  throw new IllegalStateException("Server tried to update attributes of a non-living entity (actually: " + entity + ")");
              }
@@ -386,12 +304,12 @@
  
 -                for (ClientboundUpdateAttributesPacket.AttributeSnapshot clientboundupdateattributespacket$attributesnapshot : pPacket.getValues())
 +                if (attributeinstance == null)
-                 {
--                    AttributeInstance attributeinstance = attributemap.getInstance(clientboundupdateattributespacket$attributesnapshot.getAttribute());
++                {
 +                    LOGGER.warn("Entity {} does not have attribute {}", entity, Registry.ATTRIBUTE.getKey(clientboundupdateattributespacket$attributesnapshot.getAttribute()));
 +                }
 +                else
-+                {
+                 {
+-                    AttributeInstance attributeinstance = attributemap.getInstance(clientboundupdateattributespacket$attributesnapshot.getAttribute());
 +                    attributeinstance.setBaseValue(clientboundupdateattributespacket$attributesnapshot.getBase());
 +                    attributeinstance.removeModifiers();
  
@@ -414,7 +332,7 @@
                  }
              }
          }
-@@ -2602,4 +2734,16 @@
+@@ -2648,4 +2762,16 @@
      {
          return this.registryAccess;
      }

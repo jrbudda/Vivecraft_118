@@ -4,7 +4,6 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import io.github.classgraph.ClassGraph;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -18,6 +17,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -49,9 +49,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.phys.Vec3;
+import optifine.OptiFineTransformationService;
+import optifine.OptiFineTransformer;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.vivecraft.render.VRShaders;
+import org.vivecraft.tweaker.LoaderUtils;
+import org.vivecraft.tweaker.VivecraftTransformationService;
+import org.vivecraft.tweaker.VivecraftTransformer;
 import org.vivecraft.utils.lwjgl.Matrix3f;
 import org.vivecraft.utils.lwjgl.Matrix4f;
 import org.vivecraft.utils.lwjgl.Vector2f;
@@ -66,7 +72,6 @@ public class Utils
     private static final char[] illegalChars = new char[] {'"', '<', '>', '|', '\u0000', '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007', '\b', '\t', '\n', '\u000b', '\f', '\r', '\u000e', '\u000f', '\u0010', '\u0011', '\u0012', '\u0013', '\u0014', '\u0015', '\u0016', '\u0017', '\u0018', '\u0019', '\u001a', '\u001b', '\u001c', '\u001d', '\u001e', '\u001f', ':', '*', '?', '\\', '/'};
     private static final int CONNECT_TIMEOUT = 5000;
     private static final int READ_TIMEOUT = 20000;
-    private static URI vivecraftZipURI;
     private static final Random avRandomizer = new Random();
 
     public static String sanitizeFileName(String fileName)
@@ -452,7 +457,7 @@ public class Utils
             }
 
             System.out.println("Unpacking " + directory + " natives...");
-            ZipFile zipfile = getVivecraftZip();
+            ZipFile zipfile = LoaderUtils.getVivecraftZip();
             Enumeration <? extends ZipEntry > enumeration = zipfile.entries();
 
             while (enumeration.hasMoreElements())
@@ -476,55 +481,6 @@ public class Utils
         }
     }
 
-    public static URI getVivecraftZipLocation()
-    {
-        if (vivecraftZipURI != null)
-        {
-            return vivecraftZipURI;
-        }
-        else
-        {
-            for (URI uri : (new ClassGraph()).getClasspathURIs())
-            {
-                try (ZipFile zipfile = new ZipFile(new File(uri)))
-                {
-                    if (zipfile.getEntry("org/vivecraft/provider/MCVR.class") != null)
-                    {
-                        System.out.println("Found Vivecraft zip: " + uri.toString());
-                        vivecraftZipURI = uri;
-                        break;
-                    }
-                }
-                catch (IOException ioexception)
-                {
-                }
-            }
-
-            if (vivecraftZipURI == null)
-            {
-                throw new RuntimeException("Could not find Vivecraft zip");
-            }
-            else
-            {
-                return vivecraftZipURI;
-            }
-        }
-    }
-
-    public static ZipFile getVivecraftZip()
-    {
-        URI uri = getVivecraftZipLocation();
-
-        try
-        {
-            File file1 = new File(uri);
-            return new ZipFile(file1);
-        }
-        catch (IOException ioexception)
-        {
-            throw new RuntimeException(ioexception);
-        }
-    }
 
     public static void writeStreamToFile(InputStream is, File file) throws IOException
     {
@@ -829,7 +785,7 @@ public class Utils
         List<FormattedText> list = Lists.newArrayList();
         fontRenderer.getSplitter().splitLines(componentcollector.getResultOrEmpty(), width, Style.EMPTY, (lineText, sameLine) ->
         {
-            list.add(sameLine && linePrefix != null ? FormattedText.m_130773_(linePrefix, lineText) : lineText);
+            list.add(sameLine && linePrefix != null ? FormattedText.a(linePrefix, lineText) : lineText);
         });
         return (List<FormattedText>)(list.isEmpty() ? Lists.newArrayList(FormattedText.EMPTY) : list);
     }

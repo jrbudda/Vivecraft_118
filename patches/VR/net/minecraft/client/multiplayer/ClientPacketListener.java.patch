@@ -166,8 +166,8 @@
              localplayer1.getAttributes().assignValues(localplayer.getAttributes());
          }
 -
-+        //Forge
-+        localplayer1.updateSyncFields(localplayer); // Forge: fix MC-10657
++        //Forge (reflection cause nonvr doesnt edit localplayer... parity)!
++        Reflector.call(Reflector.LocalPlayer_updateSyncFields, localplayer1, localplayer);// Forge: fix MC-10657
 +        //
          localplayer1.resetPos();
          localplayer1.setServerBrand(s);
