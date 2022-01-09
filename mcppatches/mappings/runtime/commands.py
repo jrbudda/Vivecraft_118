@@ -1285,7 +1285,8 @@ class Commands(object):
         clssrg  = {CLIENT: self.reobsrgclientcls, SERVER: self.reobsrgservercls}
         #exclog = {CLIENT: self.xclientlog, SERVER: self.xserverlog}
         exclog = {CLIENT: self.xclientconf, SERVER: self.xserverconf}
-
+        shutil.copy(self.dirconf + "\joined.srg", clssrg[side])
+        return
         renames = {}
         log = [l.strip() for l in open(exclog[side], 'r').readlines()]
 
