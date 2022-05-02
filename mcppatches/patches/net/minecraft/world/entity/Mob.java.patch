@@ -5,7 +5,7 @@
                  {
                      SpawnEggItem spawneggitem = (SpawnEggItem)itemstack.getItem();
 -                    Optional<Mob> optional = spawneggitem.spawnOffspringFromSpawnEgg(pPlayer, this, this.getType(), (ServerLevel)this.level, this.position(), itemstack);
-+                    Optional<Mob> optional = spawneggitem.spawnOffspringFromSpawnEgg(pPlayer, this, (EntityType<? extends Mob>) this.getType(), (ServerLevel)this.level, this.position(), itemstack);
++                    Optional<Mob> optional = spawneggitem.spawnOffspringFromSpawnEgg(pPlayer, this, (EntityType<? extends Mob>)this.getType(), (ServerLevel)this.level, this.position(), itemstack);
                      optional.ifPresent((p_21474_2_) ->
                      {
                          this.onOffspringSpawnedFromEgg(pPlayer, p_21474_2_);

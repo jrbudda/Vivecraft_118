@@ -1,0 +1,33 @@
+--- a/net/minecraft/client/gui/screens/WinScreen.java
++++ b/net/minecraft/client/gui/screens/WinScreen.java
+@@ -5,6 +5,8 @@
+ import com.google.gson.JsonElement;
+ import com.google.gson.JsonObject;
+ import com.mojang.blaze3d.platform.GlStateManager;
++import com.mojang.blaze3d.platform.GlStateManager.DestFactor;
++import com.mojang.blaze3d.platform.GlStateManager.SourceFactor;
+ import com.mojang.blaze3d.systems.RenderSystem;
+ import com.mojang.blaze3d.vertex.BufferBuilder;
+ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+@@ -32,6 +34,7 @@
+ import net.minecraft.util.FormattedCharSequence;
+ import net.minecraft.util.GsonHelper;
+ import org.apache.commons.io.IOUtils;
++import org.lwjgl.opengl.GL11;
+ import org.slf4j.Logger;
+ 
+ public class WinScreen extends Screen
+@@ -348,7 +351,12 @@
+         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+         RenderSystem.setShaderTexture(0, VIGNETTE_LOCATION);
+         RenderSystem.enableBlend();
+-        RenderSystem.blendFunc(GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR);
++        
++        //Vivecraft, you dummies.
++        //RenderSystem.blendFunc(GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR);
++        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR, SourceFactor.ONE, DestFactor.ZERO);
++        //
++        
+         int i1 = this.width;
+         int j1 = this.height;
+         Tesselator tesselator = Tesselator.getInstance();

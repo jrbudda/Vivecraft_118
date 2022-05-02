@@ -207,7 +207,7 @@
      private void applyItemArmTransform(PoseStack pMatrixStack, HumanoidArm pHand, float pEquippedProg)
      {
          int i = pHand == HumanoidArm.RIGHT ? 1 : -1;
-@@ -388,188 +483,481 @@
+@@ -388,188 +483,483 @@
          return pStack.is(Items.CROSSBOW) && CrossbowItem.isCharged(pStack);
      }
  
@@ -256,7 +256,7 @@
 +            {
 +                Item item = pStack.getItem();
 +                boolean flag2 = false;
-+                VivecraftItemRendering vivecraftitemrendering = VivecraftItemRendering.Item;
++                VivecraftItemRendering rendertype = VivecraftItemRendering.Item;
 +
 +                if (pStack.getUseAnimation() != UseAnim.EAT && pStack.getUseAnimation() != UseAnim.DRINK)
                  {
@@ -267,7 +267,7 @@
 +
 +                        if (block instanceof TorchBlock)
 +                        {
-+                            vivecraftitemrendering = VivecraftItemRendering.Block_Stick;
++                            rendertype = VivecraftItemRendering.Block_Stick;
 +                        }
 +                        else
 +                        {
@@ -275,18 +275,18 @@
 +
 +                            if (bakedmodel.isGui3d())
 +                            {
-+                                vivecraftitemrendering = VivecraftItemRendering.Block_3D;
++                                rendertype = VivecraftItemRendering.Block_3D;
 +                            }
 +                            else
 +                            {
-+                                vivecraftitemrendering = VivecraftItemRendering.Block_Item;
++                                rendertype = VivecraftItemRendering.Block_Item;
 +                            }
 +                        }
 +                    }
 +                    else if (item instanceof MapItem)
                      {
 -                        this.renderPlayerArm(pMatrixStack, pBuffer, pCombinedLight, pEquippedProgress, pSwingProgress, humanoidarm);
-+                        vivecraftitemrendering = VivecraftItemRendering.Map;
++                        rendertype = VivecraftItemRendering.Map;
                      }
 -                }
 -                else if (pStack.getItem() instanceof MapItem)
@@ -294,57 +294,57 @@
 -                    if (flag && this.offHandItem.isEmpty())
 +                    else if (pStack.getUseAnimation() == UseAnim.BOW)
 +                    {
-+                        vivecraftitemrendering = VivecraftItemRendering.Bow_Seated;
++                        rendertype = VivecraftItemRendering.Bow_Seated;
 +
 +                        if (this.minecraft.bowTracker.isActive((LocalPlayer)pPlayer))
 +                        {
 +                            if (this.minecraft.bowTracker.isDrawing)
 +                            {
-+                                vivecraftitemrendering = VivecraftItemRendering.Bow_Roomscale_Drawing;
++                                rendertype = VivecraftItemRendering.Bow_Roomscale_Drawing;
 +                            }
 +                            else
 +                            {
-+                                vivecraftitemrendering = VivecraftItemRendering.Bow_Roomscale;
++                                rendertype = VivecraftItemRendering.Bow_Roomscale;
 +                            }
 +                        }
 +                    }
 +                    else if (item instanceof SwordItem)
 +                    {
-+                        vivecraftitemrendering = VivecraftItemRendering.Sword;
++                        rendertype = VivecraftItemRendering.Sword;
 +                    }
 +                    else if (item instanceof ShieldItem)
                      {
 -                        this.renderTwoHandedMap(pMatrixStack, pBuffer, pCombinedLight, pPitch, pEquippedProgress, pSwingProgress);
-+                        vivecraftitemrendering = VivecraftItemRendering.Shield;
++                        rendertype = VivecraftItemRendering.Shield;
 +                    }
 +                    else if (item instanceof TridentItem)
 +                    {
-+                        vivecraftitemrendering = VivecraftItemRendering.Spear;
++                        rendertype = VivecraftItemRendering.Spear;
 +                    }
 +                    else if (item instanceof CrossbowItem)
 +                    {
-+                        vivecraftitemrendering = VivecraftItemRendering.Crossbow;
++                        rendertype = VivecraftItemRendering.Crossbow;
 +                    }
 +                    else if (!(item instanceof CompassItem) && item != Items.CLOCK)
 +                    {
 +                        if (SwingTracker.isTool(item))
 +                        {
-+                            vivecraftitemrendering = VivecraftItemRendering.Tool;
++                            rendertype = VivecraftItemRendering.Tool;
 +
 +                            if (item instanceof FoodOnAStickItem || item instanceof FishingRodItem)
 +                            {
-+                                vivecraftitemrendering = VivecraftItemRendering.Tool_Rod;
++                                rendertype = VivecraftItemRendering.Tool_Rod;
 +                            }
 +                        }
 +                        else if (TelescopeTracker.isTelescope(pStack))
 +                        {
-+                            vivecraftitemrendering = VivecraftItemRendering.Telescope;
++                            rendertype = VivecraftItemRendering.Telescope;
 +                        }
                      }
                      else
                      {
 -                        this.renderOneHandedMap(pMatrixStack, pBuffer, pCombinedLight, pEquippedProgress, humanoidarm, pSwingProgress, pStack);
-+                        vivecraftitemrendering = VivecraftItemRendering.Compass;
++                        rendertype = VivecraftItemRendering.Compass;
                      }
                  }
 -                else if (pStack.is(Items.CROSSBOW))
@@ -353,42 +353,44 @@
 -                    boolean flag2 = CrossbowItem.isCharged(pStack);
 -                    boolean flag3 = humanoidarm == HumanoidArm.RIGHT;
 -                    int l = flag3 ? 1 : -1;
-+                    vivecraftitemrendering = VivecraftItemRendering.Noms;
++                    rendertype = VivecraftItemRendering.Noms;
 +                }
 +
 +                int k = flag ? 1 : -1;
-+                double d8 = 0.7D;
-+                double d0 = -0.05D;
-+                double d1 = 0.005D;
-+                double d2 = 0.0D;
-+                double d3 = this.minecraft.vr.getGunAngle();
-+                Quaternion quaternion = Vector3f.YP.rotationDegrees(0.0F);
-+                Quaternion quaternion1 = Vector3f.YP.rotationDegrees(0.0F);
-+                quaternion.mul(Vector3f.XP.rotationDegrees((float)(-110.0D + d3)));
++                
++                double scale = 0.7D;
++                double translateX = -0.05D;
++                double translateY = 0.005D;
++                double translateZ = 0.0D;
++                
++                double gunAngle = this.minecraft.vr.getGunAngle();
++                Quaternion rotation = Vector3f.YP.rotationDegrees(0.0F);
++                Quaternion preRotation = Vector3f.YP.rotationDegrees(0.0F);
++                rotation.mul(Vector3f.XP.rotationDegrees((float)(-110.0D + gunAngle)));
 +                pMatrixStack.pushPose();
-+                boolean flag3 = false;
++                boolean mirror = false;
  
 -                    if (pPlayer.isUsingItem() && pPlayer.getUseItemRemainingTicks() > 0 && pPlayer.getUsedItemHand() == pHand)
-+                if (vivecraftitemrendering == VivecraftItemRendering.Bow_Seated)
++                if (rendertype == VivecraftItemRendering.Bow_Seated)
 +                {
-+                    d1 += -0.1D;
-+                    d2 += 0.1D;
-+                    quaternion.mul(Vector3f.XP.rotationDegrees((float)(90.0D - d3)));
-+                    d8 = (double)0.7F;
++                    translateY += -0.1D;
++                    translateZ += 0.1D;
++                    rotation.mul(Vector3f.XP.rotationDegrees((float)(90.0D - gunAngle)));
++                    scale = (double)0.7F;
 +                }
-+                else if (vivecraftitemrendering == VivecraftItemRendering.Bow_Roomscale)
++                else if (rendertype == VivecraftItemRendering.Bow_Roomscale)
 +                {
-+                    quaternion = Vector3f.XP.rotationDegrees(0.0F);
-+                    pMatrixStack.mulPose(Vector3f.XP.rotationDegrees((float)(-110.0D + d3)));
-+                    d1 -= 0.25D;
-+                    d2 += (double)0.025F + 0.03D * d3 / 40.0D;
-+                    d0 += -0.0225D;
-+                    d8 = 1.0D;
++                    rotation = Vector3f.XP.rotationDegrees(0.0F);
++                    pMatrixStack.mulPose(Vector3f.XP.rotationDegrees((float)(-110.0D + gunAngle)));
++                    translateY -= 0.25D;
++                    translateZ += (double)0.025F + 0.03D * gunAngle / 40.0D;
++                    translateX += -0.0225D;
++                    scale = 1.0D;
 +                }
-+                else if (vivecraftitemrendering == VivecraftItemRendering.Bow_Roomscale_Drawing)
++                else if (rendertype == VivecraftItemRendering.Bow_Roomscale_Drawing)
 +                {
-+                    quaternion = Vector3f.YP.rotationDegrees(0.0F);
-+                    d8 = 1.0D;
++                    rotation = Vector3f.YP.rotationDegrees(0.0F);
++                    scale = 1.0D;
 +                    int i = 0;
 +
 +                    if (this.minecraft.vrSettings.reverseShootingEye)
@@ -466,121 +468,121 @@
 +                    if (this.minecraft.bowTracker.isCharged())
 +                    {
 +                        long j = Util.getMillis() - this.minecraft.bowTracker.startDrawTime;
-+                        d0 += 0.003D * Math.sin((double)j);
++                        translateX += 0.003D * Math.sin((double)j);
                      }
  
 -                    this.renderItem(pPlayer, pStack, flag3 ? ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND, !flag3, pMatrixStack, pBuffer, pCombinedLight);
 +                    pMatrixStack.translate(0.0D, 0.0D, 0.1D);
 +                    pMatrixStack.last().pose().multiply(this.minecraft.vrPlayer.vrdata_world_render.getController(1).getMatrix().transposed().toMCMatrix());
-+                    quaternion.mul(Vector3f.YP.rotationDegrees(f1));
-+                    quaternion.mul(Vector3f.XP.rotationDegrees(-f));
-+                    quaternion.mul(Vector3f.ZP.rotationDegrees(-f3));
-+                    quaternion.mul(Vector3f.ZP.rotationDegrees(180.0F));
-+                    pMatrixStack.last().pose().multiply(quaternion);
-+                    quaternion = Vector3f.YP.rotationDegrees(0.0F);
-+                    quaternion.mul(Vector3f.YP.rotationDegrees(180.0F));
-+                    quaternion.mul(Vector3f.XP.rotationDegrees(160.0F));
-+                    d1 += 0.1225D;
-+                    d0 += 0.125D;
-+                    d2 += 0.16D;
++                    rotation.mul(Vector3f.YP.rotationDegrees(f1));
++                    rotation.mul(Vector3f.XP.rotationDegrees(-f));
++                    rotation.mul(Vector3f.ZP.rotationDegrees(-f3));
++                    rotation.mul(Vector3f.ZP.rotationDegrees(180.0F));
++                    pMatrixStack.last().pose().multiply(rotation);
++                    rotation = Vector3f.YP.rotationDegrees(0.0F);
++                    rotation.mul(Vector3f.YP.rotationDegrees(180.0F));
++                    rotation.mul(Vector3f.XP.rotationDegrees(160.0F));
++                    translateY += 0.1225D;
++                    translateX += 0.125D;
++                    translateZ += 0.16D;
                  }
 -                else
-+                else if (vivecraftitemrendering == VivecraftItemRendering.Crossbow)
++                else if (rendertype == VivecraftItemRendering.Crossbow)
 +                {
-+                    d0 += (double)0.01F;
-+                    d2 += (double) - 0.02F;
-+                    d1 += (double) - 0.02F;
-+                    d8 = 0.5D;
-+                    quaternion = Vector3f.XP.rotationDegrees(0.0F);
-+                    quaternion.mul(Vector3f.YP.rotationDegrees(10.0F));
++                    translateX += (double)0.01F;
++                    translateZ += (double) - 0.02F;
++                    translateY += (double) - 0.02F;
++                    scale = 0.5D;
++                    rotation = Vector3f.XP.rotationDegrees(0.0F);
++                    rotation.mul(Vector3f.YP.rotationDegrees(10.0F));
 +                }
-+                else if (vivecraftitemrendering == VivecraftItemRendering.Map)
++                else if (rendertype == VivecraftItemRendering.Map)
 +                {
 +                    flag2 = true;
-+                    quaternion = Vector3f.XP.rotationDegrees(-45.0F);
-+                    d0 = 0.0D;
-+                    d1 = 0.16D;
-+                    d2 = -0.075D;
-+                    d8 = 0.75D;
++                    rotation = Vector3f.XP.rotationDegrees(-45.0F);
++                    translateX = 0.0D;
++                    translateY = 0.16D;
++                    translateZ = -0.075D;
++                    scale = 0.75D;
 +                }
-+                else if (vivecraftitemrendering == VivecraftItemRendering.Noms)
++                else if (rendertype == VivecraftItemRendering.Noms)
 +                {
 +                    long l = (long)this.minecraft.player.getUseItemRemainingTicks();
-+                    quaternion = Vector3f.ZP.rotationDegrees(180.0F);
-+                    quaternion.mul(Vector3f.XP.rotationDegrees(-135.0F));
-+                    d2 = d2 + 0.006D * Math.sin((double)l);
-+                    d2 = d2 + (double)0.02F;
-+                    d0 += (double)0.08F;
-+                    d8 = (double)0.4F;
++                    rotation = Vector3f.ZP.rotationDegrees(180.0F);
++                    rotation.mul(Vector3f.XP.rotationDegrees(-135.0F));
++                    translateZ = translateZ + 0.006D * Math.sin((double)l);
++                    translateZ = translateZ + (double)0.02F;
++                    translateX += (double)0.08F;
++                    scale = (double)0.4F;
 +                }
-+                else if (vivecraftitemrendering != VivecraftItemRendering.Item && vivecraftitemrendering != VivecraftItemRendering.Block_Item)
++                else if (rendertype != VivecraftItemRendering.Item && rendertype != VivecraftItemRendering.Block_Item)
                  {
 -                    boolean flag1 = humanoidarm == HumanoidArm.RIGHT;
-+                    if (vivecraftitemrendering == VivecraftItemRendering.Compass)
++                    if (rendertype == VivecraftItemRendering.Compass)
 +                    {
-+                        quaternion = Vector3f.YP.rotationDegrees(90.0F);
-+                        quaternion.mul(Vector3f.XP.rotationDegrees(25.0F));
-+                        d8 = (double)0.4F;
++                        rotation = Vector3f.YP.rotationDegrees(90.0F);
++                        rotation.mul(Vector3f.XP.rotationDegrees(25.0F));
++                        scale = (double)0.4F;
 +                    }
-+                    else if (vivecraftitemrendering == VivecraftItemRendering.Block_3D)
++                    else if (rendertype == VivecraftItemRendering.Block_3D)
 +                    {
-+                        d8 = (double)0.3F;
-+                        d2 += (double) - 0.1F;
-+                        d0 += (double)0.05F;
++                        scale = (double)0.3F;
++                        translateZ += (double) - 0.1F;
++                        translateX += (double)0.05F;
 +                    }
-+                    else if (vivecraftitemrendering == VivecraftItemRendering.Block_Stick)
++                    else if (rendertype == VivecraftItemRendering.Block_Stick)
 +                    {
-+                        quaternion = Vector3f.XP.rotationDegrees(0.0F);
-+                        d1 += -0.105D + 0.06D * d3 / 40.0D;
-+                        d2 += (double) - 0.1F;
-+                        quaternion.mul(Vector3f.XP.rotationDegrees(-45.0F));
-+                        quaternion.mul(Vector3f.XP.rotationDegrees((float)d3));
++                        rotation = Vector3f.XP.rotationDegrees(0.0F);
++                        translateY += -0.105D + 0.06D * gunAngle / 40.0D;
++                        translateZ += (double) - 0.1F;
++                        rotation.mul(Vector3f.XP.rotationDegrees(-45.0F));
++                        rotation.mul(Vector3f.XP.rotationDegrees((float)gunAngle));
 +                    }
-+                    else if (vivecraftitemrendering == VivecraftItemRendering.Shield)
++                    else if (rendertype == VivecraftItemRendering.Shield)
 +                    {
-+                        flag3 = !flag;
-+                        d8 = (double)0.4F;
-+                        d1 += (double)0.21F;
++                        mirror = !flag;
++                        scale = (double)0.4F;
++                        translateY += (double)0.21F;
 +
 +                        if (flag)
 +                        {
-+                            d0 += (double)0.11F;
++                            translateX += (double)0.11F;
 +                        }
 +                        else
 +                        {
-+                            d0 += -0.015D;
++                            translateX += -0.015D;
 +                        }
 +
-+                        d2 += (double) - 0.01F;
-+                        quaternion.mul(Vector3f.XP.rotationDegrees((float)(105.0D - d3)));
++                        translateZ += (double) - 0.01F;
++                        rotation.mul(Vector3f.XP.rotationDegrees((float)(105.0D - gunAngle)));
 +
 +                        if (pPlayer.isUsingItem() && pPlayer.getUseItemRemainingTicks() > 0 && pPlayer.getUsedItemHand() == pHand)
 +                        {
-+                            quaternion.mul(Vector3f.ZP.rotationDegrees((float)(k * -5)));
-+                            d1 += (double) - 0.13F;
-+                            d0 += (double)((float)k * 0.05F);
-+                            d2 += (double) - 0.1F;
++                            rotation.mul(Vector3f.ZP.rotationDegrees((float)(k * -5)));
++                            translateY += (double) - 0.13F;
++                            translateX += (double)((float)k * 0.05F);
++                            translateZ += (double) - 0.1F;
 +
 +                            if (pPlayer.isBlocking())
 +                            {
-+                                quaternion.mul(Vector3f.YP.rotationDegrees((float)k * 90.0F));
++                                rotation.mul(Vector3f.YP.rotationDegrees((float)k * 90.0F));
 +                            }
 +                            else
 +                            {
-+                                quaternion.mul(Vector3f.YP.rotationDegrees((1.0F - pEquippedProgress) * (float)k * 90.0F));
++                                rotation.mul(Vector3f.YP.rotationDegrees((1.0F - pEquippedProgress) * (float)k * 90.0F));
 +                            }
 +                        }
  
 -                    if (pPlayer.isUsingItem() && pPlayer.getUseItemRemainingTicks() > 0 && pPlayer.getUsedItemHand() == pHand)
-+                        quaternion.mul(Vector3f.YP.rotationDegrees((float)k * -90.0F));
++                        rotation.mul(Vector3f.YP.rotationDegrees((float)k * -90.0F));
 +                    }
-+                    else if (vivecraftitemrendering == VivecraftItemRendering.Spear)
++                    else if (rendertype == VivecraftItemRendering.Spear)
                      {
 -                        int k = flag1 ? 1 : -1;
-+                        quaternion = Vector3f.XP.rotationDegrees(0.0F);
-+                        d0 += (double) - 0.135F;
-+                        d2 = d2 + (double)0.575F;
-+                        d8 = (double)0.6F;
++                        rotation = Vector3f.XP.rotationDegrees(0.0F);
++                        translateX += (double) - 0.135F;
++                        translateZ = translateZ + (double)0.575F;
++                        scale = (double)0.6F;
 +                        float f4 = 0.0F;
 +                        boolean flag5 = false;
 +                        int i1 = 0;
@@ -659,7 +661,7 @@
 -                                {
 -                                    f2 = 1.0F;
 +                                    long j1 = Util.getMillis() - this.minecraft.bowTracker.startDrawTime;
-+                                    d0 += 0.003D * Math.sin((double)j1);
++                                    translateX += 0.003D * Math.sin((double)j1);
                                  }
 +                            }
 +                        }
@@ -667,41 +669,41 @@
 +                        if (pPlayer.isAutoSpinAttack())
 +                        {
 +                            i1 = 5;
-+                            d2 += (double) - 0.15F;
++                            translateZ += (double) - 0.15F;
 +                            pMatrixStack.mulPose(Vector3f.ZP.rotationDegrees((float)(-this.minecraft.tickCounter * 10 * i1 % 360) - pPartialTicks * 10.0F * (float)i1));
 +                            flag5 = true;
 +                        }
 +
 +                        if (!flag5)
 +                        {
-+                            d1 += 0.0D + 0.2D * d3 / 40.0D;
-+                            quaternion.mul(Vector3f.XP.rotationDegrees((float)d3));
++                            translateY += 0.0D + 0.2D * gunAngle / 40.0D;
++                            rotation.mul(Vector3f.XP.rotationDegrees((float)gunAngle));
 +                        }
 +
-+                        quaternion.mul(Vector3f.XP.rotationDegrees(-65.0F));
-+                        d2 = d2 + (double)(-0.75F + f4 / 10.0F * 0.25F);
++                        rotation.mul(Vector3f.XP.rotationDegrees(-65.0F));
++                        translateZ = translateZ + (double)(-0.75F + f4 / 10.0F * 0.25F);
 +                    }
-+                    else if (vivecraftitemrendering != VivecraftItemRendering.Sword)
++                    else if (rendertype != VivecraftItemRendering.Sword)
 +                    {
-+                        if (vivecraftitemrendering == VivecraftItemRendering.Tool_Rod)
++                        if (rendertype == VivecraftItemRendering.Tool_Rod)
 +                        {
-+                            d2 += (double) - 0.15F;
-+                            d1 += -0.02D + d3 / 40.0D * 0.1D;
-+                            d0 += (double)0.05F;
-+                            quaternion.mul(Vector3f.XP.rotationDegrees(40.0F));
-+                            d8 = (double)0.8F;
++                            translateZ += (double) - 0.15F;
++                            translateY += -0.02D + gunAngle / 40.0D * 0.1D;
++                            translateX += (double)0.05F;
++                            rotation.mul(Vector3f.XP.rotationDegrees(40.0F));
++                            scale = (double)0.8F;
 +                        }
-+                        else if (vivecraftitemrendering == VivecraftItemRendering.Tool)
++                        else if (rendertype == VivecraftItemRendering.Tool)
 +                        {
-+                            boolean flag4 = this.minecraft.climbTracker.isClaws(pStack) && this.minecraft.climbTracker.isClimbeyClimb();
++                            boolean isClaws = this.minecraft.climbTracker.isClaws(pStack) && this.minecraft.climbTracker.isClimbeyClimb();
 +
-+                            if (flag4)
++                            if (isClaws)
 +                            {
-+                                quaternion.mul(Vector3f.XP.rotationDegrees((float)(-d3)));
-+                                d8 = (double)0.3F;
-+                                d2 += (double)0.075F;
-+                                d1 += (double)0.02F;
-+                                d0 += (double)0.03F;
++                                rotation.mul(Vector3f.XP.rotationDegrees((float)(-gunAngle)));
++                                scale = (double)0.3F;
++                                translateZ += (double)0.075F;
++                                translateY += (double)0.02F;
++                                translateX += (double)0.03F;
  
 -                                if (f2 > 0.1F)
 +                                if (this.minecraft.vr.keyClimbeyGrab.isDown(ControllerType.RIGHT) && flag || this.minecraft.vr.keyClimbeyGrab.isDown(ControllerType.LEFT) && !flag)
@@ -710,7 +712,7 @@
 -                                    float f4 = f2 - 0.1F;
 -                                    float f5 = f3 * f4;
 -                                    pMatrixStack.translate((double)(f5 * 0.0F), (double)(f5 * 0.004F), (double)(f5 * 0.0F));
-+                                    d2 += (double) - 0.2F;
++                                    translateZ += (double) - 0.2F;
                                  }
 +                            }
  
@@ -719,17 +721,17 @@
 -                                pMatrixStack.mulPose(Vector3f.YN.rotationDegrees((float)k * 45.0F));
 +                            if (item instanceof ArrowItem)
 +                            {
-+                                quaternion1 = Vector3f.ZP.rotationDegrees(-180.0F);
-+                                quaternion.mul(Vector3f.XP.rotationDegrees((float)(-d3)));
++                                preRotation = Vector3f.ZP.rotationDegrees(-180.0F);
++                                rotation.mul(Vector3f.XP.rotationDegrees((float)(-gunAngle)));
 +                            }
 +                        }
-+                        else if (vivecraftitemrendering == VivecraftItemRendering.Telescope)
++                        else if (rendertype == VivecraftItemRendering.Telescope)
 +                        {
-+                            quaternion1 = Vector3f.XP.rotationDegrees(0.0F);
-+                            quaternion = Vector3f.XP.rotationDegrees(0.0F);
-+                            d2 = 0.0D;
-+                            d1 = 0.0D;
-+                            d0 = 0.0D;
++                            preRotation = Vector3f.XP.rotationDegrees(0.0F);
++                            rotation = Vector3f.XP.rotationDegrees(0.0F);
++                            translateZ = 0.0D;
++                            translateY = 0.0D;
++                            translateX = 0.0D;
                          }
                      }
 -                    else if (pPlayer.isAutoSpinAttack())
@@ -744,11 +746,11 @@
 +                }
 +                else
 +                {
-+                    quaternion = Vector3f.ZP.rotationDegrees(180.0F);
-+                    quaternion.mul(Vector3f.XP.rotationDegrees(-135.0F));
-+                    d8 = (double)0.4F;
-+                    d0 += (double)0.08F;
-+                    d2 += (double) - 0.08F;
++                    rotation = Vector3f.ZP.rotationDegrees(180.0F);
++                    rotation.mul(Vector3f.XP.rotationDegrees(-135.0F));
++                    scale = (double)0.4F;
++                    translateX += (double)0.08F;
++                    translateZ += (double) - 0.08F;
 +                }
 +
 +                if (pPlayer.swingingArm == pHand)
@@ -758,7 +760,7 @@
 +
 +                ItemRenderer itemrenderer = this.itemRenderer;
 +                ItemRenderer.isfphand = true;
-+                ItemTransforms.TransformType itemtransforms$transformtype = flag ? ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : (flag3 ? ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND : ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND);
++                ItemTransforms.TransformType itemtransforms$transformtype = flag ? ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : (mirror ? ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND : ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND);
 +
 +                if (pStack.hasTag() && pStack.getTag().getInt("CustomModelData") > 0)
 +                {
@@ -767,10 +769,10 @@
 +                }
 +                else
 +                {
-+                    pMatrixStack.mulPose(quaternion1);
-+                    pMatrixStack.translate(d0, d1, d2);
-+                    pMatrixStack.mulPose(quaternion);
-+                    pMatrixStack.scale((float)d8, (float)d8, (float)d8);
++                    pMatrixStack.mulPose(preRotation);
++                    pMatrixStack.translate(translateX, translateY, translateZ);
++                    pMatrixStack.mulPose(rotation);
++                    pMatrixStack.scale((float)scale, (float)scale, (float)scale);
 +                }
 +
 +                if (flag2)
@@ -778,7 +780,7 @@
 +                    RenderSystem.disableCull();
 +                    this.renderMap(pMatrixStack, pBuffer, pCombinedLight, pStack);
 +                }
-+                else if (vivecraftitemrendering == VivecraftItemRendering.Telescope)
++                else if (rendertype == VivecraftItemRendering.Telescope)
 +                {
 +                    if (this.minecraft.currentPass != RenderPass.SCOPEL && this.minecraft.currentPass != RenderPass.SCOPER)
                      {
@@ -808,7 +810,7 @@
 +                }
 +                else
 +                {
-+                    this.renderItem(pPlayer, pStack, itemtransforms$transformtype, flag3, pMatrixStack, pBuffer, pCombinedLight);
++                    this.renderItem(pPlayer, pStack, itemtransforms$transformtype, mirror, pMatrixStack, pBuffer, pCombinedLight);
                  }
  
 +                itemrenderer = this.itemRenderer;
@@ -820,7 +822,7 @@
          }
      }
  
-@@ -679,4 +1067,41 @@
+@@ -679,4 +1069,41 @@
              return pHand == InteractionHand.MAIN_HAND ? RENDER_MAIN_HAND_ONLY : RENDER_OFF_HAND_ONLY;
          }
      }

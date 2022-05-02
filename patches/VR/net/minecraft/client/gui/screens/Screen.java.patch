@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/gui/screens/Screen.java
 +++ b/net/minecraft/client/gui/screens/Screen.java
-@@ -16,6 +16,7 @@
+@@ -17,6 +17,7 @@
  import java.net.URI;
  import java.net.URISyntaxException;
  import java.nio.file.Path;
@@ -8,25 +8,17 @@
  import java.util.Arrays;
  import java.util.List;
  import java.util.Locale;
-@@ -31,6 +32,7 @@
- import net.minecraft.client.Minecraft;
- import net.minecraft.client.gui.Font;
- import net.minecraft.client.gui.chat.NarratorChatListener;
-+import net.minecraft.client.gui.components.AbstractWidget;
- import net.minecraft.client.gui.components.Widget;
- import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
- import net.minecraft.client.gui.components.events.GuiEventListener;
-@@ -51,6 +53,9 @@
+@@ -53,6 +54,9 @@
  import net.minecraft.world.inventory.tooltip.TooltipComponent;
  import net.minecraft.world.item.ItemStack;
  import net.minecraft.world.item.TooltipFlag;
 +import net.optifine.reflect.Reflector;
 +import net.optifine.util.GuiUtils;
 +
- import org.apache.logging.log4j.LogManager;
- import org.apache.logging.log4j.Logger;
+ import org.slf4j.Logger;
  
-@@ -68,7 +73,8 @@
+ public abstract class Screen extends AbstractContainerEventHandler implements Widget
+@@ -69,7 +73,8 @@
      protected ItemRenderer itemRenderer;
      public int width;
      public int height;
@@ -36,7 +28,7 @@
      public boolean passEvents;
      protected Font font;
      @Nullable
-@@ -184,6 +190,19 @@
+@@ -185,6 +190,19 @@
  
      protected void renderTooltip(PoseStack pPoseStack, ItemStack pTooltips, int pMouseX, int pMouseY)
      {
@@ -56,7 +48,7 @@
          this.renderTooltip(pPoseStack, this.getTooltipFromItem(pTooltips), pTooltips.getTooltipImage(), pMouseX, pMouseY);
      }
  
-@@ -209,7 +228,16 @@
+@@ -210,7 +228,16 @@
  
      public void renderComponentTooltip(PoseStack pPoseStack, List<Component> pTooltips, int pMouseX, int pMouseY)
      {
@@ -74,7 +66,7 @@
      }
  
      public void renderTooltip(PoseStack pPoseStack, List <? extends FormattedCharSequence > pTooltips, int pMouseX, int pMouseY)
-@@ -435,6 +463,10 @@
+@@ -436,6 +463,10 @@
  
      public void sendMessage(String pText, boolean pAddToChat)
      {
@@ -85,7 +77,7 @@
          if (pAddToChat)
          {
              this.minecraft.gui.getChat().addRecentChat(pText);
-@@ -450,9 +482,14 @@
+@@ -451,9 +482,14 @@
          this.font = pMinecraft.font;
          this.width = pWidth;
          this.height = pHeight;
@@ -103,7 +95,7 @@
          this.triggerImmediateNarration(false);
          this.suppressNarration(NARRATE_SUPPRESS_AFTER_INIT_TIME);
      }
-@@ -483,7 +520,16 @@
+@@ -484,7 +520,16 @@
      {
          if (this.minecraft.level != null)
          {
@@ -120,7 +112,7 @@
          }
          else
          {
-@@ -505,6 +551,7 @@
+@@ -506,6 +551,7 @@
          bufferbuilder.vertex((double)this.width, 0.0D, 0.0D).uv((float)this.width / 32.0F, (float)pVOffset).color(64, 64, 64, 255).endVertex();
          bufferbuilder.vertex(0.0D, 0.0D, 0.0D).uv(0.0F, (float)pVOffset).color(64, 64, 64, 255).endVertex();
          tesselator.end();
@@ -128,7 +120,7 @@
      }
  
      public boolean isPauseScreen()
-@@ -770,4 +817,60 @@
+@@ -779,4 +825,60 @@
              this.priority = pPriority;
          }
      }

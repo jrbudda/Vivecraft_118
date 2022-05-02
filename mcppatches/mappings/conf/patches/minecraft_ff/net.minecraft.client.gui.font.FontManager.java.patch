@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\client\gui\font\FontManager.java minecraft_patched\net\minecraft\client\gui\font\FontManager.java
 --- minecraft\net\minecraft\client\gui\font\FontManager.java
 +++ minecraft_patched\net\minecraft\client\gui\font\FontManager.java
-@@ -133,7 +133,7 @@
+@@ -136,7 +136,7 @@
                 intset.addAll(glyphprovider1.m_6990_());
              }
  

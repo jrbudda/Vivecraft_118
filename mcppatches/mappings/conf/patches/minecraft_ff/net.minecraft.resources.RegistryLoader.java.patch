@@ -1,0 +1,13 @@
+﻿diff -r -U 3 minecraft\net\minecraft\resources\RegistryLoader.java minecraft_patched\net\minecraft\resources\RegistryLoader.java
+--- minecraft\net\minecraft\resources\RegistryLoader.java
++++ minecraft_patched\net\minecraft\resources\RegistryLoader.java
+@@ -73,7 +73,7 @@
+    }
+ 
+    private <E> RegistryLoader.ReadCache<E> m_206773_(ResourceKey<? extends Registry<E>> p_206774_) {
+-      return this.f_206751_.computeIfAbsent(p_206774_, (p_206782_) -> {
++      return (RegistryLoader.ReadCache<E>)this.f_206751_.computeIfAbsent(p_206774_, (p_206782_) -> {
+          return new RegistryLoader.ReadCache();
+       });
+    }
+

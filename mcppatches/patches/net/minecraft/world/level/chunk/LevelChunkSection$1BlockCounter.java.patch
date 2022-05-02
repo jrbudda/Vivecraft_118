@@ -1,0 +1,10 @@
+--- a/net/minecraft/world/level/chunk/LevelChunkSection$1BlockCounter.java
++++ b/net/minecraft/world/level/chunk/LevelChunkSection$1BlockCounter.java
+@@ -11,7 +11,6 @@
+ 
+     LevelChunkSection$1BlockCounter(LevelChunkSection p_204442_)
+     {
+-        this.this$0 = p_204442_;
+     }
+ 
+     public void accept(BlockState p_204444_, int p_204445_)

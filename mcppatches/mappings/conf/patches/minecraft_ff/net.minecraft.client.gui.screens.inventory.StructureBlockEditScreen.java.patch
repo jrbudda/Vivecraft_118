@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\client\gui\screens\inventory\StructureBlockEditScreen.java minecraft_patched\net\minecraft\client\gui\screens\inventory\StructureBlockEditScreen.java
 --- minecraft\net\minecraft\client\gui\screens\inventory\StructureBlockEditScreen.java
 +++ minecraft_patched\net\minecraft\client\gui\screens\inventory\StructureBlockEditScreen.java
-@@ -131,7 +131,7 @@
+@@ -134,7 +134,7 @@
           }
  
        }));

@@ -1,6 +1,19 @@
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-@@ -27,6 +27,7 @@
+@@ -9,6 +9,12 @@
+ import io.netty.util.concurrent.GenericFutureListener;
+ import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
+ import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
++
++import java.io.BufferedReader;
++import java.io.ByteArrayInputStream;
++import java.io.DataInputStream;
++import java.io.IOException;
++import java.io.InputStreamReader;
+ import java.util.Collections;
+ import java.util.List;
+ import java.util.Optional;
+@@ -28,6 +34,7 @@
  import net.minecraft.Util;
  import net.minecraft.advancements.Advancement;
  import net.minecraft.advancements.CriteriaTriggers;
@@ -8,7 +21,7 @@
  import net.minecraft.commands.CommandSourceStack;
  import net.minecraft.core.BlockPos;
  import net.minecraft.core.Direction;
-@@ -34,6 +35,7 @@
+@@ -35,6 +42,7 @@
  import net.minecraft.nbt.ListTag;
  import net.minecraft.nbt.StringTag;
  import net.minecraft.network.Connection;
@@ -16,7 +29,7 @@
  import net.minecraft.network.chat.ChatType;
  import net.minecraft.network.chat.Component;
  import net.minecraft.network.chat.TextComponent;
-@@ -110,6 +112,8 @@
+@@ -111,6 +119,8 @@
  import net.minecraft.world.entity.ExperienceOrb;
  import net.minecraft.world.entity.MoverType;
  import net.minecraft.world.entity.PlayerRideableJumping;
@@ -25,28 +38,21 @@
  import net.minecraft.world.entity.animal.horse.AbstractHorse;
  import net.minecraft.world.entity.item.ItemEntity;
  import net.minecraft.world.entity.player.ChatVisiblity;
-@@ -147,9 +151,20 @@
+@@ -149,8 +159,13 @@
  import net.minecraft.world.phys.shapes.BooleanOp;
  import net.minecraft.world.phys.shapes.Shapes;
  import net.minecraft.world.phys.shapes.VoxelShape;
 +import net.optifine.reflect.Reflector;
++
  import org.apache.commons.lang3.StringUtils;
- import org.apache.logging.log4j.LogManager;
- import org.apache.logging.log4j.Logger;
-+import org.vivecraft.api.AimFixHandler;
+ import org.slf4j.Logger;
 +import org.vivecraft.api.NetworkHelper;
 +import org.vivecraft.api.ServerVivePlayer;
 +import org.vivecraft.reflection.MCReflection;
-+import io.netty.channel.Channel;
-+import java.io.BufferedReader;
-+import java.io.ByteArrayInputStream;
-+import java.io.DataInputStream;
-+import java.io.IOException;
-+import java.io.InputStreamReader;
  
  public class ServerGamePacketListenerImpl implements ServerPlayerConnection, ServerGamePacketListener
  {
-@@ -293,6 +308,8 @@
+@@ -294,6 +309,8 @@
          {
              this.disconnect(new TranslatableComponent("multiplayer.disconnect.idling"));
          }
@@ -55,7 +61,7 @@
      }
  
      public void resetPosition()
-@@ -317,7 +334,7 @@
+@@ -318,7 +335,7 @@
  
      public void disconnect(Component pTextComponent)
      {
@@ -64,40 +70,7 @@
          {
              this.connection.disconnect(pTextComponent);
          });
-@@ -432,11 +449,13 @@
-                 }
- 
-                 entity.absMoveTo(d3, d4, d5, f, f1);
-+                this.player.absMoveTo(d3, d4, d5, this.player.getYRot(), this.player.getXRot());
-                 boolean flag2 = serverlevel.noCollision(entity, entity.getBoundingBox().deflate(0.0625D));
- 
-                 if (flag && (flag1 || !flag2))
-                 {
-                     entity.absMoveTo(d0, d1, d2, f, f1);
-+                    this.player.absMoveTo(d3, d4, d5, this.player.getYRot(), this.player.getXRot());
-                     this.connection.send(new ClientboundMoveVehiclePacket(entity));
-                     return;
-                 }
-@@ -1207,7 +1226,17 @@
- 
-         if (blockpos.getY() < i)
-         {
--            if (this.awaitingPositionFromClient == null && this.player.distanceToSqr((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D) < 64.0D && serverlevel.mayInteract(this.player, blockpos))
-+            double d0 = 8.0D;
-+            Object object = Reflector.call(Reflector.getFieldValue(Reflector.ForgeMod_REACH_DISTANCE), Reflector.RegistryObject_get);
-+
-+            if (object != null)
-+            {
-+                d0 = this.player.getAttribute((Attribute)object).getValue() + 3.0D;
-+            }
-+
-+            d0 = d0 * d0;
-+
-+            if (this.awaitingPositionFromClient == null && this.player.distanceToSqr((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D) < d0 && serverlevel.mayInteract(this.player, blockpos))
-             {
-                 InteractionResult interactionresult = this.player.gameMode.useItemOn(this.player, serverlevel, itemstack, interactionhand, blockhitresult);
- 
-@@ -1323,9 +1352,9 @@
+@@ -1352,9 +1369,9 @@
          {
              this.connection.send(pPacket, pFutureListeners);
          }
@@ -109,7 +82,7 @@
              CrashReportCategory crashreportcategory = crashreport.addCategory("Packet being sent");
              crashreportcategory.setDetail("Packet class", () ->
              {
-@@ -1790,6 +1819,128 @@
+@@ -1832,6 +1849,128 @@
  
      public void handleCustomPayload(ServerboundCustomPayloadPacket pPacket)
      {

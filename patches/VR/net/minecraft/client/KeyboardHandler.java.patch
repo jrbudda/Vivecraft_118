@@ -1,14 +1,14 @@
 --- a/net/minecraft/client/KeyboardHandler.java
 +++ b/net/minecraft/client/KeyboardHandler.java
-@@ -16,6 +16,7 @@
+@@ -15,6 +15,7 @@
+ import net.minecraft.client.gui.chat.NarratorChatListener;
  import net.minecraft.client.gui.components.ChatComponent;
  import net.minecraft.client.gui.components.EditBox;
- import net.minecraft.client.gui.components.events.GuiEventListener;
 +import net.minecraft.client.gui.screens.ChatScreen;
  import net.minecraft.client.gui.screens.Screen;
  import net.minecraft.client.gui.screens.SimpleOptionsSubScreen;
  import net.minecraft.client.gui.screens.controls.KeyBindsScreen;
-@@ -45,6 +46,9 @@
+@@ -44,6 +45,9 @@
  import net.optifine.reflect.Reflector;
  import net.optifine.shaders.Shaders;
  import net.optifine.shaders.gui.GuiShaderOptions;
@@ -18,7 +18,7 @@
  
  public class KeyboardHandler
  {
-@@ -418,6 +422,29 @@
+@@ -417,6 +421,29 @@
      {
          if (pWindowPointer == this.minecraft.getWindow().getWindow())
          {
@@ -48,7 +48,7 @@
              if (this.debugCrashKeyTime > 0L)
              {
                  if (!InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 67) || !InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 292))
-@@ -452,13 +479,15 @@
+@@ -451,13 +478,15 @@
                          if (Screen.hasControlDown())
                          {
                          }
@@ -71,7 +71,7 @@
                          return;
                      }
                  }
-@@ -544,7 +573,7 @@
+@@ -543,7 +572,7 @@
                  }
              }
  
@@ -80,7 +80,7 @@
              {
                  InputConstants.Key inputconstants$key = InputConstants.getKey(p_90895_, pKey);
  
-@@ -602,6 +631,7 @@
+@@ -601,6 +630,7 @@
                          if (p_90895_ == 290)
                          {
                              this.minecraft.options.hideGui = !this.minecraft.options.hideGui;
@@ -88,7 +88,7 @@
                          }
                      }
  
-@@ -626,7 +656,7 @@
+@@ -625,7 +655,7 @@
          }
      }
  

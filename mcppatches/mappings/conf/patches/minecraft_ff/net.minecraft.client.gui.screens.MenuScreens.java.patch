@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\client\gui\screens\MenuScreens.java minecraft_patched\net\minecraft\client\gui\screens\MenuScreens.java
 --- minecraft\net\minecraft\client\gui\screens\MenuScreens.java
 +++ minecraft_patched\net\minecraft\client\gui\screens\MenuScreens.java
-@@ -51,7 +51,7 @@
+@@ -54,7 +54,7 @@
  
     @Nullable
     private static <T extends AbstractContainerMenu> MenuScreens.ScreenConstructor<T, ?> m_96199_(MenuType<T> p_96200_) {

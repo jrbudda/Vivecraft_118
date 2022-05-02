@@ -1,0 +1,13 @@
+--- a/net/minecraft/client/gui/screens/TitleScreen.java
++++ b/net/minecraft/client/gui/screens/TitleScreen.java
+@@ -586,10 +586,6 @@
+ 
+     static record Warning32Bit(MultiLineLabel label, int x, int y, CompletableFuture<Boolean> realmsSubscriptionFuture)
+     {
+-        private final MultiLineLabel label;
+-        private final int x;
+-        private final int y;
+-        private final CompletableFuture<Boolean> realmsSubscriptionFuture;
+         Warning32Bit(MultiLineLabel label, int x, int y, CompletableFuture<Boolean> realmsSubscriptionFuture)
+         {
+             this.label = label;

@@ -1,5 +1,4 @@
 @echo off
-python install.py -m mcp_vr %*
-rem xcopy /s /y /q /c ".\mcp_vr\" ".\mcp_nonvr\"
-rem python applychanges.py -m mcp_nonvr -v NONVR
+rem python install.py -m mcp_vr %*
+python install.py -m mcp_nonvr %*
 

@@ -1,15 +1,15 @@
 --- a/net/minecraft/client/particle/ParticleEngine.java
 +++ b/net/minecraft/client/particle/ParticleEngine.java
-@@ -345,7 +345,7 @@
+@@ -360,7 +360,7 @@
      @Nullable
      private <T extends ParticleOptions> Particle makeParticle(T pParticleData, double pX, double p_107398_, double pY, double p_107400_, double pZ, double p_107402_)
      {
 -        ParticleProvider<T> particleprovider = this.providers.get(Registry.PARTICLE_TYPE.getKey(pParticleData.getType()));
-+    	ParticleProvider<T> particleprovider = (ParticleProvider<T>) this.providers.get(Registry.PARTICLE_TYPE.getKey(pParticleData.getType()));
++        ParticleProvider<T> particleprovider = (ParticleProvider<T>) this.providers.get(Registry.PARTICLE_TYPE.getKey(pParticleData.getType()));
          return particleprovider == null ? null : particleprovider.createParticle(pParticleData, this.level, pX, p_107398_, pY, p_107400_, pZ, p_107402_);
      }
  
-@@ -673,8 +673,14 @@
+@@ -696,8 +696,14 @@
          return this.trackedParticleCounts.getInt(pGroup) < pGroup.getLimit();
      }
  
@@ -24,4 +24,4 @@
 +        return false;
      }
  
-     public void addBlockHitEffects(BlockPos pos, BlockHitResult target)
+     public static void updateTerrainParticleColor(Particle particle, BlockState state, BlockAndTintGetter world, BlockPos pos, RenderEnv renderEnv)

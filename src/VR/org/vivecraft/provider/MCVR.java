@@ -41,7 +41,6 @@ import org.vivecraft.api.Vec3History;
 import org.vivecraft.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.gameplay.screenhandlers.RadialHandler;
-import org.vivecraft.menuworlds.MenuWorldExporter;
 import org.vivecraft.provider.openvr_jna.VRInputAction;
 import org.vivecraft.provider.openvr_jna.control.VRInputActionSet;
 import org.vivecraft.provider.openvr_jna.control.VivecraftMovementInput;
@@ -1223,14 +1222,14 @@ public abstract class MCVR
                                 {
                                     public void run()
                                     {
-                                        try
-                                        {
-                                            MenuWorldExporter.saveAreaToFile(level, blockpos.getX() - 160, blockpos.getZ() - 160, 320, 320, blockpos.getY(), file2);
-                                        }
-                                        catch (IOException ioexception)
-                                        {
-                                            ioexception.printStackTrace();
-                                        }
+//                                        try
+//                                        {
+//                                            MenuWorldExporter.saveAreaToFile(level, blockpos.getX() - 160, blockpos.getZ() - 160, 320, 320, blockpos.getY(), file2);
+//                                        }
+//                                        catch (IOException ioexception)
+//                                        {
+//                                            ioexception.printStackTrace();
+//                                        }
                                     }
                                 });
 
@@ -1241,7 +1240,7 @@ public abstract class MCVR
                             }
                             else
                             {
-                                MenuWorldExporter.saveAreaToFile(this.mc.level, blockpos.getX() - 160, blockpos.getZ() - 160, 320, 320, blockpos.getY(), file2);
+                                //MenuWorldExporter.saveAreaToFile(this.mc.level, blockpos.getX() - 160, blockpos.getZ() - 160, 320, 320, blockpos.getY(), file2);
                                 this.mc.gui.getChat().addMessage(new TranslatableComponent("vivecraft.messages.menuworldexportclientwarning"));
                             }
 

@@ -3,11 +3,11 @@
 @@ -26,13 +26,13 @@
              if (flag)
              {
-                 httpurlconnection.setRequestProperty("OF-MC-Version", "1.18.1");
+                 httpurlconnection.setRequestProperty("OF-MC-Version", "1.18.2");
 -                httpurlconnection.setRequestProperty("OF-MC-Brand", ClientBrandRetriever.getClientModName().makeConcatWithConstants<invokedynamic>(ClientBrandRetriever.getClientModName()));
 +                httpurlconnection.setRequestProperty("OF-MC-Brand", ClientBrandRetriever.getClientModName());
                  httpurlconnection.setRequestProperty("OF-Edition", "HD_U");
-                 httpurlconnection.setRequestProperty("OF-Release", "H4");
+                 httpurlconnection.setRequestProperty("OF-Release", "H7");
 -                httpurlconnection.setRequestProperty("OF-Java-Version", System.getProperty("java.version").makeConcatWithConstants<invokedynamic>(System.getProperty("java.version")));
 +                httpurlconnection.setRequestProperty("OF-Java-Version", System.getProperty("java.version"));
                  httpurlconnection.setRequestProperty("OF-CpuCount", "" + Config.getAvailableProcessors());

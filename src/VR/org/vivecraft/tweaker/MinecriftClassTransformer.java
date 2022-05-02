@@ -14,11 +14,16 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import net.minecraft.launchwrapper.IClassTransformer;
+
+import org.slf4j.Logger;
 import org.vivecraft.utils.Utils;
+
+import com.mojang.logging.LogUtils;
 
 public class MinecriftClassTransformer implements IClassTransformer
 {
-    private static final boolean DEBUG = true;//Boolean.parseBoolean(System.getProperty("legacy.debugClassLoading", "false"));
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final boolean DEBUG = Boolean.parseBoolean(System.getProperty("legacy.debugClassLoading", "false"));
     private final MinecriftClassTransformer.Stage stage;
     private final Map<String, byte[]> cache;
     private static Set<String> myClasses = new HashSet<>();
@@ -232,7 +237,7 @@ public class MinecriftClassTransformer implements IClassTransformer
 
     private static void debug(String str)
     {
-        System.out.println(str);
+        LOGGER.debug(str);
     }
 
     private byte[] performAsmModification(byte[] origBytecode, String className)

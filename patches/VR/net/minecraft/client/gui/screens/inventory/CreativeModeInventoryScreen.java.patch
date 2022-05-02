@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/gui/screens/inventory/CreativeModeInventoryScreen.java
 +++ b/net/minecraft/client/gui/screens/inventory/CreativeModeInventoryScreen.java
-@@ -47,6 +47,7 @@
+@@ -46,6 +46,7 @@
  import net.minecraft.world.item.TooltipFlag;
  import net.minecraft.world.item.enchantment.Enchantment;
  import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -8,7 +8,7 @@
  
  public class CreativeModeInventoryScreen extends EffectRenderingInventoryScreen<CreativeModeInventoryScreen.ItemPickerMenu>
  {
-@@ -453,6 +454,7 @@
+@@ -452,6 +453,7 @@
              (this.menu).items.addAll(searchtree.search(s.toLowerCase(Locale.ROOT)));
          }
  
@@ -16,7 +16,7 @@
          this.scrollOffs = 0.0F;
          this.menu.scrollTo(0.0F);
      }
-@@ -591,6 +593,7 @@
+@@ -589,6 +591,7 @@
          else if (pTab != CreativeModeTab.TAB_SEARCH)
          {
              pTab.fillItemList((this.menu).items);

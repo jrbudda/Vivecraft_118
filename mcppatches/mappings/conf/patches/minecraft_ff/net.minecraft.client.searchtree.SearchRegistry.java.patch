@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\client\searchtree\SearchRegistry.java minecraft_patched\net\minecraft\client\searchtree\SearchRegistry.java
 --- minecraft\net\minecraft\client\searchtree\SearchRegistry.java
 +++ minecraft_patched\net\minecraft\client\searchtree\SearchRegistry.java
-@@ -25,7 +25,7 @@
+@@ -28,7 +28,7 @@
     }
  
     public <T> MutableSearchTree<T> m_119949_(SearchRegistry.Key<T> p_119950_) {
@@ -9,5 +9,5 @@
 +      return (MutableSearchTree<T>)this.f_119944_.get(p_119950_);
     }
  
-    public static class Key<T> {
+    @OnlyIn(Dist.CLIENT)
 

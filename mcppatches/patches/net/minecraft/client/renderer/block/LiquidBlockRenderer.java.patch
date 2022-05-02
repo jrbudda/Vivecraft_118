@@ -1,16 +1,16 @@
 --- a/net/minecraft/client/renderer/block/LiquidBlockRenderer.java
 +++ b/net/minecraft/client/renderer/block/LiquidBlockRenderer.java
-@@ -87,7 +87,7 @@
-     public boolean tesselate(BlockAndTintGetter pLevel, BlockPos pPos, VertexConsumer pConsumer, FluidState pFluidState)
+@@ -83,7 +83,7 @@
+     public boolean tesselate(BlockAndTintGetter p_203174_, BlockPos p_203175_, VertexConsumer p_203176_, BlockState p_203177_, FluidState p_203178_)
      {
-         BlockState blockstate = pFluidState.createLegacyBlock();
+         BlockState blockstate = p_203178_.createLegacyBlock();
 -        boolean f;
-+        boolean flg, flag7 = false;
++        boolean flg;
  
          try
          {
-@@ -456,7 +456,7 @@
-                 return flag8;
+@@ -481,7 +481,7 @@
+                 return flag9;
              }
  
 -            f = false;
@@ -18,7 +18,7 @@
          }
          finally
          {
-@@ -466,7 +466,7 @@
+@@ -491,7 +491,7 @@
              }
          }
  
@@ -26,4 +26,4 @@
 +        return flg;
      }
  
-     private void vertex(VertexConsumer pConsumer, double pX, double p_110987_, double pY, float p_110989_, float pZ, float p_110991_, float pRed, float pGreen, int pBlue)
+     private float calculateAverageHeight(BlockAndTintGetter p_203150_, Fluid p_203151_, float p_203152_, float p_203153_, float p_203154_, BlockPos p_203155_)

@@ -1,17 +1,19 @@
 --- a/net/minecraft/world/entity/projectile/FishingHook.java
 +++ b/net/minecraft/world/entity/projectile/FishingHook.java
-@@ -41,6 +41,10 @@
+@@ -42,7 +42,12 @@
  import net.minecraft.world.phys.EntityHitResult;
  import net.minecraft.world.phys.HitResult;
  import net.minecraft.world.phys.Vec3;
 +import net.optifine.reflect.Reflector;
++
+ import org.slf4j.Logger;
 +import org.vivecraft.api.NetworkHelper;
 +import org.vivecraft.api.ServerVivePlayer;
 +import org.vivecraft.provider.MCVR;
  
  public class FishingHook extends Projectile
  {
-@@ -77,26 +81,52 @@
+@@ -80,26 +85,52 @@
  
      public FishingHook(Player p_37106_, Level p_37107_, int p_37108_, int p_37109_)
      {
@@ -84,11 +86,11 @@
      }
  
      protected void defineSynchedData()
-@@ -271,6 +301,16 @@
+@@ -274,6 +305,16 @@
              this.setDeltaMovement(this.getDeltaMovement().scale(0.92D));
              this.reapplyPosition();
          }
-+
++		//nibblehaptics
 +        if (player != null && player.isLocalPlayer())
 +        {
 +            ServerVivePlayer serverviveplayer = NetworkHelper.vivePlayers.get(player.getUUID());
@@ -101,7 +103,7 @@
      }
  
      private boolean shouldStopFishing(Player p_37137_)
-@@ -471,9 +511,9 @@
+@@ -474,9 +515,9 @@
  
      private FishingHook.OpenWaterType getOpenWaterTypeForArea(BlockPos p_37148_, BlockPos p_37149_)
      {
@@ -113,7 +115,7 @@
          }).orElse(FishingHook.OpenWaterType.INVALID);
      }
  
-@@ -512,6 +552,7 @@
+@@ -515,6 +556,7 @@
          if (!this.level.isClientSide && player != null && !this.shouldStopFishing(player))
          {
              int i = 0;
@@ -121,7 +123,7 @@
  
              if (this.hookedIn != null)
              {
-@@ -525,6 +566,15 @@
+@@ -528,6 +570,15 @@
                  LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel)this.level)).withParameter(LootContextParams.ORIGIN, this.position()).withParameter(LootContextParams.TOOL, p_37157_).withParameter(LootContextParams.THIS_ENTITY, this).withRandom(this.random).withLuck((float)this.luck + player.getLuck());
                  LootTable loottable = this.level.getServer().getLootTables().get(BuiltInLootTables.FISHING);
                  List<ItemStack> list = loottable.getRandomItems(lootcontext$builder.create(LootContextParamSets.FISHING));
@@ -137,7 +139,7 @@
                  CriteriaTriggers.FISHING_ROD_HOOKED.trigger((ServerPlayer)player, p_37157_, this, list);
  
                  for (ItemStack itemstack : list)
-@@ -553,7 +603,7 @@
+@@ -556,7 +607,7 @@
              }
  
              this.discard();
@@ -146,7 +148,7 @@
          }
          else
          {
-@@ -614,6 +664,16 @@
+@@ -617,6 +668,16 @@
          }
      }
  

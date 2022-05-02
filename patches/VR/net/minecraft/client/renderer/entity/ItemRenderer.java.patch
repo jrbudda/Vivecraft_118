@@ -71,26 +71,26 @@
  
                      if (pItemStack.is(Items.COMPASS) && pItemStack.hasFoil())
 @@ -358,6 +388,19 @@
+                     l = CustomColors.getColorFromItemStack(pItemStack, bakedquad.getTintIndex(), l);
                  }
              }
- 
++            
 +            if (Minecraft.getInstance().jumpTracker.isBoots(pItemStack))
 +            {
-+                k = this.makeColor(1, 0, 255, 0);
++            	l = this.makeColor(1, 0, 255, 0);
 +            }
 +            else if (Minecraft.getInstance().climbTracker.isClaws(pItemStack))
 +            {
-+                k = this.makeColor(1, 130, 0, 75);
++            	l = this.makeColor(1, 130, 0, 75);
 +            }
 +            else if (TelescopeTracker.isLegacyTelescope(pItemStack))
 +            {
-+                k = this.makeColor(1, 190, 110, 135);
++            	l = this.makeColor(1, 190, 110, 135);
 +            }
-+
-             float f = (float)(k >> 16 & 255) / 255.0F;
-             float f1 = (float)(k >> 8 & 255) / 255.0F;
-             float f2 = (float)(k & 255) / 255.0F;
-@@ -368,7 +411,7 @@
+ 
+             float f = (float)(l >> 16 & 255) / 255.0F;
+             float f1 = (float)(l >> 8 & 255) / 255.0F;
+@@ -369,7 +412,7 @@
              }
              else
              {
@@ -99,7 +99,7 @@
              }
          }
      }
-@@ -429,6 +472,10 @@
+@@ -430,6 +473,10 @@
          RenderSystem.enableBlend();
          RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
          RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -110,7 +110,7 @@
          PoseStack posestack = RenderSystem.getModelViewStack();
          posestack.pushPose();
          posestack.translate((double)pX, (double)pY, (double)(100.0F + this.blitOffset));
-@@ -620,4 +667,24 @@
+@@ -621,4 +668,24 @@
      {
          return this.blockEntityRenderer;
      }

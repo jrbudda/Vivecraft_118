@@ -87,9 +87,9 @@ public class MenuWorldDownloader {
 
     private static List<MenuWorldItem> getOfficialWorlds() throws IOException {
         List<MenuWorldItem> list = new ArrayList<>();
-        List<String> resultList = Utils.httpReadAllLines(baseUrl + "menuworlds_list.php?minver=" + MenuWorldExporter.MIN_VERSION + "&maxver=" + MenuWorldExporter.VERSION + "&mcver=" + Config.MC_VERSION);
-        for (String str : resultList)
-            list.add(new MenuWorldItem("menuworlds/" + str, null));
+//        List<String> resultList = Utils.httpReadAllLines(baseUrl + "menuworlds_list.php?minver=" + MenuWorldExporter.MIN_VERSION + "&maxver=" + MenuWorldExporter.VERSION + "&mcver=" + Config.MC_VERSION);
+//        for (String str : resultList)
+//            list.add(new MenuWorldItem("menuworlds/" + str, null));
         return list;
     }
 
@@ -109,9 +109,9 @@ public class MenuWorldDownloader {
         List<File> files = Arrays.asList(dir.listFiles(file -> file.isFile() && file.getName().toLowerCase().endsWith(".mmw")));
         if (files.size() > 0) {
             for (File file : files) {
-                int version = MenuWorldExporter.readVersion(file);
-                if (version >= MenuWorldExporter.MIN_VERSION && version <= MenuWorldExporter.VERSION)
-                    worlds.add(new MenuWorldItem(null, file));
+//                int version = MenuWorldExporter.readVersion(file);
+//                if (version >= MenuWorldExporter.MIN_VERSION && version <= MenuWorldExporter.VERSION)
+//                    worlds.add(new MenuWorldItem(null, file));
             }
         }
         return worlds;

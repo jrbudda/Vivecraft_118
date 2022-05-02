@@ -1,6 +1,6 @@
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-@@ -27,6 +27,7 @@
+@@ -28,6 +28,7 @@
  import net.minecraft.Util;
  import net.minecraft.advancements.Advancement;
  import net.minecraft.advancements.CriteriaTriggers;
@@ -8,7 +8,7 @@
  import net.minecraft.commands.CommandSourceStack;
  import net.minecraft.core.BlockPos;
  import net.minecraft.core.Direction;
-@@ -34,6 +35,7 @@
+@@ -35,6 +36,7 @@
  import net.minecraft.nbt.ListTag;
  import net.minecraft.nbt.StringTag;
  import net.minecraft.network.Connection;
@@ -16,7 +16,7 @@
  import net.minecraft.network.chat.ChatType;
  import net.minecraft.network.chat.Component;
  import net.minecraft.network.chat.TextComponent;
-@@ -110,6 +112,8 @@
+@@ -111,6 +113,8 @@
  import net.minecraft.world.entity.ExperienceOrb;
  import net.minecraft.world.entity.MoverType;
  import net.minecraft.world.entity.PlayerRideableJumping;
@@ -25,14 +25,13 @@
  import net.minecraft.world.entity.animal.horse.AbstractHorse;
  import net.minecraft.world.entity.item.ItemEntity;
  import net.minecraft.world.entity.player.ChatVisiblity;
-@@ -147,9 +151,20 @@
+@@ -149,8 +153,19 @@
  import net.minecraft.world.phys.shapes.BooleanOp;
  import net.minecraft.world.phys.shapes.Shapes;
  import net.minecraft.world.phys.shapes.VoxelShape;
 +import net.optifine.reflect.Reflector;
  import org.apache.commons.lang3.StringUtils;
- import org.apache.logging.log4j.LogManager;
- import org.apache.logging.log4j.Logger;
+ import org.slf4j.Logger;
 +import org.vivecraft.api.AimFixHandler;
 +import org.vivecraft.api.NetworkHelper;
 +import org.vivecraft.api.ServerVivePlayer;
@@ -46,7 +45,7 @@
  
  public class ServerGamePacketListenerImpl implements ServerPlayerConnection, ServerGamePacketListener
  {
-@@ -197,6 +212,20 @@
+@@ -198,6 +213,20 @@
          this.player = p_9772_;
          p_9772_.connection = this;
          this.keepAliveTime = Util.getMillis();
@@ -67,7 +66,7 @@
          p_9772_.getTextFilter().join();
      }
  
-@@ -293,6 +322,8 @@
+@@ -294,6 +323,8 @@
          {
              this.disconnect(new TranslatableComponent("multiplayer.disconnect.idling"));
          }
@@ -76,7 +75,7 @@
      }
  
      public void resetPosition()
-@@ -317,7 +348,7 @@
+@@ -318,7 +349,7 @@
  
      public void disconnect(Component pTextComponent)
      {
@@ -85,16 +84,16 @@
          {
              this.connection.disconnect(pTextComponent);
          });
-@@ -432,11 +463,17 @@
+@@ -441,11 +472,17 @@
                  }
  
                  entity.absMoveTo(d3, d4, d5, f, f1);
 +                //Forge
 +                this.player.absMoveTo(d3, d4, d5, this.player.getYRot(), this.player.getXRot());
 +                //
-                 boolean flag2 = serverlevel.noCollision(entity, entity.getBoundingBox().deflate(0.0625D));
+                 boolean flag3 = serverlevel.noCollision(entity, entity.getBoundingBox().deflate(0.0625D));
  
-                 if (flag && (flag1 || !flag2))
+                 if (flag && (flag2 || !flag3))
                  {
                      entity.absMoveTo(d0, d1, d2, f, f1);
 +                    //Forge
@@ -103,7 +102,7 @@
                      this.connection.send(new ClientboundMoveVehiclePacket(entity));
                      return;
                  }
-@@ -453,7 +490,10 @@
+@@ -462,7 +499,10 @@
  
      private boolean noBlocksAround(Entity p_9794_)
      {
@@ -115,28 +114,24 @@
      }
  
      public void handleAcceptTeleportPacket(ServerboundAcceptTeleportationPacket pPacket)
-@@ -1207,7 +1247,19 @@
+@@ -1226,6 +1266,16 @@
  
-         if (blockpos.getY() < i)
-         {
--            if (this.awaitingPositionFromClient == null && this.player.distanceToSqr((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D) < 64.0D && serverlevel.mayInteract(this.player, blockpos))
-+            double d0 = 8.0D;
-+            //Forge
-+            Object object = Reflector.call(Reflector.getFieldValue(Reflector.ForgeMod_REACH_DISTANCE), Reflector.RegistryObject_get);
-+
-+            if (object != null)
-+            {
-+                d0 = this.player.getAttribute((Attribute)object).getValue() + 3.0D;
-+            }
-+
-+            d0 = d0 * d0;
-+            //
-+
-+            if (this.awaitingPositionFromClient == null && this.player.distanceToSqr((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D) < d0 && serverlevel.mayInteract(this.player, blockpos))
-             {
-                 InteractionResult interactionresult = this.player.gameMode.useItemOn(this.player, serverlevel, itemstack, interactionhand, blockhitresult);
- 
-@@ -1323,9 +1375,9 @@
+                 if (blockpos.getY() < i)
+                 {
++	            //Forge
++	            Object object = Reflector.call(Reflector.getFieldValue(Reflector.ForgeMod_REACH_DISTANCE), Reflector.RegistryObject_get);
++	
++	            if (object != null)
++	            {
++	                d0 = this.player.getAttribute((Attribute)object).getValue() + 3.0D;
++	            }
++	
++	            d0 = d0 * d0;
++	            //
+                     if (this.awaitingPositionFromClient == null && this.player.distanceToSqr((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D) < 64.0D && serverlevel.mayInteract(this.player, blockpos))
+                     {
+                         InteractionResult interactionresult = this.player.gameMode.useItemOn(this.player, serverlevel, itemstack, interactionhand, blockhitresult);
+@@ -1352,9 +1402,9 @@
          {
              this.connection.send(pPacket, pFutureListeners);
          }
@@ -148,7 +143,7 @@
              CrashReportCategory crashreportcategory = crashreport.addCategory("Packet being sent");
              crashreportcategory.setDetail("Packet class", () ->
              {
-@@ -1357,8 +1409,10 @@
+@@ -1386,8 +1436,10 @@
  
      public void handleChat(ServerboundChatPacket pPacket)
      {
@@ -161,7 +156,7 @@
          for (int i = 0; i < s.length(); ++i)
          {
              if (!SharedConstants.isAllowedChatCharacter(s.charAt(i)))
-@@ -1399,9 +1453,14 @@
+@@ -1428,9 +1480,14 @@
                  String s1 = pPacket.getFiltered();
                  Component component = s1.isEmpty() ? null : new TranslatableComponent("chat.type.text", this.player.getDisplayName(), s1);
                  Component component1 = new TranslatableComponent("chat.type.text", this.player.getDisplayName(), s);
@@ -177,7 +172,7 @@
                  }, ChatType.CHAT, this.player.getUUID());
              }
  
-@@ -1527,7 +1586,9 @@
+@@ -1556,7 +1613,9 @@
                      {
                          ItemStack itemstack = ServerGamePacketListenerImpl.this.player.getItemInHand(p_143679_).copy();
                          InteractionResult interactionresult = p_143680_.run(ServerGamePacketListenerImpl.this.player, entity, p_143679_);
@@ -188,7 +183,7 @@
                          if (interactionresult.consumesAction())
                          {
                              CriteriaTriggers.PLAYER_INTERACTED_WITH_ENTITY.trigger(ServerGamePacketListenerImpl.this.player, itemstack, entity);
-@@ -1790,6 +1851,130 @@
+@@ -1832,6 +1891,130 @@
  
      public void handleCustomPayload(ServerboundCustomPayloadPacket pPacket)
      {

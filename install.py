@@ -614,7 +614,7 @@ def main(mcp_dir):
             apply_patches( mcp_dir, patch_dir="mcppatches/patches", target_dir = src_dir)
         else:
             print("Applying full Vivecraft patches...")
-            applychanges( mcp_dir )
+            applychanges( mcp_dir,"NONVR" if "nonvr" in mcp_dir else "VR" )
     else:
         print("Apply patches skipped!")
 

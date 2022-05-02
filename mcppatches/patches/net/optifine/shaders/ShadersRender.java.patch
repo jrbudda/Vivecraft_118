@@ -9,7 +9,7 @@
              {
                  BlockPos blockpos = entity.blockPosition();
  
-@@ -396,7 +396,7 @@
+@@ -394,7 +394,7 @@
              Frustum frustum1 = frustum;
              label103:
  

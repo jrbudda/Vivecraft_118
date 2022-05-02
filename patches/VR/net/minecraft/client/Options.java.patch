@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/Options.java
 +++ b/net/minecraft/client/Options.java
-@@ -202,6 +202,7 @@
+@@ -203,6 +203,7 @@
      public float fovEffectScale = 1.0F;
      public double gamma;
      public int guiScale;
@@ -8,7 +8,7 @@
      public ParticleStatus particles = ParticleStatus.ALL;
      public NarratorStatus narratorStatus = NarratorStatus.OFF;
      public String languageCode = "en_us";
-@@ -214,7 +215,7 @@
+@@ -215,7 +216,7 @@
      public boolean ofSmoothFps = false;
      public boolean ofSmoothWorld = Config.isSingleProcessor();
      public boolean ofLazyChunkLoading = Config.isSingleProcessor();
@@ -17,7 +17,7 @@
      public boolean ofSmartAnimations = false;
      public double ofAoLevel = 1.0D;
      public int ofAaLevel = 0;
-@@ -251,7 +252,7 @@
+@@ -252,7 +253,7 @@
      public boolean ofFastRender = false;
      public boolean ofDynamicFov = true;
      public boolean ofAlternateBlocks = true;
@@ -26,7 +26,7 @@
      public boolean ofCustomEntityModels = true;
      public boolean ofCustomGuis = true;
      public boolean ofShowGlErrors = true;
-@@ -331,6 +332,7 @@
+@@ -338,6 +339,7 @@
          this.ofKeyBindZoom = new KeyMapping("of.key.zoom", 67, "key.categories.misc");
          this.keyMappings = ArrayUtils.add(this.keyMappings, this.ofKeyBindZoom);
          KeyUtils.fixKeyConflicts(this.keyMappings, new KeyMapping[] {this.ofKeyBindZoom});
@@ -34,7 +34,7 @@
          this.renderDistance = 8;
          this.load();
          Config.initGameSettings(this);
-@@ -398,7 +400,9 @@
+@@ -405,7 +407,9 @@
          this.renderDistance = (int)Mth.clamp((double)p_168428_.process("renderDistance", this.renderDistance), Option.RENDER_DISTANCE.getMinValue(), Option.RENDER_DISTANCE.getMaxValue());
          this.simulationDistance = (int)Mth.clamp((double)p_168428_.process("simulationDistance", this.simulationDistance), Option.SIMULATION_DISTANCE.getMinValue(), Option.SIMULATION_DISTANCE.getMaxValue());
          this.entityDistanceScaling = p_168428_.process("entityDistanceScaling", this.entityDistanceScaling);
@@ -45,7 +45,7 @@
          this.particles = p_168428_.process("particles", this.particles, ParticleStatus::byId, ParticleStatus::getId);
          this.framerateLimit = p_168428_.process("maxFps", this.framerateLimit);
  
-@@ -834,9 +838,9 @@
+@@ -843,9 +847,9 @@
  
                  printwriter.close();
              }
@@ -57,7 +57,7 @@
              }
  
              this.saveOptions = false;
-@@ -904,22 +908,22 @@
+@@ -913,22 +917,22 @@
          return this.useNativeTransport;
      }
  
@@ -87,7 +87,7 @@
  
              if (i > 0 && Config.isShaders())
              {
-@@ -935,60 +939,61 @@
+@@ -944,60 +948,61 @@
  
              this.ofAaLevel = i;
              this.ofAaLevel = Config.limit(this.ofAaLevel, 0, 16);
@@ -164,7 +164,7 @@
          {
              switch (this.ofFogType)
              {
-@@ -1001,7 +1006,7 @@
+@@ -1010,7 +1015,7 @@
              }
          }
  
@@ -173,7 +173,7 @@
          {
              this.ofFogStart += 0.2F;
  
-@@ -1011,18 +1016,18 @@
+@@ -1020,18 +1025,18 @@
              }
          }
  
@@ -195,7 +195,7 @@
          {
              ++this.ofClouds;
  
-@@ -1034,13 +1039,13 @@
+@@ -1043,13 +1048,13 @@
              this.updateRenderClouds();
          }
  
@@ -211,7 +211,7 @@
          {
              ++this.ofRain;
  
-@@ -1050,7 +1055,7 @@
+@@ -1059,7 +1064,7 @@
              }
          }
  
@@ -220,7 +220,7 @@
          {
              ++this.ofAnimatedWater;
  
-@@ -1065,7 +1070,7 @@
+@@ -1074,7 +1079,7 @@
              }
          }
  
@@ -229,7 +229,7 @@
          {
              ++this.ofAnimatedLava;
  
-@@ -1080,92 +1085,92 @@
+@@ -1089,92 +1094,92 @@
              }
          }
  
@@ -340,7 +340,7 @@
          {
              int i = 900;
              this.ofAutoSaveTicks = Math.max(this.ofAutoSaveTicks / i * i, i);
-@@ -1177,7 +1182,7 @@
+@@ -1186,7 +1191,7 @@
              }
          }
  
@@ -349,7 +349,7 @@
          {
              ++this.ofBetterGrass;
  
-@@ -1189,7 +1194,7 @@
+@@ -1198,7 +1203,7 @@
              this.minecraft.levelRenderer.allChanged();
          }
  
@@ -358,7 +358,7 @@
          {
              ++this.ofConnectedTextures;
  
-@@ -1208,27 +1213,27 @@
+@@ -1217,27 +1222,27 @@
              }
          }
  
@@ -391,7 +391,7 @@
          {
              ++this.ofVignette;
  
-@@ -1238,7 +1243,7 @@
+@@ -1247,7 +1252,7 @@
              }
          }
  
@@ -400,7 +400,7 @@
          {
              ++this.ofChunkUpdates;
  
-@@ -1248,12 +1253,12 @@
+@@ -1257,12 +1262,12 @@
              }
          }
  
@@ -415,7 +415,7 @@
          {
              ++this.ofTime;
  
-@@ -1263,119 +1268,119 @@
+@@ -1272,119 +1277,119 @@
              }
          }
  
@@ -555,7 +555,7 @@
          {
              ++this.ofScreenshotSize;
  
-@@ -1385,34 +1390,34 @@
+@@ -1394,34 +1399,34 @@
              }
          }
  
@@ -596,7 +596,7 @@
          {
              if (this.ofChatBackground == 0)
              {
-@@ -1428,7 +1433,7 @@
+@@ -1437,12 +1442,12 @@
              }
          }
  
@@ -605,7 +605,13 @@
          {
              this.ofChatShadow = !this.ofChatShadow;
          }
-@@ -2341,16 +2346,19 @@
+ 
+-        if (par1EnumOptions == Option.TELEMETRY)
++        if (p_setOptionValueOF_1_ == Option.TELEMETRY)
+         {
+             this.ofTelemetry = nextValue(this.ofTelemetry, OF_TELEMETRY);
+         }
+@@ -2366,16 +2371,19 @@
                          this.ofKeyBindZoom.setKey(InputConstants.getKey(astring[1]));
                      }
                  }
@@ -627,7 +633,7 @@
          }
          catch (Exception exception11)
          {
-@@ -2435,10 +2443,10 @@
+@@ -2461,10 +2469,10 @@
              printwriter.println("key_" + this.ofKeyBindZoom.getName() + ":" + this.ofKeyBindZoom.saveString());
              printwriter.close();
          }
@@ -640,7 +646,7 @@
          }
      }
  
-@@ -2500,7 +2508,7 @@
+@@ -2526,7 +2534,7 @@
          this.renderClouds = CloudStatus.FANCY;
          this.fov = 70.0D;
          this.gamma = 0.0D;
@@ -649,7 +655,7 @@
          this.particles = ParticleStatus.ALL;
          this.heldItemTooltips = true;
          this.forceUnicodeFont = false;
-@@ -2514,7 +2522,7 @@
+@@ -2540,7 +2548,7 @@
          Config.updateAvailableProcessors();
          this.ofSmoothWorld = Config.isSingleProcessor();
          this.ofLazyChunkLoading = false;
@@ -658,7 +664,7 @@
          this.ofFastMath = false;
          this.ofFastRender = false;
          this.ofDynamicFov = true;
-@@ -2597,61 +2605,61 @@
+@@ -2624,61 +2632,61 @@
          this.minecraft.delayTextureReload();
      }
  

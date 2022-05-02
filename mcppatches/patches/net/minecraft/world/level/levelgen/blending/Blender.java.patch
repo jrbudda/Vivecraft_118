@@ -1,33 +1,11 @@
 --- a/net/minecraft/world/level/levelgen/blending/Blender.java
 +++ b/net/minecraft/world/level/levelgen/blending/Blender.java
-@@ -478,28 +478,6 @@
-         double getDistance(double p_197062_, double p_197063_, double p_197064_);
-     }
+@@ -447,8 +447,6 @@
  
--    static record PositionedBlendingData(int chunkX, int chunkZ, BlendingData blendingData)
--    {
--        private final int chunkX;
--        private final int chunkZ;
--        private final BlendingData blendingData;
--        PositionedBlendingData(int chunkX, int chunkZ, BlendingData blendingData)
--        {
--            this.chunkX = chunkX;
--            this.chunkZ = chunkZ;
--            this.blendingData = blendingData;
--        }
--        public int chunkX()
--        {
--            return this.chunkX;
--        }
--        public int chunkZ()
--        {
--            return this.chunkZ;
--        }
--        public BlendingData blendingData()
--        {
--            return this.blendingData;
--        }
--    }
-+    static record PositionedBlendingData(int chunkX, int chunkZ, BlendingData blendingData) {}
-+
- }
+     public static record BlendingOutput(double alpha, double blendingOffset)
+     {
+-        private final double alpha;
+-        private final double blendingOffset;
+         public BlendingOutput(double alpha, double blendingOffset)
+         {
+             this.alpha = alpha;

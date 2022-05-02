@@ -29,7 +29,13 @@
      }
  
      public PackRepository(PackType p_143890_, RepositorySource... p_143891_)
-@@ -39,10 +43,16 @@
+@@ -35,14 +39,22 @@
+         {
+             return new Pack(p_143894_, p_143895_, p_143896_, p_143897_, p_143898_, p_143890_, p_143899_, p_143900_);
+         }, p_143891_);
++        //TODO
++      //net.minecraftforge.fml.ModLoader.get().postEvent(new net.minecraftforge.event.AddPackFindersEvent(p_143890_, sources::add));
+     }
  
      public void reload()
      {
@@ -40,7 +46,7 @@
          this.available = this.discoverAvailable();
 -        this.selected = this.rebuildSelected(list);
 +        this.selected = this.rebuildSelected(list1);
-+
++		//VIVECRAFT
 +        if (!this.selected.equals(list))
 +        {
 +            Minecraft.getInstance().resourcePacksChanged = true;
@@ -48,13 +54,13 @@
      }
  
      private Map<String, Pack> discoverAvailable()
-@@ -62,7 +72,13 @@
+@@ -62,7 +74,13 @@
  
      public void setSelected(Collection<String> p_10510_)
      {
 +        List<Pack> list = Lists.newLinkedList(this.selected);
          this.selected = this.rebuildSelected(p_10510_);
-+
++		//VIVECRAFT
 +        if (!this.selected.equals(list))
 +        {
 +            Minecraft.getInstance().resourcePacksChanged = true;
@@ -62,7 +68,7 @@
      }
  
      private List<Pack> rebuildSelected(Collection<String> p_10518_)
-@@ -125,4 +141,9 @@
+@@ -125,4 +143,9 @@
      {
          return this.selected.stream().map(Pack::open).collect(ImmutableList.toImmutableList());
      }

@@ -1,6 +1,6 @@
 --- a/net/minecraft/util/thread/BlockableEventLoop.java
 +++ b/net/minecraft/util/thread/BlockableEventLoop.java
-@@ -220,7 +220,7 @@
+@@ -225,7 +225,7 @@
          }
          else
          {

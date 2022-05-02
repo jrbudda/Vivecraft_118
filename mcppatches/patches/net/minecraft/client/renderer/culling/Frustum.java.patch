@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/culling/Frustum.java
 +++ b/net/minecraft/client/renderer/culling/Frustum.java
-@@ -228,4 +228,16 @@
+@@ -233,4 +233,16 @@
      {
          return this.camZ;
      }

@@ -1,17 +1,24 @@
 --- a/net/minecraft/client/renderer/LevelRenderer.java
 +++ b/net/minecraft/client/renderer/LevelRenderer.java
-@@ -173,7 +173,9 @@
+@@ -176,6 +176,9 @@
  import net.optifine.util.RenderChunkUtils;
- import org.apache.logging.log4j.LogManager;
- import org.apache.logging.log4j.Logger;
--import org.lwjgl.opengl.GL11;
+ import org.lwjgl.opengl.GL11;
+ import org.slf4j.Logger;
 +import org.vivecraft.gameplay.screenhandlers.KeyboardHandler;
 +import org.vivecraft.render.RenderPass;
 +import org.vivecraft.settings.VRSettings;
  
  public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseable
  {
-@@ -310,6 +312,16 @@
+@@ -279,6 +282,7 @@
+     private int rainSoundTime;
+     private final float[] rainSizeX = new float[1024];
+     private final float[] rainSizeZ = new float[1024];
++    public Entity renderedEntity;
+     public Set chunksToResortTransparency = new LinkedHashSet();
+     public Set chunksToUpdateForced = new LinkedHashSet();
+     private Set<ChunkRenderDispatcher.RenderChunk> chunksToUpdatePrev = new ObjectLinkedOpenHashSet<>();
+@@ -311,6 +315,16 @@
      private int frameId;
      private boolean debugFixTerrainFrustumShadow;
  
@@ -28,7 +35,7 @@
      public LevelRenderer(Minecraft pMinecraft, RenderBuffers pRenderBuffers)
      {
          this.minecraft = pMinecraft;
-@@ -358,9 +370,16 @@
+@@ -359,9 +373,16 @@
  
              pLightTexture.turnOnLightLayer();
              Level level = this.minecraft.level;
@@ -48,7 +55,7 @@
              Tesselator tesselator = Tesselator.getInstance();
              BufferBuilder bufferbuilder = tesselator.getBuilder();
              RenderSystem.disableCull();
-@@ -582,12 +601,15 @@
+@@ -583,12 +604,15 @@
  
      public void onResourceManagerReload(ResourceManager pResourceManager)
      {
@@ -69,7 +76,7 @@
      }
  
      public void initOutline()
-@@ -619,10 +641,11 @@
+@@ -620,10 +644,11 @@
          }
      }
  
@@ -83,7 +90,7 @@
  
          try
          {
-@@ -640,11 +663,11 @@
+@@ -641,11 +666,11 @@
              this.weatherTarget = rendertarget4;
              this.cloudsTarget = rendertarget;
          }
@@ -98,7 +105,7 @@
  
              if (this.minecraft.getResourcePackRepository().getSelectedIds().size() > 1)
              {
-@@ -654,7 +677,7 @@
+@@ -655,7 +680,7 @@
                  {
                      component = new TextComponent(this.minecraft.getResourceManager().getResource(resourcelocation).getSourceName());
                  }
@@ -107,7 +114,7 @@
                  {
                      component = null;
                  }
-@@ -674,7 +697,7 @@
+@@ -675,7 +700,7 @@
          }
      }
  
@@ -116,7 +123,7 @@
      {
          if (this.transparencyChain != null)
          {
-@@ -875,6 +898,7 @@
+@@ -876,6 +901,7 @@
          }
      }
  
@@ -124,7 +131,7 @@
      public void graphicsChanged()
      {
          if (Minecraft.useShaderTransparency())
-@@ -891,7 +915,8 @@
+@@ -892,7 +918,8 @@
      {
          if (this.level != null)
          {
@@ -134,7 +141,7 @@
              this.level.clearTintCaches();
  
              if (this.chunkRenderDispatcher == null)
-@@ -1040,7 +1065,8 @@
+@@ -1038,7 +1065,8 @@
              this.viewArea.repositionCamera(d0, d2);
          }
  
@@ -144,18 +151,18 @@
          {
              DynamicLights.update(this);
          }
-@@ -1052,7 +1078,9 @@
-         double d6 = Math.floor(vec3.x / 8.0D);
-         double d7 = Math.floor(vec3.y / 8.0D);
-         double d8 = Math.floor(vec3.z / 8.0D);
--        this.needsFullRenderChunkUpdate = this.needsFullRenderChunkUpdate || d6 != this.prevCamX || d7 != this.prevCamY || d8 != this.prevCamZ;
+@@ -1050,7 +1078,9 @@
+         double d3 = Math.floor(vec3.x / 8.0D);
+         double d4 = Math.floor(vec3.y / 8.0D);
+         double d5 = Math.floor(vec3.z / 8.0D);
+-        this.needsFullRenderChunkUpdate = this.needsFullRenderChunkUpdate || d3 != this.prevCamX || d4 != this.prevCamY || d5 != this.prevCamZ;
 +        // VIVECRAFT: Always update culling because different camera positions
 +        this.needsFullRenderChunkUpdate = true;//this.needsFullRenderChunkUpdate || d6 != this.prevCamX || d7 != this.prevCamY || d8 != this.prevCamZ;
 +        //TODO: Investigate
          this.nextFullUpdateMillis.updateAndGet((p_194368_1_) ->
          {
              if (p_194368_1_ > 0L && System.currentTimeMillis() > p_194368_1_)
-@@ -1539,17 +1567,25 @@
+@@ -1519,17 +1549,25 @@
          }
      }
  
@@ -186,7 +193,7 @@
          Vec3 vec3 = pRenderBlockOutline.getPosition();
          double d0 = vec3.x();
          double d1 = vec3.y();
-@@ -1615,6 +1651,12 @@
+@@ -1595,6 +1633,12 @@
              Shaders.setCamera(pPoseStack, pRenderBlockOutline, pPartialTick);
              Shaders.renderPrepare();
          }
@@ -199,7 +206,7 @@
  
          float f = pCamera.getRenderDistance();
          boolean flag3 = this.minecraft.level.effects().isFoggyAt(Mth.floor(d0), Mth.floor(d1)) || this.minecraft.gui.getBossOverlay().shouldCreateWorldFog();
-@@ -1655,13 +1697,8 @@
+@@ -1636,13 +1680,8 @@
          profilerfiller.popPush("terrain");
          Lagometer.timerTerrain.start();
  
@@ -215,7 +222,7 @@
          if (Config.isFogOff() && FogRenderer.fogStandard)
          {
              RenderSystem.setFogAllowed(false);
-@@ -1678,6 +1715,10 @@
+@@ -1659,6 +1698,10 @@
              ShadersRender.endTerrain();
          }
  
@@ -226,7 +233,7 @@
          if (this.level.effects().constantAmbientLight())
          {
              Lighting.setupNetherLevel(pPoseStack.last().pose());
-@@ -1733,6 +1774,10 @@
+@@ -1714,6 +1757,10 @@
              GameRenderer.getPositionShader().apply();
          }
  
@@ -237,18 +244,18 @@
          for (Entity entity : this.level.entitiesForRendering())
          {
              BlockPos blockpos = entity.blockPosition();
-@@ -1740,8 +1785,8 @@
-             if (this.renderInfosEntities.contains(SectionPos.asLong(blockpos)) || blockpos.getY() <= i || blockpos.getY() >= j)
-             {
-                 boolean flag5 = entity == this.minecraft.player && !this.minecraft.player.isSpectator();
--
--                if ((this.entityRenderDispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(this.minecraft.player)) && (entity != pRenderBlockOutline.getEntity() || pRenderBlockOutline.isDetached() || pRenderBlockOutline.getEntity() instanceof LivingEntity && ((LivingEntity)pRenderBlockOutline.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || pRenderBlockOutline.getEntity() == entity || flag5))
-+                //Vivecraft insert selfRender
-+                if ((this.entityRenderDispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(this.minecraft.player)) && (renderSelf || entity != pRenderBlockOutline.getEntity() || pRenderBlockOutline.isDetached() || pRenderBlockOutline.getEntity() instanceof LivingEntity && ((LivingEntity)pRenderBlockOutline.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || pRenderBlockOutline.getEntity() == entity || flag5))
+@@ -1725,8 +1772,8 @@
+                 if (this.entityRenderDispatcher.shouldRender(entity, frustum, d0, d1, d2) || entity.hasIndirectPassenger(this.minecraft.player))
                  {
-                     String s = entity.getClass().getName();
-                     List<Entity> list = this.mapEntityLists.get(s);
-@@ -1763,6 +1808,13 @@
+                     BlockPos blockpos1 = entity.blockPosition();
+-
+-                    if ((this.level.isOutsideBuildHeight(blockpos1.getY()) || this.isChunkCompiled(blockpos1)) && (entity != pRenderBlockOutline.getEntity() || pRenderBlockOutline.isDetached() || pRenderBlockOutline.getEntity() instanceof LivingEntity && ((LivingEntity)pRenderBlockOutline.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || pRenderBlockOutline.getEntity() == entity || flag6))
++                    //Vivecraft insert selfRender
++                    if ((this.level.isOutsideBuildHeight(blockpos1.getY()) || this.isChunkCompiled(blockpos1)) && (renderSelf || entity != pRenderBlockOutline.getEntity() || pRenderBlockOutline.isDetached() || pRenderBlockOutline.getEntity() instanceof LivingEntity && ((LivingEntity)pRenderBlockOutline.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || pRenderBlockOutline.getEntity() == entity || flag6))
+                     {
+                         String s = entity.getClass().getName();
+                         List<Entity> list = this.mapEntityLists.get(s);
+@@ -1749,6 +1796,13 @@
              {
                  ++this.renderedEntities;
  
@@ -262,29 +269,35 @@
                  if (entity1.tickCount == 0)
                  {
                      entity1.xOld = entity1.getX();
-@@ -1798,6 +1850,14 @@
+@@ -1774,13 +1828,24 @@
+                 {
+                     multibuffersource = multibuffersource$buffersource;
+                 }
++                //excuse me I was using that!
++                this.renderedEntity = entity1;
+ 
+                 if (flag2)
+                 {
+                     Shaders.nextEntity(entity1);
+                 }
++                
  
                  this.renderEntity(entity1, d0, d1, d2, pPartialTick, pPoseStack, multibuffersource);
-                 this.renderedEntity = null;
-+
-+                //Vivecraft put it back back
-+                if (entity1 == pRenderBlockOutline.getEntity())
-+                {
-+                    pCamera.cacheRVEPos((LivingEntity)entity1);
-+                    pCamera.setupRVE();
-+                }
-+                //
++                renderedEntity = null;
++	             //Vivecraft put it back back
++	             if (entity1 == pRenderBlockOutline.getEntity())
++	             {
++	                 pCamera.cacheRVEPos((LivingEntity)entity1);
++	                 pCamera.setupRVE();
++	             }
++	             //
              }
  
              list1.clear();
-@@ -1992,10 +2052,26 @@
-         --renderEntitiesCounter;
+@@ -1976,6 +2041,20 @@
          this.checkPoseStack(pPoseStack);
          HitResult hitresult = this.minecraft.hitResult;
--
-+        
-+        profilerfiller.popPush("outline");
-+        
+ 
 +        //Vivecraft interact highlight
 +        selR = selG = selB = 1f;
 +        for (int c=0;c<2;c++) {
@@ -296,45 +309,21 @@
 +        	}
 +        }
 +        //
-+        
-         if (p_109603_ && hitresult != null && hitresult.getType() == HitResult.Type.BLOCK)
-         {
--            profilerfiller.popPush("outline");
 +        	//vivecraft put back black outline
 +        	selR = selG = selB = 0f;
 +        	//
-             BlockPos blockpos1 = ((BlockHitResult)hitresult).getBlockPos();
-             BlockState blockstate = this.level.getBlockState(blockpos1);
- 
-@@ -2023,17 +2099,18 @@
- 
-         PoseStack posestack = RenderSystem.getModelViewStack();
-         posestack.pushPose();
--        posestack.mulPoseMatrix(pPoseStack.last().pose());
--        RenderSystem.applyModelViewMatrix();
--
--        if (flag2)
--        {
--            ShadersRender.beginDebug();
--        }
--
--        this.minecraft.debugRenderer.render(pPoseStack, multibuffersource$buffersource, d0, d1, d2);
-+	        posestack.mulPoseMatrix(pPoseStack.last().pose());
-+	        RenderSystem.applyModelViewMatrix();
-+	
-+	        if (flag2)
-+	        {
-+	            ShadersRender.beginDebug();
-+	        }
-+	
-+	        this.minecraft.debugRenderer.render(pPoseStack, multibuffersource$buffersource, d0, d1, d2);
+         if (p_109603_ && hitresult != null && hitresult.getType() == HitResult.Type.BLOCK)
+         {
+             profilerfiller.popPush("outline");
+@@ -2018,6 +2097,7 @@
+         this.minecraft.debugRenderer.render(pPoseStack, multibuffersource$buffersource, d0, d1, d2);
          posestack.popPose();
          RenderSystem.applyModelViewMatrix();
 +        profilerfiller.popPush("render bukkake");
          multibuffersource$buffersource.endBatch(Sheets.translucentCullBlockSheet());
          multibuffersource$buffersource.endBatch(Sheets.bannerSheet());
          multibuffersource$buffersource.endBatch(Sheets.shieldSheet());
-@@ -2051,15 +2128,17 @@
+@@ -2035,15 +2115,17 @@
          {
              multibuffersource$buffersource.endBatch();
              ShadersRender.endDebug();
@@ -357,7 +346,7 @@
              multibuffersource$buffersource.endBatch(RenderType.lines());
              multibuffersource$buffersource.endBatch();
              this.translucentTarget.clear(Minecraft.ON_OSX);
-@@ -2074,9 +2153,12 @@
+@@ -2058,9 +2140,12 @@
              profilerfiller.popPush("particles");
              this.minecraft.particleEngine.render(pPoseStack, multibuffersource$buffersource, pGameRenderer, pRenderBlockOutline, pPartialTick, frustum);
              RenderStateShard.PARTICLES_TARGET.clearRenderState();
@@ -371,16 +360,16 @@
              profilerfiller.popPush("translucent");
              Lagometer.timerTerrain.start();
  
-@@ -2110,6 +2192,8 @@
+@@ -2104,6 +2189,8 @@
+             {
+                 this.minecraft.particleEngine.render(pPoseStack, multibuffersource$buffersource, pGameRenderer, pRenderBlockOutline, pPartialTick, frustum);
              }
- 
-             this.minecraft.particleEngine.render(pPoseStack, multibuffersource$buffersource, pGameRenderer, pRenderBlockOutline, pPartialTick, frustum);
 +            //twice
 +            pCamera.renderVrFast(pPartialTick, true, menuhandright, menuHandleft, pPoseStack);
  
              if (flag2)
              {
-@@ -2352,7 +2436,7 @@
+@@ -2351,7 +2438,7 @@
                      if (chunkrenderdispatcher$renderchunk.regionX != l || chunkrenderdispatcher$renderchunk.regionZ != i1)
                      {
                          PairInt pairint = PairInt.of(chunkrenderdispatcher$renderchunk.regionX, chunkrenderdispatcher$renderchunk.regionZ);
@@ -389,7 +378,7 @@
                          {
                              return new LinkedHashMap(8);
                          });
-@@ -3599,11 +3683,12 @@
+@@ -3618,11 +3705,12 @@
          }
      }
  
@@ -403,7 +392,7 @@
          }
      }
  
-@@ -4084,6 +4169,7 @@
+@@ -4108,6 +4196,7 @@
      public void levelEvent(Player pPlayer, int pType, BlockPos pPos, int pData)
      {
          Random random = this.level.random;
@@ -411,7 +400,7 @@
  
          switch (pType)
          {
-@@ -4155,18 +4241,34 @@
+@@ -4179,18 +4268,34 @@
                  break;
  
              case 1011:
@@ -446,7 +435,7 @@
                  this.level.playLocalSound(pPos, SoundEvents.FENCE_GATE_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
-@@ -4187,14 +4289,29 @@
+@@ -4211,14 +4316,29 @@
                  break;
  
              case 1019:
@@ -476,7 +465,7 @@
                  this.level.playLocalSound(pPos, SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, SoundSource.HOSTILE, 2.0F, (random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F, false);
                  break;
  
-@@ -4223,10 +4340,19 @@
+@@ -4247,10 +4367,19 @@
                  break;
  
              case 1030:
@@ -496,7 +485,7 @@
                  this.level.playLocalSound(pPos, SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 0.3F, this.level.random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
-@@ -4247,6 +4373,10 @@
+@@ -4271,6 +4400,10 @@
                  break;
  
              case 1036:
@@ -507,7 +496,7 @@
                  this.level.playLocalSound(pPos, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.1F + 0.9F, false);
                  break;
  
-@@ -4601,9 +4731,9 @@
+@@ -4625,9 +4758,9 @@
          return 0;
      }
  
@@ -519,7 +508,7 @@
      }
  
      public ClientLevel getWorld()
-@@ -4706,11 +4836,11 @@
+@@ -4730,11 +4863,11 @@
          return this.renderInfosTileEntities;
      }
  
@@ -533,7 +522,7 @@
              this.minecraft.gui.getChat().removeById(201435902);
          }
  
-@@ -4720,7 +4850,7 @@
+@@ -4744,7 +4877,7 @@
          }
      }
  
@@ -542,7 +531,7 @@
      {
          int i = this.minecraft.options.ofChunkUpdates;
          boolean flag = this.minecraft.options.ofLazyChunkLoading;
-@@ -4744,7 +4874,7 @@
+@@ -4768,7 +4901,7 @@
                  for (int j1 = 0; j1 < 100; ++j1)
                  {
                      levelrenderer.needsUpdate();
@@ -551,7 +540,7 @@
  
                      if (!levelrenderer.hasRenderedAllChunks())
                      {
-@@ -5100,4 +5230,42 @@
+@@ -5130,4 +5263,42 @@
              super(pMessage, pCause);
          }
      }

@@ -1,6 +1,6 @@
 --- a/net/optifine/entity/model/ModelAdapterTropicalFishA.java
 +++ b/net/optifine/entity/model/ModelAdapterTropicalFishA.java
-@@ -65,7 +65,7 @@
+@@ -70,7 +70,7 @@
      public IEntityRenderer makeEntityRender(Model modelBase, float shadowSize)
      {
          EntityRenderDispatcher entityrenderdispatcher = Minecraft.getInstance().getEntityRenderDispatcher();

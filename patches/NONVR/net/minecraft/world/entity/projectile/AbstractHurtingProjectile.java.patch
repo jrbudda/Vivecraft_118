@@ -26,17 +26,16 @@
              {
                  this.onHit(hitresult);
              }
-@@ -180,6 +189,13 @@
-             if (entity != null)
-             {
-                 Vec3 vec3 = entity.getLookAngle();
-+                ServerVivePlayer serverviveplayer = NetworkHelper.vivePlayers.get(pSource.getEntity().getUUID());
-+
-+                if (serverviveplayer != null && serverviveplayer.isVR())
-+                {
-+                    vec3 = serverviveplayer.getHMDDir();
-+                }
-+
-                 this.setDeltaMovement(vec3);
-                 this.xPower = vec3.x * 0.1D;
-                 this.yPower = vec3.y * 0.1D;
+@@ -182,6 +191,12 @@
+                 if (!this.level.isClientSide)
+                 {
+                     Vec3 vec3 = entity.getLookAngle();
++	                ServerVivePlayer serverviveplayer = NetworkHelper.vivePlayers.get(pSource.getEntity().getUUID());
++	
++	                if (serverviveplayer != null && serverviveplayer.isVR())
++	                {
++	                    vec3 = serverviveplayer.getHMDDir();
++	                }
+                     this.setDeltaMovement(vec3);
+                     this.xPower = vec3.x * 0.1D;
+                     this.yPower = vec3.y * 0.1D;

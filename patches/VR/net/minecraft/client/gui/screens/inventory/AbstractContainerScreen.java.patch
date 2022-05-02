@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/gui/screens/inventory/AbstractContainerScreen.java
 +++ b/net/minecraft/client/gui/screens/inventory/AbstractContainerScreen.java
-@@ -510,7 +510,7 @@
+@@ -509,7 +509,7 @@
                  }
              }
          }

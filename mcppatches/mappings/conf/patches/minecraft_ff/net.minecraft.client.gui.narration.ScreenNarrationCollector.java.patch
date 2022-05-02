@@ -1,8 +1,8 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\client\gui\narration\ScreenNarrationCollector.java minecraft_patched\net\minecraft\client\gui\narration\ScreenNarrationCollector.java
 --- minecraft\net\minecraft\client\gui\narration\ScreenNarrationCollector.java
 +++ minecraft_patched\net\minecraft\client\gui\narration\ScreenNarrationCollector.java
-@@ -7,7 +7,7 @@
- 
+@@ -10,7 +10,7 @@
+ @OnlyIn(Dist.CLIENT)
  public class ScreenNarrationCollector {
     int f_169181_;
 -   final Map<ScreenNarrationCollector.EntryKey, ScreenNarrationCollector.NarrationEntry> f_169182_ = Maps.newTreeMap(Comparator.comparing((p_169196_) -> {

@@ -5,7 +5,7 @@
      private static IntegerProperty findProperty(BlockState pState, String pPropertyName)
      {
 -        Collection < Property<? >> collection = pState.getProperties();
-+    	 Collection < Property> collection = pState.getProperties();
++        Collection<Property> collection = pState.getProperties();
          Optional<IntegerProperty> optional = collection.stream().filter((p_161583_) ->
          {
              return p_161583_.getName().equals(pPropertyName);

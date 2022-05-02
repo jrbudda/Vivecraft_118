@@ -133,7 +133,7 @@
                  }
 @@ -181,6 +235,11 @@
  
-                     this.accumulatedScroll -= (double)f1;
+                     this.accumulatedScroll -= (double)i;
  
 +                    if (Reflector.callBoolean(Reflector.ForgeHooksClient_onMouseScroll, this, d0))
 +                    {

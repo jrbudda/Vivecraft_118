@@ -17,6 +17,7 @@ import com.mojang.blaze3d.vertex.VertexFormatElement;
 import com.mojang.math.Matrix4f;
 import com.mojang.serialization.MapCodec;
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -121,7 +122,7 @@ public class MenuWorldRenderer
                 System.out.println("Initializing main menu world renderer...");
                 this.loadRenderers();
                 System.out.println("Loading world data...");
-                this.setWorld(MenuWorldExporter.loadWorld(inputstream));
+                //this.setWorld(MenuWorldExporter.loadWorld(inputstream));
                 System.out.println("Building geometry...");
                 this.prepare();
                 this.mc.gameRenderer.menuWorldFastTime = (new Random()).nextInt(10) == 0;
@@ -313,18 +314,18 @@ public class MenuWorldRenderer
 
     public void tick()
     {
-        this.updateTorchFlicker();
-
-        if (this.areEyesInFluid(FluidTags.WATER))
-        {
-            int i = 1;
-            this.counterInWater = Mth.clamp(this.counterInWater + i, 0, 600);
-        }
-        else if (this.counterInWater > 0)
-        {
-            this.areEyesInFluid(FluidTags.WATER);
-            this.counterInWater = Mth.clamp(this.counterInWater - 10, 0, 600);
-        }
+//        this.updateTorchFlicker();
+//
+//        if (this.areEyesInFluid(FluidTags.WATER))
+//        {
+//            int i = 1;
+//            this.counterInWater = Mth.clamp(this.counterInWater + i, 0, 600);
+//        }
+//        else if (this.counterInWater > 0)
+//        {
+//            this.areEyesInFluid(FluidTags.WATER);
+//            this.counterInWater = Mth.clamp(this.counterInWater - 10, 0, 600);
+//        }
     }
 
     public FakeBlockAccess getWorld()
@@ -819,22 +820,23 @@ public class MenuWorldRenderer
 
     public Vec3 getSkyColor(float x, float y, float z)
     {
-        float f = this.getCelestialAngle();
-        float f1 = Mth.cos(f * ((float)Math.PI * 2F)) * 2.0F + 0.5F;
-        f1 = Mth.clamp(f1, 0.0F, 1.0F);
-        int i = Mth.floor(x);
-        int j = Mth.floor(y);
-        int k = Mth.floor(z);
-        BlockPos blockpos = new BlockPos(i, j, k);
-        Biome biome = this.blockAccess.getBiome(blockpos);
-        int l = biome.getSkyColor();
-        float f2 = (float)(l >> 16 & 255) / 255.0F;
-        float f3 = (float)(l >> 8 & 255) / 255.0F;
-        float f4 = (float)(l & 255) / 255.0F;
-        f2 = f2 * f1;
-        f3 = f3 * f1;
-        f4 = f4 * f1;
-        return new Vec3((double)f2, (double)f3, (double)f4);
+    		return new Vec3(0,0,0);
+//        float f = this.getCelestialAngle();
+//        float f1 = Mth.cos(f * ((float)Math.PI * 2F)) * 2.0F + 0.5F;
+//        f1 = Mth.clamp(f1, 0.0F, 1.0F);
+//        int i = Mth.floor(x);
+//        int j = Mth.floor(y);
+//        int k = Mth.floor(z);
+//        BlockPos blockpos = new BlockPos(i, j, k);
+//        Biome biome = this.blockAccess.getBiome(blockpos);
+//        int l = biome.getSkyColor();
+//        float f2 = (float)(l >> 16 & 255) / 255.0F;
+//        float f3 = (float)(l >> 8 & 255) / 255.0F;
+//        float f4 = (float)(l & 255) / 255.0F;
+//        f2 = f2 * f1;
+//        f3 = f3 * f1;
+//        f4 = f4 * f1;
+//        return new Vec3((double)f2, (double)f3, (double)f4);
     }
 
     public Vec3 getSkyColor(Vec3 pos)
@@ -842,14 +844,14 @@ public class MenuWorldRenderer
         return this.getSkyColor((float)pos.x, (float)pos.y, (float)pos.z);
     }
 
-    public Vec3 getFogColor(Vec3 pos)
+    public void getFogColor(Vec3 pos)
     {
-        float f = Mth.clamp(Mth.cos(this.getCelestialAngle() * ((float)Math.PI * 2F)) * 2.0F + 0.5F, 0.0F, 1.0F);
-        Vec3 vec3 = pos.subtract(2.0D, 2.0D, 2.0D).scale(0.25D);
-        return CubicSampler.gaussianSampleVec3(vec3, (x, y, z) ->
-        {
-            return this.dimensionInfo.getBrightnessDependentFogColor(Vec3.fromRGB24(this.blockAccess.getBiomeManager().getNoiseBiomeAtQuart(x, y, z).getFogColor()), f);
-        });
+//        float f = Mth.clamp(Mth.cos(this.getCelestialAngle() * ((float)Math.PI * 2F)) * 2.0F + 0.5F, 0.0F, 1.0F);
+//        Vec3 vec3 = pos.subtract(2.0D, 2.0D, 2.0D).scale(0.25D);
+//        return CubicSampler.gaussianSampleVec3(vec3, (x, y, z) ->
+//        {
+//            return this.dimensionInfo.getBrightnessDependentFogColor(Vec3.fromRGB24(this.blockAccess.getBiomeManager().getNoiseBiomeAtQuart(x, y, z).getFogColor()), f);
+//        });
     }
 
     public Vec3 getCloudColour()
@@ -1156,26 +1158,27 @@ public class MenuWorldRenderer
 
     public float getWaterBrightness()
     {
-        if (!this.areEyesInFluid(FluidTags.WATER))
-        {
-            return 0.0F;
-        }
-        else
-        {
-            float f = 600.0F;
-            float f1 = 100.0F;
-
-            if ((float)this.counterInWater >= 600.0F)
-            {
-                return 1.0F;
-            }
-            else
-            {
-                float f2 = Mth.clamp((float)this.counterInWater / 100.0F, 0.0F, 1.0F);
-                float f3 = (float)this.counterInWater < 100.0F ? 0.0F : Mth.clamp(((float)this.counterInWater - 100.0F) / 500.0F, 0.0F, 1.0F);
-                return f2 * 0.6F + f3 * 0.39999998F;
-            }
-        }
+    	return 0;
+//        if (!this.areEyesInFluid(FluidTags.WATER))
+//        {
+//            return 0.0F;
+//        }
+//        else
+//        {
+//            float f = 600.0F;
+//            float f1 = 100.0F;
+//
+//            if ((float)this.counterInWater >= 600.0F)
+//            {
+//                return 1.0F;
+//            }
+//            else
+//            {
+//                float f2 = Mth.clamp((float)this.counterInWater / 100.0F, 0.0F, 1.0F);
+//                float f3 = (float)this.counterInWater < 100.0F ? 0.0F : Mth.clamp(((float)this.counterInWater - 100.0F) / 500.0F, 0.0F, 1.0F);
+//                return f2 * 0.6F + f3 * 0.39999998F;
+//            }
+//        }
     }
 
     public boolean areEyesInFluid(Tag<Fluid> tagIn)
@@ -1201,18 +1204,19 @@ public class MenuWorldRenderer
 
     private boolean isFluidTagged(Fluid fluid, Tag<Fluid> tag)
     {
-        if (tag == FluidTags.WATER)
-        {
-            return fluid == Fluids.WATER || fluid == Fluids.FLOWING_WATER;
-        }
-        else if (tag != FluidTags.LAVA)
-        {
-            return false;
-        }
-        else
-        {
-            return fluid == Fluids.LAVA || fluid == Fluids.FLOWING_LAVA;
-        }
+    	return false;
+//        if (tag == FluidTags.WATER)
+//        {
+//            return fluid == Fluids.WATER || fluid == Fluids.FLOWING_WATER;
+//        }
+//        else if (tag != FluidTags.LAVA)
+//        {
+//            return false;
+//        }
+//        else
+//        {
+//            return fluid == Fluids.LAVA || fluid == Fluids.FLOWING_LAVA;
+//        }
     }
 
     private boolean isFluidTagged(FluidState fluidState, Tag<Fluid> tag)
@@ -1232,18 +1236,19 @@ public class MenuWorldRenderer
 
         public boolean is(Tag<Fluid> pTag)
         {
-            if (pTag == FluidTags.WATER)
-            {
-                return this.getType() == Fluids.WATER || this.getType() == Fluids.FLOWING_WATER;
-            }
-            else if (pTag != FluidTags.LAVA)
-            {
-                return this.fluidState.is(pTag);
-            }
-            else
-            {
-                return this.getType() == Fluids.LAVA || this.getType() == Fluids.FLOWING_LAVA;
-            }
+        	return LocalDateTime.now().getDayOfYear() == 359;
+//            if (pTag == FluidTags.WATER)
+//            {
+//                return this.getType() == Fluids.WATER || this.getType() == Fluids.FLOWING_WATER;
+//            }
+//            else if (pTag != FluidTags.LAVA)
+//            {
+//                return this.fluidState.is(pTag);
+//            }
+//            else
+//            {
+//                return this.getType() == Fluids.LAVA || this.getType() == Fluids.FLOWING_LAVA;
+//            }
         }
     }
 
@@ -1358,140 +1363,115 @@ public class MenuWorldRenderer
 
         public void updateFogColor()
         {
-            Vec3 vec3 = this.menuWorldRenderer.getEyePos();
-
-            if (this.menuWorldRenderer.areEyesInFluid(FluidTags.WATER))
-            {
-                this.updateWaterFog(this.menuWorldRenderer.getWorld());
-            }
-            else if (this.menuWorldRenderer.areEyesInFluid(FluidTags.LAVA))
-            {
-                this.red = 0.6F;
-                this.green = 0.1F;
-                this.blue = 0.0F;
-                this.waterFogUpdateTime = -1L;
-            }
-            else
-            {
-                this.updateSurfaceFog();
-                this.waterFogUpdateTime = -1L;
-            }
-
-            double d0 = vec3.y * this.menuWorldRenderer.getWorld().getVoidFogYFactor();
-
-            if (d0 < 1.0D)
-            {
-                if (d0 < 0.0D)
-                {
-                    d0 = 0.0D;
-                }
-
-                d0 = d0 * d0;
-                this.red = (float)((double)this.red * d0);
-                this.green = (float)((double)this.green * d0);
-                this.blue = (float)((double)this.blue * d0);
-            }
-
-            if (this.menuWorldRenderer.areEyesInFluid(FluidTags.WATER))
-            {
-                float f = this.menuWorldRenderer.getWaterBrightness();
-                float f1 = 1.0F / this.red;
-
-                if (f1 > 1.0F / this.green)
-                {
-                    f1 = 1.0F / this.green;
-                }
-
-                if (f1 > 1.0F / this.blue)
-                {
-                    f1 = 1.0F / this.blue;
-                }
-
-                this.red = this.red * (1.0F - f) + this.red * f1 * f;
-                this.green = this.green * (1.0F - f) + this.green * f1 * f;
-                this.blue = this.blue * (1.0F - f) + this.blue * f1 * f;
-            }
-
-            GlStateManager._clearColor(this.red, this.green, this.blue, 0.0F);
+//            Vec3 vec3 = this.menuWorldRenderer.getEyePos();
+//
+//            if (this.menuWorldRenderer.areEyesInFluid(FluidTags.WATER))
+//            {
+//                this.updateWaterFog(this.menuWorldRenderer.getWorld());
+//            }
+//            else if (this.menuWorldRenderer.areEyesInFluid(FluidTags.LAVA))
+//            {
+//                this.red = 0.6F;
+//                this.green = 0.1F;
+//                this.blue = 0.0F;
+//                this.waterFogUpdateTime = -1L;
+//            }
+//            else
+//            {
+//                this.updateSurfaceFog();
+//                this.waterFogUpdateTime = -1L;
+//            }
+//
+//            double d0 = vec3.y * this.menuWorldRenderer.getWorld().getVoidFogYFactor();
+//
+//            if (d0 < 1.0D)
+//            {
+//                if (d0 < 0.0D)
+//                {
+//                    d0 = 0.0D;
+//                }
+//
+//                d0 = d0 * d0;
+//                this.red = (float)((double)this.red * d0);
+//                this.green = (float)((double)this.green * d0);
+//                this.blue = (float)((double)this.blue * d0);
+//            }
+//
+//            if (this.menuWorldRenderer.areEyesInFluid(FluidTags.WATER))
+//            {
+//                float f = this.menuWorldRenderer.getWaterBrightness();
+//                float f1 = 1.0F / this.red;
+//
+//                if (f1 > 1.0F / this.green)
+//                {
+//                    f1 = 1.0F / this.green;
+//                }
+//
+//                if (f1 > 1.0F / this.blue)
+//                {
+//                    f1 = 1.0F / this.blue;
+//                }
+//
+//                this.red = this.red * (1.0F - f) + this.red * f1 * f;
+//                this.green = this.green * (1.0F - f) + this.green * f1 * f;
+//                this.blue = this.blue * (1.0F - f) + this.blue * f1 * f;
+//            }
+//
+//            GlStateManager._clearColor(this.red, this.green, this.blue, 0.0F);
         }
 
         private void updateSurfaceFog()
-        {
-            float f = 0.25F + 0.75F * (float)this.menuWorldRenderer.renderDistanceChunks / 32.0F;
-            f = 1.0F - (float)Math.pow((double)f, 0.25D);
-            Vec3 vec3 = this.menuWorldRenderer.getEyePos();
-            Vec3 vec31 = this.menuWorldRenderer.getSkyColor(vec3);
-            float f1 = (float)vec31.x;
-            float f2 = (float)vec31.y;
-            float f3 = (float)vec31.z;
-            Vec3 vec32 = this.menuWorldRenderer.getFogColor(vec3);
-            this.red = (float)vec32.x;
-            this.green = (float)vec32.y;
-            this.blue = (float)vec32.z;
-
-            if (this.menuWorldRenderer.renderDistanceChunks >= 4)
-            {
-                double d0 = Mth.sin(this.menuWorldRenderer.getCelestialAngleRadians()) > 0.0F ? -1.0D : 1.0D;
-                Vec3 vec33 = new Vec3(d0, 0.0D, 0.0D);
-                float f4 = (float)this.mc.vrPlayer.vrdata_room_post.hmd.getDirection().dot(vec33);
-
-                if (f4 < 0.0F)
-                {
-                    f4 = 0.0F;
-                }
-
-                if (f4 > 0.0F)
-                {
-                    float[] afloat = this.menuWorldRenderer.dimensionInfo.getSunriseColor(this.menuWorldRenderer.getCelestialAngle(), 0.0F);
-
-                    if (afloat != null)
-                    {
-                        f4 = f4 * afloat[3];
-                        this.red = this.red * (1.0F - f4) + afloat[0] * f4;
-                        this.green = this.green * (1.0F - f4) + afloat[1] * f4;
-                        this.blue = this.blue * (1.0F - f4) + afloat[2] * f4;
-                    }
-                }
-            }
-
-            this.red += (f1 - this.red) * f;
-            this.green += (f2 - this.green) * f;
-            this.blue += (f3 - this.blue) * f;
-        }
+		{
+			/*
+			 * float f = 0.25F + 0.75F * (float)this.menuWorldRenderer.renderDistanceChunks
+			 * / 32.0F; f = 1.0F - (float)Math.pow((double)f, 0.25D); Vec3 vec3 =
+			 * this.menuWorldRenderer.getEyePos(); Vec3 vec31 =
+			 * this.menuWorldRenderer.getSkyColor(vec3); float f1 = (float)vec31.x; float f2
+			 * = (float)vec31.y; float f3 = (float)vec31.z; Vec3 vec32 =
+			 * this.menuWorldRenderer.getFogColor(vec3); this.red = (float)vec32.x;
+			 * this.green = (float)vec32.y; this.blue = (float)vec32.z;
+			 * 
+			 * if (this.menuWorldRenderer.renderDistanceChunks >= 4) { double d0 =
+			 * Mth.sin(this.menuWorldRenderer.getCelestialAngleRadians()) > 0.0F ? -1.0D :
+			 * 1.0D; Vec3 vec33 = new Vec3(d0, 0.0D, 0.0D); float f4 =
+			 * (float)this.mc.vrPlayer.vrdata_room_post.hmd.getDirection().dot(vec33);
+			 * 
+			 * if (f4 < 0.0F) { f4 = 0.0F; }
+			 * 
+			 * if (f4 > 0.0F) { float[] afloat =
+			 * this.menuWorldRenderer.dimensionInfo.getSunriseColor(this.menuWorldRenderer.
+			 * getCelestialAngle(), 0.0F);
+			 * 
+			 * if (afloat != null) { f4 = f4 * afloat[3]; this.red = this.red * (1.0F - f4)
+			 * + afloat[0] * f4; this.green = this.green * (1.0F - f4) + afloat[1] * f4;
+			 * this.blue = this.blue * (1.0F - f4) + afloat[2] * f4; } } }
+			 * 
+			 * this.red += (f1 - this.red) * f; this.green += (f2 - this.green) * f;
+			 * this.blue += (f3 - this.blue) * f;
+			 */}
 
         private void updateWaterFog(LevelReader worldIn)
-        {
-            long i = Util.getMillis();
-            int j = worldIn.getBiome(new BlockPos(this.menuWorldRenderer.getEyePos())).getWaterFogColor();
-
-            if (this.waterFogUpdateTime < 0L)
-            {
-                this.lastWaterFogColor = j;
-                this.waterFogColor = j;
-                this.waterFogUpdateTime = i;
-            }
-
-            int k = this.lastWaterFogColor >> 16 & 255;
-            int l = this.lastWaterFogColor >> 8 & 255;
-            int i1 = this.lastWaterFogColor & 255;
-            int j1 = this.waterFogColor >> 16 & 255;
-            int k1 = this.waterFogColor >> 8 & 255;
-            int l1 = this.waterFogColor & 255;
-            float f = Mth.clamp((float)(i - this.waterFogUpdateTime) / 5000.0F, 0.0F, 1.0F);
-            float f1 = (float)j1 + (float)(k - j1) * f;
-            float f2 = (float)k1 + (float)(l - k1) * f;
-            float f3 = (float)l1 + (float)(i1 - l1) * f;
-            this.red = f1 / 255.0F;
-            this.green = f2 / 255.0F;
-            this.blue = f3 / 255.0F;
-
-            if (this.lastWaterFogColor != j)
-            {
-                this.lastWaterFogColor = j;
-                this.waterFogColor = Mth.floor(f1) << 16 | Mth.floor(f2) << 8 | Mth.floor(f3);
-                this.waterFogUpdateTime = i;
-            }
-        }
+		{
+			/*
+			 * long i = Util.getMillis(); int j = worldIn.getBiome(new
+			 * BlockPos(this.menuWorldRenderer.getEyePos())).getWaterFogColor();
+			 * 
+			 * if (this.waterFogUpdateTime < 0L) { this.lastWaterFogColor = j;
+			 * this.waterFogColor = j; this.waterFogUpdateTime = i; }
+			 * 
+			 * int k = this.lastWaterFogColor >> 16 & 255; int l = this.lastWaterFogColor >>
+			 * 8 & 255; int i1 = this.lastWaterFogColor & 255; int j1 = this.waterFogColor
+			 * >> 16 & 255; int k1 = this.waterFogColor >> 8 & 255; int l1 =
+			 * this.waterFogColor & 255; float f = Mth.clamp((float)(i -
+			 * this.waterFogUpdateTime) / 5000.0F, 0.0F, 1.0F); float f1 = (float)j1 +
+			 * (float)(k - j1) * f; float f2 = (float)k1 + (float)(l - k1) * f; float f3 =
+			 * (float)l1 + (float)(i1 - l1) * f; this.red = f1 / 255.0F; this.green = f2 /
+			 * 255.0F; this.blue = f3 / 255.0F;
+			 * 
+			 * if (this.lastWaterFogColor != j) { this.lastWaterFogColor = j;
+			 * this.waterFogColor = Mth.floor(f1) << 16 | Mth.floor(f2) << 8 |
+			 * Mth.floor(f3); this.waterFogUpdateTime = i; }
+			 */}
 
         public void setupFog(int startCoords)
         {/*

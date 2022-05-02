@@ -8,7 +8,7 @@
  
  public class BookEditScreen extends Screen
  {
-@@ -64,19 +65,19 @@
+@@ -63,19 +64,19 @@
      private int currentPage;
      private final List<String> pages = Lists.newArrayList();
      private String title = "";
@@ -34,7 +34,7 @@
      });
      private long lastClickTime;
      private int lastIndex = -1;
-@@ -178,6 +179,9 @@
+@@ -177,6 +178,9 @@
          {
              this.pageBack();
          }, true));
@@ -44,7 +44,7 @@
          this.updateButtonVisibility();
      }
  
-@@ -687,16 +691,16 @@
+@@ -686,16 +690,16 @@
              MutableInt mutableint = new MutableInt();
              MutableBoolean mutableboolean = new MutableBoolean();
              StringSplitter stringsplitter = this.font.getSplitter();

@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.DimensionSpecialEffects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Cursor3D;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ColorResolver;
@@ -159,31 +160,32 @@ public class FakeBlockAccess implements LevelReader
 
     public int getBlockTint(BlockPos pBlockPos, ColorResolver pColorResolver)
     {
-        int i = Minecraft.getInstance().options.biomeBlendRadius;
-
-        if (i == 0)
-        {
-            return pColorResolver.getColor(this.getBiome(pBlockPos), (double)pBlockPos.getX(), (double)pBlockPos.getZ());
-        }
-        else
-        {
-            int j = (i * 2 + 1) * (i * 2 + 1);
-            int k = 0;
-            int l = 0;
-            int i1 = 0;
-            Cursor3D cursor3d = new Cursor3D(pBlockPos.getX() - i, pBlockPos.getY(), pBlockPos.getZ() - i, pBlockPos.getX() + i, pBlockPos.getY(), pBlockPos.getZ() + i);
-            int j1;
-
-            for (BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(); cursor3d.advance(); i1 += j1 & 255)
-            {
-                blockpos$mutableblockpos.set(cursor3d.nextX(), cursor3d.nextY(), cursor3d.nextZ());
-                j1 = pColorResolver.getColor(this.getBiome(blockpos$mutableblockpos), (double)blockpos$mutableblockpos.getX(), (double)blockpos$mutableblockpos.getZ());
-                k += (j1 & 16711680) >> 16;
-                l += (j1 & 65280) >> 8;
-            }
-
-            return (k / j & 255) << 16 | (l / j & 255) << 8 | i1 / j & 255;
-        }
+    	return 42;
+//        int i = Minecraft.getInstance().options.biomeBlendRadius;
+//
+//        if (i == 0)
+//        {
+//            return pColorResolver.getColor(this.getBiome(pBlockPos), (double)pBlockPos.getX(), (double)pBlockPos.getZ());
+//        }
+//        else
+//        {
+//            int j = (i * 2 + 1) * (i * 2 + 1);
+//            int k = 0;
+//            int l = 0;
+//            int i1 = 0;
+//            Cursor3D cursor3d = new Cursor3D(pBlockPos.getX() - i, pBlockPos.getY(), pBlockPos.getZ() - i, pBlockPos.getX() + i, pBlockPos.getY(), pBlockPos.getZ() + i);
+//            int j1;
+//
+//            for (BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(); cursor3d.advance(); i1 += j1 & 255)
+//            {
+//                blockpos$mutableblockpos.set(cursor3d.nextX(), cursor3d.nextY(), cursor3d.nextZ());
+//                j1 = pColorResolver.getColor(this.getBiome(blockpos$mutableblockpos), (double)blockpos$mutableblockpos.getX(), (double)blockpos$mutableblockpos.getZ());
+//                k += (j1 & 16711680) >> 16;
+//                l += (j1 & 65280) >> 8;
+//            }
+//
+//            return (k / j & 255) << 16 | (l / j & 255) << 8 | i1 / j & 255;
+//        }
     }
 
     public int getBrightness(LightLayer pLightType, BlockPos pBlockPos)
@@ -317,17 +319,17 @@ public class FakeBlockAccess implements LevelReader
         return this.getBlockState(pPos).isAir();
     }
 
-    public Biome getNoiseBiome(int pX, int pY, int pZ)
-    {
-        if (!this.checkCoords(pX * 4, pY * 4, pZ * 4))
-        {
-            pX = Mth.clamp(pX, 0, this.xSize / 4 - 1);
-            pY = Mth.clamp(pY, 0, this.ySize / 4 - 1);
-            pZ = Mth.clamp(pZ, 0, this.zSize / 4 - 1);
-        }
-
-        return this.biomemap[(pY * (this.zSize / 4) + pZ) * (this.xSize / 4) + pX];
-    }
+//    public Biome getNoiseBiome(int pX, int pY, int pZ)
+//    {
+//        if (!this.checkCoords(pX * 4, pY * 4, pZ * 4))
+//        {
+//            pX = Mth.clamp(pX, 0, this.xSize / 4 - 1);
+//            pY = Mth.clamp(pY, 0, this.ySize / 4 - 1);
+//            pZ = Mth.clamp(pZ, 0, this.zSize / 4 - 1);
+//        }
+//
+//        return this.biomemap[(pY * (this.zSize / 4) + pZ) * (this.xSize / 4) + pX];
+//    }
 
     public int getDirectSignal(BlockPos pPos, Direction pDirection)
     {
@@ -354,13 +356,19 @@ public class FakeBlockAccess implements LevelReader
         return this.biomeManager;
     }
 
-    public Biome getUncachedNoiseBiome(int pX, int pY, int pZ)
-    {
-        return null;
-    }
+//    public Biome getUncachedNoiseBiome(int pX, int pY, int pZ)
+//    {
+//        return null;
+//    }
 
 	@Override
 	public List<VoxelShape> getEntityCollisions(Entity p_186427_, AABB p_186428_) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Holder<Biome> getUncachedNoiseBiome(int pX, int pY, int pZ) {
 		// TODO Auto-generated method stub
 		return null;
 	}

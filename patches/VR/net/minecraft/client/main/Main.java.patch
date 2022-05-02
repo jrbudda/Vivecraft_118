@@ -3,7 +3,7 @@
 @@ -44,7 +44,10 @@
  public class Main
  {
-     static final Logger LOGGER = LogManager.getLogger();
+     static final Logger LOGGER = LogUtils.getLogger();
 -
 +    public static boolean kiosk;
 +    public static boolean viewonly;
@@ -81,11 +81,11 @@
          }
          finally
          {
-@@ -307,6 +335,6 @@
+@@ -306,6 +334,6 @@
+ 
      static
      {
-         Util.preInitLog4j();
 -        System.setProperty("java.awt.headless", "true");
-+        //Vivecraft we do this for some reason. System.setProperty("java.awt.headless", "true");
++    	//Vivecraft we do this for some reason. System.setProperty("java.awt.headless", "true");
      }
  }

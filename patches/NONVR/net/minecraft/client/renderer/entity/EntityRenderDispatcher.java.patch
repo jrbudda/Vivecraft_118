@@ -20,8 +20,8 @@
  import net.minecraft.CrashReport;
  import net.minecraft.CrashReportCategory;
  import net.minecraft.ReportedException;
-@@ -78,6 +84,12 @@
-     public Entity renderEntity = null;
+@@ -77,6 +83,12 @@
+     private Entity renderedEntity = null;
      private EntityRendererProvider.Context context = null;
  
 +    //Vivecraft
@@ -33,76 +33,7 @@
      public <E extends Entity> int getPackedLightCoords(E pEntity, float pPartialTicks)
      {
          int i = this.getRenderer(pEntity).getPackedLightCoords(pEntity, pPartialTicks);
-@@ -104,8 +116,66 @@
-         if (pEntity instanceof AbstractClientPlayer)
-         {
-             String s = ((AbstractClientPlayer)pEntity).getModelName();
--            EntityRenderer <? extends Player > entityrenderer = this.playerRenderers.get(s);
--            return entityrenderer != null ? (EntityRenderer <? super T >)entityrenderer : (EntityRenderer <? super T >)this.playerRenderers.get("default");
-+            PlayerRenderer playerrenderer = (PlayerRenderer) this.playerRenderers.get(s);
-+            PlayerModelController.RotInfo playermodelcontroller$rotinfo = PlayerModelController.getInstance().getRotationsForPlayer(pEntity.getUUID());
-+
-+            if (playermodelcontroller$rotinfo != null)
-+            {
-+                Object object = null;
-+                VRPlayerRenderer vrplayerrenderer1;
-+
-+                if (playermodelcontroller$rotinfo.seated)
-+                {
-+                    if (this.playerRendererVRSeated == null)
-+                    {
-+                        this.playerRendererVRSeated = new VRPlayerRenderer(this.context, false, true);
-+                        this.skinMapVRSeated.put("default", this.playerRendererVRSeated);
-+                        this.skinMapVRSeated.put("slim", new VRPlayerRenderer(this.context, true, true));
-+                        //TODO: where gone?
-+                        //:shrug:
-+                        //PlayerItemsLayer.register(this.skinMapVRSeated);
-+                    }
-+
-+                    VRPlayerRenderer vrplayerrenderer = this.skinMapVRSeated.get(s);
-+
-+                    if (vrplayerrenderer != null)
-+                    {
-+                        vrplayerrenderer1 = vrplayerrenderer;
-+                    }
-+                    else
-+                    {
-+                        vrplayerrenderer1 = this.playerRendererVRSeated;
-+                    }
-+                }
-+                else
-+                {
-+                    if (this.playerRendererVR == null)
-+                    {
-+                        this.playerRendererVR = new VRPlayerRenderer(this.context, false, false);
-+                        this.skinMapVR.put("default", this.playerRendererVR);
-+                        this.skinMapVR.put("slim", new VRPlayerRenderer(this.context, true, false));
-+                       // PlayerItemsLayer.register(this.skinMapVR);
-+                    }
-+
-+                    VRPlayerRenderer vrplayerrenderer2 = this.skinMapVR.get(s);
-+
-+                    if (vrplayerrenderer2 != null)
-+                    {
-+                        vrplayerrenderer1 = vrplayerrenderer2;
-+                    }
-+                    else
-+                    {
-+                        vrplayerrenderer1 = this.playerRendererVR;
-+                    }
-+                }
-+
-+                return (EntityRenderer<? super T>) vrplayerrenderer1;
-+            }
-+            else
-+            {
-+                EntityRenderer <? extends Player > entityrenderer = this.playerRenderers.get(s);
-+                return entityrenderer != null ? (EntityRenderer <? super T >)entityrenderer : (EntityRenderer <? super T >)this.playerRenderers.get("default");
-+            }
-         }
-         else
-         {
-@@ -218,9 +288,9 @@
+@@ -212,9 +224,9 @@
  
                  p_114391_.popPose();
              }

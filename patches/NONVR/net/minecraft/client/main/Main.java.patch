@@ -1,18 +1,6 @@
 --- a/net/minecraft/client/main/Main.java
 +++ b/net/minecraft/client/main/Main.java
-@@ -44,7 +44,10 @@
- public class Main
- {
-     static final Logger LOGGER = LogManager.getLogger();
--
-+    public static boolean kiosk;
-+    public static boolean viewonly;
-+    public static boolean katvr;
-+    public static boolean infinadeck;
-     @DontObfuscate
-     public static void main(String[] pArgs)
-     {
-@@ -54,6 +57,11 @@
+@@ -54,6 +54,11 @@
          optionparser.accepts("demo");
          optionparser.accepts("disableMultiplayer");
          optionparser.accepts("disableChat");
@@ -24,33 +12,7 @@
          optionparser.accepts("fullscreen");
          optionparser.accepts("checkGlErrors");
          OptionSpec<Void> optionspec = optionparser.accepts("jfrProfile");
-@@ -124,6 +132,25 @@
-         OptionalInt optionalint1 = ofNullable(parseArgument(optionset, optionspec19));
-         boolean flag = optionset.has("fullscreen");
-         boolean flag1 = optionset.has("demo");
-+        kiosk = optionset.has("kiosk");
-+
-+        if (kiosk)
-+        {
-+            System.out.println("Setting kiosk");
-+        }
-+
-+        if (kiosk)
-+        {
-+            viewonly = optionset.has("viewonly");
-+
-+            if (viewonly)
-+            {
-+                System.out.println("Setting viewonly");
-+            }
-+        }
-+
-+        katvr = optionset.has("katvr");
-+        infinadeck = optionset.has("infinadeck");
-         boolean flag2 = optionset.has("disableMultiplayer");
-         boolean flag3 = optionset.has("disableChat");
-         String s3 = parseArgument(optionset, optionspec15);
-@@ -196,6 +223,7 @@
+@@ -196,6 +201,7 @@
          }
          catch (Throwable throwable1)
          {
@@ -58,7 +20,7 @@
              CrashReport crashreport = CrashReport.forThrowable(throwable1, "Initializing game");
              CrashReportCategory crashreportcategory = crashreport.addCategory("Initialization");
              NativeModuleLister.addCrashSection(crashreportcategory);
-@@ -255,9 +283,9 @@
+@@ -255,9 +261,9 @@
                  thread1.join();
              }
          }

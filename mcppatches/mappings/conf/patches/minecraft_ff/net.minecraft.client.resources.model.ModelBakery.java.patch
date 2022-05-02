@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\client\resources\model\ModelBakery.java minecraft_patched\net\minecraft\client\resources\model\ModelBakery.java
 --- minecraft\net\minecraft\client\resources\model\ModelBakery.java
 +++ minecraft_patched\net\minecraft\client\resources\model\ModelBakery.java
-@@ -354,7 +354,7 @@
+@@ -357,7 +357,7 @@
                       try {
                          InputStream inputstream = p_119258_.m_6679_();
  

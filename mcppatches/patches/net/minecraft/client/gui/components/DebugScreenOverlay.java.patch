@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/gui/components/DebugScreenOverlay.java
 +++ b/net/minecraft/client/gui/components/DebugScreenOverlay.java
-@@ -570,7 +570,7 @@
+@@ -583,7 +583,7 @@
          {
              list.add("");
  

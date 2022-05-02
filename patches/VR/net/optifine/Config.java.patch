@@ -1,6 +1,6 @@
 --- a/net/optifine/Config.java
 +++ b/net/optifine/Config.java
-@@ -142,14 +142,15 @@
+@@ -143,14 +143,15 @@
  
      public static void initGameSettings(Options settings)
      {
@@ -24,7 +24,7 @@
  
      public static void initDisplay()
      {
-@@ -161,14 +162,11 @@
+@@ -162,14 +163,11 @@
  
      public static void checkInitialized()
      {
@@ -43,7 +43,7 @@
          }
      }
  
-@@ -401,9 +399,9 @@
+@@ -402,9 +400,9 @@
                  }
              }
          }
@@ -55,7 +55,7 @@
              return def;
          }
      }
-@@ -451,9 +449,9 @@
+@@ -452,9 +450,9 @@
              String s = GL11.glGetString(GL11.GL_EXTENSIONS);
              return s.split(" ");
          }
@@ -67,7 +67,7 @@
              return new String[0];
          }
      }
-@@ -508,9 +506,9 @@
+@@ -509,9 +507,9 @@
                  }
              }
          }
@@ -79,7 +79,7 @@
          }
      }
  
-@@ -1111,7 +1109,7 @@
+@@ -1112,7 +1110,7 @@
              Resource resource = resourceManager.getResource(location);
              return resource != null;
          }
@@ -88,7 +88,7 @@
          {
              return false;
          }
-@@ -1165,7 +1163,7 @@
+@@ -1166,7 +1164,7 @@
                      astring[i] = apackresources[i].getName();
                  }
  
@@ -97,7 +97,7 @@
              }
          }
      }
-@@ -2293,14 +2291,7 @@
+@@ -2299,14 +2297,7 @@
  
      public static boolean isIntegratedServerRunning()
      {

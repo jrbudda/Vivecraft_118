@@ -1,6 +1,6 @@
 --- a/net/optifine/CrashReporter.java
 +++ b/net/optifine/CrashReporter.java
-@@ -107,10 +107,10 @@
+@@ -113,10 +113,10 @@
              cat.setDetail("Multitexture", "" + Config.isMultiTexture());
          }
  

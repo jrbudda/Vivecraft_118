@@ -4,6 +4,8 @@ import org.lwjgl.opengl.ARBShaderObjects;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
+import net.optifine.shaders.Shaders;
+
 public class ShaderHelper
 {
     private static int createShader(String shaderGLSL, int shaderType) throws Exception
@@ -20,7 +22,7 @@ public class ShaderHelper
             }
             else
             {
-                ARBShaderObjects.glShaderSourceARB(i, (CharSequence)shaderGLSL);
+                Shaders.shaderSource(i, shaderGLSL);
                 ARBShaderObjects.glCompileShaderARB(i);
 
                 if (ARBShaderObjects.glGetObjectParameteriARB(i, ARBShaderObjects.GL_OBJECT_COMPILE_STATUS_ARB) == 0)

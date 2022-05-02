@@ -1,9 +1,9 @@
 ﻿diff -r -U 3 minecraft\net\minecraft\client\renderer\texture\Stitcher.java minecraft_patched\net\minecraft\client\renderer\texture\Stitcher.java
 --- minecraft\net\minecraft\client\renderer\texture\Stitcher.java
 +++ minecraft_patched\net\minecraft\client\renderer\texture\Stitcher.java
-@@ -10,7 +10,7 @@
- import net.minecraft.util.Mth;
+@@ -13,7 +13,7 @@
  
+ @OnlyIn(Dist.CLIENT)
  public class Stitcher {
 -   private static final Comparator<Stitcher.Holder> f_118161_ = Comparator.comparing((p_118201_) -> {
 +   private static final Comparator<Stitcher.Holder> f_118161_ = Comparator.<Stitcher.Holder, Integer>comparing((p_118201_) -> {

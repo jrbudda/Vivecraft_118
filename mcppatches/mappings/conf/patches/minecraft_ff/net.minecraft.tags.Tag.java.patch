@@ -1,0 +1,13 @@
+﻿diff -r -U 3 minecraft\net\minecraft\tags\Tag.java minecraft_patched\net\minecraft\tags\Tag.java
+--- minecraft\net\minecraft\tags\Tag.java
++++ minecraft_patched\net\minecraft\tags\Tag.java
+@@ -28,7 +28,7 @@
+    }
+ 
+    public static <T> Tag<T> m_203861_() {
+-      return f_203856_;
++      return (Tag<T>)f_203856_;
+    }
+ 
+    public static class Builder {
+

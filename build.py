@@ -137,50 +137,50 @@ def create_install(mcp_dir, vrversion = "VR"):
                 arcname =  arc_path + cur_file
                 zipout.write(in_file, arcname)
             
-    with zipfile.ZipFile( in_mem_zip_srg,'w', zipfile.ZIP_DEFLATED) as zipout:
-        zipout.write(os.path.join(mcp_dir, "conf", "joined.srg"), "mappings/vivecraft/joined.srg")
-        zipout.write(os.path.join(base_dir, "installer", "cpw.mods.modlauncher.api.ITransformationService"), "META-INF/services/cpw.mods.modlauncher.api.ITransformationService")
-        for abs_path, _, filelist in os.walk(srg, followlinks=True):
-            arc_path = os.path.relpath(abs_path, srg ).replace('\\','/').replace('.','') + '/'
-            for cur_file in fnmatch.filter(filelist, '*.class'):
-                if 'minecraftforge' in arc_path: continue
-                #print arc_path + cur_file
-                flg = False
-                if not 'vivecraft' in (arc_path+cur_file).lower() and not 'jopenvr' in arc_path and not 'VR' in cur_file: #these misbehave when loaded in this jar, do some magic.
-                    flg = True
-                    ok = False
-                    v = (arc_path + cur_file).replace('/','\\').split('$')[0].replace('.class', '')
-                    cur_file_parent = cur_file.split('$')[0].replace('.class','') + '.class'
-                    if cur_file_parent in vanilla:
-                        v = vanilla[cur_file_parent].replace('/','\\')               
-                    for patch_path, _, patchlist in os.walk(patches, followlinks=True):
-                        for patch in fnmatch.filter(patchlist, '*.patch'):
-                            p = patch_path + '\\' + patch
-                            if v in p:
-                                #print 'Found ' + v + ' ' + p
-                                ok = True
-                                break
-                    if not ok:
-                        print "WARNING: Skipping unexpected file with no patch " + arc_path + cur_file_parent + ' (' + v + ')'
-                        continue
-                if "blaze3d" in arc_path:
-                    flg = True
-                in_file= os.path.join(abs_path,cur_file)
-                arcname = arc_path + cur_file
-                if flg:
-                    arcname = "vcsrg/" + arc_path + cur_file.replace('.class', '.clsrg')
-                zipout.write(in_file, arcname.strip('.'))
-                
-        print "Checking Resources..."
-        for a, b, c in os.walk(resources):
-            print a
-            arc_path = os.path.relpath(a,resources).replace('\\','/').replace('.','')+'/'
-            for cur_file in c:
-                print "Adding resource %s..." % cur_file
-                in_file= os.path.join(a,cur_file) 
-                arcname =  arc_path + cur_file
-                zipout.write(in_file, arcname)
-                
+#   with zipfile.ZipFile( in_mem_zip_srg,'w', zipfile.ZIP_DEFLATED) as zipout:
+#       zipout.write(os.path.join(mcp_dir, "conf", "joined.srg"), "mappings/vivecraft/joined.srg")
+#       zipout.write(os.path.join(base_dir, "installer", "cpw.mods.modlauncher.api.ITransformationService"), "META-INF/services/cpw.mods.modlauncher.api.ITransformationService")
+#       for abs_path, _, filelist in os.walk(srg, followlinks=True):
+#           arc_path = os.path.relpath(abs_path, srg ).replace('\\','/').replace('.','') + '/'
+#           for cur_file in fnmatch.filter(filelist, '*.class'):
+#               if 'minecraftforge' in arc_path: continue
+#               #print arc_path + cur_file
+#               flg = False
+#               if not 'vivecraft' in (arc_path+cur_file).lower() and not 'jopenvr' in arc_path and not 'VR' in cur_file: #these misbehave when loaded in this jar, do some magic.
+#                   flg = True
+#                   ok = False
+#                   v = (arc_path + cur_file).replace('/','\\').split('$')[0].replace('.class', '')
+#                   cur_file_parent = cur_file.split('$')[0].replace('.class','') + '.class'
+#                   if cur_file_parent in vanilla:
+#                       v = vanilla[cur_file_parent].replace('/','\\')               
+#                   for patch_path, _, patchlist in os.walk(patches, followlinks=True):
+#                       for patch in fnmatch.filter(patchlist, '*.patch'):
+#                           p = patch_path + '\\' + patch
+#                           if v in p:
+#                               #print 'Found ' + v + ' ' + p
+#                               ok = True
+#                               break
+#                   if not ok:
+#                       print "WARNING: Skipping unexpected file with no patch " + arc_path + cur_file_parent + ' (' + v + ')'
+#                       continue
+#               if "blaze3d" in arc_path:
+#                   flg = True
+#               in_file= os.path.join(abs_path,cur_file)
+#               arcname = arc_path + cur_file
+#               if flg:
+#                   arcname = "vcsrg/" + arc_path + cur_file.replace('.class', '.clsrg')
+#               zipout.write(in_file, arcname.strip('.'))
+#               
+#       print "Checking Resources..."
+#       for a, b, c in os.walk(resources):
+#           print a
+#           arc_path = os.path.relpath(a,resources).replace('\\','/').replace('.','')+'/'
+#           for cur_file in c:
+#               print "Adding resource %s..." % cur_file
+#               in_file= os.path.join(a,cur_file) 
+#               arcname =  arc_path + cur_file
+#               zipout.write(in_file, arcname)
+#               
     os.chdir( base_dir )
     
     in_mem_zip_obf.seek(0)
@@ -323,7 +323,7 @@ def main(mcp_dir, version = "VR"):
     #except OSError:
     #    quit
    
-    commands.creatergcfg(reobf=True, keep_lvt=True, keep_generics=True, srg_names=False)
+    #commands.creatergcfg(reobf=True, keep_lvt=True, keep_generics=True, srg_names=False)
     reobfuscate_side( commands, CLIENT )
     
     try:   

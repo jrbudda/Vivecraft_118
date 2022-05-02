@@ -21,8 +21,8 @@
  import net.minecraft.CrashReport;
  import net.minecraft.CrashReportCategory;
  import net.minecraft.ReportedException;
-@@ -78,6 +85,14 @@
-     public Entity renderEntity = null;
+@@ -77,6 +84,14 @@
+     private Entity renderedEntity = null;
      private EntityRendererProvider.Context context = null;
  
 +    //Vivecraft
@@ -36,12 +36,10 @@
      public <E extends Entity> int getPackedLightCoords(E pEntity, float pPartialTicks)
      {
          int i = this.getRenderer(pEntity).getPackedLightCoords(pEntity, pPartialTicks);
-@@ -104,8 +119,66 @@
+@@ -103,8 +118,66 @@
          if (pEntity instanceof AbstractClientPlayer)
          {
              String s = ((AbstractClientPlayer)pEntity).getModelName();
--            EntityRenderer <? extends Player > entityrenderer = this.playerRenderers.get(s);
--            return entityrenderer != null ? (EntityRenderer <? super T >)entityrenderer : (EntityRenderer <? super T >)this.playerRenderers.get("default");
 +            PlayerRenderer playerrenderer = (PlayerRenderer) this.playerRenderers.get(s);
 +            PlayerModelController.RotInfo playermodelcontroller$rotinfo = PlayerModelController.getInstance().getRotationsForPlayer(pEntity.getUUID());
 +
@@ -99,25 +97,13 @@
 +            }
 +            else
 +            {
-+                EntityRenderer <? extends Player > entityrenderer = this.playerRenderers.get(s);
-+                return entityrenderer != null ? (EntityRenderer <? super T >)entityrenderer : (EntityRenderer <? super T >)this.playerRenderers.get("default");
+             EntityRenderer <? extends Player > entityrenderer = this.playerRenderers.get(s);
+             return (EntityRenderer)(entityrenderer != null ? entityrenderer : this.playerRenderers.get("default"));
 +            }
          }
          else
          {
-@@ -218,9 +291,9 @@
- 
-                 p_114391_.popPose();
-             }
--            catch (Throwable throwable1)
-+            catch (Throwable throwable)
-             {
--                CrashReport crashreport = CrashReport.forThrowable(throwable1, "Rendering entity in world");
-+                CrashReport crashreport = CrashReport.forThrowable(throwable, "Rendering entity in world");
-                 CrashReportCategory crashreportcategory = crashreport.addCategory("Entity being rendered");
-                 pEntity.fillCrashReportCategory(crashreportcategory);
-                 CrashReportCategory crashreportcategory1 = crashreport.addCategory("Renderer details");
-@@ -441,7 +514,66 @@
+@@ -435,7 +508,64 @@
  
      public Quaternion cameraOrientation()
      {
@@ -152,7 +138,7 @@
 +        }
 +    }
 +
-+    public Quaternion getCameraOrientationOffset(float offset)
++    public Quaternion getCameraOrientationOffset(Entity entity, float offset)
 +    {
 +        if (Minecraft.getInstance().currentPass == RenderPass.GUI)
 +        {
@@ -160,8 +146,6 @@
 +        }
 +        else
 +        {
-+            Entity entity = Minecraft.getInstance().levelRenderer.renderedEntity;
-+
 +            if (entity == null)
 +            {
 +                return this.camera.rotation();
@@ -185,9 +169,9 @@
      }
  
      public void onResourceManagerReload(ResourceManager pResourceManager)
-@@ -451,6 +583,11 @@
+@@ -445,6 +575,11 @@
+         this.renderers = EntityRenderers.createEntityRenderers(entityrendererprovider$context);
          this.playerRenderers = EntityRenderers.createPlayerRenderers(entityrendererprovider$context);
-         this.context = entityrendererprovider$context;
          registerPlayerItems(this.playerRenderers);
 +        //Vivecraft       
 +        this.armRenderer = new VRArmRenderer(context, false);

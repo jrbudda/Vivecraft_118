@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/model/geom/ModelPart.java
 +++ b/net/minecraft/client/model/geom/ModelPart.java
-@@ -439,7 +439,7 @@
+@@ -478,7 +478,7 @@
  
      public static class Cube
      {
@@ -9,7 +9,7 @@
          public final float minX;
          public final float minY;
          public final float minZ;
-@@ -606,10 +606,10 @@
+@@ -645,10 +645,10 @@
          }
      }
  
@@ -23,7 +23,7 @@
  
          public Polygon(ModelPart.Vertex[] p_104362_, float p_104363_, float p_104364_, float p_104365_, float p_104366_, float p_104367_, float p_104368_, boolean p_104369_, Direction p_104370_)
          {
-@@ -659,7 +659,7 @@
+@@ -698,7 +698,7 @@
          }
      }
  

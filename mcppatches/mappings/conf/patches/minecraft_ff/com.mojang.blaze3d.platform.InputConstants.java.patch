@@ -1,7 +1,7 @@
 ﻿diff -r -U 3 minecraft\com\mojang\blaze3d\platform\InputConstants.java minecraft_patched\com\mojang\blaze3d\platform\InputConstants.java
 --- minecraft\com\mojang\blaze3d\platform\InputConstants.java
 +++ minecraft_patched\com\mojang\blaze3d\platform\InputConstants.java
-@@ -198,7 +198,7 @@
+@@ -201,7 +201,7 @@
  
     public static boolean m_84826_() {
        try {
@@ -10,7 +10,7 @@
        } catch (Throwable throwable) {
           throw new RuntimeException(throwable);
        }
-@@ -220,7 +220,7 @@
+@@ -223,7 +223,7 @@
        try {
           methodhandle = lookup.findStatic(GLFW.class, "glfwRawMouseMotionSupported", methodtype);
           MethodHandle methodhandle1 = lookup.findStaticGetter(GLFW.class, "GLFW_RAW_MOUSE_MOTION", Integer.TYPE);
