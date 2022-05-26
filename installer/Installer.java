@@ -356,7 +356,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
 		// Custom Game Dir
 
-		JPanel gameDirPanel = new JPanel();http://vivecraft.org/
+		JPanel gameDirPanel = new JPanel();
 		gameDirPanel.setLayout( new BoxLayout(gameDirPanel, BoxLayout.X_AXIS));
 		gameDirPanel.setAlignmentX(LEFT_ALIGNMENT);
 		gameDirPanel.setAlignmentY(TOP_ALIGNMENT);
