@@ -311,7 +311,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		Integer[] rams = {2,3,4,6,8};
 
 		ramAllocation = new JComboBox(rams);
-		ramAllocation.setSelectedIndex(2);
+		ramAllocation.setSelectedIndex(1);
 		ramAllocation.setToolTipText(
 				"<html>" +
 						"Select the amount of Ram, in GB to allocate to the Vivecraft profile.<br>" +
