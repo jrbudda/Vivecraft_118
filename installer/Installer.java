@@ -308,7 +308,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		ramPanel.setAlignmentX(LEFT_ALIGNMENT);
 		ramPanel.setAlignmentY(TOP_ALIGNMENT);
 
-		Integer[] rams = {1,2,3,4,6,8};
+		Integer[] rams = {2,3,4,6,8};
 
 		ramAllocation = new JComboBox(rams);
 		ramAllocation.setSelectedIndex(2);
@@ -356,7 +356,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
 		// Custom Game Dir
 
-		JPanel gameDirPanel = new JPanel();
+		JPanel gameDirPanel = new JPanel();http://vivecraft.org/
 		gameDirPanel.setLayout( new BoxLayout(gameDirPanel, BoxLayout.X_AXIS));
 		gameDirPanel.setAlignmentX(LEFT_ALIGNMENT);
 		gameDirPanel.setAlignmentY(TOP_ALIGNMENT);
@@ -1644,7 +1644,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 			if(chkCustomProfileName.isSelected() == false){
 				txtCustomProfileName.setText(getMinecraftProfileName(useForge.isSelected(), useShadersMod.isSelected()));
 			}
-			if (ramAllocation.getSelectedIndex() < 2) {
+			if (ramAllocation.getSelectedIndex() == 0) {
 				out += "<br>Vivecraft may not run well with 2 GB or less of memory!";
 			}
 		}
