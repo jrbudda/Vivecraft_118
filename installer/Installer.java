@@ -308,10 +308,10 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		ramPanel.setAlignmentX(LEFT_ALIGNMENT);
 		ramPanel.setAlignmentY(TOP_ALIGNMENT);
 
-		Integer[] rams = {1,2,4,6,8};
+		Integer[] rams = {1,2,3,4,6,8};
 
 		ramAllocation = new JComboBox(rams);
-		ramAllocation.setSelectedIndex(1);
+		ramAllocation.setSelectedIndex(2);
 		ramAllocation.setToolTipText(
 				"<html>" +
 						"Select the amount of Ram, in GB to allocate to the Vivecraft profile.<br>" +
@@ -1644,8 +1644,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
 			if(chkCustomProfileName.isSelected() == false){
 				txtCustomProfileName.setText(getMinecraftProfileName(useForge.isSelected(), useShadersMod.isSelected()));
 			}
-			if (ramAllocation.getSelectedIndex() == 0) {
-				out += "<br>Vivecraft may not run well with only 1 GB of memory!";
+			if (ramAllocation.getSelectedIndex() < 2) {
+				out += "<br>Vivecraft may not run well with 2 GB or less of memory!";
 			}
 		}
 		if (useForge.isSelected()){
