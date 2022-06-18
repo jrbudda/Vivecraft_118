@@ -70,7 +70,83 @@
          {
              this.connection.disconnect(pTextComponent);
          });
-@@ -1352,9 +1369,9 @@
+@@ -441,11 +458,17 @@
+                 }
+ 
+                 entity.absMoveTo(d3, d4, d5, f, f1);
++                //Forge
++                this.player.absMoveTo(d3, d4, d5, this.player.getYRot(), this.player.getXRot());
++                //
+                 boolean flag3 = serverlevel.noCollision(entity, entity.getBoundingBox().deflate(0.0625D));
+ 
+                 if (flag && (flag2 || !flag3))
+                 {
+-                    entity.absMoveTo(d0, d1, d2, f, f1);
++                    entity.absMoveTo(d0, d1, d2, f, f1);                 
++                    //Forge
++                    this.player.absMoveTo(d3, d4, d5, this.player.getYRot(), this.player.getXRot());
++                    //
+                     this.connection.send(new ClientboundMoveVehiclePacket(entity));
+                     return;
+                 }
+@@ -462,7 +485,10 @@
+ 
+     private boolean noBlocksAround(Entity p_9794_)
+     {
+-        return p_9794_.level.getBlockStates(p_9794_.getBoundingBox().inflate(0.0625D).expandTowards(0.0D, -0.55D, 0.0D)).allMatch(BlockBehaviour.BlockStateBase::isAir);
++    	//Forge is this ok?
++        //return p_9794_.level.getBlockStates(p_9794_.getBoundingBox().inflate(0.0625D).expandTowards(0.0D, -0.55D, 0.0D)).allMatch(BlockBehaviour.BlockStateBase::isAir);
++        return BlockPos.betweenClosedStream(p_9794_.getBoundingBox().inflate(0.0625D).expandTowards(0.0D, -0.55D, 0.0D)).allMatch(b -> p_9794_.level.getBlockState(b).isAir());
++        //
+     }
+ 
+     public void handleAcceptTeleportPacket(ServerboundAcceptTeleportationPacket pPacket)
+@@ -1226,20 +1252,31 @@
+ 
+                 if (blockpos.getY() < i)
+                 {
+-                    if (this.awaitingPositionFromClient == null && this.player.distanceToSqr((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D) < 64.0D && serverlevel.mayInteract(this.player, blockpos))
+-                    {
+-                        InteractionResult interactionresult = this.player.gameMode.useItemOn(this.player, serverlevel, itemstack, interactionhand, blockhitresult);
+ 
+-                        if (direction == Direction.UP && !interactionresult.consumesAction() && blockpos.getY() >= i - 1 && wasBlockPlacementAttempt(this.player, itemstack))
+-                        {
+-                            Component component = (new TranslatableComponent("build.tooHigh", i - 1)).withStyle(ChatFormatting.RED);
+-                            this.player.sendMessage(component, ChatType.GAME_INFO, Util.NIL_UUID);
+-                        }
+-                        else if (interactionresult.shouldSwing())
+-                        {
+-                            this.player.swing(interactionhand, true);
+-                        }
+-                    }
++                	//Forge
++                	Object object = Reflector.call(Reflector.getFieldValue(Reflector.ForgeMod_REACH_DISTANCE), Reflector.RegistryObject_get);
++                	double dist = 64.0;
++                	if (object != null)
++                	{
++                		dist = this.player.getAttribute((Attribute)object).getValue() + 3.0D;
++                	}
++
++                	dist = dist * dist;
++                	//
++                	if (this.awaitingPositionFromClient == null && this.player.distanceToSqr((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D) < dist && serverlevel.mayInteract(this.player, blockpos))
++                	{
++                		InteractionResult interactionresult = this.player.gameMode.useItemOn(this.player, serverlevel, itemstack, interactionhand, blockhitresult);
++
++                		if (direction == Direction.UP && !interactionresult.consumesAction() && blockpos.getY() >= i - 1 && wasBlockPlacementAttempt(this.player, itemstack))
++                		{
++                			Component component = (new TranslatableComponent("build.tooHigh", i - 1)).withStyle(ChatFormatting.RED);
++                			this.player.sendMessage(component, ChatType.GAME_INFO, Util.NIL_UUID);
++                		}
++                		else if (interactionresult.shouldSwing())
++                		{
++                			this.player.swing(interactionhand, true);
++                		}
++                	}
+                 }
+                 else
+                 {
+@@ -1352,9 +1389,9 @@
          {
              this.connection.send(pPacket, pFutureListeners);
          }
@@ -82,12 +158,54 @@
              CrashReportCategory crashreportcategory = crashreport.addCategory("Packet being sent");
              crashreportcategory.setDetail("Packet class", () ->
              {
-@@ -1832,6 +1849,128 @@
+@@ -1386,8 +1423,10 @@
+ 
+     public void handleChat(ServerboundChatPacket pPacket)
+     {
+-        String s = StringUtils.normalizeSpace(pPacket.getMessage());
+-
++        //String s = StringUtils.normalizeSpace(pPacket.getMessage());
++        //Forge -why?
++    	String s = org.apache.commons.lang3.StringUtils.normalizeSpace(pPacket.getMessage());
++        //
+         for (int i = 0; i < s.length(); ++i)
+         {
+             if (!SharedConstants.isAllowedChatCharacter(s.charAt(i)))
+@@ -1428,9 +1467,14 @@
+                 String s1 = pPacket.getFiltered();
+                 Component component = s1.isEmpty() ? null : new TranslatableComponent("chat.type.text", this.player.getDisplayName(), s1);
+                 Component component1 = new TranslatableComponent("chat.type.text", this.player.getDisplayName(), s);
++    			//Forge
++                if(Reflector.ForgeHooks_onServerChatEvent.exists())
++                	component1 = (Component) Reflector.call(Reflector.ForgeHooks_onServerChatEvent, this, s, component1);
++                Component finalComponent = component1;
++                //
+                 this.server.getPlayerList().broadcastMessage(component1, (p_184197_) ->
+                 {
+-                    return this.player.shouldFilterMessageTo(p_184197_) ? component : component1;
++                    return this.player.shouldFilterMessageTo(p_184197_) ? component : finalComponent;
+                 }, ChatType.CHAT, this.player.getUUID());
+             }
+ 
+@@ -1556,7 +1600,9 @@
+                     {
+                         ItemStack itemstack = ServerGamePacketListenerImpl.this.player.getItemInHand(p_143679_).copy();
+                         InteractionResult interactionresult = p_143680_.run(ServerGamePacketListenerImpl.this.player, entity, p_143679_);
+-
++                        //Forge
++                        if (Reflector.call(Reflector.ForgeHooks_onInteractEntityAt, player, entity, entity.position(), p_143679_) != null) return;
++                        //
+                         if (interactionresult.consumesAction())
+                         {
+                             CriteriaTriggers.PLAYER_INTERACTED_WITH_ENTITY.trigger(ServerGamePacketListenerImpl.this.player, itemstack, entity);
+@@ -1832,6 +1878,130 @@
  
      public void handleCustomPayload(ServerboundCustomPayloadPacket pPacket)
      {
-+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
++        //Forge
++    	PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
 +        Reflector.call(Reflector.NetworkHooks_onCustomPayload, pPacket, this.connection);
++        //
 +        FriendlyByteBuf friendlybytebuf = (FriendlyByteBuf)MCReflection.CCustomPayloadPacket_data.get(pPacket);
 +        ResourceLocation resourcelocation = (ResourceLocation)MCReflection.CCustomPayloadPacket_channel.get(pPacket);
 +        String s = resourcelocation.getNamespace();

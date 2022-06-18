@@ -1,0 +1,71 @@
+--- a/net/minecraft/server/packs/repository/Pack.java
++++ b/net/minecraft/server/packs/repository/Pack.java
+@@ -28,6 +28,7 @@
+     private final Pack.Position defaultPosition;
+     private final boolean required;
+     private final boolean fixedPosition;
++    private final boolean hidden; // Forge: Allow packs to be hidden from the UI entirely
+     private final PackSource packSource;
+ 
+     @Nullable
+@@ -45,7 +46,7 @@
+ 
+                     if (packmetadatasection != null)
+                     {
+-                        pack = p_10434_.create(p_10431_, new TextComponent(packresources.getName()), p_10432_, p_10433_, packmetadatasection, p_10435_, p_10436_);
++                        pack = p_10434_.create(p_10431_, new TextComponent(packresources.getName()), p_10432_, p_10433_, packmetadatasection, p_10435_, p_10436_, false);
+                         break label54;
+                     }
+ 
+@@ -89,8 +90,13 @@
+             return null;
+         }
+     }
++    
++    @Deprecated
++    public Pack(String p_10420_, boolean p_10421_, Supplier<PackResources> p_10422_, Component p_10423_, Component p_10424_, PackCompatibility p_10425_, Pack.Position p_10426_, boolean p_10427_, PackSource p_10428_) {
++        this(p_10420_, p_10421_, p_10422_, p_10423_, p_10424_, p_10425_, p_10426_, p_10427_, p_10428_, false);
++    }
+ 
+-    public Pack(String p_10420_, boolean p_10421_, Supplier<PackResources> p_10422_, Component p_10423_, Component p_10424_, PackCompatibility p_10425_, Pack.Position p_10426_, boolean p_10427_, PackSource p_10428_)
++    public Pack(String p_10420_, boolean p_10421_, Supplier<PackResources> p_10422_, Component p_10423_, Component p_10424_, PackCompatibility p_10425_, Pack.Position p_10426_, boolean p_10427_, PackSource p_10428_, boolean hidden)
+     {
+         this.id = p_10420_;
+         this.supplier = p_10422_;
+@@ -101,13 +107,17 @@
+         this.defaultPosition = p_10426_;
+         this.fixedPosition = p_10427_;
+         this.packSource = p_10428_;
++        this.hidden = hidden;
+     }
+ 
+     public Pack(String p_143865_, Component p_143866_, boolean p_143867_, Supplier<PackResources> p_143868_, PackMetadataSection p_143869_, PackType p_143870_, Pack.Position p_143871_, PackSource p_143872_)
+     {
+         this(p_143865_, p_143867_, p_143868_, p_143866_, p_143869_.getDescription(), PackCompatibility.forMetadata(p_143869_, p_143870_), p_143871_, false, p_143872_);
+     }
+-
++    public Pack(String p_143865_, Component p_143866_, boolean p_143867_, Supplier<PackResources> p_143868_, PackMetadataSection p_143869_, PackType p_143870_, Pack.Position p_143871_, PackSource p_143872_, boolean hidden)
++    {
++        this(p_143865_, p_143867_, p_143868_, p_143866_, p_143869_.getDescription(), PackCompatibility.forMetadata(p_143869_, p_143870_), p_143871_, false, p_143872_);
++    }
+     public Component getTitle()
+     {
+         return this.title;
+@@ -161,6 +171,7 @@
+         return this.packSource;
+     }
+ 
++   public boolean isHidden() { return hidden; }
+     public boolean equals(Object p_10448_)
+     {
+         if (this == p_10448_)
+@@ -191,7 +202,8 @@
+     public interface PackConstructor
+     {
+         @Nullable
+-        Pack create(String p_143874_, Component p_143875_, boolean p_143876_, Supplier<PackResources> p_143877_, PackMetadataSection p_143878_, Pack.Position p_143879_, PackSource p_143880_);
++        Pack create(String p_143874_, Component p_143875_, boolean p_143876_, Supplier<PackResources> p_143877_, PackMetadataSection p_143878_, Pack.Position p_143879_, PackSource p_143880_, boolean hidden);
++        //Pack create(String p_143874_, Component p_143875_, boolean p_143876_, Supplier<PackResources> p_143877_, PackMetadataSection p_143878_, Pack.Position p_143879_, PackSource p_143880_);
+     }
+ 
+     public static enum Position

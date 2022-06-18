@@ -130,4 +130,9 @@ public class OVR_StereoRenderer extends VRRenderer
         this.bufferSize.h(j);
         return new Tuple<>(i, j);
     }
+
+	@Override
+	public String getName() {
+		return "oculus";
+	}
 }

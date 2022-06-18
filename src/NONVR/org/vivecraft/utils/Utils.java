@@ -1,9 +1,5 @@
 package org.vivecraft.utils;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
-import com.google.common.io.Files;
-import com.mojang.blaze3d.pipeline.RenderTarget;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -16,8 +12,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -33,31 +27,12 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
 import javax.annotation.Nullable;
-import jopenvr.HmdMatrix44_t;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.ComponentCollector;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.Screenshot;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.network.chat.FormattedText;
-import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.Resource;
-import net.minecraft.world.level.BlockAndTintGetter;
-import net.minecraft.world.phys.Vec3;
-import optifine.OptiFineTransformationService;
-import optifine.OptiFineTransformer;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
 import org.vivecraft.render.VRShaders;
 import org.vivecraft.tweaker.LoaderUtils;
-import org.vivecraft.tweaker.VivecraftTransformationService;
-import org.vivecraft.tweaker.VivecraftTransformer;
 import org.vivecraft.utils.lwjgl.Matrix3f;
 import org.vivecraft.utils.lwjgl.Matrix4f;
 import org.vivecraft.utils.lwjgl.Vector2f;
@@ -66,6 +41,25 @@ import org.vivecraft.utils.lwjgl.Vector4f;
 import org.vivecraft.utils.math.Quaternion;
 import org.vivecraft.utils.math.Vector2;
 import org.vivecraft.utils.math.Vector3;
+
+import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
+import com.google.common.io.Files;
+import com.mojang.blaze3d.pipeline.RenderTarget;
+
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.ComponentCollector;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.Screenshot;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.phys.Vec3;
 
 public class Utils
 {
@@ -724,30 +718,30 @@ public class Utils
         return f1;
     }
 
-    public static void spawnParticles(ParticleOptions type, int count, Vec3 position, Vec3 size, double speed)
-    {
-        Minecraft minecraft = Minecraft.getInstance();
-
-        for (int i = 0; i < count; ++i)
-        {
-            double d0 = avRandomizer.nextGaussian() * size.x;
-            double d1 = avRandomizer.nextGaussian() * size.y;
-            double d2 = avRandomizer.nextGaussian() * size.z;
-            double d3 = avRandomizer.nextGaussian() * speed;
-            double d4 = avRandomizer.nextGaussian() * speed;
-            double d5 = avRandomizer.nextGaussian() * speed;
-
-            try
-            {
-                minecraft.level.addParticle(type, position.x + d0, position.y + d1, position.z + d2, d3, d4, d5);
-            }
-            catch (Throwable throwable)
-            {
-                LogManager.getLogger().warn("Could not spawn particle effect {}", (Object)type);
-                return;
-            }
-        }
-    }
+//    public static void spawnParticles(ParticleOptions type, int count, Vec3 position, Vec3 size, double speed)
+//    {
+//        Minecraft minecraft = Minecraft.getInstance();
+//
+//        for (int i = 0; i < count; ++i)
+//        {
+//            double d0 = avRandomizer.nextGaussian() * size.x;
+//            double d1 = avRandomizer.nextGaussian() * size.y;
+//            double d2 = avRandomizer.nextGaussian() * size.z;
+//            double d3 = avRandomizer.nextGaussian() * speed;
+//            double d4 = avRandomizer.nextGaussian() * speed;
+//            double d5 = avRandomizer.nextGaussian() * speed;
+//
+//            try
+//            {
+//                minecraft.level.addParticle(type, position.x + d0, position.y + d1, position.z + d2, d3, d4, d5);
+//            }
+//            catch (Throwable throwable)
+//            {
+//                LogManager.getLogger().warn("Could not spawn particle effect {}", (Object)type);
+//                return;
+//            }
+//        }
+//    }
 
     public static int getCombinedLightWithMin(BlockAndTintGetter lightReader, BlockPos pos, int minLight)
     {
@@ -881,28 +875,6 @@ public class Utils
         {
             Thread.dumpStack();
         }
-    }
-
-    public static com.mojang.math.Matrix4f Matrix4fFromOpenVR(HmdMatrix44_t in)
-    {
-        com.mojang.math.Matrix4f matrix4f = new com.mojang.math.Matrix4f();
-        matrix4f.m00 = in.m[0];
-        matrix4f.m01 = in.m[1];
-        matrix4f.m02 = in.m[2];
-        matrix4f.m03 = in.m[3];
-        matrix4f.m10 = in.m[4];
-        matrix4f.m11 = in.m[5];
-        matrix4f.m12 = in.m[6];
-        matrix4f.m13 = in.m[7];
-        matrix4f.m20 = in.m[8];
-        matrix4f.m21 = in.m[9];
-        matrix4f.m22 = in.m[10];
-        matrix4f.m23 = in.m[11];
-        matrix4f.m30 = in.m[12];
-        matrix4f.m31 = in.m[13];
-        matrix4f.m32 = in.m[14];
-        matrix4f.m33 = in.m[15];
-        return matrix4f;
     }
 
     public static Quaternion convertMatrix4ftoRotationQuat(float m00, float m01, float m02, float m10, float m11, float m12, float m20, float m21, float m22)

@@ -3,6 +3,7 @@ package org.vivecraft.tweaker;
 import cpw.mods.jarhandling.impl.Jar;
 import cpw.mods.jarhandling.impl.SimpleJarMetadata;
 import cpw.mods.modlauncher.api.LamdbaExceptionUtils;
+import optifine.OptiFineTransformationService;
 
 import java.io.IOException;
 import java.net.URI;
@@ -18,8 +19,6 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 
-import org.vivecraft.utils.Utils;
-
 public class VivecraftJar extends Jar
 {
     public VivecraftJar(Path... paths)
@@ -32,7 +31,8 @@ public class VivecraftJar extends Jar
             return true;
         }, paths);
     }
-
+    
+    @Override
     public Set<String> getPackages()
     {
         Set<String> set = new HashSet<>();
@@ -45,15 +45,23 @@ public class VivecraftJar extends Jar
 	            ZipEntry zipentry = enumeration.nextElement();
 	            String s = zipentry.getName();
 
-	            if (s.startsWith("org/vivecraft/") && s.endsWith(".clsrg"))
+	            if (s.startsWith("vcsrg/") && s.endsWith(".class"))
 	            {
-	                set.add(s.substring(s.indexOf("/") + 1, s.lastIndexOf("/")).replace('/', '.'));
+	            	String pkg =s.substring(s.indexOf("/") + 1, s.lastIndexOf("/")).replace('/', '.');
+	                set.add(pkg);
 	            }
 	        }
 		} catch (Exception ex) {
+            System.out.println("ERROR IN VIVECRAFTJAR " + ex.toString());
 		}
 
         return set;
+    }
+    
+   @Override
+   public Optional<URI> findFile(String name)
+    {
+        return VivecraftTransformationService.getResourceUrl(name).map(LamdbaExceptionUtils.rethrowFunction(URL::toURI));
     }
 
 }

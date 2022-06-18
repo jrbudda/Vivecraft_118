@@ -33,36 +33,16 @@
              this.pickup = AbstractArrow.Pickup.ALLOWED;
          }
      }
-@@ -146,8 +165,18 @@
- 
-         BlockPos blockpos = this.blockPosition();
-         BlockState blockstate = this.level.getBlockState(blockpos);
-+        boolean flag1;
-+
-+        if (Reflector.IForgeBlockState_isAir2.exists())
-+        {
-+            flag1 = Reflector.callBoolean(blockstate, Reflector.IForgeBlockState_isAir2, this.level, blockpos);
-+        }
-+        else
-+        {
-+            flag1 = blockstate.isAir();
-+        }
- 
--        if (!blockstate.isAir() && !flag)
-+        if (!flag1 && !flag)
-         {
-             VoxelShape voxelshape = blockstate.getCollisionShape(this.level, blockpos);
- 
-@@ -222,7 +251,14 @@
+@@ -222,7 +241,14 @@
                      }
                  }
  
 -                if (hitresult != null && !flag)
 +                boolean flag2 = true;
 +
-+                if (hitresult != null && Reflector.ForgeEventFactory_onProjectileImpactA.exists())
++                if (hitresult != null && Reflector.ForgeEventFactory_onProjectileImpact.exists())
 +                {
-+                    flag2 = hitresult.getType() != HitResult.Type.MISS && !Reflector.callBoolean(Reflector.ForgeEventFactory_onProjectileImpactA, this, hitresult);
++                    flag2 = hitresult.getType() != HitResult.Type.MISS && !Reflector.callBoolean(Reflector.ForgeEventFactory_onProjectileImpact, this, hitresult);
 +                }
 +
 +                if (hitresult != null && !flag && flag2)

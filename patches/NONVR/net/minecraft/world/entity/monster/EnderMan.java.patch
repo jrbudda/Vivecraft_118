@@ -37,7 +37,7 @@
 +
 +            if (object != null)
 +            {
-+                if (Reflector.callBoolean(object, Reflector.EnderTeleportEvent_isCanceled))
++                if (Reflector.callBoolean(object, Reflector.Event_isCanceled))
 +                {
 +                    return false;
 +                }

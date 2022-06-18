@@ -97,8 +97,10 @@ def create_install(mcp_dir, vrversion = "VR"):
     
     in_mem_zip_obf = StringIO.StringIO()
     in_mem_zip_srg = StringIO.StringIO()
+    in_mem_zip_res = StringIO.StringIO()
+   
+    print "Packing OBF..."
     with zipfile.ZipFile( in_mem_zip_obf,'w', zipfile.ZIP_DEFLATED) as zipout:
-        zipout.write(os.path.join(mcp_dir, "conf", "joined.srg"), "mappings/vivecraft/joined.srg")
         for abs_path, _, filelist in os.walk(obf, followlinks=True):
             arc_path = os.path.relpath( abs_path, obf ).replace('\\','/').replace('.','') + '/'
             for cur_file in fnmatch.filter(filelist, '*.class'):
@@ -128,6 +130,52 @@ def create_install(mcp_dir, vrversion = "VR"):
                 if flg:
                     arcname =  arc_path.replace('/','.') + cur_file.replace('.class', '.clazz')
                 zipout.write(in_file, arcname.strip('.'))
+    
+    print "Packing SRG..."
+    with zipfile.ZipFile( in_mem_zip_srg,'w', zipfile.ZIP_DEFLATED) as zipout:
+        metaroot = os.path.join(base_dir, "installer", "META-INF")
+        for root, _, filelist in os.walk(metaroot, followlinks=True):
+            for file in filelist:
+                print root + " ************************************************* " + file
+                filename = os.path.join(root, file)
+                zipout.write(filename, "META-INF/" + os.path.relpath(filename,metaroot))
+
+        for abs_path, _, filelist in os.walk(srg, followlinks=True):
+            arc_path = os.path.relpath(abs_path, srg ).replace('\\','/').replace('.','') + '/'
+            for cur_file in fnmatch.filter(filelist, '*.class'):
+                if 'minecraftforge' in arc_path: continue
+                #print arc_path + cur_file
+                flg = False
+                if not 'vivecraft' in (arc_path+cur_file).lower() and not 'jopenvr' in arc_path and not 'VR' in cur_file: #these misbehave when loaded in this jar, do some magic.
+                    flg = True
+                    ok = False
+                    v = (arc_path + cur_file).replace('/','\\').split('$')[0].replace('.class', '')
+                    cur_file_parent = cur_file.split('$')[0].replace('.class','') + '.class'
+                    if cur_file_parent in vanilla:
+                        v = vanilla[cur_file_parent].replace('/','\\')               
+                    for patch_path, _, patchlist in os.walk(patches, followlinks=True):
+                        for patch in fnmatch.filter(patchlist, '*.patch'):
+                            p = patch_path + '\\' + patch
+                            if v in p:
+                                #print 'Found ' + v + ' ' + p
+                                ok = True
+                                break
+                    if not ok:
+                        print "WARNING: Skipping unexpected file with no patch " + arc_path + cur_file_parent + ' (' + v + ')'
+                        continue
+                if "blaze3d" in arc_path:
+                    flg = True
+                in_file= os.path.join(abs_path,cur_file)
+                arcname = arc_path + cur_file
+                if not "/tweaker" in arcname:
+                    arcname = "vcsrg/" + arcname
+                if flg:
+                    arcname = arcname.replace('.class', '.clsrg')
+                zipout.write(in_file, arcname.strip('.'))
+                
+    print "Packing Resources..."
+    with zipfile.ZipFile( in_mem_zip_res,'w', zipfile.ZIP_DEFLATED) as zipout:      
+        zipout.write(os.path.join(mcp_dir, "conf", "joined.srg"), "mappings/vivecraft/joined.srg")
         for a, b, c in os.walk(resources):
             print a
             arc_path = os.path.relpath(a,resources).replace('\\','/').replace('.','')+'/'
@@ -136,55 +184,12 @@ def create_install(mcp_dir, vrversion = "VR"):
                 in_file= os.path.join(a,cur_file) 
                 arcname =  arc_path + cur_file
                 zipout.write(in_file, arcname)
-            
-#   with zipfile.ZipFile( in_mem_zip_srg,'w', zipfile.ZIP_DEFLATED) as zipout:
-#       zipout.write(os.path.join(mcp_dir, "conf", "joined.srg"), "mappings/vivecraft/joined.srg")
-#       zipout.write(os.path.join(base_dir, "installer", "cpw.mods.modlauncher.api.ITransformationService"), "META-INF/services/cpw.mods.modlauncher.api.ITransformationService")
-#       for abs_path, _, filelist in os.walk(srg, followlinks=True):
-#           arc_path = os.path.relpath(abs_path, srg ).replace('\\','/').replace('.','') + '/'
-#           for cur_file in fnmatch.filter(filelist, '*.class'):
-#               if 'minecraftforge' in arc_path: continue
-#               #print arc_path + cur_file
-#               flg = False
-#               if not 'vivecraft' in (arc_path+cur_file).lower() and not 'jopenvr' in arc_path and not 'VR' in cur_file: #these misbehave when loaded in this jar, do some magic.
-#                   flg = True
-#                   ok = False
-#                   v = (arc_path + cur_file).replace('/','\\').split('$')[0].replace('.class', '')
-#                   cur_file_parent = cur_file.split('$')[0].replace('.class','') + '.class'
-#                   if cur_file_parent in vanilla:
-#                       v = vanilla[cur_file_parent].replace('/','\\')               
-#                   for patch_path, _, patchlist in os.walk(patches, followlinks=True):
-#                       for patch in fnmatch.filter(patchlist, '*.patch'):
-#                           p = patch_path + '\\' + patch
-#                           if v in p:
-#                               #print 'Found ' + v + ' ' + p
-#                               ok = True
-#                               break
-#                   if not ok:
-#                       print "WARNING: Skipping unexpected file with no patch " + arc_path + cur_file_parent + ' (' + v + ')'
-#                       continue
-#               if "blaze3d" in arc_path:
-#                   flg = True
-#               in_file= os.path.join(abs_path,cur_file)
-#               arcname = arc_path + cur_file
-#               if flg:
-#                   arcname = "vcsrg/" + arc_path + cur_file.replace('.class', '.clsrg')
-#               zipout.write(in_file, arcname.strip('.'))
-#               
-#       print "Checking Resources..."
-#       for a, b, c in os.walk(resources):
-#           print a
-#           arc_path = os.path.relpath(a,resources).replace('\\','/').replace('.','')+'/'
-#           for cur_file in c:
-#               print "Adding resource %s..." % cur_file
-#               in_file= os.path.join(a,cur_file) 
-#               arcname =  arc_path + cur_file
-#               zipout.write(in_file, arcname)
-#               
+                
     os.chdir( base_dir )
     
     in_mem_zip_obf.seek(0)
     in_mem_zip_srg.seek(0)
+    in_mem_zip_res.seek(0)
     if os.getenv("RELEASE_VERSION"):
         version = os.getenv("RELEASE_VERSION")
     elif os.getenv("BUILD_NUMBER"):
@@ -245,12 +250,13 @@ def create_install(mcp_dir, vrversion = "VR"):
         install_out.writestr("version.json",                process_json(json_dir, "vivecraft.json",                "vivecraft-"+version+"",       "com.mtbs3d:minecrift:"+version,            version, minecrift_version_num,"",of_file_name + "_LIB"))
         install_out.writestr("version-forge.json",          process_json(json_dir, "vivecraft-forge.json",          "vivecraft-"+version+"-forge", "com.mtbs3d:minecrift:"+version+"-forge",   version, minecrift_version_num,forge_version,of_file_name + "_LIB"))
         install_out.writestr("version-multimc.json",        process_json(json_dir, "vivecraft-multimc.json",        "vivecraft-"+version+"",       "com.mtbs3d:minecrift:"+version,            version, minecrift_version_num,"",of_file_name + "_LIB"))
-        install_out.writestr("version-multimc-forge.json",  process_json(json_dir, "vivecraft-multimc-forge.json",  "vivecraft-"+version+"",       "com.mtbs3d:minecrift:"+version,            version, minecrift_version_num,"",of_file_name + "_LIB"))
+        install_out.writestr("version-multimc-forge.json",  process_json(json_dir, "vivecraft-multimc-forge.json",  "vivecraft-"+version+"-forge", "com.mtbs3d:minecrift:"+version+"-forge",   version, minecrift_version_num,"",of_file_name + "_LIB"))
               
         # Add version jar - this contains all the changed files (effectively minecrift.jar). A mix
         # of obfuscated and non-obfuscated files.
         install_out.writestr( "version.jar", in_mem_zip_obf.read() )
-        #install_out.writestr( "version-forge.jar", in_mem_zip_srg.read() )       
+        install_out.writestr( "version-forge.jar", in_mem_zip_srg.read() )       
+        install_out.writestr( "resources.jar", in_mem_zip_res.read() )      
         
         # Add the version info
         install_out.writestr( "version", artifact_id+":"+version )
@@ -314,15 +320,7 @@ def main(mcp_dir, version = "VR"):
     recompile_side( commands, CLIENT)
 
     print("Reobfuscating...")
-    
-    #commands.creatergcfg(reobf=True, keep_lvt=True, keep_generics=True, srg_names=True)
-    #reobfuscate_side( commands, CLIENT , srg_names=True)
-    #try:   
-    #    pass
-    #    shutil.move(reobf, srg)
-    #except OSError:
-    #    quit
-   
+
     #commands.creatergcfg(reobf=True, keep_lvt=True, keep_generics=True, srg_names=False)
     reobfuscate_side( commands, CLIENT )
     
@@ -331,7 +329,15 @@ def main(mcp_dir, version = "VR"):
         shutil.move(reobf, obf)
     except OSError:
         quit
-        
+            
+    #commands.creatergcfg(reobf=True, keep_lvt=True, keep_generics=True, srg_names=True)
+    reobfuscate_side( commands, CLIENT , srg_names=True)
+    try:   
+        pass
+        shutil.move(reobf, srg)
+    except OSError:
+        quit
+
     create_install( mcp_dir, version)
     
 if __name__ == '__main__':

@@ -3,17 +3,15 @@ package org.vivecraft.tweaker;
 import java.io.File;
 import java.util.List;
 
-import org.slf4j.Logger;
-
-import com.mojang.logging.LogUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 
 public class MinecriftVanillaTweaker implements ITweaker
 {
-    private static final Logger LOGGER = LogUtils.getLogger();
-
+    private static final Logger LOGGER = LogManager.getLogger();
     public void acceptOptions(List<String> args, File gameDir, File assetsDir, String profile)
     {
         dbg("MinecriftVanillaTweaker: acceptOptions");

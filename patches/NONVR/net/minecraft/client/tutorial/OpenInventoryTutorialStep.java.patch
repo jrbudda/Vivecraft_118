@@ -13,7 +13,7 @@
 -                this.tutorial.getMinecraft().getToasts().addToast(this.toast);
 -            }
 +            this.toast = new TutorialToast(TutorialToast.Icons.RECIPE_BOOK, TITLE, DESCRIPTION, false);
-+            this.tutorial.getInstance().getToasts().addToast(this.toast);
++            this.tutorial.getMinecraft().getToasts().addToast(this.toast);
          }
      }
  

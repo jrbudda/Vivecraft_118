@@ -273,18 +273,17 @@
          if (!this.gameMode.changeGameModeForPlayer(p_143404_))
          {
              return false;
-@@ -1531,6 +1616,10 @@
+@@ -1531,6 +1616,9 @@
          this.allowsListing = pPacket.allowsListing();
          this.getEntityData().set(DATA_PLAYER_MODE_CUSTOMISATION, (byte)pPacket.modelCustomisation());
          this.getEntityData().set(DATA_PLAYER_MAIN_HAND, (byte)(pPacket.mainHand() == HumanoidArm.LEFT ? 0 : 1));
-+        if (Reflector.ForgeHooks.exists())
-+        {
-+            this.language = Reflector.callString(pPacket, Reflector.CClientSettingsPacket_getLanguage);
-+        }
++        //forge
++        this.language = pPacket.language();
++        //
      }
  
      public boolean canChatInColor()
-@@ -1606,7 +1695,8 @@
+@@ -1606,7 +1694,8 @@
      {
          Entity entity = this.getCamera();
          this.camera = (Entity)(pEntityToSpectate == null ? this : pEntityToSpectate);
@@ -294,7 +293,7 @@
          if (entity != this.camera)
          {
              this.connection.send(new ClientboundSetCameraPacket(this.camera));
-@@ -1642,7 +1732,15 @@
+@@ -1642,7 +1731,15 @@
      @Nullable
      public Component getTabListDisplayName()
      {
@@ -311,7 +310,7 @@
      }
  
      public void swing(InteractionHand pHand)
-@@ -1717,26 +1815,29 @@
+@@ -1717,26 +1814,29 @@
  
      public void setRespawnPosition(ResourceKey<Level> p_9159_, @Nullable BlockPos p_9160_, float p_9161_, boolean p_9162_, boolean p_9163_)
      {
@@ -322,13 +321,13 @@
 +            if (p_9160_ != null)
 +            {
 +                boolean flag = p_9160_.equals(this.respawnPosition) && p_9159_.equals(this.respawnDimension);
-+
+ 
+-            if (p_9163_ && !flag)
 +                if (p_9163_ && !flag)
 +                {
 +                    this.sendMessage(new TranslatableComponent("block.minecraft.set_spawn"), Util.NIL_UUID);
 +                }
- 
--            if (p_9163_ && !flag)
++
 +                this.respawnPosition = p_9160_;
 +                this.respawnDimension = p_9159_;
 +                this.respawnAngle = p_9161_;
@@ -357,7 +356,7 @@
          }
      }
  
-@@ -1783,7 +1884,32 @@
+@@ -1783,7 +1883,32 @@
          }
          else
          {
@@ -391,7 +390,7 @@
              ItemStack itemstack = itementity.getItem();
  
              if (pTraceItem)
-@@ -1890,4 +2016,23 @@
+@@ -1890,4 +2015,23 @@
      {
          return this.allowsListing;
      }

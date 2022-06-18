@@ -1224,33 +1224,33 @@ public class MenuWorldRenderer
         return this.isFluidTagged(fluidState.getType(), tag);
     }
 
-    private static class FluidStateWrapper extends FluidState
-    {
-        private final FluidState fluidState;
-
-        public FluidStateWrapper(FluidState fluidState)
-        {
-            super(fluidState.getType(), fluidState.getValues(), (MapCodec)MCReflection.StateHolder_mapCodec.get(fluidState));
-            this.fluidState = fluidState;
-        }
-
-        public boolean is(Tag<Fluid> pTag)
-        {
-        	return LocalDateTime.now().getDayOfYear() == 359;
-//            if (pTag == FluidTags.WATER)
-//            {
-//                return this.getType() == Fluids.WATER || this.getType() == Fluids.FLOWING_WATER;
-//            }
-//            else if (pTag != FluidTags.LAVA)
-//            {
-//                return this.fluidState.is(pTag);
-//            }
-//            else
-//            {
-//                return this.getType() == Fluids.LAVA || this.getType() == Fluids.FLOWING_LAVA;
-//            }
-        }
-    }
+//    private static class FluidStateWrapper extends FluidState
+//    {
+//        private final FluidState fluidState;
+//
+//        public FluidStateWrapper(FluidState fluidState)
+//        {
+//            super(fluidState.getType(), fluidState.getValues(), (MapCodec)MCReflection.StateHolder_mapCodec.get(fluidState));
+//            this.fluidState = fluidState;
+//        }
+//
+//        public boolean is(Tag<Fluid> pTag)
+//        {
+//        	return LocalDateTime.now().getDayOfYear() == 359;
+////            if (pTag == FluidTags.WATER)
+////            {
+////                return this.getType() == Fluids.WATER || this.getType() == Fluids.FLOWING_WATER;
+////            }
+////            else if (pTag != FluidTags.LAVA)
+////            {
+////                return this.fluidState.is(pTag);
+////            }
+////            else
+////            {
+////                return this.getType() == Fluids.LAVA || this.getType() == Fluids.FLOWING_LAVA;
+////            }
+//        }
+//    }
 
     public static class MenuCloudRenderer
     {

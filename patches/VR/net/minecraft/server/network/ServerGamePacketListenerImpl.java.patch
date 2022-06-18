@@ -114,23 +114,25 @@
      }
  
      public void handleAcceptTeleportPacket(ServerboundAcceptTeleportationPacket pPacket)
-@@ -1226,6 +1266,16 @@
+@@ -1226,7 +1266,17 @@
  
                  if (blockpos.getY() < i)
                  {
+-                    if (this.awaitingPositionFromClient == null && this.player.distanceToSqr((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D) < 64.0D && serverlevel.mayInteract(this.player, blockpos))
 +	            //Forge
 +	            Object object = Reflector.call(Reflector.getFieldValue(Reflector.ForgeMod_REACH_DISTANCE), Reflector.RegistryObject_get);
-+	
++	            double dist = 64.0;
 +	            if (object != null)
 +	            {
-+	                d0 = this.player.getAttribute((Attribute)object).getValue() + 3.0D;
++	            	dist = this.player.getAttribute((Attribute)object).getValue() + 3.0D;
 +	            }
 +	
-+	            d0 = d0 * d0;
++	            dist = dist * dist;
 +	            //
-                     if (this.awaitingPositionFromClient == null && this.player.distanceToSqr((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D) < 64.0D && serverlevel.mayInteract(this.player, blockpos))
++                    if (this.awaitingPositionFromClient == null && this.player.distanceToSqr((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D) < dist && serverlevel.mayInteract(this.player, blockpos))
                      {
                          InteractionResult interactionresult = this.player.gameMode.useItemOn(this.player, serverlevel, itemstack, interactionhand, blockhitresult);
+ 
 @@ -1352,9 +1402,9 @@
          {
              this.connection.send(pPacket, pFutureListeners);

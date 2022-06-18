@@ -5,12 +5,11 @@ import cpw.mods.modlauncher.api.ITransformer;
 import cpw.mods.modlauncher.api.ITransformerActivity;
 import cpw.mods.modlauncher.api.ITransformerVotingContext;
 import cpw.mods.modlauncher.api.TransformerVoteResult;
-import optifine.AccessFixer;
-import optifine.Utils;
 import cpw.mods.modlauncher.api.ITransformer.Target;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -29,17 +28,21 @@ import org.objectweb.asm.tree.MethodNode;
 public class VivecraftTransformer implements ITransformer<ClassNode>
 {
     private static final Logger LOGGER = LogManager.getLogger();
-    private ZipFile ZipFile;
     public List<ITransformer> undeadClassTransformers = new ArrayList<>();
     public List<ITransformer> lostMethodTransformers = new ArrayList<>();
     public List<ITransformer> fieldTransformersOftheDamned = new ArrayList<>();
     public Set<Target> ofTargets = null;
-    private List<String> exclusions = Arrays.asList("net/minecraft/item/Item", "net/minecraft/item/Item$Properties", "net/minecraft/client/gui/screen/inventory/ContainerScreen", "net/minecraft/client/gui/screen/inventory/CreativeScreen", "net/minecraft/fluid/FluidState");
-
-    public VivecraftTransformer(ZipFile ZipFile)
-    {
-        this.ZipFile = ZipFile;
-    }
+    private List<String> exclusions = Arrays.asList(
+    		"net/minecraft/server/packs/repository/Pack",
+    		"net/minecraft/server/packs/repository/PackRepository",
+    		"net/minecraft/server/packs/repository/Pack$PackConstructor",
+    		"net/minecraft/server/packs/repository/Pack$Position",
+    		"net/minecraft/item/Item", 
+    		"net/minecraft/item/Item$Properties", 
+    		"net/minecraft/client/gui/screen/inventory/ContainerScreen", 
+    		"net/minecraft/client/gui/screen/inventory/CreativeScreen",
+    		"net/minecraft/fluid/FluidState",
+    		"net/minecraft/world/item/crafting/RecipeManager");
 
     public TransformerVoteResult castVote(ITransformerVotingContext context)
     {
@@ -54,12 +57,13 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
         for (int i = 0; i < astring.length; ++i)
         {
             String s = astring[i];
-            s = Utils.removePrefix(s, new String[] {"vcsrg/"});
-            s = Utils.removeSuffix(s, new String[] {".clsrg"});
+            s = LoaderUtils.removePrefix(s, new String[] {"vcsrg/"});
+            s = LoaderUtils.removeSuffix(s, new String[] {".clsrg"});
             Target target = Target.targetPreClass(s);
 
             if (!this.exclusions.contains(s) && !s.contains("minecraftforge"))
             {
+            	System.out.println("Target: " + s);
                 set.add(target);
             }
         }
@@ -77,21 +81,21 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
 
         if (abyte != null)
         {
-            System.out.println("Class Debug " + s + " History ... ");
+            LOGGER.info("Class Debug " + s + " History ... ");
 
             for (ITransformerActivity itransformeractivity : context.getAuditActivities())
             {
-                System.out.println("... " + itransformeractivity.getActivityString());
+            	LOGGER.info("... " + itransformeractivity.getActivityString());
             }
 
             InputStream inputstream = new ByteArrayInputStream(abyte);
             ClassNode classnode1 = this.loadClass(inputstream);
-            System.out.println("Vivecraft Replacing " + s);
+            LOGGER.info("Vivecraft Replacing " + s);
 
             if (classnode1 != null)
             {
                 this.debugClass(classnode1);
-                AccessFixer.fixMemberAccess(input, classnode1);
+                //AccessFixer.fixMemberAccess(input, classnode1);
                 classnode = classnode1;
             }
 
@@ -106,11 +110,13 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
                         if (target.getClassName().equals(context.getClassName()))
                         {
                             classnode = transformerholder.transform(classnode, context);
-                            System.out.println("ARISE! " + transformerholder.owner().name() + " " + target.getClassName() + " " + target.getElementName() + " " + target.getElementDescriptor());
+                            LOGGER.info("ARISE! " + transformerholder.owner().name() + " " + target.getClassName() + " " + target.getElementName() + " " + target.getElementDescriptor());
                         }
                     }
                 }
             }
+        } else {
+            LOGGER.info("Class Debug " + s + " not found ");
         }
 
         List<MethodNode> list = new ArrayList<>();
@@ -123,7 +129,7 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
                 {
                     if (target1.getClassName().equals(context.getClassName()) && target1.getElementName().equals(methodnode.name) && target1.getElementDescriptor().equals(methodnode.desc))
                     {
-                        System.out.println("ARISE! " + target1.getClassName() + " " + target1.getElementName() + " " + target1.getElementDescriptor());
+                    	LOGGER.info("ARISE! " + target1.getClassName() + " " + target1.getElementName() + " " + target1.getElementDescriptor());
                         methodnode = itransformer1.transform(methodnode, context);
                     }
                 }
@@ -143,7 +149,7 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
                 {
                     if (target2.getClassName().equals(context.getClassName()) && target2.getElementName().equals(fieldnode.name))
                     {
-                        System.out.println("ARISE! " + target2.getClassName() + " " + target2.getElementName() + " " + target2.getElementDescriptor());
+                    	LOGGER.info("ARISE! " + target2.getClassName() + " " + target2.getElementName() + " " + target2.getElementDescriptor());
                         fieldnode = itransformer2.transform(fieldnode, context);
                     }
                 }
@@ -179,28 +185,35 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
     private String[] getNamesMatching(String prefix, String suffix)
     {
         List<String> list = new ArrayList<>();
-        Enumeration <? extends ZipEntry > enumeration = this.ZipFile.entries();
+        Enumeration<? extends ZipEntry> enumeration;
+		try {
+			enumeration = LoaderUtils.getVivecraftZip().entries();
+	        while (enumeration.hasMoreElements())
+	        {
+	            ZipEntry zipentry = enumeration.nextElement();
+	            String s = zipentry.getName();
 
-        while (enumeration.hasMoreElements())
-        {
-            ZipEntry zipentry = enumeration.nextElement();
-            String s = zipentry.getName();
+	            if (s.startsWith(prefix) && s.endsWith(suffix))
+	            {
+	                list.add(s);
+	            }
+	        }
 
-            if (s.startsWith(prefix) && s.endsWith(suffix))
-            {
-                list.add(s);
-            }
-        }
+	        String[] astring = list.toArray(new String[list.size()]);
+	        return astring;
+			
+		} catch (URISyntaxException | IOException e) {
+			e.printStackTrace();
+		}
 
-        String[] astring = list.toArray(new String[list.size()]);
-        return astring;
+		return null;
     }
 
     private byte[] getResourceBytes(String name)
     {
         try
         {
-            name = Utils.ensurePrefix(name, "/");
+            name = LoaderUtils.ensurePrefix(name, "/vcsrg/");
             InputStream inputstream = this.getClass().getResourceAsStream(name);
 
             if (inputstream == null)
@@ -209,7 +222,7 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
             }
             else
             {
-                byte[] abyte = Utils.readAll(inputstream);
+                byte[] abyte = LoaderUtils.readAll(inputstream);
                 inputstream.close();
                 return abyte;
             }

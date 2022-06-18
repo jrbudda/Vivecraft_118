@@ -2,6 +2,8 @@ import org.json.*;
 import java.awt.*;
 import java.awt.TrayIcon.MessageType;
 import java.awt.event.*;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineMetrics;
 import java.awt.image.BufferedImage;
 import java.beans.*;
 import java.io.*;
@@ -37,7 +39,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
 	private static final long serialVersionUID = -562178983462626162L;
 	private String tempDir = System.getProperty("java.io.tmpdir");
 	/* DO NOT RENAME THESE STRING CONSTS - THEY ARE USED IN (AND THE VALUES UPDATED BY) THE AUTOMATED BUILD SCRIPTS */
-    private static final boolean ALLOW_FORGE_INSTALL  = false;
+    private static final boolean ALLOW_FORGE_INSTALL  = true;
+    private static final boolean ALLOW_FORGE_EXTRACT  = true;
     private static final boolean DEFAULT_FORGE_INSTALL= false;
     private static final boolean ALLOW_KATVR_INSTALL  = true;
     private static final boolean ALLOW_KIOSK_INSTALL  = true;
@@ -49,7 +52,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static final String OF_FILE_NAME          = "1.18.2_HD_U_H7";
     private static final String OF_MD5                = "9360659231b2334bde87c5f1106d406f";
     private static final String OF_VERSION_EXT        = ".jar";
-    private static String FORGE_VERSION               = "40.0.12";
+    private static String FORGE_VERSION               = "40.1.51";
     private static final String HOMEPAGE_LINK         = "http://www.vivecraft.org";
     private static final String DONATION_LINK         = "https://www.patreon.com/jrbudda";
     private static final String PROJECT_NAME          = "Vivecraft";
@@ -175,7 +178,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		tag.setAlignmentY(CENTER_ALIGNMENT);
 		logoSplash.add(tag);
 
-		logoSplash.setAlignmentX(LEFT_ALIGNMENT);
 		logoSplash.setAlignmentY(TOP_ALIGNMENT);
 
 		this.add(logoSplash);
@@ -212,7 +214,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
 		fileEntryPanel = new JPanel();
 		fileEntryPanel.setLayout(new BoxLayout(fileEntryPanel,BoxLayout.Y_AXIS));
-		fileEntryPanel.setAlignmentX(LEFT_ALIGNMENT);
 		fileEntryPanel.setAlignmentY(TOP_ALIGNMENT);
 
 		fileEntryPanel.add(entryPanel);
@@ -221,8 +222,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		this.add(fileEntryPanel);
 
 		this.add(Box.createVerticalStrut(5));
-
-
 
 		//Forge Options
 
@@ -324,7 +323,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		ramAllocation.setAction(actram);
 
 		JLabel ram = new JLabel("         Profile Ram Allocation (GB) ");
-		ram.setAlignmentX(LEFT_ALIGNMENT);
 
 		ramPanel.add(ram);
 		ramPanel.add(ramAllocation);
@@ -333,7 +331,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
 		JPanel namePanel = new JPanel();
 		namePanel.setLayout( new BoxLayout(namePanel, BoxLayout.X_AXIS));
-		namePanel.setAlignmentX(LEFT_ALIGNMENT);
 		namePanel.setAlignmentY(TOP_ALIGNMENT);
 
 		txtCustomProfileName = new JTextField();
@@ -357,13 +354,12 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		// Custom Game Dir
 
 		JPanel gameDirPanel = new JPanel();
-		gameDirPanel.setLayout( new BoxLayout(gameDirPanel, BoxLayout.X_AXIS));
-		gameDirPanel.setAlignmentX(LEFT_ALIGNMENT);
+		gameDirPanel.setLayout(new BoxLayout(gameDirPanel, BoxLayout.X_AXIS));
 		gameDirPanel.setAlignmentY(TOP_ALIGNMENT);
 
 		txtCustomGameDir= new JTextField();
 		txtCustomGameDir.setAlignmentX(LEFT_ALIGNMENT);
-		txtCustomGameDir.setMaximumSize(new Dimension(400,20));
+		txtCustomGameDir.setMaximumSize(new Dimension(300,20));
 		txtCustomGameDir.setEditable(false);
 
 		chkCustomGameDir = new JCheckBox("Modpack Directory");
@@ -395,7 +391,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
 				"<html>" +
 						"If checked, install the drivers needed for KATVR Treadmill<br>" +
 						"DO NOT select this unless you have the KATVR runtime installed.</html>");
-		katvr.setAlignmentX(LEFT_ALIGNMENT);
 		katvr.setEnabled(isWindows);
 
 
@@ -404,7 +399,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
 				"<html>" +
 						"If checked, disables use of in-game menu via controller" +
 						"</html>");
-		kiosk.setAlignmentX(LEFT_ALIGNMENT);
 		
 		this.add(forgePanel);
 		this.add(createProfile);
@@ -413,9 +407,17 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		this.add(gameDirPanel);
 		if(ALLOW_HRTF_INSTALL)this.add(useHrtf);
 		this.add(new JLabel("         "));
-		if(ALLOW_KATVR_INSTALL||ALLOW_KIOSK_INSTALL) this.add(new JLabel("Advanced Options"));
-		if(ALLOW_KIOSK_INSTALL) this.add(kiosk);
-		if(ALLOW_KATVR_INSTALL) this.add(katvr);
+
+		if(!version.contains("NONVR") && (ALLOW_KATVR_INSTALL||ALLOW_KIOSK_INSTALL)) {
+			JPanel advPanel = new JPanel();
+			advPanel.setLayout(new BoxLayout(advPanel, BoxLayout.Y_AXIS));
+			if(ALLOW_KIOSK_INSTALL) advPanel.add(kiosk);
+			if(ALLOW_KATVR_INSTALL) advPanel.add(katvr);
+			CollapsablePanel cp = new CollapsablePanel("Advanced Options", advPanel);
+			cp.setAlignmentX(LEFT_ALIGNMENT);
+			cp.setMaximumSize(new Dimension(200,0));
+			this.add(cp);
+		}
 
 		this.add(Box.createRigidArea(new Dimension(5,20)));
 
@@ -426,18 +428,10 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		instructions.setPreferredSize(new Dimension(20, 40));
 		this.add(instructions);
 
-
 		this.add(Box.createVerticalGlue());
 		JLabel wiki = linkify("Vivecraft home page",HOMEPAGE_LINK,"Vivecraft Home");
 		JLabel donate = linkify("If you think Vivecraft is awesome, please consider supporting us on Patreon",DONATION_LINK,"jrbudda's Patreon");
 		JLabel optifine = linkify("Vivecraft includes Optifine. Consider supporting it as well.","http://optifine.net/donate.php","http://optifine.net/donate.php");
-
-		wiki.setAlignmentX(CENTER_ALIGNMENT);
-		wiki.setHorizontalAlignment(SwingConstants.CENTER);
-		donate.setAlignmentX(CENTER_ALIGNMENT);
-		donate.setHorizontalAlignment(SwingConstants.CENTER);
-		optifine.setAlignmentX(CENTER_ALIGNMENT);
-		optifine.setHorizontalAlignment(SwingConstants.CENTER);
 
 		this.add(Box.createRigidArea(new Dimension(5,20)));
 		this.add( wiki );
@@ -445,115 +439,222 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		this.add( optifine );
 		updateFilePath();
 		updateInstructions();
+		align(this);
 	}
 
+	private void align(Component comp) {
+		if(comp instanceof JComponent)
+			((JComponent)comp).setAlignmentX(LEFT_ALIGNMENT);
+		if(comp instanceof Container) {
+			for(Component x : ((Container)comp).getComponents())
+				align(x);
+		}
+	}
+	
 
 	public void run()
 	{
-		JOptionPane optionPane = new JOptionPane(this, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, new String[]{"Install", "Cancel"});
+		String[] buttons;
+		
+		if(!ALLOW_FORGE_EXTRACT)
+			buttons = new String[]{"Install", "Cancel"};
+		else
+			buttons = new String[]{"Install", "Cancel", "Extract Mod"};
+		
+		JOptionPane optionPane = new JOptionPane(this, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, buttons);
 
-		emptyFrame = new Frame(PROJECT_NAME + " Installer");
+		emptyFrame = new JFrame(PROJECT_NAME + " Installer");
 		emptyFrame.setUndecorated(true);
 		emptyFrame.setVisible(true);
 		emptyFrame.setLocationRelativeTo(null);
 		dialog = optionPane.createDialog(emptyFrame, PROJECT_NAME + " Installer");
 		dialog.setResizable(true);
-		dialog.setSize(620,748);
+		//dialog.setSize(620,620);
 		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		dialog.setVisible(true);
-		String str =  ((String)optionPane.getValue());
-		if (str !=null && ((String)optionPane.getValue()).equalsIgnoreCase("Install"))
-		{
-
-			String check = System.getenv("_JAVA_OPTIONS");
-			if (check != null && check.toLowerCase().contains("xmx")){
-				JOptionPane.showOptionDialog(
-						null,
-						"The installer has detected a java override environment variable on your system\n"+
-								"This will limit the maximum amount of memory available to java and may cause Minecraft to crash or run poorly.\n"+
-								"You should remove this variable before launching the game.\n\n"+
-								"Found _JAVA_OPTIONS " + check,
-						"Warning!",
-						JOptionPane.DEFAULT_OPTION,
-						JOptionPane.ERROR_MESSAGE, null, null, null);
-			}
-
-			//check for multimc
-			if (targetDir.exists())
-			for(File f : targetDir.listFiles()){
-				if(f.getName().equalsIgnoreCase("multimc.exe") || (f.getName().equalsIgnoreCase("multimc") && f.isFile()) || f.getName().equalsIgnoreCase("multimc.cfg")){
-					ArrayList<File> ilist = new ArrayList<File>();
-					File insts = new File(targetDir, "instances");
-					try (BufferedReader br = new BufferedReader(new FileReader(new File(targetDir, "multimc.cfg")))) {
-						String line;
-						while ((line = br.readLine()) != null) {
-							String[] split = line.split("=", 2);
-							if (split[0].equals("InstanceDir")) {
-								insts = new File(split[1]);
-								if (!insts.isAbsolute())
-									insts = new File(targetDir, split[1]);
-								break;
+		dialog.pack();
+		emptyFrame.pack();
+		boolean done = false;
+		do {
+			dialog.setVisible(true);
+			String str =  ((String)optionPane.getValue());
+			if (str !=null && ((String)optionPane.getValue()).equalsIgnoreCase("Install"))
+			{
+	
+				String check = System.getenv("_JAVA_OPTIONS");
+				if (check != null && check.toLowerCase().contains("xmx")){
+					JOptionPane.showOptionDialog(
+							null,
+							"The installer has detected a java override environment variable on your system\n"+
+									"This will limit the maximum amount of memory available to java and may cause Minecraft to crash or run poorly.\n"+
+									"You should remove this variable before launching the game.\n\n"+
+									"Found _JAVA_OPTIONS " + check,
+							"Warning!",
+							JOptionPane.DEFAULT_OPTION,
+							JOptionPane.ERROR_MESSAGE, null, null, null);
+				}
+	
+				//check for multimc
+				if (targetDir.exists())
+				for(File f : targetDir.listFiles()){
+					if(f.getName().equalsIgnoreCase("multimc.exe") || (f.getName().equalsIgnoreCase("multimc") && f.isFile()) || f.getName().equalsIgnoreCase("multimc.cfg")){
+						ArrayList<File> ilist = new ArrayList<File>();
+						File insts = new File(targetDir, "instances");
+						try (BufferedReader br = new BufferedReader(new FileReader(new File(targetDir, "multimc.cfg")))) {
+							String line;
+							while ((line = br.readLine()) != null) {
+								String[] split = line.split("=", 2);
+								if (split[0].equals("InstanceDir")) {
+									insts = new File(split[1]);
+									if (!insts.isAbsolute())
+										insts = new File(targetDir, split[1]);
+									break;
+								}
 							}
+						} catch (IOException ex) {
+							ex.printStackTrace();
 						}
-					} catch (IOException ex) {
-						ex.printStackTrace();
+						if (!insts.exists()) {
+							JOptionPane.showMessageDialog(null, "MultiMC files were detected in the install path, but the instances directory is missing, so we're going to assume it isn't MultiMC.\nIf it actually is MultiMC, set up an instance for Vivecraft first, then run this installer again.", "MultiMC Detection Failed", JOptionPane.WARNING_MESSAGE);
+							break;
+						}
+						for(File inst : insts.listFiles()){
+							if(inst.isDirectory() && !inst.getName().startsWith("_"))
+								ilist.add(inst);
+						}
+						JComboBox icb = new JComboBox(ilist.toArray());
+						File sel =(File) JOptionPane.showInputDialog(null,"Select MultiMC Instance.","MultiMC Detected", JOptionPane.PLAIN_MESSAGE, null, ilist.toArray(), null);
+						if(sel != null){
+							mmcinst = sel;
+							isMultiMC = true;
+						} else {
+							dialog.dispose();
+							emptyFrame.dispose();
+							done = true;
+						}
+						break; // don't ask multiple times
 					}
-					if (!insts.exists()) {
-						JOptionPane.showMessageDialog(null, "MultiMC files were detected in the install path, but the instances directory is missing, so we're going to assume it isn't MultiMC.\nIf it actually is MultiMC, set up an instance for Vivecraft first, then run this installer again.", "MultiMC Detection Failed", JOptionPane.WARNING_MESSAGE);
+				}
+				//
+	
+				int option = 0;
+				String msg = "Please ensure you have closed the Minecraft Launcher before proceeding.";
+	
+				if(isMultiMC)
+					msg = "Please ensure you have closed MultiMC before proceeding.";
+	
+				if(createProfile.isSelected() || isMultiMC)
+					option = JOptionPane.showOptionDialog(
+							null,
+							msg,
+							"Important!",
+							JOptionPane.OK_CANCEL_OPTION,
+							JOptionPane.WARNING_MESSAGE, null, null, null);
+				if (option == JOptionPane.OK_OPTION) {
+					monitor = new ProgressMonitor(null, "Installing Vivecraft...", "", 0, 100);
+					monitor.setMillisToDecideToPopup(0);
+					monitor.setMillisToPopup(0);
+	
+					task = new InstallTask();
+					task.addPropertyChangeListener(this);
+					task.execute();
+				}
+				else{
+					dialog.dispose();
+					emptyFrame.dispose();
+					done = true;
+				}
+			} else if (str !=null && ((String)optionPane.getValue()).equalsIgnoreCase("Extract Mod")) {
+				
+				JFileChooser fc = new JFileChooser(){
+				    @Override
+				    public void approveSelection(){
+				        File f = getSelectedFile();
+				        if(f.exists() && getDialogType() == SAVE_DIALOG){
+				            int result = JOptionPane.showConfirmDialog(this,"The file exists, overwrite?","Existing file",JOptionPane.YES_NO_CANCEL_OPTION);
+				            switch(result){
+				                case JOptionPane.YES_OPTION:
+				                    super.approveSelection();
+				                    return;
+				                case JOptionPane.NO_OPTION:
+				                    return;
+				                case JOptionPane.CLOSED_OPTION:
+				                    return;
+				                case JOptionPane.CANCEL_OPTION:
+				                    cancelSelection();
+				                    return;
+				            }
+				        }
+				        super.approveSelection();
+				    }        
+				};
+				fc.setDialogTitle("Choose location to extract Forge Mod");
+				File mods = new File(targetDir, "mods");
+				fc.setCurrentDirectory(mods.exists()?mods:targetDir);
+				File out = new File( "vivecraft-"+version+mod+"_MOD.jar");
+				fc.setSelectedFile(out);
+				int response = fc.showSaveDialog(Installer.this);
+				switch (response)
+				{
+				case JFileChooser.APPROVE_OPTION:
+					try {	
+						InputStream version_jar= Installer.class.getResourceAsStream("version-forge.jar");
+						InputStream resources= Installer.class.getResourceAsStream("resources.jar");
+						FileOutputStream fos = new FileOutputStream(fc.getSelectedFile());
+						extractJar(version_jar, resources, fos);
+					} catch (Exception e) {
+						JOptionPane.showMessageDialog(null,"Error extracting mod " + e.getMessage(),"Error", JOptionPane.ERROR_MESSAGE);
 						break;
 					}
-					for(File inst : insts.listFiles()){
-						if(inst.isDirectory() && !inst.getName().startsWith("_"))
-							ilist.add(inst);
-					}
-					JComboBox icb = new JComboBox(ilist.toArray());
-					File sel =(File) JOptionPane.showInputDialog(null,"Select MultiMC Instance.","MultiMC Detected", JOptionPane.PLAIN_MESSAGE, null, ilist.toArray(), null);
-					if(sel != null){
-						mmcinst = sel;
-						isMultiMC = true;
-					} else {
-						dialog.dispose();
-						emptyFrame.dispose();
-					}
-					break; // don't ask multiple times
+					JOptionPane.showMessageDialog(null, "Extraction complete. Please ensure Optifine " + OF_FILE_NAME + " MOD is also present.", "Complete", JOptionPane.INFORMATION_MESSAGE);
+					dialog.dispose();
+					emptyFrame.dispose();
+					done = true;
+					break;
+				default:			
+					break;
 				}
 			}
-			//
-
-			int option = 0;
-			String msg = "Please ensure you have closed the Minecraft Launcher before proceeding.";
-
-			if(isMultiMC)
-				msg = "Please ensure you have closed MultiMC before proceeding.";
-
-			if(createProfile.isSelected() || isMultiMC)
-				option = JOptionPane.showOptionDialog(
-						null,
-						msg,
-						"Important!",
-						JOptionPane.OK_CANCEL_OPTION,
-						JOptionPane.WARNING_MESSAGE, null, null, null);
-			if (option == JOptionPane.OK_OPTION) {
-				monitor = new ProgressMonitor(null, "Installing Vivecraft...", "", 0, 100);
-				monitor.setMillisToDecideToPopup(0);
-				monitor.setMillisToPopup(0);
-
-				task = new InstallTask();
-				task.addPropertyChangeListener(this);
-				task.execute();
-			}
-			else{
+			else{ //cancel
 				dialog.dispose();
 				emptyFrame.dispose();
+				done = true;
 			}
-		}
-		else{
-			dialog.dispose();
-			emptyFrame.dispose();
-		}
+		} while(!done);
 	}
 
+	private void extractJar(InputStream is1, InputStream is2, FileOutputStream out) throws IOException {
+		byte data[] = new byte[40960];
+		ZipInputStream zi1 = new ZipInputStream(is1);
+		ZipInputStream zi2 = new ZipInputStream(is2);
 
+		ZipOutputStream zo = new ZipOutputStream(out);	
+		ZipEntry ze = zi1.getNextEntry();
+		
+		while (ze!=null) {
+			zo.putNextEntry(ze);
+			int length;
+			while((length = zi1.read(data)) >= 0) {
+				zo.write(data, 0, length);
+			}
+			zo.closeEntry();
+			ze = zi1.getNextEntry();
+		}
+		ze = zi2.getNextEntry();
+		while (ze!=null) {
+			zo.putNextEntry(ze);
+			int length;
+			while((length = zi2.read(data)) >= 0) {
+				zo.write(data, 0, length);
+			}
+			zo.closeEntry();
+			ze = zi2.getNextEntry();
+		}	
+		
+		zi1.close();
+		zi2.close();
+		zo.close();
+	}
+	
 	class InstallTask extends SwingWorker<Void, Void>{
 		/*
 		 * Main task. Executed in background thread.
@@ -992,8 +1093,10 @@ public class Installer extends JPanel  implements PropertyChangeListener
 				InputStream version_json;
 				if(isMultiMC) {
 					String filename = "version-multimc.json";
-					if (useForge.isSelected())
+					if (useForge.isSelected()){
+						mod="-forge";
 						filename = "version-multimc-forge.json";
+					}
 					version_json = Installer.class.getResourceAsStream(filename);
 				}
 				else if(useForge.isSelected())
@@ -1029,6 +1132,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
 				jar_id += mod;
 				InputStream version_jar; 
+				InputStream resources_jar = Installer.class.getResourceAsStream("resources.jar"); 
 				if(useForge.isSelected())
 					version_jar= Installer.class.getResourceAsStream("version-forge.jar");
 				else
@@ -1099,10 +1203,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
 						lib_dir.mkdirs();
 						File ver_file = new File (lib_dir, "minecrift-"+version+mod+".jar");
 						FileOutputStream ver_jar = new FileOutputStream(ver_file);
-						while ((d = version_jar.read(data)) != -1) {
-							ver_jar.write(data,0,d);
-						}
-						ver_jar.close();
+						
+						extractJar(version_jar, resources_jar, ver_jar);
 
 						return ver_json_file.exists() && ver_file.exists();
 					} catch (Exception e) {
@@ -1113,6 +1215,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
 			return false;
 		}
 
+
+		
+		
 		private boolean DeleteLegacyHRTF() {
 			// Find the correct location 
 			File alsoftrc;
@@ -1542,8 +1647,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
 	private class FileSelectAction extends AbstractAction
 	{
-		private static final long serialVersionUID = 743815386102831493L;
-
 		@Override
 		public void actionPerformed(ActionEvent e)
 		{
@@ -1731,6 +1834,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		if(!toolTip.equals(""))
 			link.setToolTipText(toolTip);
 		link.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		link.setHorizontalAlignment(SwingConstants.CENTER);
 		link.addMouseListener(new MouseListener() {
 			public void mouseExited(MouseEvent arg0) {
 				link.setText("<HTML><FONT color=\"#000099\">"+text+"</FONT></HTML>");
@@ -1817,4 +1921,81 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
 	private static final String ICON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA4RpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMDY3IDc5LjE1Nzc0NywgMjAxNS8wMy8zMC0yMzo0MDo0MiAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDpiNWVjY2I2MC02NjE1LWQwNDQtYmE0Yi1iOWM4M2YxMTY3NzYiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NEU3MUI3OTBDNTg5MTFFQTk5MzNCMEQ1REY1OTdGRjMiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NEU3MUI3OEZDNTg5MTFFQTk5MzNCMEQ1REY1OTdGRjMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTUgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6OWExNDM3OGQtNWU3ZS1jNjRhLTk0ZjYtYWM1NGE1NmRiN2I0IiBzdFJlZjpkb2N1bWVudElEPSJhZG9iZTpkb2NpZDpwaG90b3Nob3A6NzAxZjlmMDYtYzU4OC0xMWVhLWEyMzIt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";
 
+	class CollapsablePanel extends JPanel {
+ 
+    private boolean selected;
+    JPanel contentPanel_;
+    HeaderPanel headerPanel_;
+ 
+    private class HeaderPanel extends JPanel implements MouseListener {
+        String text_;
+ 
+        public HeaderPanel(String text) {
+            addMouseListener(this);
+            text_ = text;
+            setPreferredSize(new Dimension(0, 20));
+        }
+ 
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g;
+            int h = getHeight();
+            FontRenderContext frc = g2.getFontRenderContext();
+            LineMetrics lm = g2.getFont().getLineMetrics(text_, frc);
+            float height = lm.getAscent() + lm.getDescent();
+            float y = (h + height) / 2 - lm.getDescent();
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD));
+            g2.drawString((contentPanel_.isShowing() ? "\u25bc" : "\u25b6" )+text_, 0, y);
+        }
+ 
+        public void mouseClicked(MouseEvent e) {
+            toggleSelection();
+        }
+ 
+        public void mouseEntered(MouseEvent e) {
+        }
+ 
+        public void mouseExited(MouseEvent e) {
+        }
+ 
+        public void mousePressed(MouseEvent e) {
+        }
+ 
+        public void mouseReleased(MouseEvent e) {
+        }
+ 
+    }
+ 
+    public CollapsablePanel(String text, JPanel panel) {
+        super(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(1, 3, 0, 3);
+        gbc.weightx = 1.0;
+        gbc.fill = gbc.HORIZONTAL;
+        gbc.gridwidth = gbc.REMAINDER;
+        selected = false;
+        headerPanel_ = new HeaderPanel(text);
+        contentPanel_ = panel;
+        add(headerPanel_, gbc);
+        add(contentPanel_, gbc);
+        contentPanel_.setVisible(false);
+        JLabel padding = new JLabel();
+        gbc.weighty = 1.0;
+        add(padding, gbc);
+    }
+ 
+    public void toggleSelection() {
+        selected = !selected;
+ 
+        if (contentPanel_.isShowing())
+            contentPanel_.setVisible(false);
+        else
+            contentPanel_.setVisible(true);
+ 
+        validate();
+ 
+        headerPanel_.repaint();
+    }
+ 
+}
 }

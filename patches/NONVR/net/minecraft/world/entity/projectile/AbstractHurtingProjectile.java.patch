@@ -17,9 +17,9 @@
 +            boolean flag = false;
  
 -            if (hitresult.getType() != HitResult.Type.MISS)
-+            if (Reflector.ForgeEventFactory_onProjectileImpactD.exists())
++            if (Reflector.ForgeEventFactory_onProjectileImpact.exists())
 +            {
-+                flag = Reflector.callBoolean(Reflector.ForgeEventFactory_onProjectileImpactD, this, hitresult);
++                flag = Reflector.callBoolean(Reflector.ForgeEventFactory_onProjectileImpact, this, hitresult);
 +            }
 +
 +            if (hitresult.getType() != HitResult.Type.MISS && !flag)

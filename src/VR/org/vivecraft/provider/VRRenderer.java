@@ -337,10 +337,7 @@ public abstract class VRRenderer
         return "";
     }
 
-    public String getName()
-    {
-        return "OpenVR";
-    }
+    public abstract String getName();
 
     public List<RenderPass> getRenderPasses()
     {
@@ -455,7 +452,7 @@ public abstract class VRRenderer
 
             if (!this.isInitialized())
             {
-                throw new RenderConfigException("Failed to initialise stereo rendering plugin: " + this.getName(), LangHelper.get(this.getinitError()));
+                throw new RenderConfigException(RENDER_SETUP_FAILURE_MESSAGE + this.getName(), LangHelper.get(this.getinitError()));
             }
 
             Tuple<Integer, Integer> tuple = this.getRenderTextureSizes();
@@ -543,7 +540,7 @@ public abstract class VRRenderer
 
                 if (this.LeftEyeTextureId == -1)
                 {
-                    throw new RenderConfigException("Failed to initialise stereo rendering plugin: " + this.getName(), this.getLastError());
+                    throw new RenderConfigException(RENDER_SETUP_FAILURE_MESSAGE + this.getName(), this.getLastError());
                 }
 
                 minecraft.print("Provider supplied render texture IDs: " + this.LeftEyeTextureId + " " + this.RightEyeTextureId);

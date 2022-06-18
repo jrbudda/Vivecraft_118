@@ -1,0 +1,11 @@
+--- a/net/optifine/reflect/ReflectorConstructor.java
++++ b/net/optifine/reflect/ReflectorConstructor.java
+@@ -61,7 +61,7 @@
+ 
+     private static Constructor findConstructor(Class cls, Class[] paramTypes)
+     {
+-        Constructor[] aconstructor = cls.getDeclaredConstructors();
++        Constructor[] aconstructor = cls.getConstructors();
+ 
+         for (int i = 0; i < aconstructor.length; ++i)
+         {

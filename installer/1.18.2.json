@@ -1571,11 +1571,11 @@
 			]
 		},
 		{
-			"name": "cpw.mods:modlauncher:9.0.7",
+			"name": "cpw.mods:modlauncher:9.1.3",
 			"url": "https://files.minecraftforge.net/maven/"
 		},
 		{
-            "name": "cpw.mods:securejarhandler:0.9.54",
+            "name": "cpw.mods:securejarhandler:1.0.3",
 			"url": "https://files.minecraftforge.net/maven/"
 		},
 		{
@@ -1587,13 +1587,13 @@
 			"name": "org.json:json:20140107"
 		},
 		{
-			"name": "org.ow2.asm:asm-all:5.2",
-			"url": "http://files.minecraftforge.net/maven/"
-		},
+            "name": "org.ow2.asm:asm:9.2",
+			"url": "https://files.minecraftforge.net/maven/"
+        },
 		{
-			"url": "https://repo1.maven.org/maven2/",
-			"name": "io.github.classgraph:classgraph:4.8.78"
-		},
+            "name": "org.ow2.asm:asm-tree:9.2",
+			"url": "https://files.minecraftforge.net/maven/"
+        },
 		{
 			"url": "https://repo1.maven.org/maven2/",
 			"name": "org.jetbrains:annotations:23.0.0"

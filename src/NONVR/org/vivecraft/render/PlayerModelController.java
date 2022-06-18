@@ -11,10 +11,10 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.Map.Entry;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.vivecraft.utils.Utils;
 import org.vivecraft.utils.math.Quaternion;
@@ -197,7 +197,7 @@ public class PlayerModelController
             this.vivePlayers.put(entry1.getKey(), entry1.getValue());
         }
 
-        Level level = Minecraft.getInstance().level;
+        ClientLevel level = Minecraft.getInstance().level;
 
         if (level != null)
         {

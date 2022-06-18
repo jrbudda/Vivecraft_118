@@ -1188,44 +1188,37 @@ class Commands(object):
             else:
                 out_jar = {CLIENT: self.rgclientout, SERVER: self.rgserverout}[side]
         
-        srg = self.dirconf + "\joined.tsrg"
         if reobf:
             cmd = self.cmdssreobf
-            if srg_names:
-                identifier = 'RGMCPSRG'
-                #srg = rsrgsrg[side]
-            else:
-                identifier = 'RGMCP'
-                #srg = reobsrg[side]
-                srg = self.dirconf + "\joined_reobf.tsrg"
+            srg = self.dirconf + "\joined_reobf.tsrg"
         else:
             cmd = self.cmdss
-            identifier = None
-            #srg = cfgsrg[side].replace(".srg", ".tsrg")
-
+            srg = self.dirconf + "\joined.tsrg"
 
         # add specialsource.jar to copy of client or server classpath
         sscp = [self.specialsource] + cplk[side]
         sscp = os.pathsep.join(sscp)
         
-        forkcmd = cmd.format(classpath=sscp, injar=in_jar, outjar=out_jar, identifier=identifier, mapfile=srg)
+        forkcmd = cmd.format(classpath=sscp, injar=in_jar, outjar=out_jar, mapfile=srg)
         #if not keep_lvt:
         #    forkcmd += ' --kill-lvt'
         #if not keep_generics:
         #    forkcmd += ' --kill-generics'
         
         try:
+            if os.path.isfile(out_jar): 
+                os.remove(out_jar)
             print "SS: " + in_jar + " > " + out_jar + " with " + srg
             self.runcmd(forkcmd)
             if not reobf:
                 shutil.copyfile(cfgsrg[side], deobsrg[side])
                 shutil.copyfile(deobsrg[side], reobsrg[side])
             if reobf and srg_names:
-                 cmd = self.cmdss
-                 srg = self.dirconf + "\joined.tsrg"
-                 forkcmd = cmd.format(classpath=sscp, injar=out_jar, outjar=out_jar, identifier=identifier, mapfile=srg)
-                 print "SS: " + out_jar + " > " + out_jar + " with " + srg
-                 self.runcmd(forkcmd)
+                cmd = self.cmdss
+                srg = self.dirconf + "\joined.tsrg"
+                forkcmd = cmd.format(classpath=sscp, injar=out_jar, outjar=out_jar, mapfile=srg)
+                print "SS2: " + out_jar + " > " + out_jar + " with " + srg
+                self.runcmd(forkcmd)
         except CalledProcessError as ex:
             self.logger.error('')
             self.logger.error('== ERRORS FOUND ==')

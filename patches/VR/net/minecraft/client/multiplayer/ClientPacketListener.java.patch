@@ -23,7 +23,17 @@
  
  public class ClientPacketListener implements ClientGamePacketListener
  {
-@@ -312,6 +320,8 @@
+@@ -296,7 +304,8 @@
+     private int serverChunkRadius = 3;
+     private int serverSimulationDistance = 3;
+     private final Random random = new Random();
+-    private CommandDispatcher<SharedSuggestionProvider> commands = new CommandDispatcher<>();
++    //Forge public
++    public CommandDispatcher<SharedSuggestionProvider> commands = new CommandDispatcher<>();
+     private final RecipeManager recipeManager = new RecipeManager();
+     private final UUID id = UUID.randomUUID();
+     private Set<ResourceKey<Level>> levels;
+@@ -312,6 +321,8 @@
          this.advancements = new ClientAdvancements(p_194193_);
          this.suggestionsProvider = new ClientSuggestionProvider(this, p_194193_);
          this.telemetryManager = p_194197_;
@@ -32,7 +42,7 @@
      }
  
      public ClientSuggestionProvider getSuggestionsProvider()
-@@ -370,10 +380,15 @@
+@@ -370,10 +381,15 @@
  
          this.minecraft.debugRenderer.clear();
          this.minecraft.player.resetPos();
@@ -49,7 +59,7 @@
          this.minecraft.gameMode.adjustPlayer(this.minecraft.player);
          this.minecraft.cameraEntity = this.minecraft.player;
          this.minecraft.setScreen(new ReceivingLevelScreen());
-@@ -381,10 +396,14 @@
+@@ -381,10 +397,15 @@
          this.minecraft.player.setShowDeathScreen(pPacket.showDeathScreen());
          this.minecraft.gameMode.setLocalMode(pPacket.gameType(), pPacket.previousGameType());
          this.minecraft.options.setServerRenderDistance(pPacket.chunkRadius());
@@ -59,13 +69,13 @@
          this.minecraft.options.broadcastOptions();
          this.connection.send(new ServerboundCustomPayloadPacket(ServerboundCustomPayloadPacket.BRAND, (new FriendlyByteBuf(Unpooled.buffer())).writeUtf(ClientBrandRetriever.getClientModName())));
          this.minecraft.getGame().onStartGameSession();
--        this.telemetryManager.onPlayerInfoReceived(pPacket.gameType(), pPacket.hardcore());
+         this.telemetryManager.onPlayerInfoReceived(pPacket.gameType(), pPacket.hardcore());
 +        NetworkHelper.vivePlayers.clear();
 +        NetworkHelper.sendVersionInfo();
      }
  
      public void handleAddEntity(ClientboundAddEntityPacket pPacket)
-@@ -732,6 +751,9 @@
+@@ -732,6 +753,9 @@
      public void handleDisconnect(ClientboundDisconnectPacket pPacket)
      {
          this.connection.disconnect(pPacket.getReason());
@@ -75,7 +85,7 @@
      }
  
      public void onDisconnect(Component pReason)
-@@ -806,7 +828,39 @@
+@@ -806,7 +830,39 @@
      public void handleChat(ClientboundChatPacket pPacket)
      {
          PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
@@ -116,7 +126,7 @@
      }
  
      public void handleAnimate(ClientboundAnimatePacket pPacket)
-@@ -1027,6 +1081,8 @@
+@@ -1027,6 +1083,8 @@
              this.level.addMapData(map);
              this.minecraft.setLevel(this.level);
              this.minecraft.setScreen(new ReceivingLevelScreen());
@@ -125,7 +135,7 @@
          }
  
          String s = localplayer.getServerBrand();
-@@ -1047,12 +1103,15 @@
+@@ -1047,12 +1105,15 @@
          {
              localplayer1.getAttributes().assignValues(localplayer.getAttributes());
          }
@@ -143,7 +153,7 @@
          this.minecraft.gameMode.adjustPlayer(localplayer1);
          localplayer1.setReducedDebugInfo(localplayer.isReducedDebugInfo());
          localplayer1.setShowDeathScreen(localplayer.shouldShowDeathScreen());
-@@ -1182,13 +1241,18 @@
+@@ -1182,13 +1243,18 @@
          BlockPos blockpos = pPacket.getPos();
          this.minecraft.level.getBlockEntity(blockpos, pPacket.getType()).ifPresent((p_205557_) ->
          {
@@ -169,7 +179,7 @@
              if (p_205557_ instanceof CommandBlockEntity && this.minecraft.screen instanceof CommandBlockEditScreen)
              {
                  ((CommandBlockEditScreen)this.minecraft.screen).updateGui();
-@@ -1418,6 +1482,9 @@
+@@ -1418,6 +1484,9 @@
          clientrecipebook.setupCollections(this.recipeManager.getRecipes());
          clientrecipebook.getCollections().forEach(mutablesearchtree::add);
          mutablesearchtree.refresh();
@@ -179,7 +189,7 @@
      }
  
      public void handleLookAt(ClientboundPlayerLookAtPacket pPacket)
-@@ -1518,7 +1585,7 @@
+@@ -1518,7 +1587,7 @@
  
          if (entity instanceof LivingEntity)
          {
@@ -188,7 +198,7 @@
  
              if (mobeffect != null)
              {
-@@ -1899,16 +1966,16 @@
+@@ -1899,16 +1968,16 @@
              {
                  throw new URISyntaxException(pUrl, "Wrong protocol");
              }
@@ -209,7 +219,7 @@
          {
              this.send(ServerboundResourcePackPacket.Action.FAILED_DOWNLOAD);
              return false;
-@@ -1980,6 +2047,7 @@
+@@ -1980,6 +2049,7 @@
          PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
          ResourceLocation resourcelocation = pPacket.getIdentifier();
          FriendlyByteBuf friendlybytebuf = null;
@@ -217,7 +227,7 @@
  
          try
          {
-@@ -2256,14 +2324,170 @@
+@@ -2256,14 +2326,170 @@
                  int i5 = friendlybytebuf.readVarInt();
                  this.minecraft.debugRenderer.gameEventListenerRenderer.trackListener(positionsource, i5);
              }
@@ -390,7 +400,7 @@
              {
                  friendlybytebuf.release();
              }
-@@ -2452,27 +2676,25 @@
+@@ -2452,27 +2678,25 @@
              {
                  throw new IllegalStateException("Server tried to update attributes of a non-living entity (actually: " + entity + ")");
              }
@@ -432,7 +442,7 @@
                      }
                  }
              }
-@@ -2656,4 +2878,17 @@
+@@ -2656,4 +2880,17 @@
      {
          return this.registryAccess;
      }

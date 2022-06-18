@@ -1,0 +1,17 @@
+modLoader="javafml"
+loaderVersion="[14,)"
+license="as if it matters"
+[[mods]] 
+modId="vivecraft"
+version="1.0.0"
+displayName="Vivecraft"
+displayURL="https://vivecraft.org"
+authors="jrbudda"
+description='''
+VR
+'''
+[[dependencies.vivecraft]]
+    modId="optifine"
+    mandatory=true
+    ordering="NONE"
+    side="BOTH"

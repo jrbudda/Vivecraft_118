@@ -8,8 +8,6 @@ import cpw.mods.modlauncher.api.ITransformer;
 import cpw.mods.modlauncher.api.IncompatibleEnvironmentException;
 import cpw.mods.modlauncher.api.IModuleLayerManager.Layer;
 import cpw.mods.modlauncher.api.ITransformationService.Resource;
-import optifine.OptiFineResourceLocator;
-import optifine.OptiFineTransformer;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,8 +33,6 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.vivecraft.asm.VivecraftASMTransformer;
-import org.vivecraft.utils.Utils;
 
 public class VivecraftTransformationService implements ITransformationService
 {
@@ -44,69 +40,80 @@ public class VivecraftTransformationService implements ITransformationService
 
     private static VivecraftTransformer transformer;
 
+    @Override
     public String name()
     {
         return "Vivecraft";
     }
-
+    
+    @Override
     public void initialize(IEnvironment environment)
     {
         LOGGER.info("VivecraftTransformationService.initialize");
     }
-
+    
+    @Override
     public void onLoad(IEnvironment env, Set<String> otherServices) throws IncompatibleEnvironmentException
     {
     	LOGGER.info("VivecraftTransformationService.onLoad");
     	try
     	{
-    		init();
+        	transformer = new VivecraftTransformer();
     	}
     	catch (Exception exception)
     	{
-    		LOGGER.error("Error loading ZIP file: " + LoaderUtils.ZipFileUrl, (Throwable)exception);
-    		throw new IncompatibleEnvironmentException("Error loading ZIP file: " + LoaderUtils.ZipFileUrl);
+    		LOGGER.error("Error loading ZIP file: ", (Throwable)exception);
+    		throw new IncompatibleEnvironmentException("Error loading ZIP file");
     	}
     }
     
-    private static void init() throws URISyntaxException, ZipException, IOException {        
-            //transformer = new VivecraftTransformer(LoaderUtils.ZipFile);
-    }
-    
+       
+    @Override
     public List<Resource> completeScan(IModuleLayerManager layerManager)
     {
         List<Resource> list = new ArrayList<>();
         List<SecureJar> list1 = new ArrayList<>();
         try {
-			list1.add(new VivecraftJar(LoaderUtils.toFile(LoaderUtils.ZipFileUrl.toURI()).toPath()));
+			try {
+				list1.add(new VivecraftJar(LoaderUtils.toFile(LoaderUtils.getVivecraftURL().toURI()).toPath()));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		} catch (URISyntaxException e) {
 		}
         list.add(new Resource(Layer.GAME, list1));
         return list;
     }
-
+    
+    @Override
     public Entry<Set<String>, Supplier<Function<String, Optional<URL>>>> additionalResourcesLocator()
     {
         return ITransformationService.super.additionalResourcesLocator();
     }
 
+    //This method apparently does nothing at all anymore.
+    @Override
     public Entry<Set<String>, Supplier<Function<String, Optional<URL>>>> additionalClassesLocator()
     {
         Set<String> set = new HashSet<>();
         set.add("org.vivecraft.");
         Supplier<Function<String, Optional<URL>>> supplier = () ->
         {
-            return this::getResourceUrl;
+            return VivecraftTransformationService::getResourceUrl;
         };
         Entry<Set<String>, Supplier<Function<String, Optional<URL>>>> entry = new SimpleEntry<>(set, supplier);
         LOGGER.info("additionalClassesLocator: " + set);
         return entry;
     }
 
-    public Optional<URL> getResourceUrl(String name)
+    public static Optional<URL> getResourceUrl(String name)
     {
-        if (name.endsWith(".class") && !name.startsWith("org.vivecraft/"))
+        if (name.endsWith(".class")) //&& !name.startsWith("org.vivecraft/"))
         {
-            name = "vcsrg/" + name.replace(".class", ".clsrg");
+        	if(name.contains("org/vivecraft"))
+        		name = "vcsrg/" + name;
+        	else
+        		name = "vcsrg/" + name.replace(".class", ".clsrg");
         }
 
         if (transformer == null)
@@ -115,29 +122,43 @@ public class VivecraftTransformationService implements ITransformationService
         }
         else
         {
-            ZipEntry zipentry = null;// = LoaderUtils.ZipFile.getEntry(name);
+            ZipEntry zipentry;
+			try {
+				zipentry = LoaderUtils.getVivecraftZip().getEntry(name);
+				
 
-            if (zipentry == null)
-            {
-                return Optional.empty();
-            }
-            else
-            {
-                try
-                {
-                    String s = LoaderUtils.ZipFileUrl.toExternalForm();
-                    URL url = new URL("jar:" + s + "!/" + name);
-                    return Optional.of(url);
-                }
-                catch (IOException ioexception1)
-                {
-                    LOGGER.error(ioexception1);
-                    return Optional.empty();
-                }
-            }
+	            if (zipentry == null)
+	            {
+	                return Optional.empty();
+	            }
+	            else
+	            {
+	                try
+	                {
+	                    String s = LoaderUtils.getVivecraftURL().toExternalForm();
+	                    URL url = new URL("jar:" + s + "!/" + name);
+	                    return Optional.of(url);
+	                }
+	                catch (IOException ioexception1)
+	                {
+	                    LOGGER.error(ioexception1);
+	                    return Optional.empty();
+	                } catch (URISyntaxException e) {
+						e.printStackTrace();
+					}
+	            }
+	            
+			} catch (URISyntaxException | IOException e1) {
+				e1.printStackTrace();
+			}
+
         }
+        LOGGER.info("getResourceURL: " + name + "  Failed");
+
+        return null;
     }
 
+    @Override
     public List<ITransformer> transformers()
     {
         LOGGER.info("VivecraftTransformationService.transformers");
@@ -152,10 +173,6 @@ public class VivecraftTransformationService implements ITransformationService
         return list;
     }
 
-    public static VivecraftTransformer getTransformer()
-    {
-        return transformer;
-    }
     
 
 }

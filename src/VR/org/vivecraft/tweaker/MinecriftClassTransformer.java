@@ -15,14 +15,13 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import net.minecraft.launchwrapper.IClassTransformer;
 
-import org.slf4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.vivecraft.utils.Utils;
-
-import com.mojang.logging.LogUtils;
 
 public class MinecriftClassTransformer implements IClassTransformer
 {
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger();
     private static final boolean DEBUG = Boolean.parseBoolean(System.getProperty("legacy.debugClassLoading", "false"));
     private final MinecriftClassTransformer.Stage stage;
     private final Map<String, byte[]> cache;
@@ -49,6 +48,8 @@ public class MinecriftClassTransformer implements IClassTransformer
                 {
                     debug("*** Can not find the Minecrift JAR in the classpath ***");
                     debug("*** Minecrift will not be loaded! ***");
+                } else {
+                	debug("Vivecraft lib file: " + mcZipFile.getName());
                 }
             }
             catch (Exception exception)
@@ -164,25 +165,19 @@ public class MinecriftClassTransformer implements IClassTransformer
 
     private byte[] getMinecriftClass(String name)
     {
-    	ZipFile zip;
-		try {
-			zip = LoaderUtils.getVivecraftZip();
-		} catch (Exception e) {
-			zip = null;
-		}
-        if (zip == null)
+        if (this.mcZipFile == null)
         {
             return null;
         }
         else
         {
             String s = name + ".class";
-            ZipEntry zipentry = zip.getEntry(s);
-            System.out.println(s);
+            ZipEntry zipentry = this.mcZipFile.getEntry(s);
+
             if (zipentry == null)
             {
                 s = name + ".clazz";
-                zipentry = zip.getEntry(s);
+                zipentry = this.mcZipFile.getEntry(s);
             }
 
             if (zipentry == null)
@@ -193,9 +188,8 @@ public class MinecriftClassTransformer implements IClassTransformer
             {
                 try
                 {
-                    InputStream inputstream = zip.getInputStream(zipentry);
+                    InputStream inputstream = this.mcZipFile.getInputStream(zipentry);
                     byte[] abyte = readAll(inputstream);
-                    inputstream.close();
                     
                     if ((long)abyte.length != zipentry.getSize())
                     {
@@ -237,7 +231,7 @@ public class MinecriftClassTransformer implements IClassTransformer
 
     private static void debug(String str)
     {
-        LOGGER.debug(str);
+    	LOGGER.info(str);
     }
 
     private byte[] performAsmModification(byte[] origBytecode, String className)

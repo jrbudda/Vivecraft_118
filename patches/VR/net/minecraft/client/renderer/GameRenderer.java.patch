@@ -637,7 +637,7 @@
          }
      }
  
-@@ -2184,4 +2383,2255 @@
+@@ -2184,4 +2383,2254 @@
      {
          return rendertypeCrumblingShader;
      }
@@ -2201,13 +2201,12 @@
 +	                
 +		            if (Reflector.ForgeIngameGui.exists())
 +		            {
-+		                //RenderSystem.defaultAlphaFunc();
-+		                Reflector.ForgeIngameGui_renderVignette.setValue(false);
-+		                Reflector.ForgeIngameGui_renderPortal.setValue(false);
-+		                Reflector.ForgeIngameGui_renderCrosshairs.setValue(false);
++		            	Reflector.call(Reflector.getFieldValue(Reflector.ForgeIngameGui_CROSSHAIR_ELEMENT), Reflector.OverlayEntry_setEnabled, false);
++		            	Reflector.call(Reflector.getFieldValue(Reflector.ForgeIngameGui_HELMET_ELEMENT), Reflector.OverlayEntry_setEnabled, false);
++		            	Reflector.call(Reflector.getFieldValue(Reflector.ForgeIngameGui_PORTAL_ELEMENT), Reflector.OverlayEntry_setEnabled, false);
++		            	Reflector.call(Reflector.getFieldValue(Reflector.ForgeIngameGui_VIGNETTE_ELEMENT), Reflector.OverlayEntry_setEnabled, false);
 +		            }
 +	                
-+		            //no thanks.
 +	//	            if (this.minecraft.player != null)
 +	//                {
 +	//                    float f = Mth.lerp(pPartialTicks, this.minecraft.player.oPortalTime, this.minecraft.player.portalTime);

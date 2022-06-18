@@ -38,9 +38,9 @@
          if (hitresult.getType() != HitResult.Type.MISS && !flag)
          {
 -            this.onHit(hitresult);
-+            if (Reflector.ForgeEventFactory_onProjectileImpactT.exists())
++            if (Reflector.ForgeEventFactory_onProjectileImpact.exists())
 +            {
-+                flag = Reflector.callBoolean(Reflector.ForgeEventFactory_onProjectileImpactT, this, hitresult);
++                flag = Reflector.callBoolean(Reflector.ForgeEventFactory_onProjectileImpact, this, hitresult);
 +            }
 +
 +            if (!flag)

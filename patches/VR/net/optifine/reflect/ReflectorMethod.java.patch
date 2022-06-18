@@ -1,0 +1,11 @@
+--- a/net/optifine/reflect/ReflectorMethod.java
++++ b/net/optifine/reflect/ReflectorMethod.java
+@@ -65,7 +65,7 @@
+                                 Log.warn("(Reflector)  - " + method);
+                             }
+ 
+-                            return null;
++                            //return null;
+                         }
+ 
+                         this.targetMethod = amethod[0];

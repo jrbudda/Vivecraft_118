@@ -1,7 +1,9 @@
 package org.vivecraft.tweaker;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -12,15 +14,13 @@ import java.util.Map;
 import java.util.zip.ZipException;
 
 public class LoaderUtils {
-    public static URL ZipFileUrl;
-    public static File vivecraftFile;
-    private static java.util.zip.ZipFile ZipFile;
+	private static URL ZipFileUrl;
+    private static File vivecraftFile;
     
     public static void init() {
     	try {
     		ZipFileUrl = getVivecraftZipLocation().toURL();
     		vivecraftFile = toFile(ZipFileUrl.toURI());
-    		ZipFile = new java.util.zip.ZipFile(vivecraftFile);
     	} catch (Exception e) {
     		System.out.print("Error getting Vivecraft library: " + e.getLocalizedMessage());
 		}
@@ -54,6 +54,13 @@ public class LoaderUtils {
 		return new java.util.zip.ZipFile(vivecraftFile);
 	}
 	
+	public static URL getVivecraftURL() throws ZipException, URISyntaxException, IOException {
+		if (ZipFileUrl == null) {
+			init();
+		}
+		return ZipFileUrl;
+	}
+	
     public static File toFile(URI uri)
     {
         if (!"union".equals(uri.getScheme()))
@@ -85,5 +92,122 @@ public class LoaderUtils {
             }
         }
     }
+    public static String removePrefix(String str, String prefix)
+    {
+        if (str != null && prefix != null)
+        {
+            if (str.startsWith(prefix))
+            {
+                str = str.substring(prefix.length());
+            }
 
+            return str;
+        }
+        else
+        {
+            return str;
+        }
+    }
+
+    public static String removePrefix(String str, String[] prefixes)
+    {
+        if (str != null && prefixes != null)
+        {
+            int i = str.length();
+
+            for (int j = 0; j < prefixes.length; ++j)
+            {
+                String s = prefixes[j];
+                str = removePrefix(str, s);
+
+                if (str.length() != i)
+                {
+                    break;
+                }
+            }
+
+            return str;
+        }
+        else
+        {
+            return str;
+        }
+    }
+
+    public static String removeSuffix(String str, String suffix)
+    {
+        if (str != null && suffix != null)
+        {
+            if (str.endsWith(suffix))
+            {
+                str = str.substring(0, str.length() - suffix.length());
+            }
+
+            return str;
+        }
+        else
+        {
+            return str;
+        }
+    }
+
+    public static String removeSuffix(String str, String[] suffixes)
+    {
+        if (str != null && suffixes != null)
+        {
+            int i = str.length();
+
+            for (int j = 0; j < suffixes.length; ++j)
+            {
+                String s = suffixes[j];
+                str = removeSuffix(str, s);
+
+                if (str.length() != i)
+                {
+                    break;
+                }
+            }
+
+            return str;
+        }
+        else
+        {
+            return str;
+        }
+    }
+    
+    public static String ensurePrefix(String str, String prefix)
+    {
+        if (str != null && prefix != null)
+        {
+            if (!str.startsWith(prefix))
+            {
+                str = prefix + str;
+            }
+
+            return str;
+        }
+        else
+        {
+            return str;
+        }
+    }
+    public static byte[] readAll(InputStream is) throws IOException
+    {
+        ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
+        byte[] abyte = new byte[1024];
+
+        while (true)
+        {
+            int i = is.read(abyte);
+
+            if (i < 0)
+            {
+                is.close();
+                return bytearrayoutputstream.toByteArray();
+            }
+
+            bytearrayoutputstream.write(abyte, 0, i);
+        }
+    }
 }

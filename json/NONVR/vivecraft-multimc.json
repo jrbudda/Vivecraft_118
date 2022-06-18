@@ -5,18 +5,6 @@
 	],
 	"libraries": [
 	{
-		"name": "org.json:json:20140107",
-		"url": "http://vivecraft.org/jar/"
-	},
-	{
-		"name": "com.sun:jna:4.2.1",
-		"url": "http://vivecraft.org/jar/"
-	},
-	{
-		"name": "org.ow2.asm:asm-all:5.2",
-		"url": "http://files.minecraftforge.net/maven/"
-	},
-	{
 		"name": "net.minecraft:launchwrapper:2.3",
 		"url": "http://vivecraft.org/jar/"
 	},

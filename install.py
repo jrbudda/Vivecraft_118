@@ -636,7 +636,11 @@ def reallyrmtree(path):
                 i += 1
         except OSError:
             pass
-        os.rename(path, path + "temp")
+        try:
+            os.rename(path, path + "temp")
+        except:
+            print "failed to rename " + path + " to " + path + "temp" 
+            raise
         path = path + "temp"
         i = 0
         try:
