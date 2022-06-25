@@ -4,6 +4,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.List;
+
+import org.vivecraft.utils.ScreenUtils;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
@@ -35,7 +38,7 @@ public class VRTooltipManager
 
             if (System.currentTimeMillis() >= this.mouseStillTime + (long)i)
             {
-                AbstractWidget abstractwidget = Screen.getSelectedButton((int)x, (int)y, buttonList);
+                AbstractWidget abstractwidget = ScreenUtils.getSelectedButton((int)x, (int)y, buttonList);
 
                 if (abstractwidget != null)
                 {

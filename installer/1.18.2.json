@@ -1583,10 +1583,6 @@
 			"url": "http://vivecraft.org/jar/"
 		},
 		{
-			"url": "http://vivecraft.org/jar/",
-			"name": "org.json:json:20140107"
-		},
-		{
             "name": "org.ow2.asm:asm:9.2",
 			"url": "https://files.minecraftforge.net/maven/"
         },

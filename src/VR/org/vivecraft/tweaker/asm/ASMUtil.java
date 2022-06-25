@@ -1,4 +1,4 @@
-package org.vivecraft.asm;
+package org.vivecraft.tweaker.asm;
 
 import java.util.Iterator;
 
@@ -21,20 +21,20 @@ public class ASMUtil {
 	private ASMUtil() {
 	}
 	
-	public static MethodNode findMethod(ClassNode node, MethodTuple tuple) {
+	public static MethodNode findMethod(ClassNode node, String methodName, String methodDesc) {
 		for (Iterator<MethodNode> it = node.methods.iterator(); it.hasNext(); ) {
 			MethodNode method = it.next();
-			if (method.name.equals(tuple.methodName) && method.desc.equals(tuple.methodDesc)) {
+			if (method.name.equals(methodName) && method.desc.equals(methodDesc)) {
 				return method;
 			}
 		}
 		return null;
 	}
 	
-	public static boolean deleteMethod(ClassNode node, MethodTuple tuple) {
+	public static boolean deleteMethod(ClassNode node, String methodName, String methodDesc) {
 		for (Iterator<MethodNode> it = node.methods.iterator(); it.hasNext(); ) {
 			MethodNode method = it.next();
-			if (method.name.equals(tuple.methodName) && method.desc.equals(tuple.methodDesc)) {
+			if (method.name.equals(methodName) && method.desc.equals(methodDesc)) {
 				it.remove();
 				return true;
 			}
@@ -108,10 +108,10 @@ public class ASMUtil {
 		return findNthInstructionPattern(node, 0, instructions);
 	}
 	
-	public static boolean addMethod(ClassNode node, MethodTuple tuple, MethodNode method) {
+	public static boolean addMethod(ClassNode node, String methodName, String methodDesc, MethodNode method) {
 	
 		for (Iterator<MethodNode> it = node.methods.iterator(); it.hasNext(); ) {
-			if (method.name.equals(tuple.methodName) && method.desc.equals(tuple.methodDesc)) {
+			if (method.name.equals(methodName) && method.desc.equals(methodDesc)) {
 				//exists.
 				return false;
 			}

@@ -385,16 +385,12 @@ def stripmeta( target_file ):
         print 'zipmerge: target not a zip-file: %s' % target_file
         raise
 
-    target_files = set( target.namelist() ) - source_files_mod
+    target_files = set(target.namelist())
 
     for file in target_files:
-        out.writestr( file, target.open( file ).read() )
+        if not file.startswith('META-INF'):
+            out.writestr( file, target.open( file ).read() )
         
-    for file in source_files:
-        if file.startswith("srg/"): continue
-        out.writestr(file.replace("notch/",""), source.open( file ).read() )
-
-    source.close()
     target.close()
     out.close()
     os.remove( target_file )
@@ -522,6 +518,7 @@ def main(mcp_dir):
         ofmerge( minecraft_jar, optifine_dest_file )
     else:
         print("Skipping Optifine merge!")
+        stripmeta( minecraft_jar)
         
      # Create original decompile src dir
     org_src_dir = os.path.join(mcp_dir, "src",".minecraft_orig")

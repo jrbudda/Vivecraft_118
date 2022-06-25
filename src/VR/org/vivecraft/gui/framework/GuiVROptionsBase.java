@@ -14,6 +14,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.phys.Vec2;
 import net.optifine.Lang;
 import org.vivecraft.settings.VRSettings;
+import org.vivecraft.utils.ScreenUtils;
 
 public abstract class GuiVROptionsBase extends Screen
 {
@@ -233,7 +234,7 @@ public abstract class GuiVROptionsBase extends Screen
         }
 
         super.render(pMatrixStack, pMouseX, pMouseY, pPartialTicks);
-        this.tooltipManager.drawTooltips(pMatrixStack, pMouseX, pMouseY, this.getButtonList());
+        this.tooltipManager.drawTooltips(pMatrixStack, pMouseX, pMouseY, ScreenUtils.getButtonList(this));
     }
 
     protected void actionPerformed(AbstractWidget button)
@@ -247,7 +248,7 @@ public abstract class GuiVROptionsBase extends Screen
     public boolean mouseClicked(double pMouseX, double p_94738_, int pMouseY)
     {
         boolean flag = super.mouseClicked(pMouseX, p_94738_, pMouseY);
-        AbstractWidget abstractwidget = getSelectedButton((int)pMouseX, (int)p_94738_, this.getButtonList());
+        AbstractWidget abstractwidget = ScreenUtils.getSelectedButton((int)pMouseX, (int)p_94738_, ScreenUtils.getButtonList(this));
 
         if (abstractwidget != null)
         {

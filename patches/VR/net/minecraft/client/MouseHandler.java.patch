@@ -69,7 +69,7 @@
 -                        }, "mouseReleased event handler", screen.getClass().getCanonicalName());
 +                            if (Reflector.ForgeHooksClient_onGuiMouseReleasedPre.exists())
 +                            {
-+                                aboolean[0] = Reflector.callBoolean(Reflector.ForgeHooksClient_onGuiMouseReleasedPre, this.minecraft.screen, d0, d1, i);
++                                aboolean[0] = Reflector.callBoolean(Reflector.ForgeHooksClient_onGuiMouseReleasedPre, this.minecraft.screen, d0, d1, i, aboolean[0]);
 +
 +                                if (!aboolean[0])
 +                                {
@@ -78,7 +78,7 @@
 +
 +                                if (!aboolean[0])
 +                                {
-+                                    aboolean[0] = Reflector.callBoolean(Reflector.ForgeHooksClient_onGuiMouseReleasedPost, this.minecraft.screen, d0, d1, i);
++                                    aboolean[0] = Reflector.callBoolean(Reflector.ForgeHooksClient_onGuiMouseReleasedPost, this.minecraft.screen, d0, d1, i, aboolean[0]);
 +                                }
 +                            }
 +                            else {

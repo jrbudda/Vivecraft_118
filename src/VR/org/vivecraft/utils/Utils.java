@@ -34,7 +34,6 @@ import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.annotation.Nullable;
-import jopenvr.HmdMatrix44_t;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.ComponentCollector;
 import net.minecraft.client.Minecraft;
@@ -73,37 +72,6 @@ public class Utils
     private static final int CONNECT_TIMEOUT = 5000;
     private static final int READ_TIMEOUT = 20000;
     private static final Random avRandomizer = new Random();
-
-    public static String sanitizeFileName(String fileName)
-    {
-        StringBuilder stringbuilder = new StringBuilder();
-
-        for (int i = 0; i < fileName.length(); ++i)
-        {
-            char c0 = fileName.charAt(i);
-
-            if (Arrays.binarySearch(illegalChars, c0) < 0)
-            {
-                stringbuilder.append(c0);
-            }
-            else
-            {
-                stringbuilder.append('_');
-            }
-        }
-
-        return stringbuilder.toString();
-    }
-
-    public static Vector3 convertToOVRVector(Vector3f vector)
-    {
-        return new Vector3(vector.x, vector.y, vector.z);
-    }
-
-    public static Vector3 convertToOVRVector(Vec3 vector)
-    {
-        return new Vector3((float)vector.x, (float)vector.y, (float)vector.z);
-    }
 
     public static Matrix4f convertOVRMatrix(org.vivecraft.utils.math.Matrix4f matrix)
     {
@@ -883,28 +851,6 @@ public class Utils
         }
     }
 
-    public static com.mojang.math.Matrix4f Matrix4fFromOpenVR(HmdMatrix44_t in)
-    {
-        com.mojang.math.Matrix4f matrix4f = new com.mojang.math.Matrix4f();
-        matrix4f.m00 = in.m[0];
-        matrix4f.m01 = in.m[1];
-        matrix4f.m02 = in.m[2];
-        matrix4f.m03 = in.m[3];
-        matrix4f.m10 = in.m[4];
-        matrix4f.m11 = in.m[5];
-        matrix4f.m12 = in.m[6];
-        matrix4f.m13 = in.m[7];
-        matrix4f.m20 = in.m[8];
-        matrix4f.m21 = in.m[9];
-        matrix4f.m22 = in.m[10];
-        matrix4f.m23 = in.m[11];
-        matrix4f.m30 = in.m[12];
-        matrix4f.m31 = in.m[13];
-        matrix4f.m32 = in.m[14];
-        matrix4f.m33 = in.m[15];
-        return matrix4f;
-    }
-
     public static Quaternion convertMatrix4ftoRotationQuat(float m00, float m01, float m02, float m10, float m11, float m12, float m20, float m21, float m22)
     {
         double d0 = (double)(m00 * m00 + m10 * m10 + m20 * m20);
@@ -1052,4 +998,5 @@ public class Utils
     {
         Arrays.sort(illegalChars);
     }
+
 }

@@ -1,6 +1,14 @@
 --- a/net/minecraft/world/entity/monster/EnderMan.java
 +++ b/net/minecraft/world/entity/monster/EnderMan.java
-@@ -62,7 +62,11 @@
+@@ -20,6 +20,7 @@
+ import net.minecraft.sounds.SoundEvents;
+ import net.minecraft.tags.BlockTags;
+ import net.minecraft.tags.FluidTags;
++import net.minecraft.tags.TagKey;
+ import net.minecraft.util.Mth;
+ import net.minecraft.util.TimeUtil;
+ import net.minecraft.util.valueproviders.UniformInt;
+@@ -62,7 +63,11 @@
  import net.minecraft.world.level.pathfinder.BlockPathTypes;
  import net.minecraft.world.phys.AABB;
  import net.minecraft.world.phys.BlockHitResult;
@@ -12,16 +20,39 @@
  
  public class EnderMan extends Monster implements NeutralMob
  {
+@@ -110,7 +115,6 @@
+ 
+     public void setTarget(@Nullable LivingEntity pLivingEntity)
+     {
+-        super.setTarget(pLivingEntity);
+         AttributeInstance attributeinstance = this.getAttribute(Attributes.MOVEMENT_SPEED);
+ 
+         if (pLivingEntity == null)
 @@ -130,6 +134,8 @@
                  attributeinstance.addTransientModifier(SPEED_MODIFIER_ATTACKING);
              }
          }
-+
++        //Forge move down here
 +        super.setTarget(pLivingEntity);
      }
  
      protected void defineSynchedData()
-@@ -312,6 +318,7 @@
+@@ -224,8 +230,13 @@
+     boolean isLookingAtMe(Player pPlayer)
+     {
+         ItemStack itemstack = pPlayer.getInventory().armor.get(3);
++        boolean flag = itemstack.is(Blocks.CARVED_PUMPKIN.asItem());
++
++        //Forge
++        if (Reflector.ForgeHooks_shouldSuppressEnderManAnger.exists())
++        	flag = Reflector.callBoolean(Reflector.ForgeHooks_shouldSuppressEnderManAnger, this, pPlayer, itemstack);
+ 
+-        if (itemstack.is(Blocks.CARVED_PUMPKIN.asItem()))
++        if (flag)
+         {
+             return false;
+         }
+@@ -312,6 +323,7 @@
          return this.teleport(d1, d2, d3);
      }
  
@@ -29,7 +60,7 @@
      private boolean teleport(double pX, double p_32545_, double pY)
      {
          BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(pX, p_32545_, pY);
-@@ -327,6 +334,19 @@
+@@ -327,6 +339,19 @@
  
          if (flag && !flag1)
          {
@@ -49,7 +80,7 @@
              boolean flag2 = this.randomTeleport(pX, p_32545_, pY, true);
  
              if (flag2 && !this.isSilent())
-@@ -501,11 +521,18 @@
+@@ -501,11 +526,18 @@
  
          public boolean canUse()
          {
@@ -69,7 +100,7 @@
              {
                  return false;
              }
-@@ -527,8 +554,10 @@
+@@ -527,8 +559,10 @@
              BlockPos blockpos1 = blockpos.below();
              BlockState blockstate1 = level.getBlockState(blockpos1);
              BlockState blockstate2 = this.enderman.getCarriedBlock();
@@ -81,7 +112,20 @@
              {
                  blockstate2 = Block.updateFromNeighbourShapes(blockstate2, this.enderman.level, blockpos);
  
-@@ -657,11 +686,18 @@
+@@ -543,7 +577,12 @@
+ 
+         private boolean canPlaceBlock(Level p_32559_, BlockPos p_32560_, BlockState p_32561_, BlockState p_32562_, BlockState p_32563_, BlockPos p_32564_)
+         {
++        	//Forge
++        	if (Reflector.ENDERMAN_PLACE_ON_BLACKLIST.exists())
++        		return p_32562_.isAir() && !p_32563_.isAir() && !p_32563_.is(Blocks.BEDROCK) && !p_32563_.is((TagKey<Block>) Reflector.getFieldValue(Reflector.ENDERMAN_PLACE_ON_BLACKLIST)) && p_32563_.isCollisionShapeFullBlock(p_32559_, p_32564_) && p_32561_.canSurvive(p_32559_, p_32560_) && p_32559_.getEntities(this.enderman, AABB.unitCubeFromLowerCorner(Vec3.atLowerCornerOf(p_32560_))).isEmpty();
++        	else
+             return p_32562_.isAir() && !p_32563_.isAir() && !p_32563_.is(Blocks.BEDROCK) && p_32563_.isCollisionShapeFullBlock(p_32559_, p_32564_) && p_32561_.canSurvive(p_32559_, p_32560_) && p_32559_.getEntities(this.enderman, AABB.unitCubeFromLowerCorner(Vec3.atLowerCornerOf(p_32560_))).isEmpty();
++            //
+         }
+     }
+ 
+@@ -657,11 +696,18 @@
  
          public boolean canUse()
          {

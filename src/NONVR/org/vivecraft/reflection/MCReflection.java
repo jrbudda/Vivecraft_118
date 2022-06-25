@@ -5,19 +5,18 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
-import net.minecraft.client.sounds.SoundEngine;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ServerboundCustomPayloadPacket;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.block.state.StateHolder;
-import org.vivecraft.asm.ObfNames;
 
 public class MCReflection
 {
@@ -25,8 +24,8 @@ public class MCReflection
 	//soundEngine
     public static final MCReflection.ReflectionField SoundHandler_sndManager = new MCReflection.ReflectionField(SoundManager.class, "f_120349_");
     
-    //unneeded
-    //public static final String BlockState_OnBlockActivated = "func_225533_a_";
+    //blocks for interact
+    public static final String BlockBehavior_Use = "m_6227_";
   
     //destroyDelay
     public static final MCReflection.ReflectionField PlayerController_blockHitDelay = new MCReflection.ReflectionField(MultiPlayerGameMode.class, "f_105195_");

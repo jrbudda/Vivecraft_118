@@ -43,7 +43,10 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
     		"net/minecraft/client/gui/screen/inventory/CreativeScreen",
     		"net/minecraft/fluid/FluidState",
     		"net/minecraft/world/item/crafting/RecipeManager",
-    		"net/minecraft/client/Minecraft");
+    		"net/minecraft/client/Minecraft",
+    		"net/minecraft/client/Minecraft$ExperimentalDialogType",
+            "net/minecraft/server/level/ServerPlayer"
+    );
     
     public TransformerVoteResult castVote(ITransformerVotingContext context)
     {

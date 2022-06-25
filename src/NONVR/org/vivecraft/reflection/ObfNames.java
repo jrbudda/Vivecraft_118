@@ -1,4 +1,4 @@
-package org.vivecraft.asm;
+package org.vivecraft.reflection;
 
 import java.io.BufferedReader;
 import java.io.File;

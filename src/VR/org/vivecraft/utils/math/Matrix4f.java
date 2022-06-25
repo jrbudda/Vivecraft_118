@@ -5,6 +5,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
+import org.vivecraft.utils.Utils;
+
 public class Matrix4f
 {
     public float[][] M = new float[4][4];
@@ -216,6 +218,10 @@ public class Matrix4f
         return new Matrix4f(vector31.x, vector31.y, vector31.z, -vector31.dot(eye), vector32.x, vector32.y, vector32.z, -vector32.dot(eye), vector3.x, vector3.y, vector3.z, -vector3.dot(eye), 0.0F, 0.0F, 0.0F, 1.0F);
     }
 
+    public Quaternion toQuaternion() {
+    	return Utils.convertMatrix4ftoRotationQuat(this.M[0][0], this.M[0][1], this.M[0][2], this.M[1][0], this.M[1][1], this.M[1][2], this.M[2][0], this.M[2][1], this.M[2][2]);
+    }
+    
     public com.mojang.math.Matrix4f toMCMatrix()
     {
         com.mojang.math.Matrix4f matrix4f = new com.mojang.math.Matrix4f();

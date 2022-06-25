@@ -37,13 +37,17 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
     		"net/minecraft/server/packs/repository/PackRepository",
     		"net/minecraft/server/packs/repository/Pack$PackConstructor",
     		"net/minecraft/server/packs/repository/Pack$Position",
-    		"net/minecraft/item/Item", 
-    		"net/minecraft/item/Item$Properties", 
+    		"net/minecraft/world/item/Item", 
+    		"net/minecraft/world/item/Item$Properties", 
     		"net/minecraft/client/gui/screen/inventory/ContainerScreen", 
     		"net/minecraft/client/gui/screen/inventory/CreativeScreen",
     		"net/minecraft/fluid/FluidState",
-    		"net/minecraft/world/item/crafting/RecipeManager");
-
+    		"net/minecraft/world/item/crafting/RecipeManager",
+    		"net/minecraft/client/gui/screens/Screen",
+    		"net/minecraft/client/gui/screens/Screen$1",
+            "net/minecraft/server/level/ServerPlayer"
+    );
+    
     public TransformerVoteResult castVote(ITransformerVotingContext context)
     {
         return TransformerVoteResult.YES;
@@ -63,7 +67,6 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
 
             if (!this.exclusions.contains(s) && !s.contains("minecraftforge"))
             {
-            	System.out.println("Target: " + s);
                 set.add(target);
             }
         }
@@ -95,7 +98,7 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
             if (classnode1 != null)
             {
                 this.debugClass(classnode1);
-                //AccessFixer.fixMemberAccess(input, classnode1);
+                AccessFixer.fixMemberAccess(input, classnode1);
                 classnode = classnode1;
             }
 

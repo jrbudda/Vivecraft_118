@@ -1,16 +1,14 @@
 --- a/net/minecraft/world/item/Item.java
 +++ b/net/minecraft/world/item/Item.java
-@@ -9,6 +9,9 @@
+@@ -9,6 +9,7 @@
  import java.util.Optional;
  import java.util.UUID;
  import javax.annotation.Nullable;
 +
-+import org.vivecraft.asm.ASMDelegator;
-+
  import net.minecraft.SharedConstants;
  import net.minecraft.Util;
  import net.minecraft.core.BlockPos;
-@@ -151,7 +154,7 @@
+@@ -151,7 +152,7 @@
          {
              ItemStack itemstack = pPlayer.getItemInHand(pUsedHand);
  
@@ -19,18 +17,18 @@
              {
                  pPlayer.startUsingItem(pUsedHand);
                  return InteractionResultHolder.consume(itemstack);
-@@ -366,6 +369,15 @@
+@@ -366,6 +367,15 @@
          float f = pPlayer.getXRot();
          float f1 = pPlayer.getYRot();
          Vec3 vec3 = pPlayer.getEyePosition();
 +
-+        // Vivecraft - Identical code to asm for vanilla and so we understand what's going on.
-+        // TODO: Actually make the asm work again when we fix Forge
-+        f = ASMDelegator.itemRayTracePitch(pPlayer, f);
-+        f1 = ASMDelegator.itemRayTraceYaw(pPlayer, f1);
-+        vec3 = ASMDelegator.itemRayTracePos(pPlayer, vec3);
-+        System.out.println(Thread.currentThread().getName() + " " + vec3.x + " " + vec3.y + " " + vec3.z + " " + f + " " + f1);
-+        //
++//        // Vivecraft - Identical code to asm for vanilla and so we understand what's going on.
++//        // TODO: Actually make the asm work again when we fix Forge
++//        f = ASMInjections.itemRayTracePitch(pPlayer, f);
++//        f1 = ASMInjections.itemRayTraceYaw(pPlayer, f1);
++//        vec3 = ASMInjections.itemRayTracePos(pPlayer, vec3);
++//        System.out.println(Thread.currentThread().getName() + " " + vec3.x + " " + vec3.y + " " + vec3.z + " " + f + " " + f1);
++//        //
 +
          float f2 = Mth.cos(-f1 * ((float)Math.PI / 180F) - (float)Math.PI);
          float f3 = Mth.sin(-f1 * ((float)Math.PI / 180F) - (float)Math.PI);

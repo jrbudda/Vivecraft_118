@@ -1,38 +1,32 @@
 package org.vivecraft.tweaker;
 
-import cpw.mods.jarhandling.SecureJar;
-import cpw.mods.modlauncher.api.IEnvironment;
-import cpw.mods.modlauncher.api.IModuleLayerManager;
-import cpw.mods.modlauncher.api.ITransformationService;
-import cpw.mods.modlauncher.api.ITransformer;
-import cpw.mods.modlauncher.api.IncompatibleEnvironmentException;
-import cpw.mods.modlauncher.api.IModuleLayerManager.Layer;
-import cpw.mods.modlauncher.api.ITransformationService.Resource;
-
-import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.vivecraft.tweaker.asm.VivecraftASM_Minecraft;
+import org.vivecraft.tweaker.asm.VivecraftASM_RecipeManager;
+import org.vivecraft.tweaker.asm.VivecraftASM_ServerPlayer;
+
+import cpw.mods.jarhandling.SecureJar;
+import cpw.mods.modlauncher.api.IEnvironment;
+import cpw.mods.modlauncher.api.IModuleLayerManager;
+import cpw.mods.modlauncher.api.IModuleLayerManager.Layer;
+import cpw.mods.modlauncher.api.ITransformationService;
+import cpw.mods.modlauncher.api.ITransformer;
+import cpw.mods.modlauncher.api.IncompatibleEnvironmentException;
 
 public class VivecraftTransformationService implements ITransformationService
 {
@@ -179,8 +173,9 @@ public class VivecraftTransformationService implements ITransformationService
             list.add(transformer);
         }
 
-        list.add(new VivecraftASM_RecipeManager());
         list.add(new VivecraftASM_Minecraft());
+        list.add(new VivecraftASM_RecipeManager());
+        list.add(new VivecraftASM_ServerPlayer());
         return list;
     }
 

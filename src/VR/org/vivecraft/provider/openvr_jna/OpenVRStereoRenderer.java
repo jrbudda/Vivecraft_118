@@ -78,12 +78,12 @@ public class OpenVRStereoRenderer extends VRRenderer
         if (eyeType == 0)
         {
             HmdMatrix44_t hmdmatrix44_t1 = this.openvr.vrsystem.GetProjectionMatrix.apply(0, nearClip, farClip);
-            return Utils.Matrix4fFromOpenVR(hmdmatrix44_t1);
+            return OpenVRUtil.Matrix4fFromOpenVR(hmdmatrix44_t1);
         }
         else
         {
             HmdMatrix44_t hmdmatrix44_t = this.openvr.vrsystem.GetProjectionMatrix.apply(1, nearClip, farClip);
-            return Utils.Matrix4fFromOpenVR(hmdmatrix44_t);
+            return OpenVRUtil.Matrix4fFromOpenVR(hmdmatrix44_t);
         }
     }
 

@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.google.gson.JsonObject;
 import com.mojang.blaze3d.audio.Library;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import net.optifine.Config;
@@ -29,7 +30,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONObject;
 import org.vivecraft.gameplay.VRPlayer;
 import org.vivecraft.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.gui.PhysicalKeyboard;
@@ -55,7 +55,7 @@ public class VRSettings
     public static final int VERSION = 2;
     public static final Logger logger = LogManager.getLogger();
     public static VRSettings inst;
-    public JSONObject defaults = new JSONObject();
+    public JsonObject defaults = new JsonObject();
     public static final int UNKNOWN_VERSION = 0;
     public static final String DEGREE  = "\u00b0";
 
@@ -693,7 +693,7 @@ public class VRSettings
         loadOptions(this.defaults);
     }
 
-    public void loadOptions(JSONObject theProfiles)
+    public void loadOptions(JsonObject theProfiles)
     {
         // Load Minecrift options
         try
@@ -761,7 +761,7 @@ public class VRSettings
         saveOptions(this.defaults);
     }
 
-    private void saveOptions(JSONObject theProfiles)
+    private void saveOptions(JsonObject theProfiles)
     {
         // Save Minecrift settings
         try

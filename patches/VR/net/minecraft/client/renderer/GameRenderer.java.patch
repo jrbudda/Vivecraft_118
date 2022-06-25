@@ -2201,10 +2201,10 @@
 +	                
 +		            if (Reflector.ForgeIngameGui.exists())
 +		            {
-+		            	Reflector.call(Reflector.getFieldValue(Reflector.ForgeIngameGui_CROSSHAIR_ELEMENT), Reflector.OverlayEntry_setEnabled, false);
-+		            	Reflector.call(Reflector.getFieldValue(Reflector.ForgeIngameGui_HELMET_ELEMENT), Reflector.OverlayEntry_setEnabled, false);
-+		            	Reflector.call(Reflector.getFieldValue(Reflector.ForgeIngameGui_PORTAL_ELEMENT), Reflector.OverlayEntry_setEnabled, false);
-+		            	Reflector.call(Reflector.getFieldValue(Reflector.ForgeIngameGui_VIGNETTE_ELEMENT), Reflector.OverlayEntry_setEnabled, false);
++		            	Reflector.call(Reflector.OverlayRegistry_enableOverlay, Reflector.getFieldValue(Reflector.ForgeIngameGui_CROSSHAIR_ELEMENT), false);
++		            	Reflector.call(Reflector.OverlayRegistry_enableOverlay ,Reflector.getFieldValue(Reflector.ForgeIngameGui_HELMET_ELEMENT), false);
++		            	Reflector.call(Reflector.OverlayRegistry_enableOverlay ,Reflector.getFieldValue(Reflector.ForgeIngameGui_PORTAL_ELEMENT), false);
++		            	Reflector.call(Reflector.OverlayRegistry_enableOverlay ,Reflector.getFieldValue(Reflector.ForgeIngameGui_VIGNETTE_ELEMENT), false);
 +		            }
 +	                
 +	//	            if (this.minecraft.player != null)

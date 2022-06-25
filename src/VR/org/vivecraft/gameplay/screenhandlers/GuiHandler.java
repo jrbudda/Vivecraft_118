@@ -31,7 +31,6 @@ import org.vivecraft.provider.ControllerType;
 import org.vivecraft.provider.HandedKeyBinding;
 import org.vivecraft.provider.InputSimulator;
 import org.vivecraft.provider.MCVR;
-import org.vivecraft.provider.openvr_jna.OpenVRUtil;
 import org.vivecraft.render.RenderPass;
 import org.vivecraft.settings.VRSettings;
 import org.vivecraft.utils.Utils;
@@ -485,7 +484,7 @@ public class GuiHandler
                     }
 
                     guipos = new Vec3(vec33.x + vec34.x * (double)mc.vrPlayer.vrdata_world_render.worldScale * (double)mc.vrSettings.hudDistance, vec33.y + vec34.y * (double)mc.vrPlayer.vrdata_world_render.worldScale * (double)mc.vrSettings.hudDistance, vec33.z + vec34.z * (double)mc.vrPlayer.vrdata_world_render.worldScale * (double)mc.vrSettings.hudDistance);
-                    Quaternion quaternion = OpenVRUtil.convertMatrix4ftoRotationQuat(matrix4f2);
+                    Quaternion quaternion = matrix4f2.toQuaternion();
                     guirot = new Matrix4f(quaternion);
                     scale = mc.vrSettings.hudScale;
                 }

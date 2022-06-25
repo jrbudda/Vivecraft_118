@@ -1,38 +1,32 @@
 package org.vivecraft.tweaker;
 
-import cpw.mods.jarhandling.SecureJar;
-import cpw.mods.modlauncher.api.IEnvironment;
-import cpw.mods.modlauncher.api.IModuleLayerManager;
-import cpw.mods.modlauncher.api.ITransformationService;
-import cpw.mods.modlauncher.api.ITransformer;
-import cpw.mods.modlauncher.api.IncompatibleEnvironmentException;
-import cpw.mods.modlauncher.api.IModuleLayerManager.Layer;
-import cpw.mods.modlauncher.api.ITransformationService.Resource;
-
-import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.vivecraft.tweaker.asm.VivecraftASM_RecipeManager;
+import org.vivecraft.tweaker.asm.VivecraftASM_Screen;
+import org.vivecraft.tweaker.asm.VivecraftASM_ServerPlayer;
+
+import cpw.mods.jarhandling.SecureJar;
+import cpw.mods.modlauncher.api.IEnvironment;
+import cpw.mods.modlauncher.api.IModuleLayerManager;
+import cpw.mods.modlauncher.api.IModuleLayerManager.Layer;
+import cpw.mods.modlauncher.api.ITransformationService;
+import cpw.mods.modlauncher.api.ITransformer;
+import cpw.mods.modlauncher.api.IncompatibleEnvironmentException;
 
 public class VivecraftTransformationService implements ITransformationService
 {
@@ -56,6 +50,16 @@ public class VivecraftTransformationService implements ITransformationService
     public void onLoad(IEnvironment env, Set<String> otherServices) throws IncompatibleEnvironmentException
     {
     	LOGGER.info("VivecraftTransformationService.onLoad");
+    	for(String o: otherServices) {
+        	LOGGER.info("Other: " + o);
+    	}
+    	
+//    	if(!otherServices.contains("OptiFine")) {
+//    		throw new IncompatibleEnvironmentException("Vivecraft requires Optifine");
+//   	}
+//    	if(otherServices.contains("Vivecraft")) {
+//    		throw new IncompatibleEnvironmentException("multiple Vivecraft mods found");
+//    	}   	
     	try
     	{
         	transformer = new VivecraftTransformer();
@@ -110,10 +114,7 @@ public class VivecraftTransformationService implements ITransformationService
     {
         if (name.endsWith(".class")) //&& !name.startsWith("org.vivecraft/"))
         {
-        	if(name.contains("org/vivecraft"))
         		name = "vcsrg/" + name;
-        	else
-        		name = "vcsrg/" + name.replace(".class", ".clsrg");
         }
 
         if (transformer == null)
@@ -125,7 +126,10 @@ public class VivecraftTransformationService implements ITransformationService
             ZipEntry zipentry;
 			try {
 				zipentry = LoaderUtils.getVivecraftZip().getEntry(name);
-				
+	            if (zipentry == null)
+	            {
+					zipentry = LoaderUtils.getVivecraftZip().getEntry(name.replace(".class", ".clsrg"));
+	            }
 
 	            if (zipentry == null)
 	            {
@@ -168,8 +172,9 @@ public class VivecraftTransformationService implements ITransformationService
         {
             list.add(transformer);
         }
-
-        list.add(new VivecraftASMTransformer());
+        list.add(new VivecraftASM_Screen());
+        list.add(new VivecraftASM_RecipeManager());
+        list.add(new VivecraftASM_ServerPlayer());
         return list;
     }
 

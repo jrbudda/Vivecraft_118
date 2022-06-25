@@ -19,13 +19,13 @@ public class OVRUtils
         matrix4f.M[0][3] = pose.Position().x();
         matrix4f.M[1][3] = pose.Position().y();
         matrix4f.M[2][3] = pose.Position().z();
-        return matrix4f;
+        return matrix4f.transposed();
     }
 
     public static Matrix4f ovrMatrix4ToMatrix4f(OVRMatrix4f hmdMatrix)
     {
         Matrix4f matrix4f = new Matrix4f();
         Utils.Matrix4fSet(matrix4f, hmdMatrix.M(0), hmdMatrix.M(1), hmdMatrix.M(2), hmdMatrix.M(3), hmdMatrix.M(4), hmdMatrix.M(5), hmdMatrix.M(6), hmdMatrix.M(7), hmdMatrix.M(8), hmdMatrix.M(9), hmdMatrix.M(10), hmdMatrix.M(11), hmdMatrix.M(12), hmdMatrix.M(13), hmdMatrix.M(14), hmdMatrix.M(15));
-        return matrix4f;
+        return matrix4f.transposed();
     }
 }

@@ -19,7 +19,6 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.vivecraft.api.NetworkHelper;
 import org.vivecraft.gameplay.VRMovementStyle;
-import org.vivecraft.provider.openvr_jna.OpenVRUtil;
 import org.vivecraft.utils.Utils;
 import org.vivecraft.utils.math.Angle;
 import org.vivecraft.utils.math.Matrix4f;
@@ -273,7 +272,7 @@ public class TeleportTracker extends Tracker
 
         Matrix4f matrix4f1 = Matrix4f.rotationY(mc.vrPlayer.vrdata_world_render.rotation_radians);
         matrix4f = Matrix4f.multiply(matrix4f1, matrix4f);
-        Quaternion quaternion = OpenVRUtil.convertMatrix4ftoRotationQuat(matrix4f);
+        Quaternion quaternion = matrix4f.toQuaternion();
         Angle angle = quaternion.toEuler();
         int i = 50;
         this.movementTeleportArc[0] = new Vec3(vec3.x, vec3.y, vec3.z);

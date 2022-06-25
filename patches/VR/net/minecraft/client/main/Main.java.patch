@@ -1,6 +1,13 @@
 --- a/net/minecraft/client/main/Main.java
 +++ b/net/minecraft/client/main/Main.java
-@@ -44,7 +44,11 @@
+@@ -39,12 +39,18 @@
+ import net.minecraft.util.profiling.jfr.Environment;
+ import net.minecraft.util.profiling.jfr.JvmProfiler;
+ import net.minecraft.world.entity.player.Player;
++import net.optifine.reflect.Reflector;
++
+ import org.slf4j.Logger;
+ 
  public class Main
  {
      static final Logger LOGGER = LogUtils.getLogger();
@@ -13,7 +20,7 @@
      @DontObfuscate
      public static void main(String[] pArgs)
      {
-@@ -54,6 +58,12 @@
+@@ -54,6 +60,12 @@
          optionparser.accepts("demo");
          optionparser.accepts("disableMultiplayer");
          optionparser.accepts("disableChat");
@@ -26,7 +33,7 @@
          optionparser.accepts("fullscreen");
          optionparser.accepts("checkGlErrors");
          OptionSpec<Void> optionspec = optionparser.accepts("jfrProfile");
-@@ -72,8 +82,8 @@
+@@ -72,8 +84,8 @@
          OptionSpec<String> optionspec13 = optionparser.accepts("clientId").withOptionalArg().defaultsTo("");
          OptionSpec<String> optionspec14 = optionparser.accepts("accessToken").withRequiredArg().required();
          OptionSpec<String> optionspec15 = optionparser.accepts("version").withRequiredArg().required();
@@ -37,7 +44,7 @@
          OptionSpec<Integer> optionspec18 = optionparser.accepts("fullscreenWidth").withRequiredArg().ofType(Integer.class);
          OptionSpec<Integer> optionspec19 = optionparser.accepts("fullscreenHeight").withRequiredArg().ofType(Integer.class);
          OptionSpec<String> optionspec20 = optionparser.accepts("userProperties").withRequiredArg().defaultsTo("{}");
-@@ -124,6 +134,27 @@
+@@ -124,6 +136,26 @@
          OptionalInt optionalint1 = ofNullable(parseArgument(optionset, optionspec19));
          boolean flag = optionset.has("fullscreen");
          boolean flag1 = optionset.has("demo");
@@ -61,11 +68,31 @@
 +        katvr = optionset.has("katvr");
 +        infinadeck = optionset.has("infinadeck");
 +        oculus = optionset.has("oculus");
-+        //oculus = true;
          boolean flag2 = optionset.has("disableMultiplayer");
          boolean flag3 = optionset.has("disableChat");
          String s3 = parseArgument(optionset, optionspec15);
-@@ -196,6 +227,7 @@
+@@ -147,7 +179,19 @@
+         }
+ 
+         CrashReport.preload();
+-        Bootstrap.bootStrap();
++        //Forge
++        if(Reflector.BackgroundWaiter_runAndTick.exists()) {
++        	Runnable bootstrap = new Runnable() {			
++				@Override
++				public void run() {
++					Bootstrap.bootStrap();
++				}
++			};
++        	Reflector.call(Reflector.BackgroundWaiter_runAndTick, bootstrap, Reflector.getFieldValue(Reflector.FMLLoader_progressWindowTick));
++        } else {
++            Bootstrap.bootStrap();
++        }
++        //
+         Bootstrap.validate();
+         Util.startTimerHackThread();
+         String s10 = optionspec23.value(optionset);
+@@ -196,6 +240,7 @@
          }
          catch (Throwable throwable1)
          {
@@ -73,7 +100,7 @@
              CrashReport crashreport = CrashReport.forThrowable(throwable1, "Initializing game");
              CrashReportCategory crashreportcategory = crashreport.addCategory("Initialization");
              NativeModuleLister.addCrashSection(crashreportcategory);
-@@ -255,9 +287,9 @@
+@@ -255,9 +300,9 @@
                  thread1.join();
              }
          }
@@ -85,7 +112,7 @@
          }
          finally
          {
-@@ -306,6 +338,6 @@
+@@ -306,6 +351,6 @@
  
      static
      {

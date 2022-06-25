@@ -16,14 +16,14 @@
             "--fml.forgeGroup",
             "net.minecraftforge",
             "--fml.mcpVersion",
-            "20211210.034407"
+            "20220404.173914"
         ],
         "jvm": [
-            "-DignoreList=optifine,bootstraplauncher,securejarhandler,asm-commons,asm-util,asm-analysis,asm-tree,asm,client-extra,fmlcore,javafmllanguage,mclanguage,forge-,${version_name}.jar",
-            "-DmergeModules=jna-5.8.0.jar,jna-platform-58.0.jar,java-objc-bridge-1.0.0.jar",
+            "-DignoreList=bootstraplauncher,securejarhandler,asm-commons,asm-util,asm-analysis,asm-tree,asm,client-extra,fmlcore,javafmllanguage,lowcodelanguage,mclanguage,forge-,${version_name}.jar",
+            "-DmergeModules=jna-5.10.0.jar,jna-platform-5.10.0.jar,java-objc-bridge-1.0.0.jar",
             "-DlibraryDirectory=${library_directory}",
             "-p",
-            "${library_directory}/cpw/mods/bootstraplauncher/0.1.17/bootstraplauncher-0.1.17.jar${classpath_separator}${library_directory}/cpw/mods/securejarhandler/0.9.54/securejarhandler-0.9.54.jar${classpath_separator}${library_directory}/org/ow2/asm/asm-commons/9.1/asm-commons-9.1.jar${classpath_separator}${library_directory}/org/ow2/asm/asm-util/9.1/asm-util-9.1.jar${classpath_separator}${library_directory}/org/ow2/asm/asm-analysis/9.1/asm-analysis-9.1.jar${classpath_separator}${library_directory}/org/ow2/asm/asm-tree/9.1/asm-tree-9.1.jar${classpath_separator}${library_directory}/org/ow2/asm/asm/9.1/asm-9.1.jar",
+            "${library_directory}/cpw/mods/bootstraplauncher/1.0.0/bootstraplauncher-1.0.0.jar${classpath_separator}${library_directory}/cpw/mods/securejarhandler/1.0.3/securejarhandler-1.0.3.jar${classpath_separator}${library_directory}/org/ow2/asm/asm-commons/9.2/asm-commons-9.2.jar${classpath_separator}${library_directory}/org/ow2/asm/asm-util/9.2/asm-util-9.2.jar${classpath_separator}${library_directory}/org/ow2/asm/asm-analysis/9.2/asm-analysis-9.2.jar${classpath_separator}${library_directory}/org/ow2/asm/asm-tree/9.2/asm-tree-9.2.jar${classpath_separator}${library_directory}/org/ow2/asm/asm/9.2/asm-9.2.jar",
             "--add-modules",
             "ALL-MODULE-PATH",
             "--add-opens",
@@ -36,67 +36,68 @@
     },
     "libraries": [
         {
-            "name": "cpw.mods:securejarhandler:0.9.54",
+            "name": "cpw.mods:securejarhandler:1.0.3",
+
             "downloads": {
                 "artifact": {
-                    "path": "cpw/mods/securejarhandler/0.9.54/securejarhandler-0.9.54.jar",
-                    "url": "https://maven.minecraftforge.net/cpw/mods/securejarhandler/0.9.54/securejarhandler-0.9.54.jar",
-                    "sha1": "24b670f2c026ec9777e64a2c2126ebc8635dbe8d",
-                    "size": 79913
+                    "path": "cpw/mods/securejarhandler/1.0.3/securejarhandler-1.0.3.jar",
+                    "url": "https://maven.minecraftforge.net/cpw/mods/securejarhandler/1.0.3/securejarhandler-1.0.3.jar",
+                    "sha1": "acbf5e3c8a38fb8bf824a54fe45eee121c510392",
+                    "size": 103266
                 }
             }
         },
         {
-            "name": "org.ow2.asm:asm:9.1",
+            "name": "org.ow2.asm:asm:9.2",
             "downloads": {
                 "artifact": {
-                    "path": "org/ow2/asm/asm/9.1/asm-9.1.jar",
-                    "url": "https://maven.minecraftforge.net/org/ow2/asm/asm/9.1/asm-9.1.jar",
-                    "sha1": "a99500cf6eea30535eeac6be73899d048f8d12a8",
-                    "size": 121790
+                    "path": "org/ow2/asm/asm/9.2/asm-9.2.jar",
+                    "url": "https://maven.minecraftforge.net/org/ow2/asm/asm/9.2/asm-9.2.jar",
+                    "sha1": "81a03f76019c67362299c40e0ba13405f5467bff",
+                    "size": 122004
                 }
             }
         },
         {
-            "name": "org.ow2.asm:asm-commons:9.1",
+            "name": "org.ow2.asm:asm-commons:9.2",
             "downloads": {
                 "artifact": {
-                    "path": "org/ow2/asm/asm-commons/9.1/asm-commons-9.1.jar",
-                    "url": "https://maven.minecraftforge.net/org/ow2/asm/asm-commons/9.1/asm-commons-9.1.jar",
-                    "sha1": "8b971b182eb5cf100b9e8d4119152d83e00e0fdd",
-                    "size": 72641
+                    "path": "org/ow2/asm/asm-commons/9.2/asm-commons-9.2.jar",
+                    "url": "https://maven.minecraftforge.net/org/ow2/asm/asm-commons/9.2/asm-commons-9.2.jar",
+                    "sha1": "f4d7f0fc9054386f2893b602454d48e07d4fbead",
+                    "size": 72642
                 }
             }
         },
         {
-            "name": "org.ow2.asm:asm-tree:9.1",
+            "name": "org.ow2.asm:asm-tree:9.2",
             "downloads": {
                 "artifact": {
-                    "path": "org/ow2/asm/asm-tree/9.1/asm-tree-9.1.jar",
-                    "url": "https://maven.minecraftforge.net/org/ow2/asm/asm-tree/9.1/asm-tree-9.1.jar",
-                    "sha1": "c333f2a855069cb8eb17a40a3eb8b1b67755d0eb",
-                    "size": 52662
+                    "path": "org/ow2/asm/asm-tree/9.2/asm-tree-9.2.jar",
+                    "url": "https://maven.minecraftforge.net/org/ow2/asm/asm-tree/9.2/asm-tree-9.2.jar",
+                    "sha1": "d96c99a30f5e1a19b0e609dbb19a44d8518ac01e",
+                    "size": 52660
                 }
             }
         },
         {
-            "name": "org.ow2.asm:asm-util:9.1",
+            "name": "org.ow2.asm:asm-util:9.2",
             "downloads": {
                 "artifact": {
-                    "path": "org/ow2/asm/asm-util/9.1/asm-util-9.1.jar",
-                    "url": "https://maven.minecraftforge.net/org/ow2/asm/asm-util/9.1/asm-util-9.1.jar",
-                    "sha1": "36464a45d871779f3383a8a9aba2b26562a86729",
-                    "size": 84679
+                    "path": "org/ow2/asm/asm-util/9.2/asm-util-9.2.jar",
+                    "url": "https://maven.minecraftforge.net/org/ow2/asm/asm-util/9.2/asm-util-9.2.jar",
+                    "sha1": "fbc178fc5ba3dab50fd7e8a5317b8b647c8e8946",
+                    "size": 84854
                 }
             }
         },
         {
-            "name": "org.ow2.asm:asm-analysis:9.1",
+            "name": "org.ow2.asm:asm-analysis:9.2",
             "downloads": {
                 "artifact": {
-                    "path": "org/ow2/asm/asm-analysis/9.1/asm-analysis-9.1.jar",
-                    "url": "https://maven.minecraftforge.net/org/ow2/asm/asm-analysis/9.1/asm-analysis-9.1.jar",
-                    "sha1": "4f61b83b81d8b659958f4bcc48907e93ecea55a0",
+                    "path": "org/ow2/asm/asm-analysis/9.2/asm-analysis-9.2.jar",
+                    "url": "https://maven.minecraftforge.net/org/ow2/asm/asm-analysis/9.2/asm-analysis-9.2.jar",
+                    "sha1": "7487dd756daf96cab9986e44b9d7bcb796a61c10",
                     "size": 34257
                 }
             }
@@ -158,13 +159,13 @@
             }
         },
         {
-            "name": "cpw.mods:modlauncher:9.0.7",
+            "name": "cpw.mods:modlauncher:9.1.3",
             "downloads": {
                 "artifact": {
-                    "path": "cpw/mods/modlauncher/9.0.7/modlauncher-9.0.7.jar",
-                    "url": "https://maven.minecraftforge.net/cpw/mods/modlauncher/9.0.7/modlauncher-9.0.7.jar",
-                    "sha1": "ebe8650527b513823874449e054db053b686b494",
-                    "size": 127169
+                    "path": "cpw/mods/modlauncher/9.1.3/modlauncher-9.1.3.jar",
+                    "url": "https://maven.minecraftforge.net/cpw/mods/modlauncher/9.1.3/modlauncher-9.1.3.jar",
+                    "sha1": "7339d0e87813c366d706c3fdba479455e2283ecd",
+                    "size": 129301
                 }
             }
         },
@@ -213,17 +214,6 @@
             }
         },
         {
-            "name": "org.apache.commons:commons-lang3:3.12.0",
-            "downloads": {
-                "artifact": {
-                    "path": "org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar",
-                    "url": "https://libraries.minecraft.net/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar",
-                    "sha1": "c6842c86792ff03b9f1d1fe2aab8dc23aa6c6f0e",
-                    "size": 587402
-                }
-            }
-        },
-        {
             "name": "net.jodah:typetools:0.8.3",
             "downloads": {
                 "artifact": {
@@ -231,39 +221,6 @@
                     "url": "https://maven.minecraftforge.net/net/jodah/typetools/0.8.3/typetools-0.8.3.jar",
                     "sha1": "98f84f353457629e81cc6827224871b1a8faa7af",
                     "size": 15425
-                }
-            }
-        },
-        {
-            "name": "org.apache.logging.log4j:log4j-api:2.15.0",
-            "downloads": {
-                "artifact": {
-                    "path": "org/apache/logging/log4j/log4j-api/2.15.0/log4j-api-2.15.0.jar",
-                    "url": "https://maven.minecraftforge.net/org/apache/logging/log4j/log4j-api/2.15.0/log4j-api-2.15.0.jar",
-                    "sha1": "4a5aa7e55a29391c6f66e0b259d5189aa11e45d0",
-                    "size": 301804
-                }
-            }
-        },
-        {
-            "name": "org.apache.logging.log4j:log4j-core:2.15.0",
-            "downloads": {
-                "artifact": {
-                    "path": "org/apache/logging/log4j/log4j-core/2.15.0/log4j-core-2.15.0.jar",
-                    "url": "https://maven.minecraftforge.net/org/apache/logging/log4j/log4j-core/2.15.0/log4j-core-2.15.0.jar",
-                    "sha1": "ba55c13d7ac2fd44df9cc8074455719a33f375b9",
-                    "size": 1789769
-                }
-            }
-        },
-        {
-            "name": "org.apache.logging.log4j:log4j-slf4j18-impl:2.15.0",
-            "downloads": {
-                "artifact": {
-                    "path": "org/apache/logging/log4j/log4j-slf4j18-impl/2.15.0/log4j-slf4j18-impl-2.15.0.jar",
-                    "url": "https://maven.minecraftforge.net/org/apache/logging/log4j/log4j-slf4j18-impl/2.15.0/log4j-slf4j18-impl-2.15.0.jar",
-                    "sha1": "88f72ad364bfc3a7cf43186fc17212f2b4bb8d97",
-                    "size": 21223
                 }
             }
         },
@@ -301,17 +258,6 @@
             }
         },
         {
-            "name": "net.sf.jopt-simple:jopt-simple:5.0.4",
-            "downloads": {
-                "artifact": {
-                    "path": "net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar",
-                    "url": "https://libraries.minecraft.net/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar",
-                    "sha1": "4fdac2fbe92dfad86aa6e9301736f6b4342a3f5c",
-                    "size": 78146
-                }
-            }
-        },
-        {
             "name": "org.spongepowered:mixin:0.8.5",
             "downloads": {
                 "artifact": {
@@ -334,63 +280,88 @@
             }
         },
         {
-            "name": "com.google.guava:guava:31.0.1-jre",
+            "name": "cpw.mods:bootstraplauncher:1.0.0",
             "downloads": {
                 "artifact": {
-                    "path": "com/google/guava/guava/31.0.1-jre/guava-31.0.1-jre.jar",
-                    "url": "https://libraries.minecraft.net/com/google/guava/guava/31.0.1-jre/guava-31.0.1-jre.jar",
-                    "sha1": "119ea2b2bc205b138974d351777b20f02b92704b",
-                    "size": 2974216
+                    "path": "cpw/mods/bootstraplauncher/1.0.0/bootstraplauncher-1.0.0.jar",
+                    "url": "https://maven.minecraftforge.net/cpw/mods/bootstraplauncher/1.0.0/bootstraplauncher-1.0.0.jar",
+                    "sha1": "f55ddbb35612c6745cefc47d1a0d6dbfb25d3982",
+                    "size": 7828
                 }
             }
         },
         {
-            "name": "com.google.code.gson:gson:2.8.8",
+            "name": "net.minecraftforge:fmlloader:1.18.2-40.1.51",
             "downloads": {
                 "artifact": {
-                    "path": "com/google/code/gson/gson/2.8.8/gson-2.8.8.jar",
-                    "url": "https://libraries.minecraft.net/com/google/code/gson/gson/2.8.8/gson-2.8.8.jar",
-                    "sha1": "431fc3cbc0ff81abdbfde070062741089c3ba874",
-                    "size": 242047
-                }
-            }
-        },
-        {
-            "name": "cpw.mods:bootstraplauncher:0.1.17",
-            "downloads": {
-                "artifact": {
-                    "path": "cpw/mods/bootstraplauncher/0.1.17/bootstraplauncher-0.1.17.jar",
-                    "url": "https://maven.minecraftforge.net/cpw/mods/bootstraplauncher/0.1.17/bootstraplauncher-0.1.17.jar",
-                    "sha1": "899fb8e3912bb7d14a6f9611de117f77db710ec3",
-                    "size": 7542
-                }
-            }
-        },
-        {
-            "name": "net.minecraftforge:fmlloader:1.18.1-39.0.0",
-            "downloads": {
-                "artifact": {
-                    "path": "net/minecraftforge/fmlloader/1.18.1-39.0.0/fmlloader-1.18.1-39.0.0.jar",
-                    "url": "https://maven.minecraftforge.net/net/minecraftforge/fmlloader/1.18.1-39.0.0/fmlloader-1.18.1-39.0.0.jar",
-                    "sha1": "c1eab584d14fe7f6892c58d4a2b51d0849a4f0e4",
-                    "size": 232264
+                    "path": "net/minecraftforge/fmlloader/1.18.2-40.1.51/fmlloader-1.18.2-40.1.51.jar",
+                    "url": "https://maven.minecraftforge.net/net/minecraftforge/fmlloader/1.18.2-40.1.51/fmlloader-1.18.2-40.1.51.jar",
+                    "sha1": "3d1214b83924da63a4ad73aeaf58ca96229fb4f4",
+                    "size": 238924
                 }
             }
         },
         {
 			"name": "optifine:OptiFine:$OFVERSION"
+		},		
+		{
+			"downloads": {
+				"artifact": {
+					"path": "org/lwjgl/lwjgl-ovr/3.2.2/lwjgl-ovr-3.2.2.jar",
+					"sha1": "2445b0d65d20bf75c7252edc9297eb0ba8aeead6",
+					"size": 244701,
+					"url": "https://repo1.maven.org/maven2/org/lwjgl/lwjgl-ovr/3.2.2/lwjgl-ovr-3.2.2.jar"
+				}
+			},
+			"name": "org.lwjgl:lwjgl-ovr:3.2.2",
+			"url": "https://repo1.maven.org/maven2/",
+			"rules": [
+				{
+					"action": "allow"
+				},
+				{
+					"action": "disallow",
+					"os": {
+						"name": "linux",
+						"name": "osx"
+					}
+				}
+			]
 		},
 		{
-			"url": "http://vivecraft.org/jar/", 
-			"name": "org.json:json:20140107"
-		}, 
-		{
-			"name": "net.minecraft:launchwrapper:2.3",
-			"url": "http://vivecraft.org/jar/"
-		}, 
-		{
-			"url": "http://vivecraft.org/jar/", 
-			"name": "com.sun:jna:4.2.1"
+			"downloads": {
+				"artifact": {
+					"path": "org/lwjgl/lwjgl-ovr/3.2.2/lwjgl-ovr-3.2.2.jar",
+					"sha1": "2445b0d65d20bf75c7252edc9297eb0ba8aeead6",
+					"size": 244701,
+					"url": "https://repo1.maven.org/maven2/org/lwjgl/lwjgl-ovr/3.2.2/lwjgl-ovr-3.2.2.jar"
+				},
+				"classifiers": {
+					"natives-windows": {
+						"path": "org/lwjgl/lwjgl-ovr/3.2.2/lwjgl-ovr-3.2.2-natives-windows.jar",
+						"sha1": "5f069603dd0a2791e43382a275bf567e0ac84c3d",
+						"size": 155216,
+						"url": "https://repo1.maven.org/maven2/org/lwjgl/lwjgl-ovr/3.2.2/lwjgl-ovr-3.2.2-natives-windows.jar"
+					}
+				}
+			},
+			"name": "org.lwjgl:lwjgl-ovr:3.2.2",
+			"url": "https://repo1.maven.org/maven2/",
+			"natives": {
+				"windows": "natives-windows"
+			},
+			"rules": [
+				{
+					"action": "allow"
+				},
+				{
+					"action": "disallow",
+					"os": {
+						"name": "linux",
+						"name": "osx"
+					}
+				}
+			]
 		}
     ]
 }

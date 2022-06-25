@@ -142,7 +142,8 @@
 +import org.vivecraft.utils.Utils;
 +import org.vivecraft.utils.math.Vector3;
  
- public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements WindowEventHandler
+-public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements WindowEventHandler
++public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements WindowEventHandler, net.minecraftforge.client.extensions.IForgeMinecraft
  {
      private static Minecraft instance;
      private static final Logger LOGGER = LogUtils.getLogger();
@@ -198,7 +199,7 @@
 +    private boolean lastClick;
 +    public boolean resourcePacksChanged;
 +    public int tickCounter;
-+    public final String minecriftVerString = "Vivecraft 1.18.2  jrbudda-VR-3-b2";
++    public final String minecriftVerString = "Vivecraft 1.18.2  jrbudda-VR-3-b3";
      public static final boolean ON_OSX = Util.getPlatform() == Util.OS.OSX;
      private static final int MAX_TICKS_PER_UPDATE = 10;
      public static final ResourceLocation DEFAULT_FONT = new ResourceLocation("default");

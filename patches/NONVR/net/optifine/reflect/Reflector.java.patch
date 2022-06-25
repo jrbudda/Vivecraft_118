@@ -564,7 +564,7 @@
          }
          else
          {
-@@ -1247,4 +1240,132 @@
+@@ -1247,4 +1240,142 @@
          ReflectorResolver.register(iresolvable);
          return true;
      }
@@ -590,6 +590,8 @@
 +    public static ReflectorClass OverlayEntry = new ReflectorClass("net.minecraftforge.client.gui.OverlayRegistry$OverlayEntry");
 +    public static ReflectorMethod OverlayEntry_setEnabled = new ReflectorMethod(OverlayEntry, "setEnabled");
 +
++    public static ReflectorClass ForgeItem = new ReflectorClass(Item.class);
++    public static ReflectorMethod ForgeItem_getTags = new ReflectorMethod(ForgeItem, "getTags");
 +    public static ReflectorMethod ServerLifecycleHooks_handleExit = new ReflectorMethod(ServerLifecycleHooks, "handleExit", new Class[] {Integer.TYPE});
 +    public static ReflectorClass ScreenOpenEvent = new ReflectorClass("net.minecraftforge.client.event.ScreenOpenEvent");
 +    public static ReflectorConstructor ScreenOpenEvent_Constructor = new ReflectorConstructor(ScreenOpenEvent, new Class[] {Screen.class});
@@ -695,5 +697,13 @@
 +    public static ReflectorClass LocalPlayer = new ReflectorClass(LocalPlayer.class);
 +    public static ReflectorMethod LocalPlayer_updateSyncFields = new ReflectorMethod(LocalPlayer, "updateSyncFields");
 +        
++    //net.minecraftforge.fml.loading.BackgroundWaiter.runAndTick
++    public static ReflectorClass BackgroundWaiter = new ReflectorClass("net.minecraftforge.fml.loading.BackgroundWaiter");
++    public static ReflectorMethod BackgroundWaiter_runAndTick = new ReflectorMethod(BackgroundWaiter, "runAndTick");
++    //
++    //net.minecraftforge.fml.loading.FMLLoader.progressWindowTick
++    public static ReflectorClass FMLLoader = new ReflectorClass("net.minecraftforge.fml.loading.FMLLoader");
++    public static ReflectorField FMLLoader_progressWindowTick = new ReflectorField(FMLLoader,"progressWindowTick");
++
 +    
  }

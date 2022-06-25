@@ -1,0 +1,32 @@
+--- a/net/minecraft/client/gui/screens/Screen.java
++++ b/net/minecraft/client/gui/screens/Screen.java
+@@ -54,6 +54,7 @@
+ import net.minecraft.world.item.ItemStack;
+ import net.minecraft.world.item.TooltipFlag;
+ import org.slf4j.Logger;
++import org.vivecraft.utils.ScreenUtils;
+ 
+ public abstract class Screen extends AbstractContainerEventHandler implements Widget
+ {
+@@ -69,7 +70,9 @@
+     protected ItemRenderer itemRenderer;
+     public int width;
+     public int height;
+-    private final List<Widget> renderables = Lists.newArrayList();
++    //Vivecraft make not private
++    protected final List<Widget> renderables = Lists.newArrayList();
++    //
+     public boolean passEvents;
+     protected Font font;
+     @Nullable
+@@ -484,7 +487,9 @@
+     {
+         if (this.minecraft.level != null)
+         {
+-            this.fillGradient(pPoseStack, 0, 0, this.width, this.height, -1072689136, -804253680);
++        	//Vivecraft add bg option
++            this.fillGradient(pPoseStack, 0, 0, this.width, this.height, ScreenUtils.getBGFrom(), ScreenUtils.getBGTo());
++            //
+         }
+         else
+         {

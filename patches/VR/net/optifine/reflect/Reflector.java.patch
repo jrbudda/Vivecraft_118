@@ -564,7 +564,7 @@
          }
          else
          {
-@@ -1247,4 +1240,135 @@
+@@ -1247,4 +1240,141 @@
          ReflectorResolver.register(iresolvable);
          return true;
      }
@@ -587,9 +587,8 @@
 +    public static ReflectorField ForgeIngameGui_HELMET_ELEMENT = new ReflectorField(ForgeIngameGui, "HELMET_ELEMENT");
 +    public static ReflectorField ForgeIngameGui_VIGNETTE_ELEMENT = new ReflectorField(ForgeIngameGui, "VIGNETTE_ELEMENT");
 +    public static ReflectorField ForgeIngameGui_PORTAL_ELEMENT = new ReflectorField(ForgeIngameGui, "PORTAL_ELEMENT");
-+    public static ReflectorClass OverlayEntry = new ReflectorClass("net.minecraftforge.client.gui.OverlayRegistry$OverlayEntry");
-+    public static ReflectorMethod OverlayEntry_setEnabled = new ReflectorMethod(OverlayEntry, "setEnabled");
-+
++    public static ReflectorClass OverlayRegistry = new ReflectorClass("net.minecraftforge.client.gui.OverlayRegistry");
++    public static ReflectorMethod OverlayRegistry_enableOverlay = new ReflectorMethod(OverlayRegistry, "enableOverlay");
 +    public static ReflectorClass ForgeItem = new ReflectorClass(Item.class);
 +    public static ReflectorMethod ForgeItem_getTags = new ReflectorMethod(ForgeItem, "getTags");
 +    public static ReflectorMethod ServerLifecycleHooks_handleExit = new ReflectorMethod(ServerLifecycleHooks, "handleExit", new Class[] {Integer.TYPE});
@@ -654,7 +653,6 @@
 +    public static ReflectorMethod ItemFishedEvent_getRodDamage = new ReflectorMethod(ItemFishedEvent, "getRodDamage");
 +    public static ReflectorClass EnderTeleportEvent = new ReflectorClass("net.minecraftforge.event.entity.EntityTeleportEvent");
 +    public static ReflectorMethod ForgeEventFactory_onEnderTeleport = new ReflectorMethod(ForgeEventFactory, "onEnderTeleport");
-+    public static ReflectorMethod EnderTeleportEvent_isCanceled = new ReflectorMethod(EnderTeleportEvent, "isCanceled");
 +    public static ReflectorMethod EnderTeleportEvent_getTargetX = new ReflectorMethod(EnderTeleportEvent, "getTargetX");
 +    public static ReflectorMethod EnderTeleportEvent_getTargetY = new ReflectorMethod(EnderTeleportEvent, "getTargetY");
 +    public static ReflectorMethod EnderTeleportEvent_getTargetZ = new ReflectorMethod(EnderTeleportEvent, "getTargetZ");
@@ -698,5 +696,13 @@
 +    public static ReflectorClass LocalPlayer = new ReflectorClass(LocalPlayer.class);
 +    public static ReflectorMethod LocalPlayer_updateSyncFields = new ReflectorMethod(LocalPlayer, "updateSyncFields");
 +        
++    //net.minecraftforge.fml.loading.BackgroundWaiter.runAndTick
++    public static ReflectorClass BackgroundWaiter = new ReflectorClass("net.minecraftforge.fml.loading.BackgroundWaiter");
++    public static ReflectorMethod BackgroundWaiter_runAndTick = new ReflectorMethod(BackgroundWaiter, "runAndTick");
++    //
++    //net.minecraftforge.fml.loading.FMLLoader.progressWindowTick
++    public static ReflectorClass FMLLoader = new ReflectorClass("net.minecraftforge.fml.loading.FMLLoader");
++    public static ReflectorField FMLLoader_progressWindowTick = new ReflectorField(FMLLoader,"progressWindowTick");
++
 +    
  }
