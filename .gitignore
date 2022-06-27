@@ -13,6 +13,7 @@ releases/
 *-install*.jar
 *install*.exe
 *_MOD.jar
+version.jar
 patches/Start.java.patch
 installer/out/
 /lib
