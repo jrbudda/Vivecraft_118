@@ -3,24 +3,32 @@ package org.vivecraft.utils;
 import java.util.Map;
 import java.util.Random;
 
-import org.vivecraft.api.NetworkHelper;
-import org.vivecraft.api.ServerVivePlayer;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
+
+import org.vivecraft.api.NetworkHelper;
+import org.vivecraft.api.ServerVivePlayer;
+import org.vivecraft.api.VRData;
+
+import com.google.common.collect.ImmutableMap.Builder;
 
 public class ASMInjections
 {
@@ -50,10 +58,6 @@ public class ASMInjections
             ItemStack itemstack4 = (new ItemStack(Items.SHEARS)).setHoverName(new TranslatableComponent("vivecraft.item.climbclaws"));
             itemstack4.getTag().putBoolean("Unbreakable", true);
             itemstack4.getTag().putInt("HideFlags", 4);
-            ItemStack itemstack2 = (new ItemStack(Items.ENDER_EYE)).setHoverName(new TranslatableComponent("vivecraft.item.telescope"));
-            itemstack2.getTag().putBoolean("Unbreakable", true);
-            itemstack2.getTag().putInt("HideFlags", 4);
-            list.add(itemstack2);
             list.add(itemstack3);
             list.add(itemstack4);
         }
@@ -73,10 +77,51 @@ public class ASMInjections
         }
     }
 
+    public static float itemRayTracePitch(Player player, float orig)
+    {
+        if (player instanceof LocalPlayer)
+        {
+            VRData.VRDevicePose vrdata$vrdevicepose = Minecraft.getInstance().vrPlayer.vrdata_world_pre.getController(0);
+            Vec3 vec3 = vrdata$vrdevicepose.getDirection();
+            return (float)Math.toDegrees(Math.asin(-vec3.y / vec3.length()));
+        }
+        else
+        {
+            return orig;
+        }
+    }
+
+    public static float itemRayTraceYaw(Player player, float orig)
+    {
+        if (player instanceof LocalPlayer)
+        {
+            VRData.VRDevicePose vrdata$vrdevicepose = Minecraft.getInstance().vrPlayer.vrdata_world_pre.getController(0);
+            Vec3 vec3 = vrdata$vrdevicepose.getDirection();
+            return (float)Math.toDegrees(Math.atan2(-vec3.x, vec3.z));
+        }
+        else
+        {
+            return orig;
+        }
+    }
+
+    public static Vec3 itemRayTracePos(Player player, Vec3 orig)
+    {
+        if (player instanceof LocalPlayer)
+        {
+            VRData.VRDevicePose vrdata$vrdevicepose = Minecraft.getInstance().vrPlayer.vrdata_world_pre.getController(0);
+            return vrdata$vrdevicepose.getPosition();
+        }
+        else
+        {
+            return orig;
+        }
+    }
+
     public static void activateFun(ServerPlayer serverPlayer) {
         ServerVivePlayer serverVivePlayer = NetworkHelper.vivePlayers.get(serverPlayer.getUUID());
 
-        if (/*!Minecraft.getInstance().vrSettings.disableFun &&*/ serverVivePlayer != null && serverVivePlayer.isVR() && random.nextInt(40) == 3)
+        if (!Minecraft.getInstance().vrSettings.disableFun && serverVivePlayer != null && serverVivePlayer.isVR() && random.nextInt(40) == 3)
         {
             ItemStack itemstack;
 
@@ -127,9 +172,14 @@ public class ASMInjections
         ShapedRecipe claw = new ShapedRecipe(new ResourceLocation("climbclaws"),"Vivecraft", 3, 2, NonNullList.a(Ingredient.EMPTY,Ingredient.a(Items.SPIDER_EYE),Ingredient.EMPTY,Ingredient.a(Items.SPIDER_EYE),Ingredient.a(Items.SHEARS),Ingredient.EMPTY,Ingredient.a(Items.SHEARS)), is2);
 
         if (map.containsKey(boot.getType())) {
-            ((Map) map.get(boot.getType())).put(boot.getId(), boot);
-            ((Map) map.get(claw.getType())).put(claw.getId(), claw);
+        	Map <RecipeType<?>, Builder <ResourceLocation, Recipe<?>>> map1 = map;
+        	(map1.get(boot.getType())).put(boot.getId(), boot);
+        	(map1.get(claw.getType())).put(claw.getId(), claw);
         }
+    }
+
+    public static boolean checkEatMe(boolean canEat, ItemStack itemStack) {
+        return canEat || itemStack.getHoverName().getString().equals("EAT ME");
     }
 
     public static void dummy(float f)

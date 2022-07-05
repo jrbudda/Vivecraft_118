@@ -37,17 +37,16 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
     		"net/minecraft/server/packs/repository/PackRepository",
     		"net/minecraft/server/packs/repository/Pack$PackConstructor",
     		"net/minecraft/server/packs/repository/Pack$Position",
-    		"net/minecraft/world/item/Item", 
-    		"net/minecraft/world/item/Item$Properties", 
-    		"net/minecraft/client/gui/screen/inventory/ContainerScreen", 
-    		"net/minecraft/client/gui/screen/inventory/CreativeScreen",
-    		"net/minecraft/fluid/FluidState",
+            "net/minecraft/world/item/Item",
+            "net/minecraft/world/item/Item$Properties",
+    		"net/minecraft/client/gui/screens/inventory/AbstractContainerScreen",
+    		"net/minecraft/client/gui/screens/inventory/CreativeModeInventoryScreen",
+    		"net/minecraft/world/level/material/FluidState",
     		"net/minecraft/world/item/crafting/RecipeManager",
+            "net/minecraft/server/level/ServerPlayer",
     		"net/minecraft/client/gui/screens/Screen",
-    		"net/minecraft/client/gui/screens/Screen$1",
-            "net/minecraft/server/level/ServerPlayer"
+            "net/minecraft/client/gui/screens/Screen$1"
     );
-    
     public TransformerVoteResult castVote(ITransformerVotingContext context)
     {
         return TransformerVoteResult.YES;

@@ -1,19 +1,20 @@
 --- a/net/minecraft/world/item/crafting/RecipeManager.java
 +++ b/net/minecraft/world/item/crafting/RecipeManager.java
-@@ -30,6 +30,7 @@
- import net.minecraft.world.item.ItemStack;
+@@ -31,6 +31,8 @@
  import net.minecraft.world.level.Level;
  import org.slf4j.Logger;
-+import org.vivecraft.item.VivecraftItems;
  
++import org.vivecraft.utils.ASMInjections;
++
  public class RecipeManager extends SimpleJsonResourceReloadListener
  {
-@@ -69,6 +70,9 @@
+     private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
+@@ -69,6 +71,9 @@
              }
          }
  
 +        //Vivecraft vanilla only - forge use ASM
-+        VivecraftItems.injectItems(map);
++        ASMInjections.injectItems(map);
 +        
          this.recipes = map.entrySet().stream().collect(ImmutableMap.toImmutableMap(Entry::getKey, (p_44033_) ->
          {
