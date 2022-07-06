@@ -38,7 +38,6 @@ get_libraries(){
 		# find all libraries except select the directory of those which need natives and/or provide sources instead
 	);	do
 		local libloc="$1/$library"
-		echo "$libloc" 1>&2
 		if [ -f "$libloc" ]; then
 			echo "$library" 1>&2
 			echo "\t<classpathentry kind=\"lib\" path=\"$library\"/>"
