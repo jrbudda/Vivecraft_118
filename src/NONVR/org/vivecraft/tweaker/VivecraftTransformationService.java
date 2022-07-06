@@ -14,11 +14,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 
+import org.vivecraft.tweaker.asm.VivecraftASMTransformer;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.vivecraft.tweaker.asm.VivecraftASM_Minecraft;
-import org.vivecraft.tweaker.asm.VivecraftASM_RecipeManager;
-import org.vivecraft.tweaker.asm.VivecraftASM_ServerPlayer;
 
 import cpw.mods.jarhandling.SecureJar;
 import cpw.mods.modlauncher.api.IEnvironment;
@@ -173,9 +172,7 @@ public class VivecraftTransformationService implements ITransformationService
             list.add(transformer);
         }
 
-        list.add(new VivecraftASM_Minecraft());
-        list.add(new VivecraftASM_RecipeManager());
-        list.add(new VivecraftASM_ServerPlayer());
+        list.add(new VivecraftASMTransformer());
         return list;
     }
 

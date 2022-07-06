@@ -1,0 +1,12 @@
+--- a/net/minecraft/world/level/material/FluidState.java
++++ b/net/minecraft/world/level/material/FluidState.java
+@@ -21,7 +21,8 @@
+ import net.minecraft.world.phys.Vec3;
+ import net.minecraft.world.phys.shapes.VoxelShape;
+ 
+-public final class FluidState extends StateHolder<Fluid, FluidState>
++// VIVECRAFT: Make this non-final, needed for menu world nonsense
++public class FluidState extends StateHolder<Fluid, FluidState>
+ {
+     public static final Codec<FluidState> CODEC = codec(Registry.FLUID.byNameCodec(), Fluid::defaultFluidState).stable();
+     public static final int AMOUNT_MAX = 9;
