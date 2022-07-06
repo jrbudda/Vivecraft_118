@@ -84,29 +84,3 @@ get_libraries(){
 }
 echo "INFO: Libraries Found:"
 echo -e "$(get_libraries "$1")" > "$ECLIPSE_CLASSPATH"
-# <classpathentry kind="lib" path="jars/libraries/org/lwjgl/lwjgl/3.2.2/lwjgl-3.2.2-natives-linux.jar">
-# 	<attributes>
-# 		<attribute
-# 			name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY"
-# 			value="lib/1.18.2/natives/linux/"
-# 		/>
-# 	</attributes>
-# </classpathentry>
-# <classpathentry kind="lib" path="jars/libraries/org/lwjgl/lwjgl/3.2.2/lwjgl-3.2.2.jar">
-# 	<attributes>
-# 		<attribute
-# 			name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY"
-# 			value="lib/1.18.2/natives/linux/"
-# 		/>
-# 	</attributes>
-# </classpathentry>
-# <classpathentry kind="lib"
-# 	path="jars/libraries/ca/weblite/java-objc-bridge/1.0.0/java-objc-bridge-1.0.0.jar"
-# 	sourcepath="jars/libraries/ca/weblite/java-objc-bridge/1.0.0/java-objc-bridge-1.0.0-sources.jar"
-# />
-# <classpathentry kind="lib"
-# 	path="jars/libraries/com/google/code/findbugs/jsr305/3.0.1/jsr305-3.0.1.jar"
-# 	sourcepath="jars/libraries/com/google/code/findbugs/jsr305/3.0.1/jsr305-3.0.1-sources.jar"
-# />
-# 	<classpathentry kind="output" path="bin"/>
-# </classpath>
