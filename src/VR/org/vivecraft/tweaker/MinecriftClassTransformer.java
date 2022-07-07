@@ -126,40 +126,22 @@ public class MinecriftClassTransformer implements IClassTransformer
 
     private void writeToFile(String dir, String transformedName, String name, byte[] bytes)
     {
-        FileOutputStream fileoutputstream = null;
-        String s = String.format("%s/%s/%s/%s%s.%s", System.getProperty("user.home"), "minecrift_transformed_classes", dir, transformedName.replace(".", "/"), name, "class");
-        File file1 = new File(s);
-        debug("Writing to: " + s);
-
-        try
-        {
-            File file2 = file1.getParentFile();
+    	String s = String.format("%s/%s/%s/%s%s.%s", System.getProperty("user.home"), "minecrift_transformed_classes", dir, transformedName.replace(".", "/"), name, "class");
+    	debug("Writing to: " + s);
+        try(FileOutputStream fileoutputstream = new FileOutputStream(s)){
+        	File file1 = new File(s);
+	        File file2 = file1.getParentFile();
             file2.mkdirs();
             file1.createNewFile();
-            fileoutputstream = new FileOutputStream(s);
             fileoutputstream.write(bytes);
         }
         catch (FileNotFoundException filenotfoundexception)
         {
             filenotfoundexception.printStackTrace();
         }
-        catch (IOException ioexception1)
+        catch (IOException ioexception)
         {
-            ioexception1.printStackTrace();
-        }
-        finally
-        {
-            try
-            {
-                if (fileoutputstream != null)
-                {
-                    fileoutputstream.close();
-                }
-            }
-            catch (IOException ioexception)
-            {
-                ioexception.printStackTrace();
-            }
+            ioexception.printStackTrace();
         }
     }
 
