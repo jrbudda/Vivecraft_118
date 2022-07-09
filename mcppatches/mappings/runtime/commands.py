@@ -1190,10 +1190,10 @@ class Commands(object):
         
         if reobf:
             cmd = self.cmdssreobf
-            srg = self.dirconf + "\joined_reobf.tsrg"
+            srg = os.path.join(self.dirconf,"joined_reobf.tsrg")
         else:
             cmd = self.cmdss
-            srg = self.dirconf + "\joined.tsrg"
+            srg = os.path.join(self.dirconf,"joined.tsrg")
 
         # add specialsource.jar to copy of client or server classpath
         sscp = [self.specialsource] + cplk[side]
@@ -1215,7 +1215,7 @@ class Commands(object):
                 shutil.copyfile(deobsrg[side], reobsrg[side])
             if reobf and srg_names:
                 cmd = self.cmdss
-                srg = self.dirconf + "\joined.tsrg"
+                srg = os.path.join(self.dirconf,"joined.tsrg")
                 forkcmd = cmd.format(classpath=sscp, injar=out_jar, outjar=out_jar, mapfile=srg)
                 print "SS2: " + out_jar + " > " + out_jar + " with " + srg
                 self.runcmd(forkcmd)
@@ -1278,7 +1278,7 @@ class Commands(object):
         clssrg  = {CLIENT: self.reobsrgclientcls, SERVER: self.reobsrgservercls}
         #exclog = {CLIENT: self.xclientlog, SERVER: self.xserverlog}
         exclog = {CLIENT: self.xclientconf, SERVER: self.xserverconf}
-        shutil.copy(self.dirconf + "\joined.srg", clssrg[side])
+        shutil.copy(os.path.join(self.dirconf,"joined.srg"), clssrg[side])
         return
         renames = {}
         log = [l.strip() for l in open(exclog[side], 'r').readlines()]
@@ -2260,7 +2260,7 @@ class Commands(object):
                 #self.logger.info('> Modified class found      : %s', key)                           
                 
         classes = {}
-        srg_data = self.parse_tsrg2_array(self.dirconf + "\joined_reobf.tsrg")
+        srg_data = self.parse_tsrg2_array(os.path.join(self.dirconf,"joined_reobf.tsrg"))
         for row in srg_data['CL']:
             if srg_names:
                 classes[row[1]] = row[1]
