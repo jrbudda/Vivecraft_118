@@ -31,6 +31,7 @@ get_libraries(){
 	"\t\t</attributes>\n"\
 	"\t</classpathentry>\n"\
 	"\t<classpathentry kind=\"lib\" path=\"lib/$MC_VERSION\"/>\n"\
+	"\t<classpathentry kind=\"lib\" path=\"jars/versions/$MC_VERSION/$MC_VERSION.jar\"/>\n"\
 	"\t<classpathentry kind=\"lib\" path=\"jars/libraries\"/>"
 	for library in $(
 		find "$1/jars/libraries" \
