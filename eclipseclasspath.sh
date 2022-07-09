@@ -5,30 +5,33 @@
 # sed https://www.gnu.org/software/sed/
 if [ $# -lt 1 ]; then
 	echo "No directory to update was provided in argument 1!"
-	exit 0
+	exit 1
 fi
 if [ -d "$1/jars/libraries" ] && [ -f "$1/eclipse/Client/.classpath" ]; then
 	ECLIPSE_CLASSPATH="$1/eclipse/Client/.classpath"
 else
 	echo "Couldn't find $1/jars/libraries or $1/eclipse/Client/.classpath"
-	echo "Skipping automatic eclipse classpath update."
-	exit 0
+	exit 2
 fi
 IFS=$'\n'
 get_libraries(){
-	cat <<-HDEOF
-	<?xml version="1.0" encoding="UTF-8"?>
-	<classpath>
-	\t<classpathentry kind="src" path="src"/>
-	\t<classpathentry kind="con"
-	\t\tpath="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17"
-	\t>\t<attributes>
-	\t\t\t<attribute name="module" value="true"/>
-	\t\t</attributes>
-	\t</classpathentry>
-	\t<classpathentry kind="lib" path="lib/1.18.2"/>
-	\t<classpathentry kind="lib" path="jars/libraries"/>"
-	HDEOF
+	MC_VERSION=$(find -L "$1/lib" -maxdepth 1 -mindepth 1 -name "of" -prune -o \( -type d -print \) | sed "s/^$1\/lib\///")
+	if [ "$MC_VERSION" == "" ]; then
+		echo "Couldn't find a minecraft version linked at $1/lib/"
+		exit 2
+	fi
+	echo \
+	"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"\
+	"\b<classpath>\n"\
+	"\b\t<classpathentry kind=\"src\" path=\"src\"/>\n"\
+	"\b\t<classpathentry kind=\"con\"\n"\
+	"\b\t\tpath=\"org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/java-17-openjdk\"\n"\
+	"\b\t>\t<attributes>\n"\
+	"\b\t\t\t<attribute name=\"module\" value=\"true\"/>\n"\
+	"\b\t\t</attributes>\n"\
+	"\b\t</classpathentry>\n"\
+	"\b\t<classpathentry kind=\"lib\" path=\"lib/$MC_VERSION\"/>\n"\
+	"\b\t<classpathentry kind=\"lib\" path=\"jars/libraries\"/>"
 	for library in $(
 		find "$1/jars/libraries" \
 		-type d -path "$1/jars/libraries/ca/weblite/java-objc-bridge/*" -prune -o \
@@ -64,22 +67,21 @@ get_libraries(){
 				find "$libloc" -name "*-natives*.jar" -type f | sed "s/^$1\///"
 			);	do
 				echo "$jar" 1>&2
-				echo "$(cat <<-HDEOF
-				\t<classpathentry kind="lib" path="$jar">
-				\t\t<attributes>
-				\t\t\t<attribute
-				\t\t\t\tname="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY"
-				\t\t\t\tvalue="lib/1.18.2/natives/linux/"
-				\t\t\t/>
-				\t\t</attributes>
-				\t</classpathentry>
-				HDEOF
-				)"
+				echo \
+				"\t<classpathentry kind=\"lib\" path=\"$jar\">\n"\
+				"\b\t\t<attributes>\n"\
+				"\b\t\t\t<attribute\n"\
+				"\b\t\t\t\tname=\"org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY\"\n"\
+				"\b\t\t\t\tvalue=\"lib/1.18.2/natives/linux/\"\n"\
+				"\b\t\t\t/>\n"\
+				"\b\t\t</attributes>\n"\
+				"\b\t</classpathentry>"
 			done
 		fi
 	done
-	echo -e "\t<classpathentry kind=\"output\" path=\"bin\"/>"
+	echo "\t<classpathentry kind=\"output\" path=\"bin\"/>"
 	echo "</classpath>"
 }
 echo "INFO: Libraries Found:"
 echo -e "$(get_libraries "$1")" > "$ECLIPSE_CLASSPATH"
+exit 0
