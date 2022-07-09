@@ -22,16 +22,16 @@ get_libraries(){
 	fi
 	echo \
 	"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"\
-	"\b<classpath>\n"\
-	"\b\t<classpathentry kind=\"src\" path=\"src\"/>\n"\
-	"\b\t<classpathentry kind=\"con\"\n"\
-	"\b\t\tpath=\"org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/java-17-openjdk\"\n"\
-	"\b\t>\t<attributes>\n"\
-	"\b\t\t\t<attribute name=\"module\" value=\"true\"/>\n"\
-	"\b\t\t</attributes>\n"\
-	"\b\t</classpathentry>\n"\
-	"\b\t<classpathentry kind=\"lib\" path=\"lib/$MC_VERSION\"/>\n"\
-	"\b\t<classpathentry kind=\"lib\" path=\"jars/libraries\"/>"
+	"<classpath>\n"\
+	"\t<classpathentry kind=\"src\" path=\"src\"/>\n"\
+	"\t<classpathentry kind=\"con\"\n"\
+	"\t\tpath=\"org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/java-17-openjdk\"\n"\
+	"\t>\t<attributes>\n"\
+	"\t\t\t<attribute name=\"module\" value=\"true\"/>\n"\
+	"\t\t</attributes>\n"\
+	"\t</classpathentry>\n"\
+	"\t<classpathentry kind=\"lib\" path=\"lib/$MC_VERSION\"/>\n"\
+	"\t<classpathentry kind=\"lib\" path=\"jars/libraries\"/>"
 	for library in $(
 		find "$1/jars/libraries" \
 		-type d -path "$1/jars/libraries/ca/weblite/java-objc-bridge/*" -prune -o \
@@ -69,13 +69,13 @@ get_libraries(){
 				echo "$jar" 1>&2
 				echo \
 				"\t<classpathentry kind=\"lib\" path=\"$jar\">\n"\
-				"\b\t\t<attributes>\n"\
-				"\b\t\t\t<attribute\n"\
-				"\b\t\t\t\tname=\"org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY\"\n"\
-				"\b\t\t\t\tvalue=\"lib/1.18.2/natives/linux/\"\n"\
-				"\b\t\t\t/>\n"\
-				"\b\t\t</attributes>\n"\
-				"\b\t</classpathentry>"
+				"\t\t<attributes>\n"\
+				"\t\t\t<attribute\n"\
+				"\t\t\t\tname=\"org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY\"\n"\
+				"\t\t\t\tvalue=\"lib/1.18.2/natives/linux/\"\n"\
+				"\t\t\t/>\n"\
+				"\t\t</attributes>\n"\
+				"\t</classpathentry>"
 			done
 		fi
 	done
