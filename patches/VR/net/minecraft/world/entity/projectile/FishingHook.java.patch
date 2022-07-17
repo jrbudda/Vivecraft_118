@@ -13,7 +13,7 @@
  
  public class FishingHook extends Projectile
  {
-@@ -80,26 +85,52 @@
+@@ -80,26 +85,48 @@
  
      public FishingHook(Player p_37106_, Level p_37107_, int p_37108_, int p_37109_)
      {
@@ -70,10 +70,6 @@
 +    		this.moveTo(d0, d1, d2, f1, f);
 +    	}
 +
-+    	double d4 = p_37106_.getX() - (double)f3 * 0.3D;
-+    	double d5 = p_37106_.getEyeY();
-+    	double d6 = p_37106_.getZ() - (double)f2 * 0.3D;
-+    	this.moveTo(d4, d5, d6, f1, f);
 +    	Vec3 vec31 = new Vec3((double)(-f3), (double)Mth.clamp(-(f5 / f4), -5.0F, 5.0F), (double)(-f2));
 +    	double d3 = vec31.length();
 +    	vec31 = vec31.multiply(0.6D / d3 + 0.5D + this.random.nextGaussian() * 0.0045D, 0.6D / d3 + 0.5D + this.random.nextGaussian() * 0.0045D, 0.6D / d3 + 0.5D + this.random.nextGaussian() * 0.0045D);
@@ -86,7 +82,7 @@
      }
  
      protected void defineSynchedData()
-@@ -274,6 +305,16 @@
+@@ -274,6 +301,16 @@
              this.setDeltaMovement(this.getDeltaMovement().scale(0.92D));
              this.reapplyPosition();
          }
@@ -103,7 +99,7 @@
      }
  
      private boolean shouldStopFishing(Player p_37137_)
-@@ -474,9 +515,9 @@
+@@ -474,9 +511,9 @@
  
      private FishingHook.OpenWaterType getOpenWaterTypeForArea(BlockPos p_37148_, BlockPos p_37149_)
      {
@@ -115,7 +111,7 @@
          }).orElse(FishingHook.OpenWaterType.INVALID);
      }
  
-@@ -515,6 +556,7 @@
+@@ -515,6 +552,7 @@
          if (!this.level.isClientSide && player != null && !this.shouldStopFishing(player))
          {
              int i = 0;
@@ -123,7 +119,7 @@
  
              if (this.hookedIn != null)
              {
-@@ -528,6 +570,15 @@
+@@ -528,6 +566,15 @@
                  LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel)this.level)).withParameter(LootContextParams.ORIGIN, this.position()).withParameter(LootContextParams.TOOL, p_37157_).withParameter(LootContextParams.THIS_ENTITY, this).withRandom(this.random).withLuck((float)this.luck + player.getLuck());
                  LootTable loottable = this.level.getServer().getLootTables().get(BuiltInLootTables.FISHING);
                  List<ItemStack> list = loottable.getRandomItems(lootcontext$builder.create(LootContextParamSets.FISHING));
@@ -139,7 +135,7 @@
                  CriteriaTriggers.FISHING_ROD_HOOKED.trigger((ServerPlayer)player, p_37157_, this, list);
  
                  for (ItemStack itemstack : list)
-@@ -556,7 +607,7 @@
+@@ -556,7 +603,7 @@
              }
  
              this.discard();
@@ -148,7 +144,7 @@
          }
          else
          {
-@@ -617,6 +668,16 @@
+@@ -617,6 +664,16 @@
          }
      }
  

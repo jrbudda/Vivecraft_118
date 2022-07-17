@@ -6,6 +6,8 @@ import java.util.Random;
 import org.vivecraft.api.NetworkHelper;
 import org.vivecraft.api.ServerVivePlayer;
 
+import com.google.common.collect.ImmutableMap.Builder;
+
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -18,6 +20,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
@@ -50,10 +54,6 @@ public class ASMInjections
             ItemStack itemstack4 = (new ItemStack(Items.SHEARS)).setHoverName(new TranslatableComponent("vivecraft.item.climbclaws"));
             itemstack4.getTag().putBoolean("Unbreakable", true);
             itemstack4.getTag().putInt("HideFlags", 4);
-            ItemStack itemstack2 = (new ItemStack(Items.ENDER_EYE)).setHoverName(new TranslatableComponent("vivecraft.item.telescope"));
-            itemstack2.getTag().putBoolean("Unbreakable", true);
-            itemstack2.getTag().putInt("HideFlags", 4);
-            list.add(itemstack2);
             list.add(itemstack3);
             list.add(itemstack4);
         }
@@ -127,8 +127,9 @@ public class ASMInjections
         ShapedRecipe claw = new ShapedRecipe(new ResourceLocation("climbclaws"),"Vivecraft", 3, 2, NonNullList.a(Ingredient.EMPTY,Ingredient.a(Items.SPIDER_EYE),Ingredient.EMPTY,Ingredient.a(Items.SPIDER_EYE),Ingredient.a(Items.SHEARS),Ingredient.EMPTY,Ingredient.a(Items.SHEARS)), is2);
 
         if (map.containsKey(boot.getType())) {
-            ((Map) map.get(boot.getType())).put(boot.getId(), boot);
-            ((Map) map.get(claw.getType())).put(claw.getId(), claw);
+        	Map <RecipeType<?>, Builder <ResourceLocation, Recipe<?>>> map1 = map;
+        	(map1.get(boot.getType())).put(boot.getId(), boot);
+        	(map1.get(claw.getType())).put(claw.getId(), claw);
         }
     }
 

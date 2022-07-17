@@ -564,7 +564,7 @@
          }
          else
          {
-@@ -1247,4 +1240,141 @@
+@@ -1247,4 +1240,144 @@
          ReflectorResolver.register(iresolvable);
          return true;
      }
@@ -703,6 +703,9 @@
 +    //net.minecraftforge.fml.loading.FMLLoader.progressWindowTick
 +    public static ReflectorClass FMLLoader = new ReflectorClass("net.minecraftforge.fml.loading.FMLLoader");
 +    public static ReflectorField FMLLoader_progressWindowTick = new ReflectorField(FMLLoader,"progressWindowTick");
++    
++    public static ReflectorClass VivecraftResourceLocator = new ReflectorClass("org.vivecraft.tweaker.VivecraftTransformer");
++    public static ReflectorMethod VivecraftResourceLocator_getResourceStream = new ReflectorMethod(VivecraftResourceLocator, "getResourceStream");
 +
 +    
  }

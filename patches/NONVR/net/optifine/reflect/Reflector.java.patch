@@ -564,7 +564,7 @@
          }
          else
          {
-@@ -1247,4 +1240,142 @@
+@@ -1247,4 +1240,145 @@
          ReflectorResolver.register(iresolvable);
          return true;
      }
@@ -587,8 +587,8 @@
 +    public static ReflectorField ForgeIngameGui_HELMET_ELEMENT = new ReflectorField(ForgeIngameGui, "HELMET_ELEMENT");
 +    public static ReflectorField ForgeIngameGui_VIGNETTE_ELEMENT = new ReflectorField(ForgeIngameGui, "VIGNETTE_ELEMENT");
 +    public static ReflectorField ForgeIngameGui_PORTAL_ELEMENT = new ReflectorField(ForgeIngameGui, "PORTAL_ELEMENT");
-+    public static ReflectorClass OverlayEntry = new ReflectorClass("net.minecraftforge.client.gui.OverlayRegistry$OverlayEntry");
-+    public static ReflectorMethod OverlayEntry_setEnabled = new ReflectorMethod(OverlayEntry, "setEnabled");
++    public static ReflectorClass OverlayRegistry = new ReflectorClass("net.minecraftforge.client.gui.OverlayRegistry");
++    public static ReflectorMethod OverlayRegistry_enableOverlay = new ReflectorMethod(OverlayRegistry, "enableOverlay");
 +
 +    public static ReflectorClass ForgeItem = new ReflectorClass(Item.class);
 +    public static ReflectorMethod ForgeItem_getTags = new ReflectorMethod(ForgeItem, "getTags");
@@ -704,6 +704,9 @@
 +    //net.minecraftforge.fml.loading.FMLLoader.progressWindowTick
 +    public static ReflectorClass FMLLoader = new ReflectorClass("net.minecraftforge.fml.loading.FMLLoader");
 +    public static ReflectorField FMLLoader_progressWindowTick = new ReflectorField(FMLLoader,"progressWindowTick");
++    
++    public static ReflectorClass VivecraftResourceLocator = new ReflectorClass("org.vivecraft.tweaker.VivecraftTransformer");
++    public static ReflectorMethod VivecraftResourceLocator_getResourceStream = new ReflectorMethod(VivecraftResourceLocator, "getResourceStream");
 +
 +    
  }

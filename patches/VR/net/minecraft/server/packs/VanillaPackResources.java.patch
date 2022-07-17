@@ -1,0 +1,161 @@
+--- a/net/minecraft/server/packs/VanillaPackResources.java
++++ b/net/minecraft/server/packs/VanillaPackResources.java
+@@ -265,41 +265,51 @@
+     @Nullable
+     protected InputStream getResourceAsStream(PackType pType, ResourceLocation pLocation)
+     {
+-        String s = createPath(pType, pLocation);
+-        InputStream inputstream = ReflectorForge.getOptiFineResourceStream(s);
++    	String s = createPath(pType, pLocation);
++    	InputStream inputstream = ReflectorForge.getOptiFineResourceStream(s);
+ 
+-        if (inputstream != null)
+-        {
+-            return inputstream;
+-        }
+-        else
+-        {
+-            if (generatedDir != null)
+-            {
+-                Path path = generatedDir.resolve(pType.getDirectory() + "/" + pLocation.getNamespace() + "/" + pLocation.getPath());
+-
+-                if (Files.exists(path))
+-                {
+-                    try
+-                    {
+-                        return Files.newInputStream(path);
+-                    }
+-                    catch (IOException ioexception1)
+-                    {
+-                    }
+-                }
+-            }
+-
+-            try
+-            {
+-                URL url = VanillaPackResources.class.getResource(s);
+-                return isResourceUrlValid(s, url) ? (FORGE ? this.getExtraInputStream(pType, s) : url.openStream()) : null;
+-            }
+-            catch (IOException ioexception1)
+-            {
+-                return VanillaPackResources.class.getResourceAsStream(s);
+-            }
+-        }
++    	if (inputstream != null)
++    	{
++    		return inputstream;
++    	}
++    	else
++    	{
++    		inputstream = ReflectorForge.getVivecraftResourceStream(s);
++
++    		if (inputstream != null)
++    		{
++    			return inputstream;
++    		}
++    		else
++    		{    	
++
++    			if (generatedDir != null)
++    			{
++    				Path path = generatedDir.resolve(pType.getDirectory() + "/" + pLocation.getNamespace() + "/" + pLocation.getPath());
++
++    				if (Files.exists(path))
++    				{
++    					try
++    					{
++    						return Files.newInputStream(path);
++    					}
++    					catch (IOException ioexception1)
++    					{
++    					}
++    				}
++    			}
++
++    			try
++    			{
++    				URL url = VanillaPackResources.class.getResource(s);
++    				return isResourceUrlValid(s, url) ? (FORGE ? this.getExtraInputStream(pType, s) : url.openStream()) : null;
++    			}
++    			catch (IOException ioexception1)
++    			{
++    				return VanillaPackResources.class.getResourceAsStream(s);
++    			}
++    		}
++    	}
+     }
+ 
+     private static String createPath(PackType pPackType, ResourceLocation pLocation)
+@@ -320,35 +330,44 @@
+ 
+     public boolean hasResource(PackType pType, ResourceLocation pLocation)
+     {
+-        String s = createPath(pType, pLocation);
+-        InputStream inputstream = ReflectorForge.getOptiFineResourceStream(s);
++    	String s = createPath(pType, pLocation);
++    	InputStream inputstream = ReflectorForge.getOptiFineResourceStream(s);
+ 
+-        if (inputstream != null)
+-        {
+-            return true;
+-        }
+-        else
+-        {
+-            if (generatedDir != null)
+-            {
+-                Path path = generatedDir.resolve(pType.getDirectory() + "/" + pLocation.getNamespace() + "/" + pLocation.getPath());
+-
+-                if (Files.exists(path))
+-                {
+-                    return true;
+-                }
+-            }
+-
+-            try
+-            {
+-                URL url = VanillaPackResources.class.getResource(s);
+-                return isResourceUrlValid(s, url);
+-            }
+-            catch (IOException ioexception1)
+-            {
+-                return false;
+-            }
+-        }
++    	if (inputstream != null)
++    	{
++    		return true;
++    	}
++    	else
++    	{
++    		inputstream = ReflectorForge.getVivecraftResourceStream(s);
++
++    		if (inputstream != null)
++    		{
++    			return true;
++    		}
++    		else
++    		{    	
++    			if (generatedDir != null)
++    			{
++    				Path path = generatedDir.resolve(pType.getDirectory() + "/" + pLocation.getNamespace() + "/" + pLocation.getPath());
++
++    				if (Files.exists(path))
++    				{
++    					return true;
++    				}
++    			}
++
++    			try
++    			{
++    				URL url = VanillaPackResources.class.getResource(s);
++    				return isResourceUrlValid(s, url);
++    			}
++    			catch (IOException ioexception1)
++    			{
++    				return false;
++    			}
++    		}
++    	}
+     }
+ 
+     public Set<String> getNamespaces(PackType pType)

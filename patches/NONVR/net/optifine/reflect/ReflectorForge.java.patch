@@ -1,0 +1,17 @@
+--- a/net/optifine/reflect/ReflectorForge.java
++++ b/net/optifine/reflect/ReflectorForge.java
+@@ -73,6 +73,14 @@
+         }
+     }
+ 
++    //Vivecraft I don't know why this uses reflection and at this point I'm too scared to ask
++    public static InputStream getVivecraftResourceStream(String path)
++    {
++         path = StrUtils.removePrefix(path, "/");
++         return (InputStream)Reflector.call(Reflector.VivecraftResourceLocator_getResourceStream, path);
++    }
++    //
++    
+     public static int getLightEmission(BlockState stateIn, BlockAndTintGetter worldIn, BlockPos posIn)
+     {
+         return Reflector.IForgeBlockState_getLightEmission.exists() ? Reflector.callInt(stateIn, Reflector.IForgeBlockState_getLightEmission, worldIn, posIn) : stateIn.getLightEmission();

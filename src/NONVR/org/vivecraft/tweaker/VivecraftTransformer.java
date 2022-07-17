@@ -5,6 +5,8 @@ import cpw.mods.modlauncher.api.ITransformer;
 import cpw.mods.modlauncher.api.ITransformerActivity;
 import cpw.mods.modlauncher.api.ITransformerVotingContext;
 import cpw.mods.modlauncher.api.TransformerVoteResult;
+import cpw.mods.modlauncher.api.ITransformer.Target;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +18,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassReader;
@@ -45,7 +49,6 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
             "net/minecraft/client/Minecraft$ExperimentalDialogType",
             "net/minecraft/server/level/ServerPlayer"
     );
-    
     public TransformerVoteResult castVote(ITransformerVotingContext context)
     {
         return TransformerVoteResult.YES;
@@ -232,6 +235,49 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
         {
             ioexception1.printStackTrace();
             return null;
+        }
+    }
+    
+    //below is just for loading vanillapack resources  
+    public static synchronized InputStream getResourceStream(String name)
+    {
+    	name = LoaderUtils.removePrefix(name, "/");
+    	InputStream inputstream = null;
+    	try {
+    		inputstream = getResourceStreamZip(name);
+    	} catch (URISyntaxException | IOException e) {
+    		System.out.println("failed to get Vivecraft Resource " + name + " " + e.getMessage());
+    	}
+    	return inputstream;
+    }
+    
+    private static synchronized InputStream getResourceStreamZip(String name) throws ZipException, URISyntaxException, IOException
+    {
+        if (LoaderUtils.getVivecraftZip() == null)
+        {
+            return null;
+        }
+        else
+        {
+            name = LoaderUtils.removePrefix(name, "/");
+            ZipEntry zipentry = LoaderUtils.getVivecraftZip().getEntry(name);
+
+            if (zipentry == null)
+            {
+                return null;
+            }
+            else
+            {
+                try
+                {
+                    return LoaderUtils.getVivecraftZip().getInputStream(zipentry);
+                }
+                catch (IOException ioexception)
+                {
+                    ioexception.printStackTrace();
+                    return null;
+                }
+            }
         }
     }
 }

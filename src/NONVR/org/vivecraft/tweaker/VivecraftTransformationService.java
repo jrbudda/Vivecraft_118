@@ -14,10 +14,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 
-import org.vivecraft.tweaker.asm.VivecraftASMTransformer;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import org.vivecraft.tweaker.asm.VivecraftASMTransformer;
 
 import cpw.mods.jarhandling.SecureJar;
 import cpw.mods.modlauncher.api.IEnvironment;
@@ -113,10 +113,7 @@ public class VivecraftTransformationService implements ITransformationService
     {
         if (name.endsWith(".class")) //&& !name.startsWith("org.vivecraft/"))
         {
-        	if(name.contains("org/vivecraft"))
         		name = "vcsrg/" + name;
-        	else
-        		name = "vcsrg/" + name.replace(".class", ".clsrg");
         }
 
         if (transformer == null)
@@ -128,7 +125,10 @@ public class VivecraftTransformationService implements ITransformationService
             ZipEntry zipentry;
 			try {
 				zipentry = LoaderUtils.getVivecraftZip().getEntry(name);
-				
+	            if (zipentry == null)
+	            {
+					zipentry = LoaderUtils.getVivecraftZip().getEntry(name.replace(".class", ".clsrg"));
+	            }				
 
 	            if (zipentry == null)
 	            {
