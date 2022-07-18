@@ -1,0 +1,10 @@
+--- a/net/optifine/shaders/gui/GuiShaders.java
++++ b/net/optifine/shaders/gui/GuiShaders.java
+@@ -108,6 +108,7 @@
+         this.actionPerformed(button, true);
+     }
+ 
++    //Vivecraft this gets eaten in decomp.
+     private void actionPerformed(AbstractWidget guiElement, boolean rightClick)
+     {
+         if (guiElement.active)

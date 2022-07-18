@@ -96,7 +96,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 
 	protected Iterable<ModelPart> bodyParts()
 	{
-        return ImmutableList.of(this.body, this.leftHand, this.rightHand,this.leftShoulder, this.rightShoulder,this.leftShoulder_sleeve, this.rightShoulder_sleeve,  this.rightLeg, this.leftLeg, this.hat, this.leftPants, this.rightPants, this.leftSleeve, this.rightSleeve, this.jacket);
+        return Iterables.concat(super.bodyParts(), ImmutableList.of(this.leftHand, this.rightHand,this.leftShoulder, this.rightShoulder,this.leftShoulder_sleeve, this.rightShoulder_sleeve));
 	}
 
 	public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch)
@@ -232,7 +232,6 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 		this.leftHand.visible = pVisible;
 		this.leftArm.visible = false;
 		this.rightArm.visible = false;
-
 	}
 
 	protected ModelPart getArm(HumanoidArm pSide)

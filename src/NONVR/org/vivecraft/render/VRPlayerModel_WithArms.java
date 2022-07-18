@@ -96,7 +96,7 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 
 	protected Iterable<ModelPart> bodyParts()
 	{
-        return ImmutableList.of(this.body, this.leftHand, this.rightHand,this.leftShoulder, this.rightShoulder,this.leftShoulder_sleeve, this.rightShoulder_sleeve,  this.rightLeg, this.leftLeg, this.hat, this.leftPants, this.rightPants, this.leftSleeve, this.rightSleeve, this.jacket);
+        return Iterables.concat(super.bodyParts(), ImmutableList.of(this.leftHand, this.rightHand,this.leftShoulder, this.rightShoulder,this.leftShoulder_sleeve, this.rightShoulder_sleeve));
 	}
 
 	public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch)
@@ -213,6 +213,11 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 		copyUV(leftShoulder.cubes.get(0).polygons[3], leftHand.cubes.get(0).polygons[3]);
 		copyUV(rightShoulder.cubes.get(0).polygons[3], this.rightHand.cubes.get(0).polygons[2]);	
 		copyUV(leftShoulder.cubes.get(0).polygons[3], leftHand.cubes.get(0).polygons[2]);
+		
+		copyUV(rightShoulder_sleeve.cubes.get(0).polygons[3], this.rightSleeve.cubes.get(0).polygons[3]);	
+		copyUV(leftShoulder_sleeve.cubes.get(0).polygons[3], leftSleeve.cubes.get(0).polygons[3]);
+		copyUV(rightShoulder_sleeve.cubes.get(0).polygons[3], this.rightSleeve.cubes.get(0).polygons[2]);	
+		copyUV(leftShoulder_sleeve.cubes.get(0).polygons[3], leftSleeve.cubes.get(0).polygons[2]);
 	}
 
 	public void setAllVisible(boolean pVisible)
@@ -227,7 +232,6 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
 		this.leftHand.visible = pVisible;
 		this.leftArm.visible = false;
 		this.rightArm.visible = false;
-
 	}
 
 	protected ModelPart getArm(HumanoidArm pSide)

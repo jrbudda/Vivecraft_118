@@ -10,7 +10,7 @@
  {
      private static Minecraft instance;
      private static final Logger LOGGER = LogUtils.getLogger();
-+    public final String minecriftVerString = "Vivecraft 1.18.2  jrbudda-NONVR-3-b7";
++    public final String minecriftVerString = "Vivecraft 1.18.2  jrbudda-NONVR-3-r1";
      public static final boolean ON_OSX = Util.getPlatform() == Util.OS.OSX;
      private static final int MAX_TICKS_PER_UPDATE = 10;
      public static final ResourceLocation DEFAULT_FONT = new ResourceLocation("default");

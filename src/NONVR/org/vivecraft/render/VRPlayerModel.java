@@ -1,5 +1,7 @@
 package org.vivecraft.render;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
@@ -38,8 +40,9 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T>
     {
         super(p_170821_, p_170822_);
         this.slim = p_170822_;
-        this.vrHMD = p_170821_.getChilds("vrHMD");
+        this.vrHMD = new ModelPart(new ArrayList<>(), new HashMap<>());
         this.vrHMD.setTextureSize(16, 16);
+        this.vrHMD.addBox(-3.5F, -6.0F, -7.5F, 7.0F, 4.0F, 5.0F, 0);
         this.vrHMD.setTextureLocation(BLACK_HMD);       
         this.parts = p_170821_.getAllParts().filter((p_170824_) ->
         {
@@ -47,12 +50,9 @@ public class VRPlayerModel<T extends LivingEntity> extends PlayerModel<T>
         }).collect(ImmutableList.toImmutableList());
     }
     
-    public static MeshDefinition createMesh(CubeDeformation p_170826_, boolean p_170827_)
+    protected Iterable<ModelPart> bodyParts()
     {
-    	MeshDefinition meshdefinition = PlayerModel.createMesh(p_170826_, false);
-    	PartDefinition partdefinition = meshdefinition.getRoot();
-    	partdefinition.addOrReplaceChild("vrHMD", CubeListBuilder.create().texOffs(0, 0).addBox(-3.5F, -6.0F, -7.5F, 7.0F, 4.0F, 5.0F, p_170826_), PartPose.ZERO);
-    	return meshdefinition;
+        return Iterables.concat(super.bodyParts(), ImmutableList.of(this.vrHMD));
     }
     
 
