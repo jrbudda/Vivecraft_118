@@ -198,6 +198,8 @@ public class VRSettings
     public boolean firstRun = true;
     @SettingField(VrOptions.RIGHT_CLICK_DELAY)
     public RightClickDelay rightclickDelay = RightClickDelay.VANILLA;
+    @SettingField(VrOptions.THIRDPERSON_ITEMTRANSFORMS)
+    public boolean thirdPersonItems = false;
     //
 
     //Locomotion
@@ -1411,6 +1413,7 @@ public class VRSettings
         ANALOG_MOVEMENT(false, true), // Analog Movement
         AUTO_SPRINT(false, true), // Auto-sprint
         AUTO_SPRINT_THRESHOLD(true, false, 0.5f, 1f, 0.01f, 2), // Auto-sprint Threshold
+        THIRDPERSON_ITEMTRANSFORMS(false, true), // 3rd person items
         BOW_MODE(false, true) { // Roomscale Bow Mode
             @Override
             Object convertOption(String value) {

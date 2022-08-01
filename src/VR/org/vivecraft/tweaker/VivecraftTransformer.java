@@ -246,7 +246,7 @@ public class VivecraftTransformer implements ITransformer<ClassNode>
     	try {
     		inputstream = getResourceStreamZip(name);
     	} catch (URISyntaxException | IOException e) {
-    		System.out.println("failed to get Vivecraft Resource " + name + " " + e.getMessage());
+    		//System.out.println("failed to get Vivecraft Resource " + name + " " + e.getMessage());
     	}
     	return inputstream;
     }

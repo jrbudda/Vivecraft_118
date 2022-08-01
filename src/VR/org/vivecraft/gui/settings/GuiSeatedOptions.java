@@ -26,7 +26,8 @@ public class GuiSeatedOptions extends GuiVROptionsBase
             new VROptionEntry("vivecraft.options.screen.freemove.button", (button, mousePos) -> {
                 this.minecraft.setScreen(new GuiFreeMoveSettings(this));
                 return true;
-            })
+            }),
+            new VROptionEntry(VRSettings.VrOptions.THIRDPERSON_ITEMTRANSFORMS)
     };
 
     public GuiSeatedOptions(Screen guiScreen)

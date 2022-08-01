@@ -2373,7 +2373,7 @@
 +	            vec32 = vec32.normalize();
 +	            RenderPass renderpass = RenderPass.CENTER;
 +	            vec3 = this.minecraft.vrPlayer.vrdata_world_render.getEye(renderpass).getPosition().add(vec32.x * 0.3D * (double)this.minecraft.vrPlayer.vrdata_world_render.worldScale, -0.4D * (double)this.minecraft.vrPlayer.vrdata_world_render.worldScale, vec32.z * 0.3D * (double)this.minecraft.vrPlayer.vrdata_world_render.worldScale);
-+		  
++	            
 +	            if (TelescopeTracker.isTelescope(minecraft.player.getUseItem())){
 +	            	if (c==0 && minecraft.player.getUsedItemHand() == InteractionHand.MAIN_HAND)
 +	            		vec3 = this.minecraft.vrPlayer.vrdata_world_render.eye0.getPosition().add(this.minecraft.vrPlayer.vrdata_world_render.hmd.getDirection().scale(0.2*this.minecraft.vrPlayer.vrdata_world_render.worldScale));

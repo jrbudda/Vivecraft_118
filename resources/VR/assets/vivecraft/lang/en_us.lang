@@ -124,6 +124,7 @@ vivecraft.options.WEAPON_COLLISION=Weapon Collision
 vivecraft.options.ALLOW_CRAWLING=Roomscale Crawling
 vivecraft.options.LIMIT_TELEPORT=Limit in Survival
 vivecraft.options.REVERSE_HANDS=Reverse Hands
+vivecraft.options.THIRDPERSON_ITEMTRANSFORMS=Raw Item Positions
 vivecraft.options.STENCIL_ON=Use Eye Stencil
 vivecraft.options.BCB_ON=Show Body Position
 vivecraft.options.WORLD_SCALE=World Scale
@@ -318,6 +319,12 @@ vivecraft.options.REVERSE_HANDS.tooltip=Swap left/right hands as dominant.\n\
 To swap the buttons, restart the game and make \
 sure default bindings are selected in SteamVR.
 
+vivecraft.options.THIRDPERSON_ITEMTRANSFORMS.tooltip=Determines how held items are transformed.\n\
+  ON: Use thirdperson transforms unmodified\n\
+  OFF: Use firstperson transforms customized\n\
+\n\
+thirdperson transforms may be better for modded items.
+
 vivecraft.options.STENCIL_ON.tooltip=Mask out areas of the screen outside the FOV.\n\
 Improves performance.
 
@@ -498,6 +505,7 @@ vivecraft.options.mirrormode.firstperson=1st Person (slow)
 vivecraft.options.mirrormode.thirdperson=3rd Person (slow)
 vivecraft.options.mirrormode.mixedreality=Mixed Reality (slow)
 vivecraft.options.mirrormode.cropped=Cropped (fast)
+vivecraft.options.mirrormode.gui=2D GUI
 vivecraft.options.left=Left
 vivecraft.options.right=Right
 vivecraft.options.color.black=Black

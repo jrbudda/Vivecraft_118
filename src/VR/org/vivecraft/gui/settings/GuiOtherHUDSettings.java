@@ -16,7 +16,7 @@ public class GuiOtherHUDSettings extends GuiVROptionsBase
             VRSettings.VrOptions.CROSSHAIR_OCCLUSION,
             VRSettings.VrOptions.CROSSHAIR_SCALES_WITH_DISTANCE,
             VRSettings.VrOptions.CHAT_NOTIFICATIONS
-    };
+            };
     static VRSettings.VrOptions[] chat = new VRSettings.VrOptions[] {
             VRSettings.VrOptions.CHAT_NOTIFICATION_SOUND
     };
