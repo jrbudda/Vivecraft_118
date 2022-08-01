@@ -42,7 +42,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static final boolean ALLOW_FORGE_INSTALL  = true;
     private static final boolean ALLOW_FORGE_EXTRACT  = true;
     private static final boolean DEFAULT_FORGE_INSTALL= false;
-    private static final boolean ALLOW_KATVR_INSTALL  = true;
+    private static final boolean ALLOW_KATVR_INSTALL  = false;
     private static final boolean ALLOW_KIOSK_INSTALL  = true;
     private static final boolean ALLOW_HRTF_INSTALL   = false;
     private static final boolean PROMPT_REMOVE_HRTF   = false;
