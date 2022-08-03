@@ -1689,13 +1689,9 @@
 			},
 			"rules": [
 				{
-					"action": "allow"
-				},
-				{
-					"action": "disallow",
+					"action": "allow",
 					"os": {
-						"name": "linux",
-						"name": "osx"
+						"name": "windows"
 					}
 				}
 			]
