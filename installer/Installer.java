@@ -42,7 +42,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static final boolean ALLOW_FORGE_INSTALL  = true;
     private static final boolean ALLOW_FORGE_EXTRACT  = true;
     private static final boolean DEFAULT_FORGE_INSTALL= false;
-    private static final boolean ALLOW_KATVR_INSTALL  = false;
+    private static final boolean ALLOW_KATVR_INSTALL  = true;
     private static final boolean ALLOW_KIOSK_INSTALL  = true;
     private static final boolean ALLOW_HRTF_INSTALL   = false;
     private static final boolean PROMPT_REMOVE_HRTF   = false;
@@ -254,9 +254,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		actf2.putValue(AbstractAction.NAME, "Custom Version");
 		optCustomForgeVersion.setAction(actf2);
 
-		txtCustomForgeVersion = new JTextField(FORGE_VERSION);
+		txtCustomForgeVersion = new JTextField(FORGE_VERSION + "(Required)");
 		txtCustomForgeVersion.setMaximumSize(new Dimension(100,20));
-		forgePanel.add(optCustomForgeVersion);
+		//forgePanel.add(optCustomForgeVersion);
 		forgePanel.add(txtCustomForgeVersion);
 		//forgePanel.add(forgeVersion);
 
