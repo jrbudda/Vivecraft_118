@@ -61,7 +61,7 @@
  import net.minecraft.world.level.block.entity.CommandBlockEntity;
  import net.minecraft.world.level.block.entity.JigsawBlockEntity;
  import net.minecraft.world.level.block.entity.SignBlockEntity;
-@@ -80,6 +100,7 @@
+@@ -80,9 +100,23 @@
  import net.minecraft.world.phys.Vec3;
  import net.minecraft.world.phys.shapes.CollisionContext;
  import net.minecraft.world.phys.shapes.VoxelShape;
@@ -69,10 +69,11 @@
  
  public class LocalPlayer extends AbstractClientPlayer
  {
-@@ -110,6 +131,13 @@
-     public Input input;
-     protected final Minecraft minecraft;
-     protected int sprintTriggerTime;
++    //Vivecraft
++    HashMap<Pair<Short, Integer>, TransactionMutex> pendingTransactions = new HashMap<>();
++    private boolean snapReq = false;
++    public String lastMsg = null;
++    private Vec3 moveMulIn;
 +    public int movementTeleportTimer;
 +    public boolean initFromServer;
 +    public boolean teleported;
@@ -80,45 +81,23 @@
 +    public double additionZ = 0.0D;
 +    public double additionY = 0.0D;
 +    public final float PIOVER180 = ((float)Math.PI / 180F);
-     public int sprintTime;
-     public float yBob;
-     public float xBob;
-@@ -128,6 +156,10 @@
++    //
+     private static final int POSITION_REMINDER_INTERVAL = 20;
+     private static final int WATER_VISION_MAX_TIME = 600;
+     private static final int WATER_VISION_QUICK_TIME = 100;
+@@ -128,7 +162,7 @@
      private boolean wasFallFlying;
      private int waterVisionTime;
      private boolean showDeathScreen = true;
-+    HashMap<Pair<Short, Integer>, TransactionMutex> pendingTransactions = new HashMap<>();
-+    private boolean snapReq = false;
-+    public String lastMsg = null;
-+    private Vec3 moveMulIn;
- 
+-
++       
      public LocalPlayer(Minecraft pMinecraft, ClientLevel pClientLevel, ClientPacketListener pConnection, StatsCounter pStats, ClientRecipeBook pRecipeBook, boolean pWasShiftKeyDown, boolean pWasSprinting)
      {
-@@ -143,6 +175,102 @@
+         super(pClientLevel, pConnection.getLocalGameProfile());
+@@ -143,6 +177,81 @@
          this.ambientSoundHandlers.add(new BiomeAmbientSoundsHandler(this, pMinecraft.getSoundManager(), pClientLevel.getBiomeManager()));
      }
  
-+    public void setItemInUseClient(ItemStack item, InteractionHand hand)
-+    {
-+        this.useItem = item;
-+
-+        if (item != ItemStack.EMPTY)
-+        {
-+            this.startedUsingItem = true;
-+            this.usingItemHand = hand;
-+        }
-+        else
-+        {
-+            this.startedUsingItem = false;
-+            this.usingItemHand = hand;
-+        }
-+    }
-+
-+    public void setItemInUseCountClient(int count)
-+    {
-+        this.useItemRemaining = count;
-+    }
-+
 +    //physical inventory in shambles
 +//    public boolean windowClickSynced(final int windowId, int slotId, int mouseButton, ClickType type, final long timeout)
 +//    {
@@ -172,62 +151,79 @@
 +//        }
 +//    }
 +
-+    public void confirmTransaction(short transactionID, int windowId, boolean approved)
-+    {
-+        TransactionMutex transactionmutex = this.pendingTransactions.get(Pair.of(transactionID, windowId));
-+
-+        if (transactionmutex != null)
-+        {
-+            synchronized (transactionmutex)
-+            {
-+                if (transactionmutex.consumed)
-+                {
-+                    return;
-+                }
-+
-+                transactionmutex.watchdog.interrupt();
-+                this.pendingTransactions.remove(Pair.of(transactionID, windowId));
-+                transactionmutex.approved = approved;
-+                transactionmutex.consumed = true;
-+                transactionmutex.notifyAll();
-+            }
-+        }
-+    }
++//    public void confirmTransaction(short transactionID, int windowId, boolean approved)
++//    {
++//        TransactionMutex transactionmutex = this.pendingTransactions.get(Pair.of(transactionID, windowId));
++//
++//        if (transactionmutex != null)
++//        {
++//            synchronized (transactionmutex)
++//            {
++//                if (transactionmutex.consumed)
++//                {
++//                    return;
++//                }
++//
++//                transactionmutex.watchdog.interrupt();
++//                this.pendingTransactions.remove(Pair.of(transactionID, windowId));
++//                transactionmutex.approved = approved;
++//                transactionmutex.consumed = true;
++//                transactionmutex.notifyAll();
++//            }
++//        }
++//    }
 +
      public boolean hurt(DamageSource pSource, float pAmount)
      {
          return false;
-@@ -166,6 +294,8 @@
+@@ -165,7 +274,10 @@
+                 this.minecraft.getSoundManager().play(new RidingMinecartSoundInstance(this, (AbstractMinecart)pEntity, true));
                  this.minecraft.getSoundManager().play(new RidingMinecartSoundInstance(this, (AbstractMinecart)pEntity, false));
              }
- 
+-
++            //Vivecraft
 +            this.minecraft.vehicleTracker.onStartRiding(pEntity, this);
 +            this.snapReq = true;
++            //
              return true;
          }
      }
-@@ -174,6 +304,7 @@
+@@ -174,6 +286,9 @@
      {
          super.removeVehicle();
          this.handsBusy = false;
++        //Vivecraft
 +        this.minecraft.vehicleTracker.onStopRiding(this);
++        //
      }
  
      public float getViewXRot(float pPartialTick)
-@@ -191,6 +322,8 @@
+@@ -190,8 +305,18 @@
+     {
          if (this.level.hasChunkAt(this.getBlockX(), this.getBlockZ()))
          {
-             super.tick();
-+            NetworkHelper.overridePose(this);
++        	//Vivecraft
 +            this.minecraft.vrPlayer.doPermanantLookOverride(this, this.minecraft.vrPlayer.vrdata_world_pre);
- 
++            //
++            
+             super.tick();
+-
++            
++        	//Vivecraft        
++            NetworkHelper.overridePose(this);
++            //I dunno if twice is necessary
++            this.minecraft.vrPlayer.doPermanantLookOverride(this, this.minecraft.vrPlayer.vrdata_world_pre);
++            //
++            
              if (this.isPassenger())
              {
-@@ -259,7 +392,20 @@
+                 this.connection.send(new ServerboundMovePlayerPacket.Rot(this.getYRot(), this.getXRot(), this.onGround));
+@@ -259,7 +384,22 @@
              boolean flag1 = Mth.lengthSquared(d4, d0, d1) > Mth.square(2.0E-4D) || this.positionReminder >= 20;
              boolean flag2 = d2 != 0.0D || d3 != 0.0D;
  
 -            if (this.isPassenger())
++            //Vivecraft
 +            if (this.teleported)
 +            {
 +                this.teleported = false;
@@ -241,28 +237,33 @@
 +                ServerboundCustomPayloadPacket serverboundcustompayloadpacket = NetworkHelper.getVivecraftClientPacket(NetworkHelper.PacketDiscriminators.TELEPORT, abyte);
 +                this.connection.send(serverboundcustompayloadpacket);
 +            }
++            //
 +            else if (this.isPassenger())
              {
                  Vec3 vec3 = this.getDeltaMovement();
                  this.connection.send(new ServerboundMovePlayerPacket.PosRot(vec3.x, -999.0D, vec3.z, this.getYRot(), this.getXRot(), this.onGround));
-@@ -297,6 +443,12 @@
+@@ -297,6 +437,14 @@
              }
  
              this.lastOnGround = this.onGround;
 +
++            //Vivecraft
 +            if (this.minecraft.vrSettings.walkUpBlocks)
 +            {
 +                this.minecraft.options.autoJump = false;
 +            }
++            //
 +
              this.autoJumpEnabled = this.minecraft.options.autoJump;
          }
      }
-@@ -312,10 +464,29 @@
+@@ -312,10 +460,33 @@
      public void chat(String pMessage)
      {
          this.connection.send(new ServerboundChatPacket(pMessage));
++        //Vivecraft
 +        this.lastMsg = pMessage;
++        //
 +    }
 +
 +    public void swingArm(InteractionHand hand, VRFirstPersonArmSwing animation)
@@ -273,6 +274,7 @@
  
      public void swing(InteractionHand pHand)
      {
++    	//Vivecraft
 +        if (!this.swinging)
 +        {
 +            if (this.minecraft.hitResult != null && this.minecraft.hitResult.getType() != net.minecraft.world.phys.HitResult.Type.MISS)
@@ -284,15 +286,17 @@
 +                this.minecraft.getItemInHandRenderer().xdist = 0.0F;
 +            }
 +        }
++        //
 +
          super.swing(pHand);
          this.connection.send(new ServerboundSwingPacket(pHand));
      }
-@@ -552,7 +723,23 @@
+@@ -552,7 +723,25 @@
  
      public void playSound(SoundEvent pSound, float pVolume, float pPitch)
      {
 -        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), pSound, this.getSoundSource(), pVolume, pPitch, false);
++    	//Forge
 +        SoundSource soundsource = this.getSoundSource();
 +
 +        if (Reflector.ForgeEventFactory_onPlaySoundAtEntity.exists())
@@ -310,10 +314,11 @@
 +        }
 +
 +        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), pSound, soundsource, pVolume, pPitch, false);
++        //
      }
  
      public void playNotifySound(SoundEvent p_108655_, SoundSource p_108656_, float p_108657_, float p_108658_)
-@@ -747,6 +934,7 @@
+@@ -747,6 +936,7 @@
          boolean flag2 = this.hasEnoughImpulseToStartSprinting();
          this.crouching = !this.getAbilities().flying && !this.isSwimming() && this.canEnterPose(Pose.CROUCHING) && (this.isShiftKeyDown() || !this.isSleeping() && !this.canEnterPose(Pose.STANDING));
          this.input.tick(this.isMovingSlowly());
@@ -321,38 +326,9 @@
          this.minecraft.getTutorial().onInput(this.input);
  
          if (this.isUsingItem() && !this.isPassenger())
-@@ -815,7 +1003,7 @@
-             }
-         }
+@@ -846,12 +1036,19 @@
  
--        boolean flag7 = false;
-+        boolean flag8 = false;
- 
-         if (this.getAbilities().mayfly)
-         {
-@@ -824,7 +1012,7 @@
-                 if (!this.getAbilities().flying)
-                 {
-                     this.getAbilities().flying = true;
--                    flag7 = true;
-+                    flag8 = true;
-                     this.onUpdateAbilities();
-                 }
-             }
-@@ -837,21 +1025,28 @@
-                 else if (!this.isSwimming())
-                 {
-                     this.getAbilities().flying = !this.getAbilities().flying;
--                    flag7 = true;
-+                    flag8 = true;
-                     this.onUpdateAbilities();
-                     this.jumpTriggerTime = 0;
-                 }
-             }
-         }
- 
--        if (this.input.jumping && !flag7 && !flag && !this.getAbilities().flying && !this.isPassenger() && !this.onClimbable())
-+        if (this.input.jumping && !flag8 && !flag && !this.getAbilities().flying && !this.isPassenger() && !this.onClimbable())
+         if (this.input.jumping && !flag7 && !flag && !this.getAbilities().flying && !this.isPassenger() && !this.onClimbable())
          {
 -            ItemStack itemstack = this.getItemBySlot(EquipmentSlot.CHEST);
 -
@@ -373,16 +349,22 @@
          }
  
          this.wasFallFlying = this.isFallFlying();
-@@ -937,6 +1132,7 @@
+@@ -937,7 +1134,9 @@
          }
  
          super.aiStep();
+-
++        //Vivecraft
 +        this.minecraft.vrPlayer.tick(this, this.minecraft, this.random);
- 
++        //
          if (this.onGround && this.getAbilities().flying && !this.minecraft.gameMode.isAlwaysFlying())
          {
-@@ -1042,10 +1238,67 @@
+             this.getAbilities().flying = false;
+@@ -1040,12 +1239,58 @@
+         return super.removeEffectNoUpdate(pPotioneffectin);
+     }
  
++    //Vivecraft heavily modify
      public void move(MoverType pType, Vec3 pPos)
      {
 -        double d0 = this.getX();
@@ -438,29 +420,17 @@
 +        {
 +            super.move(pType, pPos);
 +        }
-+    }
-+
-+    public double getRoomYOffsetFromPose()
-+    {
-+        double d0 = 0.0D;
-+
-+        if (this.getPose() == Pose.FALL_FLYING || this.getPose() == Pose.SPIN_ATTACK || this.getPose() == Pose.SWIMMING && !this.minecraft.crawlTracker.crawlsteresis)
-+        {
-+            d0 = -1.2D;
-+        }
-+
-+        return d0;
      }
  
      public boolean isAutoJumpEnabled()
-@@ -1062,14 +1315,18 @@
+@@ -1062,14 +1307,20 @@
              Vec3 vec32 = new Vec3((double)pMovementX, 0.0D, (double)pMovementZ);
              float f = this.getSpeed();
              float f1 = (float)vec32.lengthSqr();
 -
-+            //VIVE
++            //Vivecraft
 +            float yaw = Minecraft.getInstance().vrPlayer.vrdata_world_pre.getBodyYaw();
-+               
++            //
              if (f1 <= 0.001F)
              {
                  Vec2 vec2 = this.input.getMoveVector();
@@ -468,40 +438,16 @@
                  float f3 = f * vec2.y;
 -                float f4 = Mth.sin(this.getYRot() * ((float)Math.PI / 180F));
 -                float f5 = Mth.cos(this.getYRot() * ((float)Math.PI / 180F));
++                //Vivecraft
 +                //float f4 = Mth.sin(this.getYRot() * ((float)Math.PI / 180F));
 +                //float f5 = Mth.cos(this.getYRot() * ((float)Math.PI / 180F));
 +                float f4 = Mth.sin(yaw * 0.017453292F);
 +                float f5 = Mth.cos(yaw * 0.017453292F);
++                //
                  vec32 = new Vec3((double)(f2 * f5 - f3 * f4), vec32.y, (double)(f3 * f5 + f2 * f4));
                  f1 = (float)vec32.lengthSqr();
  
-@@ -1079,12 +1336,12 @@
-                 }
-             }
- 
--            float f12 = Mth.fastInvSqrt(f1);
--            Vec3 vec312 = vec32.scale((double)f12);
-+            float f13 = Mth.fastInvSqrt(f1);
-+            Vec3 vec312 = vec32.scale((double)f13);
-             Vec3 vec313 = this.getForward();
--            float f13 = (float)(vec313.x * vec312.x + vec313.z * vec312.z);
-+            float f14 = (float)(vec313.x * vec312.x + vec313.z * vec312.z);
- 
--            if (!(f13 < -0.15F))
-+            if (!(f14 < -0.15F))
-             {
-                 CollisionContext collisioncontext = CollisionContext.of(this);
-                 BlockPos blockpos = new BlockPos(this.getX(), this.getBoundingBox().maxY, this.getZ());
-@@ -1105,7 +1362,7 @@
-                             f7 += (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1) * 0.75F;
-                         }
- 
--                        float f8 = Math.max(f * 7.0F, 1.0F / f12);
-+                        float f8 = Math.max(f * 7.0F, 1.0F / f13);
-                         Vec3 vec34 = vec31.add(vec312.scale((double)f8));
-                         float f9 = this.getBbWidth();
-                         float f10 = this.getBbHeight();
-@@ -1131,11 +1388,11 @@
+@@ -1131,7 +1382,7 @@
  
                              if (aabb1.intersects(vec37, vec38) || aabb1.intersects(vec39, vec310))
                              {
@@ -510,40 +456,22 @@
                                  Vec3 vec311 = aabb1.getCenter();
                                  BlockPos blockpos1 = new BlockPos(vec311);
  
--                                for (int i = 1; (float)i < f7; ++i)
-+                                for (int i = 1; (float)i < f8; ++i)
-                                 {
-                                     BlockPos blockpos2 = blockpos1.above(i);
-                                     BlockState blockstate2 = this.level.getBlockState(blockpos2);
-@@ -1143,9 +1400,9 @@
+@@ -1143,7 +1394,7 @@
  
                                      if (!(voxelshape = blockstate2.getCollisionShape(this.level, blockpos2, collisioncontext)).isEmpty())
                                      {
 -                                        f11 = (float)voxelshape.max(Direction.Axis.Y) + (float)blockpos2.getY();
 +                                    	f11 = (float)voxelshape.max(Direction.Axis.Y) + (float)blockpos2.getY();
  
--                                        if ((double)f11 - this.getY() > (double)f7)
-+                                        if ((double)f11 - this.getY() > (double)f8)
+                                         if ((double)f11 - this.getY() > (double)f7)
                                          {
-                                             return;
-                                         }
-@@ -1169,9 +1426,9 @@
- 
-                         if (f11 != Float.MIN_VALUE)
-                         {
--                            float f14 = (float)((double)f11 - this.getY());
-+                            float f15 = (float)((double)f11 - this.getY());
- 
--                            if (!(f14 <= 0.5F) && !(f14 > f7))
-+                            if (!(f15 <= 0.5F) && !(f15 > f8))
-                             {
-                                 this.autoJumpTime = 1;
-                             }
-@@ -1296,4 +1553,359 @@
+@@ -1296,4 +1547,399 @@
      {
          this.minecraft.getTutorial().onInventoryAction(p_172532_, p_172533_, p_172534_);
      }
 +
++    //Vivecraft Additions Below
++    @Override
 +    public void moveTo(double pX, double p_20109_, double pY, float p_20111_, float pZ)
 +    {
 +        super.moveTo(pX, p_20109_, pY, p_20111_, pZ);
@@ -553,7 +481,7 @@
 +            this.minecraft.vrPlayer.snapRoomOriginToPlayerEntity(this, false, false);
 +        }
 +    }
-+
++    @Override
 +    public void absMoveTo(double pX, double p_19892_, double pY, float p_19894_, float pZ)
 +    {
 +        super.absMoveTo(pX, p_19892_, pY, p_19894_, pZ);
@@ -565,7 +493,7 @@
 +            this.initFromServer = true;
 +        }
 +    }
-+
++    @Override
 +    public void setPos(double pX, double p_20211_, double pY)
 +    {
 +        double d0 = this.getX();
@@ -617,11 +545,13 @@
 +        this.setDeltaMovement(this.getDeltaMovement().x * d0, this.getDeltaMovement().y, this.getDeltaMovement().z * d1);
 +    }
 +
++    
 +    public double getBoundedAddition(double orig)
 +    {
 +        return orig >= -1.0E-6D && orig <= 1.0E-6D ? 1.0E-6D : orig;
 +    }
 +
++    @Override
 +    public void moveRelative(float pAmount, Vec3 pRelative)
 +    {
 +        double d0 = pRelative.y;
@@ -765,12 +695,13 @@
 +            }
 +        }
 +    }
-+
++    
 +    private boolean isThePlayer()
 +    {
 +        return this == Minecraft.getInstance().player;
 +    }
-+
++    
++    @Override
 +    protected void triggerItemUseEffects(ItemStack pStack, int pCount)
 +    {
 +        if (!pStack.isEmpty() && this.isUsingItem())
@@ -787,6 +718,7 @@
 +            }
 +        }
 +    }
++    
 +
 +    private void addItemParticles(ItemStack stack, int count)
 +    {
@@ -829,7 +761,7 @@
 +            return this.getOffhandItem() != null && this.minecraft.climbTracker.isClaws(this.getOffhandItem());
 +        }
 +    }
-+
++    @Override
 +    public void die(DamageSource pCause)
 +    {
 +        super.die(pCause);
@@ -871,7 +803,8 @@
 +        this.wasSprinting = old.wasSprinting;
 +        this.positionReminder = old.positionReminder;
 +    }
-+
++    
++    @Override
 +    public ItemStack eat(Level p_36185_, ItemStack p_36186_)
 +    {
 +        if (p_36186_.isEdible() && this == Minecraft.getInstance().player && p_36186_.getHoverName().getString().equals("EAT ME"))
@@ -892,10 +825,43 @@
 +    {
 +        return this.moveMulIn.lengthSqr() > 0.0D ? (float)((double)this.getBlockSpeedFactor() * (this.moveMulIn.x + this.moveMulIn.z) / 2.0D) : this.getBlockSpeedFactor();
 +    }
-+
++    @Override
 +    public void releaseUsingItem()
 +    {
 +        NetworkHelper.sendActiveHand((byte)this.getUsedItemHand().ordinal());
 +        super.releaseUsingItem();
++    }
++    
++     public void setItemInUseClient(ItemStack item, InteractionHand hand)
++    {
++        this.useItem = item;
++
++        if (item != ItemStack.EMPTY)
++        {
++            this.startedUsingItem = true;
++            this.usingItemHand = hand;
++        }
++        else
++        {
++            this.startedUsingItem = false;
++            this.usingItemHand = hand;
++        }
++    }
++    
++    public void setItemInUseCountClient(int count)
++    {
++        this.useItemRemaining = count;
++    }
++    
++    public double getRoomYOffsetFromPose()
++    {
++        double d0 = 0.0D;
++
++        if (this.getPose() == Pose.FALL_FLYING || this.getPose() == Pose.SPIN_ATTACK || this.getPose() == Pose.SWIMMING && !this.minecraft.crawlTracker.crawlsteresis)
++        {
++            d0 = -1.2D;
++        }
++
++        return d0;
 +    }
  }

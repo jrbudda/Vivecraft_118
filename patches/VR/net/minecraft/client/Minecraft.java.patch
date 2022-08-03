@@ -199,7 +199,7 @@
 +    private boolean lastClick;
 +    public boolean resourcePacksChanged;
 +    public int tickCounter;
-+    public final String minecriftVerString = "Vivecraft 1.18.2  jrbudda-VR-3-r3";
++    public final String minecriftVerString = "Vivecraft 1.18.2  jrbudda-VR-3-r4";
      public static final boolean ON_OSX = Util.getPlatform() == Util.OS.OSX;
      private static final int MAX_TICKS_PER_UPDATE = 10;
      public static final ResourceLocation DEFAULT_FONT = new ResourceLocation("default");
