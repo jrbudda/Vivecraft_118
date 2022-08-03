@@ -962,7 +962,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 				}
 
 				// Need to attempt download...
-				success = downloadFile("http://vivecraft.org/jar/Optifine/OptiFine-" + OF_FILE_NAME + "_LIB" + OF_VERSION_EXT, fo);
+				success = downloadFile("https://vivecraft.org/jar/Optifine/OptiFine-" + OF_FILE_NAME + "_LIB" + OF_VERSION_EXT, fo);
 				// Check (potentially) downloaded optifine md5
 				optOnDiskMd5 = GetMd5(fo);
 				if (success == false || optOnDiskMd5 == null || !optOnDiskMd5.equalsIgnoreCase(OF_MD5)) {
