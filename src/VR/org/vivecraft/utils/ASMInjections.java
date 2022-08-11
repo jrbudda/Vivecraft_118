@@ -2,7 +2,9 @@ package org.vivecraft.utils;
 
 import java.util.Map;
 import java.util.Random;
+import java.util.function.Consumer;
 
+import com.google.common.collect.ImmutableMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.NonNullList;
@@ -27,8 +29,6 @@ import net.minecraft.world.phys.Vec3;
 import org.vivecraft.api.NetworkHelper;
 import org.vivecraft.api.ServerVivePlayer;
 import org.vivecraft.api.VRData;
-
-import com.google.common.collect.ImmutableMap.Builder;
 
 public class ASMInjections
 {
@@ -156,8 +156,15 @@ public class ASMInjections
         }
     }
 
-    public static void injectItems(Map map) {
+    public static void injectItems(Map<RecipeType<?>, ImmutableMap.Builder<ResourceLocation, Recipe<?>>> map, ImmutableMap.Builder<ResourceLocation, Recipe<?>> builder) {
         //VIVECRAFT - This prolly cant stay here. Move to .json files someday.
+        Consumer<Recipe<?>> putRecipe = recipe -> {
+            map.computeIfAbsent(recipe.getType(), key -> {
+                return ImmutableMap.builder();
+            }).put(recipe.getId(), recipe);
+            builder.put(recipe.getId(), recipe);
+        };
+
         ItemStack is = new ItemStack(Items.LEATHER_BOOTS);
         is.setHoverName(new TranslatableComponent("vivecraft.item.jumpboots"));
         is.getOrCreateTag().putBoolean("Unbreakable", true);
@@ -171,11 +178,8 @@ public class ASMInjections
         ShapedRecipe boot = new ShapedRecipe(new ResourceLocation("jumpboots"),"Vivecraft", 1, 2, NonNullList.a(Ingredient.EMPTY,Ingredient.a(Items.LEATHER_BOOTS), Ingredient.a(new ItemStack(Blocks.SLIME_BLOCK))), is);
         ShapedRecipe claw = new ShapedRecipe(new ResourceLocation("climbclaws"),"Vivecraft", 3, 2, NonNullList.a(Ingredient.EMPTY,Ingredient.a(Items.SPIDER_EYE),Ingredient.EMPTY,Ingredient.a(Items.SPIDER_EYE),Ingredient.a(Items.SHEARS),Ingredient.EMPTY,Ingredient.a(Items.SHEARS)), is2);
 
-        if (map.containsKey(boot.getType())) {
-        	Map <RecipeType<?>, Builder <ResourceLocation, Recipe<?>>> map1 = map;
-        	(map1.get(boot.getType())).put(boot.getId(), boot);
-        	(map1.get(claw.getType())).put(claw.getId(), claw);
-        }
+        putRecipe.accept(boot);
+        putRecipe.accept(claw);
     }
 
     public static boolean checkEatMe(boolean canEat, ItemStack itemStack) {

@@ -257,21 +257,15 @@
              this.autoJumpEnabled = this.minecraft.options.autoJump;
          }
      }
-@@ -312,10 +460,33 @@
+@@ -312,10 +460,26 @@
      public void chat(String pMessage)
      {
          this.connection.send(new ServerboundChatPacket(pMessage));
 +        //Vivecraft
 +        this.lastMsg = pMessage;
 +        //
-+    }
-+
-+    public void swingArm(InteractionHand hand, VRFirstPersonArmSwing animation)
-+    {
-+        this.minecraft.getItemInHandRenderer().swingType = animation;
-+        this.swing(hand);
      }
- 
+-
      public void swing(InteractionHand pHand)
      {
 +    	//Vivecraft
@@ -291,7 +285,7 @@
          super.swing(pHand);
          this.connection.send(new ServerboundSwingPacket(pHand));
      }
-@@ -552,7 +723,25 @@
+@@ -552,7 +716,25 @@
  
      public void playSound(SoundEvent pSound, float pVolume, float pPitch)
      {
@@ -318,7 +312,7 @@
      }
  
      public void playNotifySound(SoundEvent p_108655_, SoundSource p_108656_, float p_108657_, float p_108658_)
-@@ -747,6 +936,7 @@
+@@ -747,6 +929,7 @@
          boolean flag2 = this.hasEnoughImpulseToStartSprinting();
          this.crouching = !this.getAbilities().flying && !this.isSwimming() && this.canEnterPose(Pose.CROUCHING) && (this.isShiftKeyDown() || !this.isSleeping() && !this.canEnterPose(Pose.STANDING));
          this.input.tick(this.isMovingSlowly());
@@ -326,7 +320,7 @@
          this.minecraft.getTutorial().onInput(this.input);
  
          if (this.isUsingItem() && !this.isPassenger())
-@@ -846,12 +1036,19 @@
+@@ -846,12 +1029,19 @@
  
          if (this.input.jumping && !flag7 && !flag && !this.getAbilities().flying && !this.isPassenger() && !this.onClimbable())
          {
@@ -349,7 +343,7 @@
          }
  
          this.wasFallFlying = this.isFallFlying();
-@@ -937,7 +1134,9 @@
+@@ -937,7 +1127,9 @@
          }
  
          super.aiStep();
@@ -360,7 +354,7 @@
          if (this.onGround && this.getAbilities().flying && !this.minecraft.gameMode.isAlwaysFlying())
          {
              this.getAbilities().flying = false;
-@@ -1040,12 +1239,58 @@
+@@ -1040,12 +1232,58 @@
          return super.removeEffectNoUpdate(pPotioneffectin);
      }
  
@@ -423,7 +417,7 @@
      }
  
      public boolean isAutoJumpEnabled()
-@@ -1062,14 +1307,20 @@
+@@ -1062,14 +1300,20 @@
              Vec3 vec32 = new Vec3((double)pMovementX, 0.0D, (double)pMovementZ);
              float f = this.getSpeed();
              float f1 = (float)vec32.lengthSqr();
@@ -447,7 +441,7 @@
                  vec32 = new Vec3((double)(f2 * f5 - f3 * f4), vec32.y, (double)(f3 * f5 + f2 * f4));
                  f1 = (float)vec32.lengthSqr();
  
-@@ -1131,7 +1382,7 @@
+@@ -1131,7 +1375,7 @@
  
                              if (aabb1.intersects(vec37, vec38) || aabb1.intersects(vec39, vec310))
                              {
@@ -456,7 +450,7 @@
                                  Vec3 vec311 = aabb1.getCenter();
                                  BlockPos blockpos1 = new BlockPos(vec311);
  
-@@ -1143,7 +1394,7 @@
+@@ -1143,7 +1387,7 @@
  
                                      if (!(voxelshape = blockstate2.getCollisionShape(this.level, blockpos2, collisioncontext)).isEmpty())
                                      {
@@ -465,7 +459,7 @@
  
                                          if ((double)f11 - this.getY() > (double)f7)
                                          {
-@@ -1296,4 +1547,399 @@
+@@ -1296,4 +1540,404 @@
      {
          this.minecraft.getTutorial().onInventoryAction(p_172532_, p_172533_, p_172534_);
      }
@@ -863,5 +857,10 @@
 +        }
 +
 +        return d0;
++    }
++    public void swingArm(InteractionHand hand, VRFirstPersonArmSwing animation)
++    {
++        this.minecraft.getItemInHandRenderer().swingType = animation;
++        this.swing(hand);
 +    }
  }
